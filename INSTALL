@@ -1,123 +1,163 @@
+These instructions are for UNIX-like systems (including Linux, Cygwin
+and MSys) only.  If Microsoft Developer Studio projects are
+maintained for this package, you can find instructions at
+
+  https://projects.coin-or.org/MSDevStudio
+
+**********************************************************************
+***                         DOWNLOAD                               ***
+**********************************************************************
+
+You can obtain the source code for the Alps package in two ways:
+
+1. Obtain the source directly from the COIN-OR subversion repository
+   (recommended).  For this you needs the program 'svn' installed on
+   your machine, and output of "svn --version" must contain 
+   "handles 'https' scheme".
+
+   Assuming that you want to download the code into a subdirectory
+   "COIN-Alps", you type
+
+   svn co https://projects.coin-or.org/svn/Alps/trunk Coin-Alps
+
+2. Download the tarball from http://www.coin-or.org/Tarballs/Alps and
+   extract it, for example, with
+
+   gunzip Alps_2006Jun07.tgz
+   tar xvf Alps_2006Jun07.tar
+
+   (Here "2006Jun07" is of course replaced by the string in the
+   tarball you downloaded.)
+
+   More detailed download instructions can be found at
+
+   https://projects.coin-or.org/BuildTools/wiki/user-download
+
+**********************************************************************
+***                        CONFIGURATION                           ***
+**********************************************************************
+
+Go into the directory that you just downloaded or extracted (e.g.,
+Coin-Alps or Alps_2006Jun07).  Then you type
+
+   ./configure
+
+Note that you might have to specify additional options, in case you
+don't want to use the default choices that configure makes (e.g.,
+compilers).  Please visit
+
+   https://projects.coin-or.org/BuildTools/wiki/user-configure
+
+and the Alps Trac page
+
+   https://projects.coin-or.org/Alps
+
+for more information.
+
+If everything went fine, you will see at the end of the output
+
+   "Main configuration of Alps successful"
+
+**********************************************************************
+***                COMPILATION AND INSTALLATION                    ***
+**********************************************************************
+
+In the directory where you ran the configure script:
+
+1. Compile the code by typing
+
+   make
+
+2. To test if the code works, you can type
+
+   make test
+
+3. To install the code, you type
+
+   make install
+
+   After this, you will find the executables, libraries and header
+   files in the "bin", "lib" and "include" subdirectory, respectively.
+
+More information on the compilation and installation can be found at
+
+   https://projects.coin-or.org/BuildTools/wiki/user-compile
+
+**********************************************************************
+***                     USING THE LIBRARIES                        ***
+**********************************************************************
+
+Now you can link your own code with the installed libraries.  You can
+find examples in the
+
+   Alps/examples/
+
+subdirectory, see also the information at
+
+   https://projects.coin-or.org/BuildTools/wiki/user-examples
+
+
+
+==== 8< ======================================================
+
+From here on you find the original installation instructions for the
+previous GNU Makefile build system.  Most details have changed, but
+for now we keep it here so that possibly missing items might be found
+here.
+
 PREREQUISITES FOR INSTALLATION
 ==============================
 
 NOTE: CoinDir is the path to the directory of COIN
 NOTE: AlpsDir is the path to the directory of COIN/Alps
-NOTE: AbcDir is the path to the directory of COIN/Example/Abc
-NOTE: TargetDir is the path to the directory where targets are put in,
-      whose name is derived from the platform name (as returned by `uname`)
-      and the optimization level (e.g., AbcDir/Linux-g or AbcDir/Linux-O)
 
 1. Download the necessary components (Alps, Coin, Clp, Osi, Cgl) of COIN
    - Alps depends on Coin.
-   - Abc depends on Coin, Clp, Osi, Cgl
+   - Example CoinDir/Examples/Knap depends on Coin
+   - Example CoinDir/Examples/Abc depends on Coin, Clp, Osi, Cgl
+   - AlpsDir/Bcps (to be released) depends on Coin
+   - AlpsDir/Bcps/Blis (to be released) depends on Coin, Clp, Osi, Cgl
 2. At the moment, on (*)nix platforms, you must use g++ 2.95.2 or higher.
 3. must use gnu make
 4. To make the documentation, doxygen must be installed
 
 
-TO BUILD AND RUN SERIAL ABC
-===========================
+TO CREATE HTML DOCUMENTATION
+============================
 
-1. Build Alps serial library. Please refer to the INSTALL file in AlpsDir.
+In AlpsDir, 'make doc' to create the html documentation of the classes 
+in the library. By default, the created html documentation is in
+AlpsDir/Doc/html.
 
-2. Build Abc. In AbcDir, 'make' to build the executable, 
-   which will be placed in the target subdirectory (TargetDir).
 
-3. Change parameters if users do want to use the default values.
-   AlpsDir/include/AlpsParams.h has explanations of each parameter.
-   There are two ways to change parameters:
-   - parameter file: AbcDir/abc.par
-   - command line
+TO BUILD ALPS SERIAL LIBRARY AND RUN EXAMPLES
+=============================================
 
-   Users must specify:
-   - which instance to solve
+1. Read and edit the top of AlpsDir/Makefile.config:
+   - select to build serial library by 
+     - uncommenting line 'export MESSAGE_INTERFACE = NONE' if it is commented
+     - commenting line 'export MESSAGE_INTERFACE = MPICH' if it is not
+     - commenting line 'export MESSAGE_INTERFACE = LAMMPI' if it is not
+   - select whether to build shared or static library
+   - select optimization level
 
-   Users can specify:
-   - maximum solution time
-   - log level, etc.
+2. In AlpsDir, 'make' to build and install the Alps serial library.
 
-4. To run Abc, in AbcDir, type 
+3. Build and run examples. Please refer to the INSTALL files in 
+   CoinDir/Examples/Knap or CoinDir/Examples/Abc.
 
-	TargetDir/abc -param abc.par
 
-   Abc can also read in parameters from command line, for instance
+TO BUILD ALPS PARALLEL LIBRARY AND RUN EXAMPLES
+===============================================
 
-	TargetDir/abc -Alps_instance ./data/flugpl.mps
-	
+1. Read and edit the top of Makefile.config:
+   - select to build parallel library by 
+     - commenting line 'export MESSAGE_INTERFACE = NONE' if it is not
+     - uncommenting line 'export MESSAGE_INTERFACE = MPICH' if using MPICH
+     - uncommenting line 'export MESSAGE_INTERFACE = LAMMPI' if using LAMMPI
+   - select optimization level
 
-TO BUILD AND RUN PARALLEL ABC
-=============================
+2. In AlpsDir, 'make' to build and install the Alps parallel library.
 
-1. Build Alps parallel library. Please refer to the INSTALL file in AlpsDir.
-
-2. Build Abc. In AbcDir, 'make' to build the executable, which will 
-   be placed in the target subdirectory (TargetDir).
-
-3. If do NOT want to use the default parameter values, users can modify them.
-   (AlpsDir/include/AlpsParams.h has explanations of each parameter.)
-
-   There are two ways to change parameters:
-   - parameter file: AbcDir/abc.par
-   - command line
-
-   Users must specify:
-   - which instance to solve
-   - how many processes to be launched 
-
-   Users can specify:
-   - how many hubs
-   - maximum solution time
-   - log level, etc.
-
-4. The way to run parallel version depends on users' computing environment.
-   Users can ask help from their system administrators if not sure. 
-   A general way:
-
-   - in AbcDir, type 
-
-      mpirun -np numProcesses TargetDir/abc -param abc.par
-	
-
-SOLVER OUTPUT
-=============
- 
-For example, in AbcDir, type following command to solve instance flugpl using
-serial Abc:
-
-./Linux-g/abc -Alps_instance data/flugpl.mps
-
-The message to screen is as follows:
-(Note users might see a bit different output depends on LP solver and system)
-
-*****************************
-* ALPS Version 0.6 (Serial) *
-*****************************
-
-Reading in ALPS parameters ...
-Reading in ABC parameters ...
-Coin0001I At line 15 NAME          FLUGPL
-Coin0001I At line 16 ROWS
-Coin0001I At line 36 COLUMNS
-Coin0001I At line 89 RHS
-Coin0001I At line 94 BOUNDS
-Coin0001I At line 111 ENDATA
-Coin0002I Problem FLUGPL has 18 rows, 18 columns and 46 elements
-Coin0008I FLUGPL read with 0 errors
-Problem = flugpl
-Data file = data/flugpl.mps
-Log file = flugpl.log
-
-Abc0010I Process[-10]: after 0 nodes, 0 on tree, 1e+80 best solution, best possible 1e+75
-Abc0010I Process[-10]: after 50 nodes, 33 on tree, 1e+80 best solution, best possible 1.19089e+06
-
-....
-
-Abc0010I Process[-10]: after 2800 nodes, 343 on tree, 1.2015e+06 best solution, best possible 1.19702e+06
-Number of nodes processed = 5671
-Number of nodes left = 0
-Tree depth = 35
-Search CPU time = 3.2605 seconds
-Search wallclock = 3.89941 seconds
-Best solution quality = 1.2015e+06
-
+3. Build and run examples. Please refer to the INSTALL files in 
+   CoinDir/Examples/Knap or CoinDir/Examples/Abc.
