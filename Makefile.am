@@ -1,7 +1,7 @@
 #==========================================================================#
-# This file is part of the Abstract Library for Parallel Search (ALPS).    #
+# This file is part of the BiCePS Linear Integer Solver (BLIS).            #
 #                                                                          #
-# ALPS is distributed under the Common Public License as part of the       #
+# BLIS is distributed under the Common Public License as part of the       #
 # COIN-OR repository (http://www.coin-or.org).                             #
 #                                                                          #
 # Authors: Yan Xu, SAS Institute Inc.                                      #
@@ -33,7 +33,7 @@ SUBDIRS = $(subdirs)
 ########################################################################
 
 test: all
-	cd Alps; make test
+	cd Blis; make test
 
 unitTest: test
 
