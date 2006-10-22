@@ -150,8 +150,7 @@ BlisModel::readInstance(const char* dataFile)
         throw CoinError("Unable to read in instance",
                         "readInstance",
                         "BlisModel");
-    }
-    
+    }   
 
     //------------------------------------------------------
     // Get problem data.
@@ -317,7 +316,7 @@ BlisModel::setupSelf()
     //------------------------------------------------------
     
     // Disable Alps message
-    AlpsPar()->setEntry(AlpsParams::msgLevel, 1);
+    //AlpsPar()->setEntry(AlpsParams::msgLevel, 1);
     
     //------------------------------------------------------
     // Create core variables and constraints.
