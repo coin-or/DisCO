@@ -873,6 +873,8 @@ BlisModel::gutsOfDestructor()
     delete [] oldConstraints_;
     delete branchStrategy_;
 
+    delete [] conRandoms_;
+    
     delete BlisPar_;
 }
 

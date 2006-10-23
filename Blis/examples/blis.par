@@ -20,10 +20,9 @@ Alps_maxNumSolustion 10
 Alps_smallSize 1024
 Alps_mediumSize 4096
 Alps_largeSize 5048576 #2097152    # 2^22 #1048576
-Alps_nodeInterval 1
+Alps_nodeLogInterval 100
 Alps_eliteSize 1
 Alps_maxHubWorkSize 2
-Alps_hubReportFreqency 10000
 Alps_nodeSelStrategy    0      # 0: Best quality, 1: Depth, 2: Best estimate
 #Alps_subTreeCompareRule 0   # 0: Best quality, 1: Most quantity, 2: root depth
 
