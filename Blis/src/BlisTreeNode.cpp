@@ -782,8 +782,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 	    
 	    if (depth_ % 30 == 0 || isRoot || (phase == ALPS_PHASE_RAMPUP)) {
 		explicit_ = 1;
-		std::cout << "SAVE: node "<< index_ <<" explicitly, "
-			  << "depth=" << depth_ << std::endl;
+		//std::cout << "SAVE: node "<< index_ <<" explicitly, "
+                //  << "depth=" << depth_ << std::endl;
 	    }
 	    else {
 		explicit_ = 0;
