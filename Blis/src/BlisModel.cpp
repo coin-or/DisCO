@@ -1440,19 +1440,29 @@ BlisModel::registerKnowledge() {
     // Register model, solution, and tree node
     assert(broker_);
     broker_->registerClass("ALPS_MODEL", new BlisModel);
-    std::cout << "Register Alps model." << std::endl;
+    if (broker_->getMsgLevel() > 2) {
+	std::cout << "Register Alps model." << std::endl;
+    }
     
     broker_->registerClass("ALPS_NODE", new BlisTreeNode(this));
-    std::cout << "Register Alps node." << std::endl;
+    if (broker_->getMsgLevel() > 2) {
+	std::cout << "Register Alps node." << std::endl;
+    }
     
     broker_->registerClass("ALPS_SOLUTION", new BlisSolution);
-    std::cout << "Register Alps solution." << std::endl;
+    if (broker_->getMsgLevel() > 2) {
+	std::cout << "Register Alps solution." << std::endl;
+    }
     
     broker_->registerClass("BCPS_CONSTRAINT", new BlisConstraint);
-    std::cout << "Register Bcps constraint." << std::endl;
+    if (broker_->getMsgLevel() > 2) {
+	std::cout << "Register Bcps constraint." << std::endl;
+    }
     
     broker_->registerClass("BCPS_VARIABLE", new BlisVariable);
-    std::cout << "Register Bcps variable." << std::endl;
+    if (broker_->getMsgLevel() > 2) {
+	std::cout << "Register Bcps variable." << std::endl;
+    }
 }
 
 //#############################################################################
@@ -1468,6 +1478,52 @@ BlisModel::modelLog()
 	std::string logfile = AlpsPar_->entry(AlpsParams::logFile);
 	std::ofstream logFout(logfile.c_str(), std::ofstream::app);
 	writeParameters(logFout);
+    }
+}
+
+//##############################################################################
+
+void 
+BlisModel::nodeLog(AlpsTreeNode *node, bool force) 
+{
+    int nodeInterval = 
+	broker_->getModel()->AlpsPar()->entry(AlpsParams::nodeLogInterval);
+
+    int numNodesProcessed = broker_->getNumNodesProcessed();
+
+    AlpsTreeNode *bestNode = NULL;
+    
+    if ( (broker_->getMsgLevel() > 1) && 
+         ( force ||
+           (numNodesProcessed % nodeInterval == 0) ) ) {
+        
+        double feasBound = ALPS_OBJ_MAX, relBound = ALPS_OBJ_MAX;
+	
+        if (broker_->getNumKnowledges(ALPS_SOLUTION) > 0) {
+            feasBound = (broker_->getBestKnowledge(ALPS_SOLUTION)).second;
+        }
+	
+        bestNode = broker_->getBestNode();
+        
+        if (bestNode) {
+            relBound = bestNode->getQuality();
+        }
+	
+
+	if (numNodes_ % 3 == 1) {
+	    /* Print header. */
+	    std::cout << "\n" << "   Node" 
+		      << "   Left"
+		      << "     ObjValue" 
+		      << " BestFeasible"
+		      << "    BestBound"
+		      << "   Gap"
+		      << "  Time"
+		      << std::endl;
+	}
+	
+	//printf();
+	
     }
 }
 

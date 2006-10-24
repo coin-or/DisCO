@@ -635,6 +635,9 @@ class BlisModel : public BcpsModel {
     int getHotstartStrategy() { return hotstartStrategy_; }
     void setHotstartStrategy(int value) { hotstartStrategy_ = value; }
 
+    /** Node log. */
+    virtual void nodeLog(AlpsTreeNode *node, bool force);
+
     //------------------------------------------------------
     // PARALLEL
     //------------------------------------------------------
