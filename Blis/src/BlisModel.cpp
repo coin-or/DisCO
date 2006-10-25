@@ -14,7 +14,7 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
-#include "float.h"
+#include <cstdio>
 
 #include "CoinFinite.hpp"
 #include "CoinTime.hpp"
@@ -1490,14 +1490,17 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
 	broker_->getModel()->AlpsPar()->entry(AlpsParams::nodeLogInterval);
 
     int numNodesProcessed = broker_->getNumNodesProcessed();
-
+    int numNodesLeft = broker_->updateNumNodesLeft();
+    
     AlpsTreeNode *bestNode = NULL;
     
     if ( (broker_->getMsgLevel() > 1) && 
          ( force ||
            (numNodesProcessed % nodeInterval == 0) ) ) {
         
-        double feasBound = ALPS_OBJ_MAX, relBound = ALPS_OBJ_MAX;
+        double feasBound = ALPS_OBJ_MAX;
+	double relBound = ALPS_OBJ_MAX;
+	double gap = ALPS_OBJ_MAX;
 	
         if (broker_->getNumKnowledges(ALPS_SOLUTION) > 0) {
             feasBound = (broker_->getBestKnowledge(ALPS_SOLUTION)).second;
@@ -1510,20 +1513,85 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
         }
 	
 
-	if (numNodes_ % 3 == 1) {
+	if (numNodesProcessed == 0 ||
+	    (numNodesProcessed % (nodeInterval * 30)) == 0) {
 	    /* Print header. */
-	    std::cout << "\n" << "   Node" 
-		      << "   Left"
-		      << "     ObjValue" 
-		      << " BestFeasible"
-		      << "    BestBound"
-		      << "   Gap"
-		      << "  Time"
+	    std::cout << "\n" 
+		      << "    Node"         /*8 spaces*/ 
+		      << "    Left"
+		      << "      ObjValue"   /*14 spaces*/ 
+		      << "  BestFeasible"
+		      << "     BestBound"
+		      << "    Gap"         /*7 spaces*/
+		      << "   Time"
 		      << std::endl;
 	}
 	
-	//printf();
+	if (numNodesProcessed < 10000000) {
+	    printf("%8d", numNodesProcessed);
+	}
+	else {
+	    printf("%7dK", numNodesProcessed/1000);
+	}
 	
+	if (numNodesLeft < 10000000) {
+	    printf(" %7d", numNodesLeft);
+	}
+	else {
+	    printf(" %6dK", numNodesLeft/1000);
+	}
+
+	if (node->getStatus() == AlpsNodeStatusFathomed) {
+	    printf("      Fathomed");
+	}
+	else {
+	    printf(" %13g", node->getQuality());
+	}
+
+	if (feasBound > ALPS_OBJ_MAX_LESS) {
+	    printf("              ");
+	}
+	else {
+	    printf(" %13g", feasBound);
+	}
+
+	if (relBound > ALPS_OBJ_MAX_LESS) {
+	    printf("              ");
+	}
+	else {
+	    printf(" %13g", relBound);    
+	}
+	
+	if ( (feasBound < ALPS_OBJ_MAX_LESS) &&
+	     (relBound < ALPS_OBJ_MAX_LESS) ) {
+	    gap = 100*ALPS_FABS(feasBound - relBound) /
+		(ALPS_FABS(relBound) + 1.0);
+	}
+	if (gap > ALPS_OBJ_MAX_LESS) {
+	    printf("       ");
+	}
+	else {
+	    if (gap < 1.0e4) {
+		printf("%6.2f%%", gap);
+	    }
+	    else {
+		gap *= 100.0;
+		printf("% 6e", gap);
+	    }
+	}
+	//std::cout << std::setw(6) 
+	//  << std::setprecision(2)
+	//  << broker_->timer().getCpuTime();
+	int solTime = static_cast<int>(broker_->timer().getCpuTime());
+	if (solTime < 1000000) {
+	    printf("%7d", solTime);
+	}
+	else {
+	    solTime = static_cast<int>(solTime/3600.0);
+	    printf("%6d", solTime);
+	    printf("H");
+	}
+	printf("\n");
     }
 }
 
