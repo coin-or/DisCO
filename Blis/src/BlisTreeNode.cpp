@@ -2076,8 +2076,8 @@ int BlisTreeNode::installSubProblem(BcpsModel *m)
 		   index, value, startColLB);
 #endif      
 	    // Hard bounds do NOT change according to soft bounds, so
-	    // here need std::max.
-            startColLB[index] = std::max(startColLB[index], value);
+	    // here need CoinMax.
+            startColLB[index] = CoinMax(startColLB[index], value);
             
 #ifdef BLIS_DEBUG_MORE
             if (index_ == 3487) {
@@ -2095,7 +2095,7 @@ int BlisTreeNode::installSubProblem(BcpsModel *m)
         for (k = 0; k < numModify; ++k) {
             index = pathDesc->getVars()->ubHard.posModify[k];
             value = pathDesc->getVars()->ubHard.entries[k];
-            startColUB[index] = std::min(startColUB[index], value);
+            startColUB[index] = CoinMin(startColUB[index], value);
 	    
 #ifdef BLIS_DEBUG_MORE
             if (index_ == 3487) {
@@ -2121,7 +2121,7 @@ int BlisTreeNode::installSubProblem(BcpsModel *m)
         for (k = 0; k < numModify; ++k) {
             index = pathDesc->getVars()->lbSoft.posModify[k];
             value = pathDesc->getVars()->lbSoft.entries[k];
-            startColLB[index] = std::max(startColLB[index], value);
+            startColLB[index] = CoinMax(startColLB[index], value);
             
 #ifdef BLIS_DEBUG_MORE
             if (index_ == 3487) {
@@ -2144,7 +2144,7 @@ int BlisTreeNode::installSubProblem(BcpsModel *m)
         for (k = 0; k < numModify; ++k) {
             index = pathDesc->getVars()->ubSoft.posModify[k];
             value = pathDesc->getVars()->ubSoft.entries[k];
-            startColUB[index] = std::min(startColUB[index], value);
+            startColUB[index] = CoinMin(startColUB[index], value);
             
 #ifdef BLIS_DEBUG_MORE
             if (index_ == 3487) {
@@ -2759,7 +2759,7 @@ reducedCostFix(BlisModel *model)
             if (movement < boundDistance) {
                 /* new lower bound. If movement is 0, then fix. */
                 newBound = ub[var] - movement;
-                newBound = std::min(newBound, ub[var]);
+                newBound = CoinMin(newBound, ub[var]);
 
 #ifdef BLIS_DEBUG_MORE
                 printf("RED-FIX: dj %g, lb %.10g, ub %.10g, newBound %.10g, movement %g\n", dj, lb[var], ub[var], newBound, movement);
@@ -2778,7 +2778,7 @@ reducedCostFix(BlisModel *model)
             /* At lower bound */
             if (movement < boundDistance) {
                 newBound = lb[var] + movement;
-                newBound = std::max(newBound, lb[var]);
+                newBound = CoinMax(newBound, lb[var]);
                 
 #ifdef BLIS_DEBUG_MORE
                 printf("RED-FIX: dj %g, lb %g, ub %g, newBound %g, movement %g\n", dj, lb[var], ub[var], newBound, movement);

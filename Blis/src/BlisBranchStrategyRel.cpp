@@ -404,7 +404,7 @@ BlisBranchStrategyRel::createCandBranchObjects(int numPassesLeft)
 
         int numNotChange = 0;
 
-        std::multimap< double, BlisObjectInt* >::iterator pos;
+        std::multimap< double, BlisObjectInt*, BlisPseuoGreater>::iterator pos;
         
         CoinWarmStart * ws = solver->getWarmStart();
         solver->getIntParam(OsiMaxNumIterationHotStart, saveLimit);
@@ -416,7 +416,7 @@ BlisBranchStrategyRel::createCandBranchObjects(int numPassesLeft)
         double bestScore = -10.0;
         
         for (pos = sortedObjects.begin(); pos != sortedObjects.end(); ++pos) {
-
+	    
 	    intObject  = pos->second;
             
             colInd = intObject->columnIndex();

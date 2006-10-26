@@ -1564,8 +1564,8 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
 	
 	if ( (feasBound < ALPS_OBJ_MAX_LESS) &&
 	     (relBound < ALPS_OBJ_MAX_LESS) ) {
-	    gap = 100*ALPS_FABS(feasBound - relBound) /
-		(ALPS_FABS(relBound) + 1.0);
+	    gap = ALPS_MAX(0, feasBound - relBound);
+	    gap = 100 * gap / (ALPS_FABS(relBound) + 1.0);
 	}
 	if (gap > ALPS_OBJ_MAX_LESS) {
 	    printf("       ");
