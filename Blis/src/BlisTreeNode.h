@@ -39,9 +39,8 @@ class BlisModel;
 
 
 class BlisTreeNode : public BcpsTreeNode {
-
  private:
-
+    
     /** No copy constructor, assignment operator. */
     BlisTreeNode(const BlisTreeNode&);
 

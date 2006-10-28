@@ -1473,8 +1473,7 @@ BlisModel::modelLog()
 {
 
     int logFileLevel = AlpsPar_->entry(AlpsParams::logFileLevel);
-    
-    if (logFileLevel > -1) {
+    if (logFileLevel > 0) {
 	std::string logfile = AlpsPar_->entry(AlpsParams::logFile);
 	std::ofstream logFout(logfile.c_str(), std::ofstream::app);
 	writeParameters(logFout);
