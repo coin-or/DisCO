@@ -23,7 +23,7 @@ Alps_largeSize 5048576 #2097152    # 2^22 #1048576
 Alps_nodeLogInterval 100
 Alps_eliteSize 1
 Alps_maxHubWorkSize 2
-Alps_nodeSelStrategy    0      # 0: Best quality, 1: Depth, 2: Best estimate
+Alps_searchStrategy      0   # 0: Best quality, 1: Depth, 2: Best estimate
 #Alps_subTreeCompareRule 0   # 0: Best quality, 1: Most quantity, 2: root depth
 
 #Alps_instance ./data/knap3.mps
@@ -92,12 +92,12 @@ Blis_cutDuringRampup 0  # 1 true; 0 false
 
 Blis_useCons        1  #  1 true; 0 false
 
-Blis_cutClique      -2  # -2: disable, -1: root, 0: auto, any positive integer
+Blis_cutClique     -2  # -2: disable, -1: root, 0: auto, any positive integer
 Blis_cutGomory      0
-Blis_cutFlowCover   -2
-Blis_cutKnapsack    -2
+Blis_cutFlowCover  -2
+Blis_cutKnapsack   -2
 
-Blis_cutProbing     -2
+Blis_cutProbing    -2
 
 Blis_cutMir        -2
 

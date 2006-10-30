@@ -39,11 +39,11 @@ class BlisModel;
 
 
 class BlisTreeNode : public BcpsTreeNode {
- private:
+private:
     
     /** No copy constructor, assignment operator. */
     BlisTreeNode(const BlisTreeNode&);
-
+    
     BlisTreeNode& operator=(const BlisTreeNode&);
     
     /** Constraint pool. */
@@ -60,7 +60,12 @@ class BlisTreeNode : public BcpsTreeNode {
 		  int lastNew,
 		  OsiRowCut *rowCut);
 
- public:
+    /** Estimate objective of the feasible solution. */
+    double estimateSolution(const BlisModel *model,
+                            const double *lpSolution,
+                            double lpObjValue);
+    
+public:
 
     /** Default constructor. */
     BlisTreeNode() 

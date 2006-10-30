@@ -52,13 +52,24 @@
 AlpsTreeNode*
 BlisTreeNode::createNewTreeNode(AlpsNodeDesc *&desc) const
 {
+    double adjust = 0.0;
+    
     // Create a new tree node
     BlisTreeNode *node = new BlisTreeNode(desc);
 
+#if 0
     // Set solution estimate for this nodes.
-    // solEstimate = quality_ + sum_i{min{up_i, down_i}}
-    
-    node->setSolEstimate(solEstimate_);
+    // double solEstimate = quality_ + sum_i{min{up_i, down_i}}
+    int branchDir = dynamic_cast<BlisNodeDesc *>(desc)->getBranchedDir();
+    int branchInd = dynamic_cast<BlisNodeDesc *>(desc)->getBranchedInd();
+
+    if (branchDir == -1) {
+        solEstimate_ += adjust;
+    }
+    else {
+        solEstimate_ += adjust;
+    }
+#endif
 
 #ifdef BLIS_DEBUG_MORE
     printf("BLIS:createNewTreeNode: quality=%g, solEstimate=%g\n",
@@ -1837,7 +1848,7 @@ int BlisTreeNode::bound(BcpsModel *model)
             double lpX = desc->getBranchedVal();
             BlisObjectInt *intObject = 
                 dynamic_cast<BlisObjectInt *>(m->objects(objInd));            
-#ifdef BLIS_DEBUG_MORE
+#if 0
             std::cout << "BOUND: col[" << intObject->columnIndex() 
                       << "], dir=" << dir << ", objDeg=" << objDeg
                       << ", x=" << lpX
@@ -3207,7 +3218,7 @@ BlisTreeNode::parallel(BlisModel *model,
     
 
     //------------------------------------------------------
-    // Compare with old cuts
+    // Compare with new cuts
     //------------------------------------------------------
 
     for (k = 0; k < lastNew; ++k) {
@@ -3223,4 +3234,31 @@ BlisTreeNode::parallel(BlisModel *model,
 
 //#############################################################################
 
+double 
+BlisTreeNode::estimateSolution(const BlisModel *model,
+                               const double *lpSolution,
+                               double lpObjValue) 
+{
+    // lpObjective + sum_i{downCost_i*f_i + upCost_i*(1-f_i)} 
+    int k, col;
+    int numInts= model->getNumIntVars();
 
+    double x, f, downC, upC, estimate = lpObjValue;
+
+    BlisObjectInt *object = NULL;
+
+    for (k = 0; k < numInts; ++k) {
+        //object = dynamic_cast<BlisObjectInt *>(model->objects(k));
+        col = object->columnIndex();
+        x = lpSolution[col];
+        f = CoinMax(0.0, x - floor(x));
+        if (f > model->integerTol_) {
+            downC = object->pseudocost().getDownCost();
+            upC = object->pseudocost().getUpCost();
+            estimate += (downC * f + upC * (1-f));
+        }
+    }
+    return estimate;
+}
+
+//#############################################################################

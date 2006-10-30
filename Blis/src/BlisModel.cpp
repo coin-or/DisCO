@@ -1480,20 +1480,27 @@ BlisModel::modelLog()
     }
 }
 
-//##############################################################################
+//#############################################################################
 
 void 
 BlisModel::nodeLog(AlpsTreeNode *node, bool force) 
 {
     int nodeInterval = 
 	broker_->getModel()->AlpsPar()->entry(AlpsParams::nodeLogInterval);
-
+    
     int numNodesProcessed = broker_->getNumNodesProcessed();
     int numNodesLeft = broker_->updateNumNodesLeft();
+    int msgLevel = broker_->getMsgLevel();
+    
+    //std::cout << "nodeInterval = " << nodeInterval << std::endl;
     
     AlpsTreeNode *bestNode = NULL;
+
+    if (msgLevel > 4) {
+        force = true;
+    }
     
-    if ( (broker_->getMsgLevel() > 1) && 
+    if ( (msgLevel > 1) && 
          ( force ||
            (numNodesProcessed % nodeInterval == 0) ) ) {
         
@@ -1509,21 +1516,26 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
         
         if (bestNode) {
             relBound = bestNode->getQuality();
-        }
-	
+        }	
 
 	if (numNodesProcessed == 0 ||
 	    (numNodesProcessed % (nodeInterval * 30)) == 0) {
 	    /* Print header. */
-	    std::cout << "\n" 
-		      << "    Node"         /*8 spaces*/ 
-		      << "    Left"
-		      << "      ObjValue"   /*14 spaces*/ 
-		      << "  BestFeasible"
-		      << "     BestBound"
-		      << "    Gap"         /*7 spaces*/
-		      << "   Time"
-		      << std::endl;
+	    std::cout << "\n";
+            std::cout << "    Node";         /*8 spaces*/
+            std::cout << "      ObjValue";   /*14 spaces*/
+            if (msgLevel > 2) {
+                std::cout << "   Index";     /*8 spaces*/
+                std::cout << "  Parent";     /*8 spaces*/
+                std::cout << "   Depth";     /*8 spaces*/
+            }
+
+            std::cout << "  BestFeasible";
+            std::cout << "     BestBound";
+            std::cout << "    Gap";         /*7 spaces*/
+            std::cout << "    Left";
+            std::cout << "   Time";
+            std::cout << std::endl;
 	}
 	
 	if (numNodesProcessed < 10000000) {
@@ -1532,20 +1544,28 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
 	else {
 	    printf("%7dK", numNodesProcessed/1000);
 	}
-	
-	if (numNodesLeft < 10000000) {
-	    printf(" %7d", numNodesLeft);
-	}
-	else {
-	    printf(" %6dK", numNodesLeft/1000);
-	}
 
+        /* Quality */
 	if (node->getStatus() == AlpsNodeStatusFathomed) {
 	    printf("      Fathomed");
 	}
 	else {
 	    printf(" %13g", node->getQuality());
 	}
+
+        if (msgLevel > 2) {
+            /* This index */
+            printf("%8d", node->getIndex());
+            /* Paraent index */
+            if (node->getParent()) {
+                printf(" %7d", node->getParent()->getIndex());
+            }
+            else {
+                printf("        ");
+            }
+            /* Depth */
+            printf(" %7d", node->getDepth());
+        }
 
 	if (feasBound > ALPS_OBJ_MAX_LESS) {
 	    printf("              ");
@@ -1560,7 +1580,8 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
 	else {
 	    printf(" %13g", relBound);    
 	}
-	
+
+        /* Gap */
 	if ( (feasBound < ALPS_OBJ_MAX_LESS) &&
 	     (relBound < ALPS_OBJ_MAX_LESS) ) {
 	    gap = ALPS_MAX(0, feasBound - relBound);
@@ -1578,9 +1599,15 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
 		printf("% 6e", gap);
 	    }
 	}
-	//std::cout << std::setw(6) 
-	//  << std::setprecision(2)
-	//  << broker_->timer().getCpuTime();
+
+        /* Number of left nodes */
+	if (numNodesLeft < 10000000) {
+	    printf(" %7d", numNodesLeft);
+	}
+	else {
+	    printf(" %6dK", numNodesLeft/1000);
+	}
+
 	int solTime = static_cast<int>(broker_->timer().getCpuTime());
 	if (solTime < 1000000) {
 	    printf("%7d", solTime);
