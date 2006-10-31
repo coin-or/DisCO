@@ -52,22 +52,26 @@
 AlpsTreeNode*
 BlisTreeNode::createNewTreeNode(AlpsNodeDesc *&desc) const
 {
-    double adjust = 0.0;
-    
-    // Create a new tree node
-    BlisTreeNode *node = new BlisTreeNode(desc);
+    double estimate = solEstimate_;
 
-#if 0
+#if 1
     // Set solution estimate for this nodes.
     // double solEstimate = quality_ + sum_i{min{up_i, down_i}}
     int branchDir = dynamic_cast<BlisNodeDesc *>(desc)->getBranchedDir();
     int branchInd = dynamic_cast<BlisNodeDesc *>(desc)->getBranchedInd();
+    double lpX = dynamic_cast<BlisNodeDesc *>(desc)->getBranchedVal();
+    double f = lpX - floor(lpX);
+    assert(f > 0.0);
+
+    BlisModel* model = dynamic_cast<BlisModel*>(desc_->getModel());
+    int objInd = model->getIntObjIndices()[branchInd];
+    BlisObjectInt *obj = dynamic_cast<BlisObjectInt *>(model->objects(objInd));
 
     if (branchDir == -1) {
-        solEstimate_ += adjust;
+        estimate -= (1.0-f) * obj->pseudocost().getUpCost();
     }
     else {
-        solEstimate_ += adjust;
+	estimate -= f * obj->pseudocost().getDownCost();
     }
 #endif
 
@@ -75,7 +79,9 @@ BlisTreeNode::createNewTreeNode(AlpsNodeDesc *&desc) const
     printf("BLIS:createNewTreeNode: quality=%g, solEstimate=%g\n",
            quality_, solEstimate_);
 #endif
-    
+
+    // Create a new tree node
+    BlisTreeNode *node = new BlisTreeNode(desc);    
     desc = NULL;
 
     return node;
@@ -2750,8 +2756,8 @@ reducedCostFix(BlisModel *model)
         model->solver()->getObjSense();
     double epInt = 1.0e-5;
     
-    int numIntegers = model->getNumIntVars();
-    const int *intIndices = model->getIntVars();
+    int numIntegers = model->getNumIntObjects();
+    const int *intIndices = model->getIntColIndices();
     
     for (i = 0; i < numIntegers; ++i) { 
 	var = intIndices[i];
@@ -3237,24 +3243,22 @@ BlisTreeNode::parallel(BlisModel *model,
 double 
 BlisTreeNode::estimateSolution(const BlisModel *model,
                                const double *lpSolution,
-                               double lpObjValue) 
+                               double lpObjValue) const
 {
     // lpObjective + sum_i{downCost_i*f_i + upCost_i*(1-f_i)} 
     int k, col;
-    int numInts= model->getNumIntVars();
+    int numInts= model->getNumIntObjects();
 
     double x, f, downC, upC, estimate = lpObjValue;
 
-    BlisObjectInt *object = NULL;
-
     for (k = 0; k < numInts; ++k) {
-        //object = dynamic_cast<BlisObjectInt *>(model->objects(k));
-        col = object->columnIndex();
+        BlisObjectInt *obj = dynamic_cast<BlisObjectInt *>(model->objects(k));
+        col = obj->columnIndex();
         x = lpSolution[col];
         f = CoinMax(0.0, x - floor(x));
         if (f > model->integerTol_) {
-            downC = object->pseudocost().getDownCost();
-            upC = object->pseudocost().getUpCost();
+            downC = obj->pseudocost().getDownCost();
+            upC = obj->pseudocost().getUpCost();
             estimate += (downC * f + upC * (1-f));
         }
     }

@@ -74,8 +74,8 @@ BlisModel::init()
     objCoef_ = NULL;
 
     colType_ = 0;
-    numIntVars_ = 0;
-    intVars_ = NULL;
+    numIntObjects_ = 0;
+    intColIndices_ = NULL;
     
     numSolutions_ = 0;
     numHeurSolutions_ = 0;
@@ -191,14 +191,17 @@ BlisModel::readInstance(const char* dataFile)
     //------------------------------------------------------
 
     colType_ = new char [numCols_];
-    intVars_ = new int [numCols_];
-    numIntVars_ = 0;
+    intObjIndices_ = new int [numCols_];
+    memset(intObjIndices_, 0, sizeof(int) * numCols_);
+    
+    intColIndices_ = new int [numCols_];
+    numIntObjects_ = 0;
     for(j = 0; j < numCols_; ++j) {
 	if (mps->isContinuous(j)) {
 	    colType_[j] = 'C';
 	}
 	else {
-	    intVars_[numIntVars_++] = j;
+	    intColIndices_[numIntObjects_++] = j;
 	    if (origVarLB_[j] == 0 && origVarUB_[j] == 1.0) {
 		colType_[j] = 'B';
 	    }
@@ -228,11 +231,11 @@ BlisModel::readInstance(const char* dataFile)
 			   origConLB_, origConUB_);
 
     lpSolver_->setObjSense(objSense_);
-    lpSolver_->setInteger(intVars_, numIntVars_);
+    lpSolver_->setInteger(intColIndices_, numIntObjects_);
     
     delete mps;
 
-    if (numIntVars_ == 0) {
+    if (numIntObjects_ == 0) {
 	// solve lp and throw error.
 	lpSolver_->initialSolve();
 	throw CoinError("Input instance is a LP", 
@@ -594,8 +597,8 @@ BlisModel::feasibleSolution(int & numIntegerInfs)
 	   sizeof(double) * numCols);
 #endif
     
-    for (i = 0; i < numIntVars_; ++i) {
-      if ( ! checkInteger(savedLpSolution[intVars_[i]]) ) {
+    for (i = 0; i < numIntObjects_; ++i) {
+      if ( ! checkInteger(savedLpSolution[intColIndices_[i]]) ) {
 	++numIntegerInfs;
 	feasible = false;
       }
@@ -695,7 +698,7 @@ BlisModel::findIntegers(bool startAgain)
     assert(lpSolver_);
 #endif
 
-    if (numIntVars_ && !startAgain && objects_) return;
+    if (numIntObjects_ && !startAgain && objects_) return;
 
     int iCol;    
     int numCols = getNumCols();
@@ -704,13 +707,13 @@ BlisModel::findIntegers(bool startAgain)
     const double *colUB = lpSolver_->getColUpper();
     BlisObjectInt *intObject = NULL;
 
-    if (intVars_) {
-        delete [] intVars_;
+    if (intColIndices_) {
+        delete [] intColIndices_;
     }
-    numIntVars_ = 0;
+    numIntObjects_ = 0;
 
     for (iCol = 0; iCol < numCols; ++iCol) {
-	if (lpSolver_->isInteger(iCol)) ++numIntVars_;
+	if (lpSolver_->isInteger(iCol)) ++numIntObjects_;
     }
 
     double weight = BlisPar_->entry(BlisParams::pseudoWeight);
@@ -731,29 +734,31 @@ BlisModel::findIntegers(bool startAgain)
         }
     }
 
-    objects_ = new BcpsObject * [(numIntVars_ + numObjects)];
-    intVars_ = new int [numIntVars_];
-    numObjects_ = numIntVars_ + numObjects;
+    objects_ = new BcpsObject * [(numIntObjects_ + numObjects)];
+    intColIndices_ = new int [numIntObjects_];
+    numObjects_ = numIntObjects_ + numObjects;
 
     // Walk the variables again, filling in the indices and creating objects 
     // for the integer variables. Initially, the objects hold the indices,
     // variable bounds and pseudocost.
-    numIntVars_ = 0;
+    numIntObjects_ = 0;
     for (iCol = 0; iCol < numCols; ++iCol) {
 	if(lpSolver_->isInteger(iCol)) {
             
-	    intObject = new BlisObjectInt(numIntVars_,
+	    intObject = new BlisObjectInt(numIntObjects_,
                                           iCol,
                                           colLB[iCol],
                                           colUB[iCol]);
             intObject->pseudocost().setWeight(weight);
-            objects_[numIntVars_] = intObject;
-	    intVars_[numIntVars_++] = iCol;
+
+	    intObjIndices_[iCol] = numIntObjects_;
+            objects_[numIntObjects_] = intObject;
+	    intColIndices_[numIntObjects_++] = iCol;
 	}
     }
     
     // Now append other objects
-    memcpy(objects_ + numIntVars_, oldObject, numObjects*sizeof(BcpsObject *));
+    memcpy(objects_ + numIntObjects_, oldObject, numObjects*sizeof(BcpsObject *));
 
     // Delete old array (just array)
     delete [] oldObject;
@@ -805,8 +810,11 @@ BlisModel::gutsOfDestructor()
 //    delete [] savedLpSolution_;
 //    savedLpSolution_ = NULL;
 
-    delete [] intVars_;
-    intVars_ = NULL;
+    delete [] intObjIndices_;
+    intObjIndices_ = NULL;
+
+    delete [] intColIndices_;
+    intColIndices_ = NULL;
 
     for (i = 0; i < numObjects_; ++i) delete objects_[i];
     delete [] objects_;
@@ -902,7 +910,7 @@ BlisModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
 	   lpSolver_->getNumCols() * sizeof(double));
 #endif
 
-    for (j = 0; j < numIntVars_; ++j) {
+    for (j = 0; j < numIntObjects_; ++j) {
 	const BcpsObject * object = objects_[j];
 	
 	double infeasibility = object->infeasibility(this, preferredWay);
@@ -959,12 +967,12 @@ BlisModel::passInPriorities (const int * priorities,
 
     if (priorities) {
 	if (ifObject) {
-	    memcpy(priority_ + numIntVars_, 
+	    memcpy(priority_ + numIntObjects_, 
                    priorities,
-		   (numObjects_ - numIntVars_) * sizeof(int));
+		   (numObjects_ - numIntObjects_) * sizeof(int));
         }
 	else {
-	    memcpy(priority_, priorities, numIntVars_ * sizeof(int));
+	    memcpy(priority_, priorities, numIntObjects_ * sizeof(int));
         }
     }
 }
@@ -1222,8 +1230,8 @@ BlisModel::encode() const
     // Variable type.
     //------------------------------------------------------
 
-    encoded->writeRep(numIntVars_);
-    encoded->writeRep(intVars_, numIntVars_);
+    encoded->writeRep(numIntObjects_);
+    encoded->writeRep(intColIndices_, numIntObjects_);
 
     //------------------------------------------------------
     // Debug.
@@ -1232,7 +1240,7 @@ BlisModel::encode() const
 #ifdef BLIS_DEBUG
     std::cout << "BlisModel::encode()-- objSense="<< objSense
 	      << "; numElements="<< numElements 
-	      << "; numIntVars_=" << numIntVars_ 
+	      << "; numIntObjects_=" << numIntObjects_ 
 	      << "; numStart = " << numStart <<std::endl;
 #endif
 
@@ -1342,10 +1350,10 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
     // Variable type.
     //------------------------------------------------------
 
-    encoded.readRep(numIntVars_);
+    encoded.readRep(numIntObjects_);
     int numInts;
-    encoded.readRep(intVars_, numInts);
-    assert(numInts == numIntVars_);
+    encoded.readRep(intColIndices_, numInts);
+    assert(numInts == numIntObjects_);
 
     //------------------------------------------------
     // Classify variable type
@@ -1357,7 +1365,7 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
 	colType_[j] = 'C';
     }
     for(j = 0; j < numInts; ++j) {
-	ind = intVars_[j];
+	ind = intColIndices_[j];
 	assert(ind >= 0 && ind < numCols_);
 	if (origVarLB_[ind] == 0 && origVarUB_[ind] == 1.0) {
 	    colType_[ind] = 'B';
@@ -1374,7 +1382,7 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
 #ifdef BLIS_DEBUG
     std::cout << "BlisModel::decode()-- objSense="<< objSense_
 	      <<  "; numElements="<< numElements 
-	      << "; numberIntegers_=" << numIntVars_ 
+	      << "; numberIntegers_=" << numIntObjects_ 
 	      << "; numStart = " << numStart <<std::endl;
 #endif
 
@@ -1419,7 +1427,7 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
 			   origConLB_, origConUB_);
     
     lpSolver_->setObjSense(objSense_);
-    lpSolver_->setInteger(intVars_, numIntVars_);
+    lpSolver_->setInteger(intColIndices_, numIntObjects_);
 
     //------------------------------------------------------
     // Clean up.

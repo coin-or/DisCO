@@ -60,10 +60,10 @@ private:
 		  int lastNew,
 		  OsiRowCut *rowCut);
 
-    /** Estimate objective of the feasible solution. */
+    /** Estimate quality of a feasible solution. */
     double estimateSolution(const BlisModel *model,
                             const double *lpSolution,
-                            double lpObjValue);
+                            double lpObjValue) const;
     
 public:
 

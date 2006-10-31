@@ -67,7 +67,7 @@ class BlisBranchObjectInt : public BcpsBranchObject {
         BcpsBranchObject(model, varInd, direction, value)
         {
 	    type_ = BLIS_BO_INT;
-            int iColumn = model->getIntVars()[objectIndex_];
+            int iColumn = model->getIntColIndices()[objectIndex_];
             down_[0] = model->solver()->getColLower()[iColumn];
             down_[1] = floor(value_);
             up_[0] = ceil(value_);
@@ -91,7 +91,7 @@ class BlisBranchObjectInt : public BcpsBranchObject {
         BcpsBranchObject(model, varInd, intScore, dblScore, direction, value)
         {
 	    type_ = BLIS_BO_INT;
-            int iColumn = model->getIntVars()[objectIndex_];
+            int iColumn = model->getIntColIndices()[objectIndex_];
             down_[0] = model->solver()->getColLower()[iColumn];
             down_[1] = floor(value_);
             up_[0] = ceil(value_);
