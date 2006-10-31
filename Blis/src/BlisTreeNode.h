@@ -61,7 +61,7 @@ private:
 		  OsiRowCut *rowCut);
 
     /** Estimate quality of a feasible solution. */
-    double estimateSolution(const BlisModel *model,
+    double estimateSolution(BlisModel *model,
                             const double *lpSolution,
                             double lpObjValue) const;
     

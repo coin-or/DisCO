@@ -3241,7 +3241,7 @@ BlisTreeNode::parallel(BlisModel *model,
 //#############################################################################
 
 double 
-BlisTreeNode::estimateSolution(const BlisModel *model,
+BlisTreeNode::estimateSolution(BlisModel *model,
                                const double *lpSolution,
                                double lpObjValue) const
 {
@@ -3251,6 +3251,8 @@ BlisTreeNode::estimateSolution(const BlisModel *model,
 
     double x, f, downC, upC, estimate = lpObjValue;
 
+    BlisObjectInt *obj = NULL;
+    
     for (k = 0; k < numInts; ++k) {
         BlisObjectInt *obj = dynamic_cast<BlisObjectInt *>(model->objects(k));
         col = obj->columnIndex();
