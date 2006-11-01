@@ -88,8 +88,7 @@ public:
 
     /** Destructor. */
     virtual ~BlisTreeNode() {
-        //delete constraintPool_;
-        //delete variablePool_;
+	//std::cout << "------ Delete blis part of node" << std::endl;
     }
     
     /** Initilize member data when constructing a node. */
