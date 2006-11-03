@@ -249,9 +249,9 @@ BlisModel::readInstance(const char* dataFile)
 void 
 BlisModel::readParameters(const int argnum, const char * const * arglist)
 {
-    std::cout << "Reading in ALPS parameters ..." << std::endl;
+    //std::cout << "Reading in ALPS parameters ..." << std::endl;
     AlpsPar_->readFromArglist(argnum, arglist);
-    std::cout << "Reading in BLIS parameters ..." << std::endl;
+    //std::cout << "Reading in BLIS parameters ..." << std::endl;
     BlisPar_->readFromArglist(argnum, arglist);
 } 
 
@@ -1515,6 +1515,7 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
         double feasBound = ALPS_OBJ_MAX;
 	double relBound = ALPS_OBJ_MAX;
 	double gap = ALPS_OBJ_MAX;
+	double gapVal = ALPS_OBJ_MAX;
 	
         if (broker_->getNumKnowledges(ALPS_SOLUTION) > 0) {
             feasBound = (broker_->getBestKnowledge(ALPS_SOLUTION)).second;
@@ -1540,7 +1541,7 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
 
             std::cout << "  BestFeasible";
             std::cout << "     BestBound";
-            std::cout << "    Gap";         /*7 spaces*/
+            std::cout << "      Gap";         /*9 spaces*/
             std::cout << "    Left";
             std::cout << "   Time";
             std::cout << std::endl;
@@ -1592,19 +1593,18 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
         /* Gap */
 	if ( (feasBound < ALPS_OBJ_MAX_LESS) &&
 	     (relBound < ALPS_OBJ_MAX_LESS) ) {
-	    gap = ALPS_MAX(0, feasBound - relBound);
-	    gap = 100 * gap / (ALPS_FABS(relBound) + 1.0);
+	    gapVal = ALPS_MAX(0, feasBound - relBound);
+	    gap = 100 * gapVal / (ALPS_FABS(relBound) + 1.0);
 	}
 	if (gap > ALPS_OBJ_MAX_LESS) {
-	    printf("       ");
-	}
+	    printf("         "); /* 9 spaces*/
+ 	}
 	else {
 	    if (gap < 1.0e4) {
-		printf("%6.2f%%", gap);
+		printf(" %7.2f%%", gap);
 	    }
 	    else {
-		gap *= 100.0;
-		printf("% 6e", gap);
+		printf("% 8g", gapVal);
 	    }
 	}
 
