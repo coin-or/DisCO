@@ -78,6 +78,9 @@ class BlisParams : public AlpsParameterSet {
       cutOddHole,
       cutProbing,
       cutTwoMir,
+      /** -1 auto, 0, no, 1 yes 
+       default: -1 */
+      difference,
       /** The relibility of pseudocost. */
       pseudoRelibility,
       /** The look ahead of pseudocost. */

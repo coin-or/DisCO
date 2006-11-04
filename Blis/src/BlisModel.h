@@ -221,6 +221,8 @@ class BlisModel : public BcpsModel {
     /** Average number of lp iterations to solve a subproblem. */
     int aveIterations_;
     
+    double peakMemory_;
+    
     //------------------------------------------------------
     // TEMPORARY STORAGE
     //------------------------------------------------------
@@ -626,6 +628,10 @@ class BlisModel : public BcpsModel {
         numIterations_ += newIter; 
         aveIterations_ = numIterations_ / numNodes_;
     }
+
+    void setPeakMemory(int size) { peakMemory_ = size; }
+    
+    double getPeakMemory() { return peakMemory_; }
 
     /** Get the message handler. */
     inline CoinMessageHandler * messageHandler() const { return handler_; }

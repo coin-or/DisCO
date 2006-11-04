@@ -96,6 +96,7 @@ BlisModel::init()
     numNodes_ = 0;
     numIterations_ = 0;
     aveIterations_ = 0;
+    peakMemory_ = 0.0;
     
     branchStrategy_ = NULL;
     priority_ = NULL;
@@ -1481,11 +1482,16 @@ BlisModel::modelLog()
 {
 
     int logFileLevel = AlpsPar_->entry(AlpsParams::logFileLevel);
+    int msgLevel = AlpsPar_->entry(AlpsParams::msgLevel);
     if (logFileLevel > 0) {
 	std::string logfile = AlpsPar_->entry(AlpsParams::logFile);
 	std::ofstream logFout(logfile.c_str(), std::ofstream::app);
 	writeParameters(logFout);
     }
+    if (msgLevel > 1) {
+        printf("Peak memory usage: %.2f kilobytes\n", peakMemory_);
+    }
+    
 }
 
 //#############################################################################

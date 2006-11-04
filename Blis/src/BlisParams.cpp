@@ -82,6 +82,9 @@ BlisParams::createKeywordList() {
   keys_.push_back(make_pair(std::string("Blis_cutTwoMir"),
 			    AlpsParameter(AlpsIntPar, cutTwoMir)));
 
+  keys_.push_back(make_pair(std::string("Blis_difference"),
+			    AlpsParameter(AlpsIntPar, difference)));
+
   keys_.push_back(make_pair(std::string("Blis_pseudoRelibility"),
 			    AlpsParameter(AlpsIntPar, pseudoRelibility)));
 
@@ -152,6 +155,7 @@ BlisParams::setDefaultEntries() {
   setEntry(cutOddHole, -2);
   setEntry(cutProbing, 0);
   setEntry(cutTwoMir, -2);
+  setEntry(difference, -1);
   setEntry(pseudoRelibility, 8);
   setEntry(lookAhead, 4);
   
