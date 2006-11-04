@@ -67,7 +67,7 @@ BlisBranchObjectInt::branch(bool normalBranch)
 {
     BlisModel *model = dynamic_cast<BlisModel *>(model_);
 
-    int iColumn = model->getIntVars()[objectIndex_];
+    int iColumn = model->getIntColIndices()[objectIndex_];
     
     // Decrement number of branches left by 1.
     --numBranchesLeft_;
@@ -111,7 +111,7 @@ void
 BlisBranchObjectInt::print(bool normalBranch)
 {
     BlisModel *model = dynamic_cast<BlisModel*>(model_);
-    int iColumn = model->getIntVars()[objectIndex_];
+    int iColumn = model->getIntColIndices()[objectIndex_];
     double olb, oub ;
     
     if (direction_ < 0) {

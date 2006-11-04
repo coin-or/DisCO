@@ -92,8 +92,9 @@ class BlisModel : public BcpsModel {
 
     /** Column types. */
     //@{
-    int numIntVars_;
-    int *intVars_;
+    int *intObjIndices_; // size of numCols_
+    int numIntObjects_;
+    int *intColIndices_;  // size of numIntObjects_
     char *colType_;
     ///@}
 
@@ -463,11 +464,14 @@ class BlisModel : public BcpsModel {
     /** Identify integer variable. */
     void findIntegers(bool startAgain);
 
-    /** Get number of integers. */
-    int getNumIntVars() const { return numIntVars_; }
+    /** Get integers' object indices. */
+    int* getIntObjIndices() const { return intObjIndices_; }
 
-    /** Get integer indices. */
-    int* getIntVars() const { return intVars_; }
+    /** Get number of integers. */
+    int getNumIntObjects() const { return numIntObjects_; }
+
+    /** Get integers' column indices. */
+    int* getIntColIndices() const { return intColIndices_; }
 
     /** Check if a value is integer. */
     bool checkInteger(double value) const {
@@ -634,6 +638,9 @@ class BlisModel : public BcpsModel {
     /** Don't know what it is. */
     int getHotstartStrategy() { return hotstartStrategy_; }
     void setHotstartStrategy(int value) { hotstartStrategy_ = value; }
+
+    /** Node log. */
+    virtual void nodeLog(AlpsTreeNode *node, bool force);
 
     //------------------------------------------------------
     // PARALLEL

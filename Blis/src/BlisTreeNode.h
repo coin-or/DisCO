@@ -39,12 +39,11 @@ class BlisModel;
 
 
 class BlisTreeNode : public BcpsTreeNode {
-
- private:
-
+private:
+    
     /** No copy constructor, assignment operator. */
     BlisTreeNode(const BlisTreeNode&);
-
+    
     BlisTreeNode& operator=(const BlisTreeNode&);
     
     /** Constraint pool. */
@@ -61,7 +60,12 @@ class BlisTreeNode : public BcpsTreeNode {
 		  int lastNew,
 		  OsiRowCut *rowCut);
 
- public:
+    /** Estimate quality of a feasible solution. */
+    double estimateSolution(BlisModel *model,
+                            const double *lpSolution,
+                            double lpObjValue) const;
+    
+public:
 
     /** Default constructor. */
     BlisTreeNode() 
@@ -84,8 +88,7 @@ class BlisTreeNode : public BcpsTreeNode {
 
     /** Destructor. */
     virtual ~BlisTreeNode() {
-        //delete constraintPool_;
-        //delete variablePool_;
+	//std::cout << "------ Delete blis part of node" << std::endl;
     }
     
     /** Initilize member data when constructing a node. */

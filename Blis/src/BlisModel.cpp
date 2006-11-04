@@ -14,7 +14,7 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
-#include "float.h"
+#include <cstdio>
 
 #include "CoinFinite.hpp"
 #include "CoinTime.hpp"
@@ -74,8 +74,8 @@ BlisModel::init()
     objCoef_ = NULL;
 
     colType_ = 0;
-    numIntVars_ = 0;
-    intVars_ = NULL;
+    numIntObjects_ = 0;
+    intColIndices_ = NULL;
     
     numSolutions_ = 0;
     numHeurSolutions_ = 0;
@@ -150,8 +150,7 @@ BlisModel::readInstance(const char* dataFile)
         throw CoinError("Unable to read in instance",
                         "readInstance",
                         "BlisModel");
-    }
-    
+    }   
 
     //------------------------------------------------------
     // Get problem data.
@@ -192,14 +191,17 @@ BlisModel::readInstance(const char* dataFile)
     //------------------------------------------------------
 
     colType_ = new char [numCols_];
-    intVars_ = new int [numCols_];
-    numIntVars_ = 0;
+    intObjIndices_ = new int [numCols_];
+    memset(intObjIndices_, 0, sizeof(int) * numCols_);
+    
+    intColIndices_ = new int [numCols_];
+    numIntObjects_ = 0;
     for(j = 0; j < numCols_; ++j) {
 	if (mps->isContinuous(j)) {
 	    colType_[j] = 'C';
 	}
 	else {
-	    intVars_[numIntVars_++] = j;
+	    intColIndices_[numIntObjects_++] = j;
 	    if (origVarLB_[j] == 0 && origVarUB_[j] == 1.0) {
 		colType_[j] = 'B';
 	    }
@@ -229,11 +231,11 @@ BlisModel::readInstance(const char* dataFile)
 			   origConLB_, origConUB_);
 
     lpSolver_->setObjSense(objSense_);
-    lpSolver_->setInteger(intVars_, numIntVars_);
+    lpSolver_->setInteger(intColIndices_, numIntObjects_);
     
     delete mps;
 
-    if (numIntVars_ == 0) {
+    if (numIntObjects_ == 0) {
 	// solve lp and throw error.
 	lpSolver_->initialSolve();
 	throw CoinError("Input instance is a LP", 
@@ -247,9 +249,9 @@ BlisModel::readInstance(const char* dataFile)
 void 
 BlisModel::readParameters(const int argnum, const char * const * arglist)
 {
-    std::cout << "Reading in ALPS parameters ..." << std::endl;
+    //std::cout << "Reading in ALPS parameters ..." << std::endl;
     AlpsPar_->readFromArglist(argnum, arglist);
-    std::cout << "Reading in BLIS parameters ..." << std::endl;
+    //std::cout << "Reading in BLIS parameters ..." << std::endl;
     BlisPar_->readFromArglist(argnum, arglist);
 } 
 
@@ -317,7 +319,7 @@ BlisModel::setupSelf()
     //------------------------------------------------------
     
     // Disable Alps message
-    AlpsPar()->setEntry(AlpsParams::msgLevel, 1);
+    //AlpsPar()->setEntry(AlpsParams::msgLevel, 1);
     
     //------------------------------------------------------
     // Create core variables and constraints.
@@ -595,8 +597,8 @@ BlisModel::feasibleSolution(int & numIntegerInfs)
 	   sizeof(double) * numCols);
 #endif
     
-    for (i = 0; i < numIntVars_; ++i) {
-      if ( ! checkInteger(savedLpSolution[intVars_[i]]) ) {
+    for (i = 0; i < numIntObjects_; ++i) {
+      if ( ! checkInteger(savedLpSolution[intColIndices_[i]]) ) {
 	++numIntegerInfs;
 	feasible = false;
       }
@@ -696,7 +698,7 @@ BlisModel::findIntegers(bool startAgain)
     assert(lpSolver_);
 #endif
 
-    if (numIntVars_ && !startAgain && objects_) return;
+    if (numIntObjects_ && !startAgain && objects_) return;
 
     int iCol;    
     int numCols = getNumCols();
@@ -705,13 +707,13 @@ BlisModel::findIntegers(bool startAgain)
     const double *colUB = lpSolver_->getColUpper();
     BlisObjectInt *intObject = NULL;
 
-    if (intVars_) {
-        delete [] intVars_;
+    if (intColIndices_) {
+        delete [] intColIndices_;
     }
-    numIntVars_ = 0;
+    numIntObjects_ = 0;
 
     for (iCol = 0; iCol < numCols; ++iCol) {
-	if (lpSolver_->isInteger(iCol)) ++numIntVars_;
+	if (lpSolver_->isInteger(iCol)) ++numIntObjects_;
     }
 
     double weight = BlisPar_->entry(BlisParams::pseudoWeight);
@@ -732,29 +734,31 @@ BlisModel::findIntegers(bool startAgain)
         }
     }
 
-    objects_ = new BcpsObject * [(numIntVars_ + numObjects)];
-    intVars_ = new int [numIntVars_];
-    numObjects_ = numIntVars_ + numObjects;
+    objects_ = new BcpsObject * [(numIntObjects_ + numObjects)];
+    intColIndices_ = new int [numIntObjects_];
+    numObjects_ = numIntObjects_ + numObjects;
 
     // Walk the variables again, filling in the indices and creating objects 
     // for the integer variables. Initially, the objects hold the indices,
     // variable bounds and pseudocost.
-    numIntVars_ = 0;
+    numIntObjects_ = 0;
     for (iCol = 0; iCol < numCols; ++iCol) {
 	if(lpSolver_->isInteger(iCol)) {
             
-	    intObject = new BlisObjectInt(numIntVars_,
+	    intObject = new BlisObjectInt(numIntObjects_,
                                           iCol,
                                           colLB[iCol],
                                           colUB[iCol]);
             intObject->pseudocost().setWeight(weight);
-            objects_[numIntVars_] = intObject;
-	    intVars_[numIntVars_++] = iCol;
+
+	    intObjIndices_[iCol] = numIntObjects_;
+            objects_[numIntObjects_] = intObject;
+	    intColIndices_[numIntObjects_++] = iCol;
 	}
     }
     
     // Now append other objects
-    memcpy(objects_ + numIntVars_, oldObject, numObjects*sizeof(BcpsObject *));
+    memcpy(objects_ + numIntObjects_, oldObject, numObjects*sizeof(BcpsObject *));
 
     // Delete old array (just array)
     delete [] oldObject;
@@ -806,8 +810,11 @@ BlisModel::gutsOfDestructor()
 //    delete [] savedLpSolution_;
 //    savedLpSolution_ = NULL;
 
-    delete [] intVars_;
-    intVars_ = NULL;
+    delete [] intObjIndices_;
+    intObjIndices_ = NULL;
+
+    delete [] intColIndices_;
+    intColIndices_ = NULL;
 
     for (i = 0; i < numObjects_; ++i) delete objects_[i];
     delete [] objects_;
@@ -874,6 +881,8 @@ BlisModel::gutsOfDestructor()
     delete [] oldConstraints_;
     delete branchStrategy_;
 
+    delete [] conRandoms_;
+    
     delete BlisPar_;
 }
 
@@ -901,7 +910,7 @@ BlisModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
 	   lpSolver_->getNumCols() * sizeof(double));
 #endif
 
-    for (j = 0; j < numIntVars_; ++j) {
+    for (j = 0; j < numIntObjects_; ++j) {
 	const BcpsObject * object = objects_[j];
 	
 	double infeasibility = object->infeasibility(this, preferredWay);
@@ -958,12 +967,12 @@ BlisModel::passInPriorities (const int * priorities,
 
     if (priorities) {
 	if (ifObject) {
-	    memcpy(priority_ + numIntVars_, 
+	    memcpy(priority_ + numIntObjects_, 
                    priorities,
-		   (numObjects_ - numIntVars_) * sizeof(int));
+		   (numObjects_ - numIntObjects_) * sizeof(int));
         }
 	else {
-	    memcpy(priority_, priorities, numIntVars_ * sizeof(int));
+	    memcpy(priority_, priorities, numIntObjects_ * sizeof(int));
         }
     }
 }
@@ -1221,8 +1230,8 @@ BlisModel::encode() const
     // Variable type.
     //------------------------------------------------------
 
-    encoded->writeRep(numIntVars_);
-    encoded->writeRep(intVars_, numIntVars_);
+    encoded->writeRep(numIntObjects_);
+    encoded->writeRep(intColIndices_, numIntObjects_);
 
     //------------------------------------------------------
     // Debug.
@@ -1231,7 +1240,7 @@ BlisModel::encode() const
 #ifdef BLIS_DEBUG
     std::cout << "BlisModel::encode()-- objSense="<< objSense
 	      << "; numElements="<< numElements 
-	      << "; numIntVars_=" << numIntVars_ 
+	      << "; numIntObjects_=" << numIntObjects_ 
 	      << "; numStart = " << numStart <<std::endl;
 #endif
 
@@ -1341,10 +1350,10 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
     // Variable type.
     //------------------------------------------------------
 
-    encoded.readRep(numIntVars_);
+    encoded.readRep(numIntObjects_);
     int numInts;
-    encoded.readRep(intVars_, numInts);
-    assert(numInts == numIntVars_);
+    encoded.readRep(intColIndices_, numInts);
+    assert(numInts == numIntObjects_);
 
     //------------------------------------------------
     // Classify variable type
@@ -1356,7 +1365,7 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
 	colType_[j] = 'C';
     }
     for(j = 0; j < numInts; ++j) {
-	ind = intVars_[j];
+	ind = intColIndices_[j];
 	assert(ind >= 0 && ind < numCols_);
 	if (origVarLB_[ind] == 0 && origVarUB_[ind] == 1.0) {
 	    colType_[ind] = 'B';
@@ -1373,7 +1382,7 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
 #ifdef BLIS_DEBUG
     std::cout << "BlisModel::decode()-- objSense="<< objSense_
 	      <<  "; numElements="<< numElements 
-	      << "; numberIntegers_=" << numIntVars_ 
+	      << "; numberIntegers_=" << numIntObjects_ 
 	      << "; numStart = " << numStart <<std::endl;
 #endif
 
@@ -1418,7 +1427,7 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
 			   origConLB_, origConUB_);
     
     lpSolver_->setObjSense(objSense_);
-    lpSolver_->setInteger(intVars_, numIntVars_);
+    lpSolver_->setInteger(intColIndices_, numIntObjects_);
 
     //------------------------------------------------------
     // Clean up.
@@ -1439,19 +1448,29 @@ BlisModel::registerKnowledge() {
     // Register model, solution, and tree node
     assert(broker_);
     broker_->registerClass("ALPS_MODEL", new BlisModel);
-    std::cout << "Register Alps model." << std::endl;
+    if (broker_->getMsgLevel() > 2) {
+	std::cout << "Register Alps model." << std::endl;
+    }
     
     broker_->registerClass("ALPS_NODE", new BlisTreeNode(this));
-    std::cout << "Register Alps node." << std::endl;
+    if (broker_->getMsgLevel() > 2) {
+	std::cout << "Register Alps node." << std::endl;
+    }
     
     broker_->registerClass("ALPS_SOLUTION", new BlisSolution);
-    std::cout << "Register Alps solution." << std::endl;
+    if (broker_->getMsgLevel() > 2) {
+	std::cout << "Register Alps solution." << std::endl;
+    }
     
     broker_->registerClass("BCPS_CONSTRAINT", new BlisConstraint);
-    std::cout << "Register Bcps constraint." << std::endl;
+    if (broker_->getMsgLevel() > 2) {
+	std::cout << "Register Bcps constraint." << std::endl;
+    }
     
     broker_->registerClass("BCPS_VARIABLE", new BlisVariable);
-    std::cout << "Register Bcps variable." << std::endl;
+    if (broker_->getMsgLevel() > 2) {
+	std::cout << "Register Bcps variable." << std::endl;
+    }
 }
 
 //#############################################################################
@@ -1462,11 +1481,151 @@ BlisModel::modelLog()
 {
 
     int logFileLevel = AlpsPar_->entry(AlpsParams::logFileLevel);
-    
-    if (logFileLevel > -1) {
+    if (logFileLevel > 0) {
 	std::string logfile = AlpsPar_->entry(AlpsParams::logFile);
 	std::ofstream logFout(logfile.c_str(), std::ofstream::app);
 	writeParameters(logFout);
+    }
+}
+
+//#############################################################################
+
+void 
+BlisModel::nodeLog(AlpsTreeNode *node, bool force) 
+{
+    int nodeInterval = 
+	broker_->getModel()->AlpsPar()->entry(AlpsParams::nodeLogInterval);
+    
+    int numNodesProcessed = broker_->getNumNodesProcessed();
+    int numNodesLeft = broker_->updateNumNodesLeft();
+    int msgLevel = broker_->getMsgLevel();
+    
+    //std::cout << "nodeInterval = " << nodeInterval << std::endl;
+    
+    AlpsTreeNode *bestNode = NULL;
+
+    if (msgLevel > 4) {
+        force = true;
+    }
+    
+    if ( (msgLevel > 1) && 
+         ( force ||
+           (numNodesProcessed % nodeInterval == 0) ) ) {
+        
+        double feasBound = ALPS_OBJ_MAX;
+	double relBound = ALPS_OBJ_MAX;
+	double gap = ALPS_OBJ_MAX;
+	double gapVal = ALPS_OBJ_MAX;
+	
+        if (broker_->getNumKnowledges(ALPS_SOLUTION) > 0) {
+            feasBound = (broker_->getBestKnowledge(ALPS_SOLUTION)).second;
+        }
+	
+        bestNode = broker_->getBestNode();
+        
+        if (bestNode) {
+            relBound = bestNode->getQuality();
+        }	
+
+	if (numNodesProcessed == 0 ||
+	    (numNodesProcessed % (nodeInterval * 30)) == 0) {
+	    /* Print header. */
+	    std::cout << "\n";
+            std::cout << "    Node";         /*8 spaces*/
+            std::cout << "      ObjValue";   /*14 spaces*/
+            if (msgLevel > 2) {
+                std::cout << "   Index";     /*8 spaces*/
+                std::cout << "  Parent";     /*8 spaces*/
+                std::cout << "   Depth";     /*8 spaces*/
+            }
+
+            std::cout << "  BestFeasible";
+            std::cout << "     BestBound";
+            std::cout << "      Gap";         /*9 spaces*/
+            std::cout << "    Left";
+            std::cout << "   Time";
+            std::cout << std::endl;
+	}
+	
+	if (numNodesProcessed < 10000000) {
+	    printf("%8d", numNodesProcessed);
+	}
+	else {
+	    printf("%7dK", numNodesProcessed/1000);
+	}
+
+        /* Quality */
+	if (node->getStatus() == AlpsNodeStatusFathomed) {
+	    printf("      Fathomed");
+	}
+	else {
+	    printf(" %13g", node->getQuality());
+	}
+
+        if (msgLevel > 2) {
+            /* This index */
+            printf("%8d", node->getIndex());
+            /* Paraent index */
+            if (node->getParent()) {
+                printf(" %7d", node->getParent()->getIndex());
+            }
+            else {
+                printf("        ");
+            }
+            /* Depth */
+            printf(" %7d", node->getDepth());
+        }
+
+	if (feasBound > ALPS_OBJ_MAX_LESS) {
+	    printf("              ");
+	}
+	else {
+	    printf(" %13g", feasBound);
+	}
+
+	if (relBound > ALPS_OBJ_MAX_LESS) {
+	    printf("              ");
+	}
+	else {
+	    printf(" %13g", relBound);    
+	}
+
+        /* Gap */
+	if ( (feasBound < ALPS_OBJ_MAX_LESS) &&
+	     (relBound < ALPS_OBJ_MAX_LESS) ) {
+	    gapVal = ALPS_MAX(0, feasBound - relBound);
+	    gap = 100 * gapVal / (ALPS_FABS(relBound) + 1.0);
+	}
+	if (gap > ALPS_OBJ_MAX_LESS) {
+	    printf("         "); /* 9 spaces*/
+ 	}
+	else {
+	    if (gap < 1.0e4) {
+		printf(" %7.2f%%", gap);
+	    }
+	    else {
+		printf("% 8g", gapVal);
+	    }
+	}
+
+        /* Number of left nodes */
+	if (numNodesLeft < 10000000) {
+	    printf(" %7d", numNodesLeft);
+	}
+	else {
+	    printf(" %6dK", numNodesLeft/1000);
+	}
+
+	int solTime = static_cast<int>(broker_->timer().getCpuTime());
+	if (solTime < 1000000) {
+	    printf("%7d", solTime);
+	}
+	else {
+	    solTime = static_cast<int>(solTime/3600.0);
+	    printf("%6d", solTime);
+	    printf("H");
+	}
+	printf("\n");
     }
 }
 

@@ -99,8 +99,8 @@ BlisHeurRound::searchSolution(double & solutionValue, double * betterSolution)
 
     int numberRows = matrix_.getNumRows();
 
-    int numberIntegers = model_->getNumIntVars();
-    const int * integerVariable = model_->getIntVars();
+    int numberIntegers = model_->getNumIntObjects();
+    const int * integerVariable = model_->getIntColIndices();
     int i;
     double direction = solver->getObjSense();
     double newSolutionValue = direction * solver->getObjValue();

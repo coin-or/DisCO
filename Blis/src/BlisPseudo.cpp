@@ -57,6 +57,10 @@ BlisPseudocost::update(int dir,
     }
 #endif
 
+    if (objDiff < 0.0) {
+        return;
+    }
+
     if (dir == 1) {
         fraction = ceil(solValue) - solValue;
         if (fraction >= 1.0e-5) {

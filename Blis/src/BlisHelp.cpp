@@ -441,7 +441,8 @@ bool BlisParallelCutCon(OsiRowCut * rowCut,
     parallel = BlisParallelCutCut(rowCut,
 				  rowCut2,
 				  threshold);
-
+    delete rowCut2;
+    
     return parallel;
 }
 

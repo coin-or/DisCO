@@ -52,19 +52,36 @@
 AlpsTreeNode*
 BlisTreeNode::createNewTreeNode(AlpsNodeDesc *&desc) const
 {
-    // Create a new tree node
-    BlisTreeNode *node = new BlisTreeNode(desc);
+    double estimate = solEstimate_;
 
+#if 1
     // Set solution estimate for this nodes.
-    // solEstimate = quality_ + sum_i{min{up_i, down_i}}
-    
-    node->setSolEstimate(solEstimate_);
+    // double solEstimate = quality_ + sum_i{min{up_i, down_i}}
+    int branchDir = dynamic_cast<BlisNodeDesc *>(desc)->getBranchedDir();
+    int branchInd = dynamic_cast<BlisNodeDesc *>(desc)->getBranchedInd();
+    double lpX = dynamic_cast<BlisNodeDesc *>(desc)->getBranchedVal();
+    double f = lpX - floor(lpX);
+    assert(f > 0.0);
+
+    BlisModel* model = dynamic_cast<BlisModel*>(desc_->getModel());
+    int objInd = model->getIntObjIndices()[branchInd];
+    BlisObjectInt *obj = dynamic_cast<BlisObjectInt *>(model->objects(objInd));
+
+    if (branchDir == -1) {
+        estimate -= (1.0-f) * obj->pseudocost().getUpCost();
+    }
+    else {
+	estimate -= f * obj->pseudocost().getDownCost();
+    }
+#endif
 
 #ifdef BLIS_DEBUG_MORE
     printf("BLIS:createNewTreeNode: quality=%g, solEstimate=%g\n",
            quality_, solEstimate_);
 #endif
-    
+
+    // Create a new tree node
+    BlisTreeNode *node = new BlisTreeNode(desc);    
     desc = NULL;
 
     return node;
@@ -265,7 +282,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                     model->setBestSolution(BLIS_SOL_BOUNDING,
                                            quality_, 
                                            model->getLpSolution());
-                    getKnowledgeBroker()->getNodeCompare()->setWeight(0.0);
+                    getKnowledgeBroker()->getNodeSelection()->setWeight(0.0);
                     BlisSolution* ksol = 
                         new BlisSolution(numCols, 
                                            model->getLpSolution(), 
@@ -782,8 +799,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 	    
 	    if (depth_ % 30 == 0 || isRoot || (phase == ALPS_PHASE_RAMPUP)) {
 		explicit_ = 1;
-		std::cout << "SAVE: node "<< index_ <<" explicitly, "
-			  << "depth=" << depth_ << std::endl;
+		//std::cout << "SAVE: node "<< index_ <<" explicitly, "
+                //  << "depth=" << depth_ << std::endl;
 	    }
 	    else {
 		explicit_ = 0;
@@ -1837,7 +1854,7 @@ int BlisTreeNode::bound(BcpsModel *model)
             double lpX = desc->getBranchedVal();
             BlisObjectInt *intObject = 
                 dynamic_cast<BlisObjectInt *>(m->objects(objInd));            
-#ifdef BLIS_DEBUG_MORE
+#if 0
             std::cout << "BOUND: col[" << intObject->columnIndex() 
                       << "], dir=" << dir << ", objDeg=" << objDeg
                       << ", x=" << lpX
@@ -2076,8 +2093,8 @@ int BlisTreeNode::installSubProblem(BcpsModel *m)
 		   index, value, startColLB);
 #endif      
 	    // Hard bounds do NOT change according to soft bounds, so
-	    // here need std::max.
-            startColLB[index] = std::max(startColLB[index], value);
+	    // here need CoinMax.
+            startColLB[index] = CoinMax(startColLB[index], value);
             
 #ifdef BLIS_DEBUG_MORE
             if (index_ == 3487) {
@@ -2095,7 +2112,7 @@ int BlisTreeNode::installSubProblem(BcpsModel *m)
         for (k = 0; k < numModify; ++k) {
             index = pathDesc->getVars()->ubHard.posModify[k];
             value = pathDesc->getVars()->ubHard.entries[k];
-            startColUB[index] = std::min(startColUB[index], value);
+            startColUB[index] = CoinMin(startColUB[index], value);
 	    
 #ifdef BLIS_DEBUG_MORE
             if (index_ == 3487) {
@@ -2121,7 +2138,7 @@ int BlisTreeNode::installSubProblem(BcpsModel *m)
         for (k = 0; k < numModify; ++k) {
             index = pathDesc->getVars()->lbSoft.posModify[k];
             value = pathDesc->getVars()->lbSoft.entries[k];
-            startColLB[index] = std::max(startColLB[index], value);
+            startColLB[index] = CoinMax(startColLB[index], value);
             
 #ifdef BLIS_DEBUG_MORE
             if (index_ == 3487) {
@@ -2144,7 +2161,7 @@ int BlisTreeNode::installSubProblem(BcpsModel *m)
         for (k = 0; k < numModify; ++k) {
             index = pathDesc->getVars()->ubSoft.posModify[k];
             value = pathDesc->getVars()->ubSoft.entries[k];
-            startColUB[index] = std::min(startColUB[index], value);
+            startColUB[index] = CoinMin(startColUB[index], value);
             
 #ifdef BLIS_DEBUG_MORE
             if (index_ == 3487) {
@@ -2739,8 +2756,8 @@ reducedCostFix(BlisModel *model)
         model->solver()->getObjSense();
     double epInt = 1.0e-5;
     
-    int numIntegers = model->getNumIntVars();
-    const int *intIndices = model->getIntVars();
+    int numIntegers = model->getNumIntObjects();
+    const int *intIndices = model->getIntColIndices();
     
     for (i = 0; i < numIntegers; ++i) { 
 	var = intIndices[i];
@@ -2759,7 +2776,7 @@ reducedCostFix(BlisModel *model)
             if (movement < boundDistance) {
                 /* new lower bound. If movement is 0, then fix. */
                 newBound = ub[var] - movement;
-                newBound = std::min(newBound, ub[var]);
+                newBound = CoinMin(newBound, ub[var]);
 
 #ifdef BLIS_DEBUG_MORE
                 printf("RED-FIX: dj %g, lb %.10g, ub %.10g, newBound %.10g, movement %g\n", dj, lb[var], ub[var], newBound, movement);
@@ -2778,7 +2795,7 @@ reducedCostFix(BlisModel *model)
             /* At lower bound */
             if (movement < boundDistance) {
                 newBound = lb[var] + movement;
-                newBound = std::max(newBound, lb[var]);
+                newBound = CoinMax(newBound, lb[var]);
                 
 #ifdef BLIS_DEBUG_MORE
                 printf("RED-FIX: dj %g, lb %g, ub %g, newBound %g, movement %g\n", dj, lb[var], ub[var], newBound, movement);
@@ -3207,7 +3224,7 @@ BlisTreeNode::parallel(BlisModel *model,
     
 
     //------------------------------------------------------
-    // Compare with old cuts
+    // Compare with new cuts
     //------------------------------------------------------
 
     for (k = 0; k < lastNew; ++k) {
@@ -3223,4 +3240,31 @@ BlisTreeNode::parallel(BlisModel *model,
 
 //#############################################################################
 
+double 
+BlisTreeNode::estimateSolution(BlisModel *model,
+                               const double *lpSolution,
+                               double lpObjValue) const
+{
+    // lpObjective + sum_i{downCost_i*f_i + upCost_i*(1-f_i)} 
+    int k, col;
+    int numInts= model->getNumIntObjects();
 
+    double x, f, downC, upC, estimate = lpObjValue;
+
+    BlisObjectInt *obj = NULL;
+    
+    for (k = 0; k < numInts; ++k) {
+        BlisObjectInt *obj = dynamic_cast<BlisObjectInt *>(model->objects(k));
+        col = obj->columnIndex();
+        x = lpSolution[col];
+        f = CoinMax(0.0, x - floor(x));
+        if (f > model->integerTol_) {
+            downC = obj->pseudocost().getDownCost();
+            upC = obj->pseudocost().getUpCost();
+            estimate += (downC * f + upC * (1-f));
+        }
+    }
+    return estimate;
+}
+
+//#############################################################################
