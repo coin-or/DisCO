@@ -89,7 +89,9 @@ BlisModel::init()
     
     cutoff_ = COIN_DBL_MAX;
     incObjValue_ = COIN_DBL_MAX;
-    handler_ = NULL;
+    blisMessageHandler_ = new CoinMessageHandler();
+    blisMessages_ = BlisMessage();
+
     objects_ = NULL;
     numObjects_ = 0;
     
@@ -279,6 +281,15 @@ BlisModel::writeParameters(std::ostream& outstream) const
 bool 
 BlisModel::setupSelf()
 {
+
+    if (broker_->getMsgLevel() > 0) {
+	bcpsMessageHandler_->message(BCPS_S_VERSION, bcpsMessages())
+	    << "0.6" << CoinMessageEol;
+	
+	blisMessageHandler()->message(BLIS_S_VERSION, blisMessages())
+	    << "0.6" << CoinMessageEol;
+    }
+
     int j;
 
     //------------------------------------------------------
@@ -885,6 +896,7 @@ BlisModel::gutsOfDestructor()
     delete [] conRandoms_;
     
     delete BlisPar_;
+    delete blisMessageHandler_;
 }
 
 //#############################################################################
@@ -1450,27 +1462,27 @@ BlisModel::registerKnowledge() {
     assert(broker_);
     broker_->registerClass("ALPS_MODEL", new BlisModel);
     if (broker_->getMsgLevel() > 2) {
-	std::cout << "Register Alps model." << std::endl;
+	std::cout << "BLIS: Register Alps model." << std::endl;
     }
     
     broker_->registerClass("ALPS_NODE", new BlisTreeNode(this));
     if (broker_->getMsgLevel() > 2) {
-	std::cout << "Register Alps node." << std::endl;
+	std::cout << "BLIS: Register Alps node." << std::endl;
     }
     
     broker_->registerClass("ALPS_SOLUTION", new BlisSolution);
     if (broker_->getMsgLevel() > 2) {
-	std::cout << "Register Alps solution." << std::endl;
+	std::cout << "BLIS: Register Alps solution." << std::endl;
     }
     
     broker_->registerClass("BCPS_CONSTRAINT", new BlisConstraint);
     if (broker_->getMsgLevel() > 2) {
-	std::cout << "Register Bcps constraint." << std::endl;
+	std::cout << "BLIS: Register Bcps constraint." << std::endl;
     }
     
     broker_->registerClass("BCPS_VARIABLE", new BlisVariable);
     if (broker_->getMsgLevel() > 2) {
-	std::cout << "Register Bcps variable." << std::endl;
+	std::cout << "BLIS: Register Bcps variable." << std::endl;
     }
 }
 
@@ -1489,7 +1501,8 @@ BlisModel::modelLog()
 	writeParameters(logFout);
     }
     if (msgLevel > 1) {
-        printf("Peak memory usage: %.2f kilobytes\n", peakMemory_);
+	blisMessageHandler()->message(BLIS_PEAK_MEMORY, blisMessages())
+	    << peakMemory_ << CoinMessageEol;
     }
     
 }
@@ -1548,8 +1561,8 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
             std::cout << "  BestFeasible";
             std::cout << "     BestBound";
             std::cout << "      Gap";         /*9 spaces*/
-            std::cout << "    Left";
             std::cout << "   Time";
+            std::cout << "    Left";
             std::cout << std::endl;
 	}
 	
@@ -1614,14 +1627,6 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
 	    }
 	}
 
-        /* Number of left nodes */
-	if (numNodesLeft < 10000000) {
-	    printf(" %7d", numNodesLeft);
-	}
-	else {
-	    printf(" %6dK", numNodesLeft/1000);
-	}
-
 	int solTime = static_cast<int>(broker_->timer().getCpuTime());
 	if (solTime < 1000000) {
 	    printf("%7d", solTime);
@@ -1631,6 +1636,15 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
 	    printf("%6d", solTime);
 	    printf("H");
 	}
+
+        /* Number of left nodes */
+	if (numNodesLeft < 10000000) {
+	    printf(" %7d", numNodesLeft);
+	}
+	else {
+	    printf(" %6dK", numNodesLeft/1000);
+	}
+
 	printf("\n");
     }
 }

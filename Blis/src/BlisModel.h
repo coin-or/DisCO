@@ -23,12 +23,10 @@
 
 #include "CoinMpsIO.hpp"
 #include "CoinPackedMatrix.hpp"
-#include "CoinMessageHandler.hpp"
 #include "OsiSolverInterface.hpp"
 #include "OsiCuts.hpp"
 #include "CglCutGenerator.hpp"
 
-#include "AlpsKnowledgeBroker.h"
 #include "AlpsParams.h"
 
 #include "BcpsModel.h"
@@ -40,6 +38,7 @@
 #include "Blis.h"
 #include "BlisConGenerator.h"
 #include "BlisHeuristic.h"
+#include "BlisMessage.h"
 #include "BlisParams.h"
 
 #include "AlpsTreeNode.h"
@@ -210,7 +209,10 @@ class BlisModel : public BcpsModel {
     BlisParams *BlisPar_;
     
     /** Message handler. */
-    CoinMessageHandler * handler_;
+    CoinMessageHandler * blisMessageHandler_;
+
+    /** Blis messages. */
+    CoinMessages blisMessages_;
 
     /** Number of processed nodes. */
     int numNodes_;
@@ -269,7 +271,10 @@ class BlisModel : public BcpsModel {
  public:
 
     /** Default construtor. */
-    BlisModel() { init(); }
+    BlisModel() 
+    { 
+	init();
+    }
 
     /** Destructor. */
     virtual ~BlisModel();
@@ -428,7 +433,7 @@ class BlisModel : public BcpsModel {
 	{ return branchStrategy_; }
 
     /** Set the branching strategy. */
-    inline void setBranchingMethod(BcpsBranchStrategy * method){
+    inline void setBranchingMethod(BcpsBranchStrategy * method) {
         if (branchStrategy_) delete branchStrategy_;
 	branchStrategy_ = method; 
     }
@@ -629,13 +634,17 @@ class BlisModel : public BcpsModel {
         aveIterations_ = numIterations_ / numNodes_;
     }
 
-    void setPeakMemory(int size) { peakMemory_ = size; }
+    void setPeakMemory(double size) { peakMemory_ = size; }
     
     double getPeakMemory() { return peakMemory_; }
 
     /** Get the message handler. */
-    inline CoinMessageHandler * messageHandler() const { return handler_; }
-
+    CoinMessageHandler * blisMessageHandler() const 
+    { return blisMessageHandler_; }
+    
+    /** Return messages. */
+    CoinMessages blisMessages() { return blisMessages_; }
+    
     /** Access parameters. */
     //@{
     BlisParams * BlisPar() { return BlisPar_; }
