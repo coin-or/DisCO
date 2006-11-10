@@ -30,6 +30,7 @@ typedef struct {
 static Blis_message us_english[]=
 {
     {BLIS_S_VERSION, 1, 1, "BLIS version %s"},
+    {BLIS_PEAK_MEMORY, 10, 1, "Peak memory usage: %.2f M"},
     {BLIS_DUMMY_END, 999999, 0, ""}
 };
 

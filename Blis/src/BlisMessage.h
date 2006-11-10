@@ -26,33 +26,26 @@
 #  pragma warning(disable:4786)
 #endif
 
-/** This deals with Blis messages (as against Clp messages etc).
-    CoinMessageHandler.hpp is the general part of message handling.
-    All it has are enum's for the various messages.
-    BlisMessage.cpp has text in various languages.
-    
-    It is trivial to use the .hpp and .cpp file as a basis for
-    messages for other components.
- */
-
+/** This deals with Blis messages. */
 #include "CoinMessageHandler.hpp"
 
 enum BLIS_Message
 {
-  BLIS_S_VERSION,
-  BLIS_DUMMY_END
+    BLIS_S_VERSION,
+    BLIS_PEAK_MEMORY,
+    BLIS_DUMMY_END
 };
 
 class BlisMessage : public CoinMessages {
 
 public:
-
-  /**@name Constructors etc */
-  //@{
-  /** Constructor */
-  BlisMessage(Language language=us_en);
-  //@}
-
+    
+    /**@name Constructors etc */
+    //@{
+    /** Constructor */
+    BlisMessage(Language language=us_en);
+    //@}
+    
 };
 
 #endif

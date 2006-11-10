@@ -1301,10 +1301,11 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     
 #if BLIS_MEMORY_USAGE
     struct mallinfo memInfo = mallinfo();
-    double memUsage = (memInfo.uordblks + memInfo.hblkhd) / 1024.0;
+    double memUsage = static_cast<double>(memInfo.uordblks + memInfo.hblkhd) / 1024.0;
+    memUsage /= 1024.0;
     if (memUsage > model->getPeakMemory()) {
         model->setPeakMemory(memUsage);
-        //std::cout << "memusge = " << memUsage << std::endl;
+        //std::cout << "memusge = " << model->getPeakMemory() << std::endl;
     }
 #endif
 
