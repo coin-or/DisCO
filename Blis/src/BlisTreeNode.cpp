@@ -46,6 +46,9 @@
 //#include "BlisVariable.h"
 
 #define REMOVE_SLACK 1
+#define BLIS_MEMORY_USAGE 1
+
+#include <malloc.h>
 
 //#############################################################################
 
@@ -797,16 +800,27 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 	    // Decide if save explicit decription.
 	    //----------------------------------------------
 	    
-	    if (depth_ % 30 == 0 || isRoot || (phase == ALPS_PHASE_RAMPUP)) {
-		explicit_ = 1;
-		//std::cout << "SAVE: node "<< index_ <<" explicitly, "
-                //  << "depth=" << depth_ << std::endl;
-	    }
-	    else {
-		explicit_ = 0;
-		//std::cout << "SAVE: node "<< index_ <<" relatively, "
-		//  << "depth=" << depth_ << std::endl;
-	    }
+            BlisParams * BlisPar = model->BlisPar();
+            int difference = BlisPar->entry(BlisParams::difference);
+    
+            if (difference == -1) {
+                if (depth_ % 30 == 0 || isRoot || (phase == ALPS_PHASE_RAMPUP)) {
+                    explicit_ = 1;
+                    //std::cout << "SAVE: node "<< index_ <<" explicitly, "
+                    //  << "depth=" << depth_ << std::endl;
+                }
+                else {
+                    explicit_ = 0;
+                    //std::cout << "SAVE: node "<< index_ <<" relatively, "
+                    //  << "depth=" << depth_ << std::endl;
+                }
+            }
+            else if (difference == 0) {
+                explicit_ = 1;
+            }
+            else {
+                explicit_ = 0;
+            }
 	    
 	    //explicit_ = 1;
 
@@ -1285,6 +1299,14 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     }
 #endif
     
+#if BLIS_MEMORY_USAGE
+    struct mallinfo memInfo = mallinfo();
+    double memUsage = (memInfo.uordblks + memInfo.hblkhd) / 1024.0;
+    if (memUsage > model->getPeakMemory()) {
+        model->setPeakMemory(memUsage);
+        //std::cout << "memusge = " << memUsage << std::endl;
+    }
+#endif
 
     return status;
 }
