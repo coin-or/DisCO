@@ -81,8 +81,8 @@ am_libBlis_la_OBJECTS = BlisBranchObjectInt.lo \
 	BlisBranchStrategyPseudo.lo BlisBranchStrategyRel.lo \
 	BlisBranchStrategyStrong.lo BlisConGenerator.lo \
 	BlisConstraint.lo BlisHelp.lo BlisHeurRound.lo BlisMessage.lo \
-	BlisModel.lo BlisObjectInt.lo BlisParams.lo BlisPseudo.lo \
-	BlisTreeNode.lo
+	BlisModel.lo BlisObjectInt.lo BlisParams.lo BlisPresolve.lo \
+	BlisPseudo.lo BlisTreeNode.lo
 libBlis_la_OBJECTS = $(am_libBlis_la_OBJECTS)
 depcomp = $(SHELL) $(top_srcdir)/../depcomp
 am__depfiles_maybe = depfiles
@@ -310,6 +310,8 @@ libBlis_la_SOURCES = \
 	BlisObjectInt.h \
 	BlisParams.cpp \
 	BlisParams.h \
+	BlisPresolve.h \
+	BlisPresolve.cpp \
 	BlisPseudo.cpp \
 	BlisPseudo.h \
 	BlisSolution.h \
@@ -379,6 +381,7 @@ include_HEADERS = \
 	BlisNodeDesc.h \
 	BlisObjectInt.h \
 	BlisParams.h \
+	BlisPresolve.h \
 	BlisPseudo.h \
 	BlisSolution.h \
 	BlisSubTree.h \
@@ -473,6 +476,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisModel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisObjectInt.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisParams.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisPresolve.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisPseudo.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisTreeNode.Plo@am__quote@
 

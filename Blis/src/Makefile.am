@@ -59,6 +59,8 @@ libBlis_la_SOURCES = \
 	BlisObjectInt.h \
 	BlisParams.cpp \
 	BlisParams.h \
+	BlisPresolve.h \
+	BlisPresolve.cpp \
 	BlisPseudo.cpp \
 	BlisPseudo.h \
 	BlisSolution.h \
@@ -126,6 +128,7 @@ include_HEADERS = \
 	BlisNodeDesc.h \
 	BlisObjectInt.h \
 	BlisParams.h \
+	BlisPresolve.h \
 	BlisPseudo.h \
 	BlisSolution.h \
 	BlisSubTree.h \

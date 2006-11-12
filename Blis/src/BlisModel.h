@@ -23,25 +23,26 @@
 
 #include "CoinMpsIO.hpp"
 #include "CoinPackedMatrix.hpp"
-#include "OsiSolverInterface.hpp"
-#include "OsiCuts.hpp"
+
 #include "CglCutGenerator.hpp"
 
-#include "AlpsParams.h"
+#include "OsiCuts.hpp"
+#include "OsiSolverInterface.hpp"
 
-#include "BcpsModel.h"
+#include "AlpsParams.h"
+#include "AlpsTreeNode.h"
 
 #include "BcpsBranchStrategy.h"
 #include "BcpsObject.h"
 #include "BcpsObjectPool.h"
+#include "BcpsModel.h"
 
 #include "Blis.h"
 #include "BlisConGenerator.h"
 #include "BlisHeuristic.h"
 #include "BlisMessage.h"
 #include "BlisParams.h"
-
-#include "AlpsTreeNode.h"
+#include "BlisPresolve.h"
 
 //#############################################################################
 
@@ -96,7 +97,13 @@ class BlisModel : public BcpsModel {
     int *intColIndices_;  // size of numIntObjects_
     char *colType_;
     ///@}
+   
+    //------------------------------------------------------
+    // PRESOLVE
+    //------------------------------------------------------
 
+    BlisPresolve *presolve_;
+    
     //------------------------------------------------------
     // SOLUTION.
     //------------------------------------------------------

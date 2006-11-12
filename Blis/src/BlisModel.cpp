@@ -77,6 +77,8 @@ BlisModel::init()
     numIntObjects_ = 0;
     intColIndices_ = NULL;
     
+    presolve_ = new BlisPresolve();
+    
     numSolutions_ = 0;
     numHeurSolutions_ = 0;
     
@@ -215,13 +217,7 @@ BlisModel::readInstance(const char* dataFile)
     }
     
     //------------------------------------------------------
-    // Do root preprocessing.
-    //------------------------------------------------------
-    
-
-    //------------------------------------------------------
     // load problem to lp solver.
-    // NOTE: since no presolve, load original one.
     //------------------------------------------------------
     
     if (!lpSolver_) {
@@ -239,10 +235,16 @@ BlisModel::readInstance(const char* dataFile)
     delete mps;
 
     if (numIntObjects_ == 0) {
+        
 	// solve lp and throw error.
-	lpSolver_->initialSolve();
-	throw CoinError("Input instance is a LP", 
-			"readInstance", "BlisModel");
+	//lpSolver_->initialSolve();
+	//throw CoinError("The problem does not have integer variables", 
+        //	"readInstance", "BlisModel");
+
+        if (broker_->getMsgLevel() > 0) {
+            bcpsMessageHandler_->message(BLIS_W_LP, blisMessages())
+                << CoinMessageEol;
+        }
     }
 }
 
@@ -281,6 +283,11 @@ BlisModel::writeParameters(std::ostream& outstream) const
 bool 
 BlisModel::setupSelf()
 {
+    int j;
+    int numPasses = 10;
+    double feaTol = 1.0e-6;
+    bool keepIntegers = true;
+    char *prohibited = 0;
 
     if (broker_->getMsgLevel() > 0) {
 	bcpsMessageHandler_->message(BCPS_S_VERSION, bcpsMessages())
@@ -290,14 +297,24 @@ BlisModel::setupSelf()
 	    << "0.6" << CoinMessageEol;
     }
 
-    int j;
-
     //------------------------------------------------------
     // Starting time.
     //------------------------------------------------------
 
     startTime_ = CoinCpuTime();
 
+    //------------------------------------------------------
+    // presolve.
+    //------------------------------------------------------
+
+    std::cout << "Before presolve .." << std::endl;
+    presolve_->preprocess(*lpSolver_,
+                          feaTol,
+                          keepIntegers,
+                          numPasses,
+                          prohibited);
+
+    
     //------------------------------------------------------
     // Allocate memory.
     //------------------------------------------------------
@@ -576,9 +593,8 @@ BlisModel::setupSelf()
 	    //std::cout << "conRandoms_[" << j << "]="
 	    //      <<conRandoms_[j]<< std::endl;
         }
-    
     }
-
+    
 #ifdef BLIS_DEBUG_MORE
     std::cout << "AFTER: useCons_ = " << useCons_ << std::endl;
 #endif
@@ -858,6 +874,8 @@ BlisModel::gutsOfDestructor()
 
     delete [] objCoef_;
     delete [] incumbent_;
+
+    delete presolve_;
     
     if (numHeuristics_ > 0) {
 #ifdef BLIS_DEBUG

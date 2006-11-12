@@ -18,8 +18,6 @@
 #define BlisMessage_H_
 
 //#############################################################################
-// This file is modified from SbbMessage.hpp
-//#############################################################################
 
 #if defined(_MSC_VER)
 // Turn off compiler warning about long names
@@ -29,15 +27,20 @@
 /** This deals with Blis messages. */
 #include "CoinMessageHandler.hpp"
 
+//#############################################################################
+
 enum BLIS_Message
 {
     BLIS_S_VERSION,
     BLIS_PEAK_MEMORY,
+    BLIS_W_LP,
     BLIS_DUMMY_END
 };
 
-class BlisMessage : public CoinMessages {
+//#############################################################################
 
+class BlisMessage : public CoinMessages 
+{
 public:
     
     /**@name Constructors etc */
@@ -45,7 +48,8 @@ public:
     /** Constructor */
     BlisMessage(Language language=us_en);
     //@}
-    
 };
+
+//#############################################################################
 
 #endif
