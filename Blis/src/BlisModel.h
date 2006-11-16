@@ -316,6 +316,12 @@ class BlisModel : public BcpsModel {
     /** Do necessary work to make model usable. Return success or not. */
     virtual bool setupSelf();
 
+    /** Preprocessing the model. */
+    virtual void preprocess();
+
+    /** Postprocessing the searching results. */
+    virtual void postprocess();
+    
     /** Set lp solver. */
     virtual void setSolver(OsiSolverInterface *si) { origLpSolver_ = si; }
     

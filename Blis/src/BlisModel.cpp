@@ -280,16 +280,13 @@ BlisModel::writeParameters(std::ostream& outstream) const
 
 //############################################################################ 
 
-/** Do necessary work to make model usable. Return success or not. 
+/** Do necessary work to make model usable and presolve.
+    Return success or not. 
     This function is called when constructing knowledge broker. */
 bool 
 BlisModel::setupSelf()
 {
     int j;
-    int numPasses = 10;
-    double feaTol = 1.0e-6;
-    bool keepIntegers = true;
-    char *prohibited = 0;
 
     if (broker_->getMsgLevel() > 0) {
 	bcpsMessageHandler_->message(BCPS_S_VERSION, bcpsMessages())
@@ -298,33 +295,13 @@ BlisModel::setupSelf()
 	blisMessageHandler()->message(BLIS_S_VERSION, blisMessages())
 	    << "0.6" << CoinMessageEol;
     }
-
+    
     //------------------------------------------------------
     // Starting time.
     //------------------------------------------------------
-
+    
     startTime_ = CoinCpuTime();
 
-    //------------------------------------------------------
-    // presolve.
-    //------------------------------------------------------
-
-    bool doPresolve = BlisPar_->entry(BlisParams::presolve);
-    
-    if (doPresolve) {
-	std::cout << "Before presolve .." << std::endl;
-	presolvedLpSolver_ = presolve_->preprocess(*lpSolver_,
-						   feaTol,
-						   keepIntegers,
-						   numPasses,
-						   prohibited);
-	lpSolver_ = presolvedLpSolver_->clone();
-    }
-    else {
-	lpSolver_ = origLpSolver_;
-    }
-    
-    
     //------------------------------------------------------
     // Allocate memory.
     //------------------------------------------------------
@@ -352,7 +329,7 @@ BlisModel::setupSelf()
     optimalAbsGap_ = BlisPar_->entry(BlisParams::optimalAbsGap);
 
     int relibility = BlisPar_->entry(BlisParams::pseudoRelibility);
-
+    
     //------------------------------------------------------
     // Modify parameters.
     //------------------------------------------------------
@@ -610,6 +587,41 @@ BlisModel::setupSelf()
 #endif
 
     return true;
+}
+
+//############################################################################ 
+
+void 
+BlisModel::preprocess()
+{
+    int numPasses = 10;
+    double feaTol = 1.0e-6;
+    bool keepIntegers = true;
+    char *prohibited = 0;
+
+    bool doPresolve = BlisPar_->entry(BlisParams::presolve);
+    
+    //std::cout << "Presolve = "<< doPresolve << std::endl;
+    
+    if (doPresolve) {
+	presolvedLpSolver_ = presolve_->preprocess(*lpSolver_,
+						   feaTol,
+						   keepIntegers,
+						   numPasses,
+						   prohibited);
+	lpSolver_ = presolvedLpSolver_->clone();
+    }
+    else {
+	lpSolver_ = origLpSolver_;
+    }
+}
+
+//############################################################################ 
+
+void 
+BlisModel::postprocess()
+{
+    
 }
 
 //############################################################################ 
