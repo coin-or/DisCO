@@ -48,6 +48,8 @@ Blis/src/BlisObjectInt.cpp -text
 Blis/src/BlisObjectInt.h -text
 Blis/src/BlisParams.cpp -text
 Blis/src/BlisParams.h -text
+Blis/src/BlisPresolve.cpp -text
+Blis/src/BlisPresolve.h -text
 Blis/src/BlisPseudo.cpp -text
 Blis/src/BlisPseudo.h -text
 Blis/src/BlisSolution.h -text
