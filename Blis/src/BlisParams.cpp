@@ -28,15 +28,18 @@ BlisParams::createKeywordList() {
   //--------------------------------------------------------
   // CharPar
   //--------------------------------------------------------
-  
-  keys_.push_back(make_pair(std::string("Blis_useCons"),
-			    AlpsParameter(AlpsCharPar, useCons)));
+ 
+   keys_.push_back(make_pair(std::string("Blis_constraint"),
+			    AlpsParameter(AlpsCharPar, constraint)));
 
-  keys_.push_back(make_pair(std::string("Blis_useHeuristics"),
-			    AlpsParameter(AlpsCharPar, useHeuristics)));
-
-  keys_.push_back(make_pair(std::string("Blis_cutDuringRampup"),
-			    AlpsParameter(AlpsCharPar, cutDuringRampup)));
+   keys_.push_back(make_pair(std::string("Blis_cutDuringRampup"),
+			     AlpsParameter(AlpsCharPar, cutDuringRampup)));
+   
+   keys_.push_back(make_pair(std::string("Blis_heuristic"),
+			     AlpsParameter(AlpsCharPar, heuristic)));
+   
+   keys_.push_back(make_pair(std::string("Blis_presolve"),
+			     AlpsParameter(AlpsCharPar, presolve)));
     
   //--------------------------------------------------------
   // BoolArrayPar
@@ -135,9 +138,10 @@ BlisParams::setDefaultEntries() {
   // Char Parameters.
   //-------------------------------------------------------------
 
-  setEntry(useHeuristics, true);
+  setEntry(constraint, true);
   setEntry(cutDuringRampup, false);
-  setEntry(useCons, true);
+  setEntry(heuristic, true);
+  setEntry(presolve, false);
   
   //-------------------------------------------------------------
   // Int Parameters.

@@ -58,7 +58,12 @@ class BlisModel : public BcpsModel {
     // LP SOLVER.
     //------------------------------------------------------
     
-    /** Lp solver. */
+    /** Input by user. */
+    OsiSolverInterface *origLpSolver_;
+    /** Presolved. */
+    OsiSolverInterface *presolvedLpSolver_;
+    /** Actually used. If using presolve, then it is presolved;
+	otherwise it is the original. */
     OsiSolverInterface *lpSolver_;
     
     //------------------------------------------------------
@@ -179,7 +184,7 @@ class BlisModel : public BcpsModel {
     //------------------------------------------------------
 
     /** If use cut generators. */
-    int useCons_; 
+    int constraint_; 
     
     /** Number of cut generators used. */
     int numCutGenerators_;
@@ -265,7 +270,7 @@ class BlisModel : public BcpsModel {
     double optimalAbsGap_;
 
     /// If use heuristics
-    bool useHeuristics_;
+    bool heuristic_;
     
     /// Store new cuts in each pass
     OsiCuts newCutPool_;
@@ -312,7 +317,7 @@ class BlisModel : public BcpsModel {
     virtual bool setupSelf();
 
     /** Set lp solver. */
-    virtual void setSolver(OsiSolverInterface *si) { lpSolver_ = si; }
+    virtual void setSolver(OsiSolverInterface *si) { origLpSolver_ = si; }
     
     /** Get lp solver. */
     virtual OsiSolverInterface *solver() { return lpSolver_; }
@@ -566,10 +571,10 @@ class BlisModel : public BcpsModel {
     //@}
 
     /** Query constraint generation strategy. */
-    int useCons() const { return useCons_; }
+    int useCons() const { return constraint_; }
 
     /** Set constraint generation strategy. */
-    void setUseCons(int u) { useCons_ = u; }
+    void setUseCons(int u) { constraint_ = u; }
 
     /** Get the thresheld to be considered as a dense constraint. */
     int getDenseConCutoff() const { return denseConCutoff_; }

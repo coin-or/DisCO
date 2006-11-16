@@ -49,6 +49,8 @@
 void 
 BlisModel::init() 
 {
+    origLpSolver_ = NULL;
+    presolvedLpSolver_ = NULL;
     lpSolver_ = NULL;
     numCols_ = 0;
     numRows_ = 0;
@@ -120,12 +122,12 @@ BlisModel::init()
     optimalAbsGap_ = 1.0e-6;
 
     /// Heuristic
-    useHeuristics_ = true;
+    heuristic_ = true;
     numHeuristics_ = 0;
     heuristics_ = NULL;
 
     /// Cons related
-    useCons_ = 0;
+    constraint_ = 0;
     numCutGenerators_ = 0;
     generators_ = NULL;
     constraintPool_ = NULL;
@@ -220,20 +222,20 @@ BlisModel::readInstance(const char* dataFile)
     // load problem to lp solver.
     //------------------------------------------------------
     
-    if (!lpSolver_) {
-        lpSolver_ = new OsiClpSolverInterface();
+    if (!origLpSolver_) {
+        origLpSolver_ = new OsiClpSolverInterface();
     }
 
-    lpSolver_->loadProblem(*colMatrix_,
-			   origVarLB_, origVarUB_,   
-			   objCoef_,
-			   origConLB_, origConUB_);
-
-    lpSolver_->setObjSense(objSense_);
-    lpSolver_->setInteger(intColIndices_, numIntObjects_);
+    origLpSolver_->loadProblem(*colMatrix_,
+			       origVarLB_, origVarUB_,   
+			       objCoef_,
+			       origConLB_, origConUB_);
+    
+    origLpSolver_->setObjSense(objSense_);
+    origLpSolver_->setInteger(intColIndices_, numIntObjects_);
     
     delete mps;
-
+    
     if (numIntObjects_ == 0) {
         
 	// solve lp and throw error.
@@ -307,13 +309,21 @@ BlisModel::setupSelf()
     // presolve.
     //------------------------------------------------------
 
-    std::cout << "Before presolve .." << std::endl;
-    presolve_->preprocess(*lpSolver_,
-                          feaTol,
-                          keepIntegers,
-                          numPasses,
-                          prohibited);
-
+    bool doPresolve = BlisPar_->entry(BlisParams::presolve);
+    
+    if (doPresolve) {
+	std::cout << "Before presolve .." << std::endl;
+	presolvedLpSolver_ = presolve_->preprocess(*lpSolver_,
+						   feaTol,
+						   keepIntegers,
+						   numPasses,
+						   prohibited);
+	lpSolver_ = presolvedLpSolver_->clone();
+    }
+    else {
+	lpSolver_ = origLpSolver_;
+    }
+    
     
     //------------------------------------------------------
     // Allocate memory.
@@ -440,10 +450,10 @@ BlisModel::setupSelf()
     // Add heuristics.
     //------------------------------------------------------
 
-    useHeuristics_ = BlisPar_->entry(BlisParams::useHeuristics);
+    heuristic_ = BlisPar_->entry(BlisParams::heuristic);
     int useRound = BlisPar_->entry(BlisParams::heurRound); 
 
-    if (useHeuristics_) {
+    if (heuristic_) {
         if (useRound > -2) {
             // Add rounding heuristic
             BlisHeurRound *heurRound = new BlisHeurRound(this, 
@@ -499,10 +509,10 @@ BlisModel::setupSelf()
     oldConstraints_ = new BlisConstraint* [maxNumCons_];
     oldConstraintsSize_ = maxNumCons_;
     
-    useCons_ = BlisPar_->entry(BlisParams::useCons); 
+    constraint_ = BlisPar_->entry(BlisParams::constraint); 
 
 #ifdef BLIS_DEBUG
-    std::cout << "useCons_ = " << useCons_ << std::endl;
+    std::cout << "constraint_ = " << constraint_ << std::endl;
 #endif
 
     int clique = BlisPar_->entry(BlisParams::cutClique);
@@ -518,12 +528,12 @@ BlisModel::setupSelf()
     // Add cut generators.
     //------------------------------------------------------
 
-    if (!useCons_) {
-	useCons_ = -2;
+    if (!constraint_) {
+	constraint_ = -2;
     }
     else {
 	// Reset to -2, so that addCutGenerator can adjust it properly.
-	useCons_ = -2;
+	constraint_ = -2;
         if (probe > -2) {
             CglProbing *probing = new CglProbing;
             probing->setUsingObjective(true);
@@ -596,7 +606,7 @@ BlisModel::setupSelf()
     }
     
 #ifdef BLIS_DEBUG_MORE
-    std::cout << "AFTER: useCons_ = " << useCons_ << std::endl;
+    std::cout << "AFTER: constraint_ = " << constraint_ << std::endl;
 #endif
 
     return true;
@@ -834,6 +844,8 @@ void
 BlisModel::gutsOfDestructor()
 {
     int i;
+    bool doPresolve = BlisPar_->entry(BlisParams::presolve);
+    
 
 //    delete [] savedLpSolution_;
 //    savedLpSolution_ = NULL;
@@ -915,6 +927,10 @@ BlisModel::gutsOfDestructor()
     
     delete BlisPar_;
     delete blisMessageHandler_;
+    if (doPresolve) {
+	delete presolvedLpSolver_;
+	delete lpSolver_;
+    }
 }
 
 //#############################################################################
@@ -1163,7 +1179,7 @@ BlisModel::addCutGenerator(CglCutGenerator * generator,
     temp = NULL;
 #endif
 
-    useCons_ = ALPS_MAX(strategy, useCons_);
+    constraint_ = ALPS_MAX(strategy, constraint_);
 }
 
 //#############################################################################
@@ -1398,7 +1414,7 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
     for(j = 0; j < numInts; ++j) {
 	ind = intColIndices_[j];
 	assert(ind >= 0 && ind < numCols_);
-	if (origVarLB_[ind] == 0 && origVarUB_[ind] == 1.0) {
+	if (origVarLB_[ind] == 0.0 && origVarUB_[ind] == 1.0) {
 	    colType_[ind] = 'B';
 	}
 	else {

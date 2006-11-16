@@ -557,7 +557,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         // Apply heuristics.
         //--------------------------------------------------
         
-        if (keepOn && model->useHeuristics_) {
+        if (keepOn && model->heuristic_) {
             heurObjValue = getKnowledgeBroker()->getIncumbentValue();
             for (k = 0; k < model->numHeuristics(); ++k) {
                 foundSolution = false;

@@ -30,12 +30,14 @@ class BlisParams : public AlpsParameterSet {
   /** Character parameters. All of these variable are used as booleans
       (ture = 1, false = 0). */
   enum chrParams{
-    /// Whether generate cuts at all. Default: true.
-    useCons,
-    /// Whether call heuristics. Default: true.
-    useHeuristics,
-    /// Whether generate cuts during rampup. Default: false.
+      /** Whether generate cuts at all. Default: true.*/
+    constraint,
+    /** Whether generate cuts during rampup. Default: false.*/
     cutDuringRampup,
+    /** Whether call heuristics. Default: true.*/
+    heuristic,
+    /** Presolve or not*/
+    presolve,
     //
     endOfChrParams
   };
@@ -44,9 +46,6 @@ class BlisParams : public AlpsParameterSet {
   enum intParams{
       /** The number of candidate used in strong branching. Default: 10. */
       strongCandSize,
-
-      /// -1: disable, 0: default, 1: verbose. Default: 0
-      ///logLevel,
 
       /** Branching strategy.
           0: max infeasibilty, 
