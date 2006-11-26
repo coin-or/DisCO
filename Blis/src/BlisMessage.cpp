@@ -32,6 +32,8 @@ static Blis_message us_english[]=
     {BLIS_S_VERSION, 1, 1, "BLIS version %s"},
     {BLIS_PEAK_MEMORY, 10, 1, "Peak memory usage: %.2f M"},
     {BLIS_W_LP, 20, 1, "WARNING: The Problem does not have integer variables"},
+    {BLIS_ROOT_PROCESS, 30, 1, "Processing the root node"},
+    {BLIS_ROOT_TIME, 35, 1, "Solving the root relaxation took %.2f seconds CPU time"},
     {BLIS_DUMMY_END, 999999, 0, ""}
 };
 

@@ -34,6 +34,8 @@ enum BLIS_Message
     BLIS_S_VERSION,
     BLIS_PEAK_MEMORY,
     BLIS_W_LP,
+    BLIS_ROOT_PROCESS,
+    BLIS_ROOT_TIME,
     BLIS_DUMMY_END
 };
 

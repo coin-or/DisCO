@@ -114,7 +114,6 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     int maxNewCons = 0;
 
     int numAppliedCons = 0;
-    int pass = 0;
     int maxPass = 20;
 
     // Only autmatic stategy has depth limit.
@@ -155,6 +154,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     BlisModel* model = dynamic_cast<BlisModel*>(desc_->getModel());
 
     AlpsPhase phase = knowledgeBroker_->getPhase();
+    int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
     
     //------------------------------------------------------
     // Check if this can be fathomed by objective cutoff.
@@ -202,7 +202,6 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 	if (isRoot && index_ == 0) genConsHere = true;
     }
     else if (model->useCons() == 0) {
-	// NOTE: Only automatic has depth limit.
 	if (depth_ < maxConstraintDepth) {
             if (!diving_ || isRoot) genConsHere = true;
 	}
@@ -257,18 +256,41 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         newConstraints = new BcpsObject* [maxNewCons];    
     }
 
-    while (keepOn && (pass < maxPass)) {
-        ++pass;
+    model->boundingPass_ = 0;
+    while (keepOn && (model->boundingPass_ < maxPass)) {
+        ++(model->boundingPass_);
         keepOn = false;
         
         //--------------------------------------------------
         // Bounding to get the quality of this node.
         //--------------------------------------------------
         
+        if (isRoot && (model->boundingPass_ == 1)) {
+            if (msgLevel > 0) {
+                model->blisMessageHandler()->message(BLIS_ROOT_PROCESS, model->blisMessages())
+                    << CoinMessageEol;
+                model->solver()->messageHandler()->setLogLevel(1);
+            }
+            else {
+                model->solver()->messageHandler()->setLogLevel(-1);
+            }
+            getKnowledgeBroker()->tempTimer().start();
+        }
+        
         status = bound(model);
-	if (pass == 1) {
+
+	if (model->boundingPass_ == 1) {
+            model->solver()->messageHandler()->setLogLevel(0);
 	    int iter = model->solver()->getIterationCount();
 	    model->addNumIterations(iter);
+            if (isRoot) {
+                getKnowledgeBroker()->tempTimer().stop();
+                if (msgLevel > 0) {
+                    model->blisMessageHandler()->message(BLIS_ROOT_TIME, model->blisMessages())
+                        << getKnowledgeBroker()->tempTimer().getCpuTime() 
+                        << CoinMessageEol;
+                }
+            }
 	}
         
         switch(status) {
@@ -312,7 +334,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                 // Check if tailoff
                 //------------------------------------------
 
-                if (pass > 1) {
+                if (model->boundingPass_ > 1) {
                     improvement = quality_ - preObjValue;
                     if (improvement > tailOffTol) {
                         // NOTE: still need remove slacks, although
@@ -321,7 +343,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                     }
                     
 #ifdef BLIS_DEBUG_MORE
-                    std::cout << "PROCESS: pass["<< pass << "], improvement=" 
+                    std::cout << "PROCESS: boundingPass_["
+                              << model->boundingPass_ << "], improvement=" 
                               << improvement << ", tailOffTol=" << tailOffTol
                               << std::endl;
 #endif
@@ -1852,6 +1875,7 @@ int BlisTreeNode::bound(BcpsModel *model)
     }
 #endif
 
+
     m->solver()->resolve();
 
     if (m->solver()->isAbandoned()) {
@@ -3277,7 +3301,7 @@ BlisTreeNode::estimateSolution(BlisModel *model,
     BlisObjectInt *obj = NULL;
     
     for (k = 0; k < numInts; ++k) {
-        BlisObjectInt *obj = dynamic_cast<BlisObjectInt *>(model->objects(k));
+        obj = dynamic_cast<BlisObjectInt *>(model->objects(k));
         col = obj->columnIndex();
         x = lpSolution[col];
         f = CoinMax(0.0, x - floor(x));

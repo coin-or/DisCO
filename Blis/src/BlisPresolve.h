@@ -31,13 +31,21 @@ class BlisPresolve : public OsiPresolve
 {
 private:
     
+    CoinPresolveMatrix *preMatrix_;
+    CoinPostsolveMatrix *postMatrix_;
+
 public:
     
     /** Default constructor (empty object) */
-    BlisPresolve() {};
+    BlisPresolve() :
+        preMatrix_(0), 
+        postMatrix_(0) {};
     
     /** Virtual destructor */
-    virtual ~BlisPresolve(){};
+    virtual ~BlisPresolve() { 
+        delete preMatrix_; 
+        delete postMatrix_; 
+    }
 
     /** Presolve */
     virtual OsiSolverInterface *preprocess(OsiSolverInterface & origModel,

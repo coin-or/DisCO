@@ -109,6 +109,7 @@ BlisModel::init()
     nodeWeight_ = 1.0;
 
     isRoot_ = true;
+    boundingPass_ = 0;
     BlisPar_ = new BlisParams;
 
     /// Timing
@@ -602,6 +603,8 @@ BlisModel::preprocess()
     bool doPresolve = BlisPar_->entry(BlisParams::presolve);
     
     //std::cout << "Presolve = "<< doPresolve << std::endl;
+    
+    doPresolve = false;
     
     if (doPresolve) {
 	presolvedLpSolver_ = presolve_->preprocess(*lpSolver_,

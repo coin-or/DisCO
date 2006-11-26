@@ -254,6 +254,9 @@ class BlisModel : public BcpsModel {
     /// If root node
     bool isRoot_;
 
+    /** The number of passes during bounding procedure.*/
+    int boundingPass_;
+
     /// Search starting time
     double startTime_;
 
