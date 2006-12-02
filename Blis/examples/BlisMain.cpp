@@ -30,11 +30,12 @@
 #include "CglKnapsackCover.hpp"
 #include "CglOddHole.hpp"
 
-//#ifdef  COIN_HAS_MPI
-//#include "AlpsKnowledgeBrokerMPI.h"
-//#else
+#include "AlpsKnowledgeBrokerMPI.h"
+#if  COIN_HAS_MPI
+#include "AlpsKnowledgeBrokerMPI.h"
+#else
 #include "AlpsKnowledgeBrokerSerial.h"
-//#endif
+#endif
 
 #include "BlisModel.h"
 
