@@ -25,7 +25,7 @@ Alps_eliteSize 1
 Alps_maxHubWorkSize 2
 Alps_searchStrategy 0   # 0: Best quality, 1: Breadth, 2: Depth, 3: estimate, 4 hybrid
 
-#Alps_instance ./data/knap3.mps
+Alps_instance ./flugpl.mps
 
 Blis_cutDuringRampup 0  # 1 true; 0 false
 Blis_useCons        0  #  1 true; 0 false
