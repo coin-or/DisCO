@@ -102,7 +102,11 @@ BlisConstraint::encodeBlis(AlpsEncoded *encoded)
 	std::cout << "ERROR: encodeBlis: size_=" << size_<<std::endl;
 	assert(size_ > 0);
     }
-    std::cout << "encodeBlis: size_=" << size_<<std::endl;
+
+#if 0
+    std::cout << "encodeBlis: constraint length/size_=" << size_<<std::endl;
+#endif
+
     encoded->writeRep(indices_, size_);
     encoded->writeRep(values_, size_);
     return status;

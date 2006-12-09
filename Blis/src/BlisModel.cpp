@@ -1309,14 +1309,14 @@ BlisModel::encode() const
     // Debug.
     //------------------------------------------------------
 
-#if 1
+#if 0
     std::cout << "BlisModel::encode()-- objSense="<< objSense
 	      << "; numElements="<< numElements 
 	      << "; numIntObjects_=" << numIntObjects_ 
 	      << "; numStart = " << numStart <<std::endl;
 #endif
 
-#if 1
+#if 0
     std::cout << "rowub=";
     for (int i = 0; i < numRows; ++i){
 	std::cout <<rowub[i]<<" ";
@@ -1451,14 +1451,14 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
     // Debug.
     //------------------------------------------------------
 
-#if 1 
+#if 0
     std::cout << "BlisModel::decode()-- objSense="<< objSense_
 	      <<  "; numElements="<< numElements 
 	      << "; numberIntegers_=" << numIntObjects_ 
 	      << "; numStart = " << numStart <<std::endl;
 #endif
 
-#if 1
+#if 0
     int i;
     std::cout << "origConUB_=";
     for (i = 0; i < numRows; ++i){
@@ -1522,27 +1522,27 @@ BlisModel::registerKnowledge() {
     // Register model, solution, and tree node
     assert(broker_);
     broker_->registerClass("ALPS_MODEL", new BlisModel);
-    if (broker_->getMsgLevel() > 2) {
+    if (broker_->getMsgLevel() > 5) {
 	std::cout << "BLIS: Register Alps model." << std::endl;
     }
     
     broker_->registerClass("ALPS_NODE", new BlisTreeNode(this));
-    if (broker_->getMsgLevel() > 2) {
+    if (broker_->getMsgLevel() > 5) {
 	std::cout << "BLIS: Register Alps node." << std::endl;
     }
     
     broker_->registerClass("ALPS_SOLUTION", new BlisSolution);
-    if (broker_->getMsgLevel() > 2) {
+    if (broker_->getMsgLevel() > 5) {
 	std::cout << "BLIS: Register Alps solution." << std::endl;
     }
     
     broker_->registerClass("BCPS_CONSTRAINT", new BlisConstraint);
-    if (broker_->getMsgLevel() > 2) {
+    if (broker_->getMsgLevel() > 5) {
 	std::cout << "BLIS: Register Bcps constraint." << std::endl;
     }
     
     broker_->registerClass("BCPS_VARIABLE", new BlisVariable);
-    if (broker_->getMsgLevel() > 2) {
+    if (broker_->getMsgLevel() > 5) {
 	std::cout << "BLIS: Register Bcps variable." << std::endl;
     }
 }
@@ -1579,19 +1579,33 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
     int numNodesProcessed = broker_->getNumNodesProcessed();
     int numNodesLeft = broker_->updateNumNodesLeft();
     int msgLevel = broker_->getMsgLevel();
+    bool printLog = false;
     
     //std::cout << "nodeInterval = " << nodeInterval << std::endl;
     
     AlpsTreeNode *bestNode = NULL;
 
-    if (msgLevel > 4) {
-        force = true;
+    if ((msgLevel > 1) && (force||(numNodesProcessed % nodeInterval == 0))) {
+        printLog = true;
+    }
+
+    if (broker_->getProcType() != AlpsProcessTypeMaster) {
+        printLog = false;
     }
     
-    if ( (msgLevel > 1) && 
-         ( force ||
-           (numNodesProcessed % nodeInterval == 0) ) ) {
-        
+    if (msgLevel > 200) {
+        printLog = true;
+    }
+
+#if 0
+    std::cout << "==== Process " << broker_->getProcRank()
+              << ": printLog = " << printLog 
+              << ", msgLevel = " << msgLevel 
+              << ", proc type = " << broker_->getProcType()
+              << std::endl;
+#endif
+    
+    if (printLog) {
         double feasBound = ALPS_OBJ_MAX;
 	double relBound = ALPS_OBJ_MAX;
 	double gap = ALPS_OBJ_MAX;
