@@ -290,11 +290,12 @@ BlisModel::setupSelf()
     int j;
 
     if (broker_->getMsgLevel() > 0) {
-	bcpsMessageHandler_->message(BCPS_S_VERSION, bcpsMessages())
-	    << "0.6" << CoinMessageEol;
-	
-	blisMessageHandler()->message(BLIS_S_VERSION, blisMessages())
-	    << "0.6" << CoinMessageEol;
+	if (broker_->getProcType() != AlpsProcessTypeMaster) {
+	    bcpsMessageHandler_->message(BCPS_S_VERSION, bcpsMessages())
+		<< CoinMessageEol;
+	    blisMessageHandler()->message(BLIS_S_VERSION, blisMessages())
+		<< CoinMessageEol;
+	}
     }
     
     //------------------------------------------------------
@@ -1299,14 +1300,14 @@ BlisModel::encode() const
     // Debug.
     //------------------------------------------------------
 
-#ifdef BLIS_DEBUG
+#if 1
     std::cout << "BlisModel::encode()-- objSense="<< objSense
 	      << "; numElements="<< numElements 
 	      << "; numIntObjects_=" << numIntObjects_ 
 	      << "; numStart = " << numStart <<std::endl;
 #endif
 
-#ifdef BLIS_DEBUG
+#if 1
     std::cout << "rowub=";
     for (int i = 0; i < numRows; ++i){
 	std::cout <<rowub[i]<<" ";
@@ -1474,8 +1475,10 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
 
     //------------------------------------------------------
     // Check if lpSolver_ is declared in main.
+    // decodeToSelf is called by processes other than master.
     //------------------------------------------------------
 
+    lpSolver_ = origLpSolver_;
     assert(lpSolver_);
 
     //------------------------------------------------------
