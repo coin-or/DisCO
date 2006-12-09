@@ -78,6 +78,7 @@ BlisModel::init()
     colType_ = 0;
     numIntObjects_ = 0;
     intColIndices_ = NULL;
+    intObjIndices_ = NULL;
     
     presolve_ = new BlisPresolve();
     
@@ -748,15 +749,13 @@ BlisModel::setBestSolution(BLIS_SOL_TYPE how,
 void 
 BlisModel::findIntegers(bool startAgain)
 {
-#ifdef BLIS_DEBUG
     assert(lpSolver_);
-#endif
 
     if (numIntObjects_ && !startAgain && objects_) return;
 
     int iCol;    
     int numCols = getNumCols();
-
+    
     const double *colLB = lpSolver_->getColLower();
     const double *colUB = lpSolver_->getColUpper();
     BlisObjectInt *intObject = NULL;
@@ -769,6 +768,11 @@ BlisModel::findIntegers(bool startAgain)
     for (iCol = 0; iCol < numCols; ++iCol) {
 	if (lpSolver_->isInteger(iCol)) ++numIntObjects_;
     }
+
+#if 1
+    std::cout << "==== findInteger: numIntObjects_ = " 
+              << numIntObjects_ << std::endl;
+#endif
 
     double weight = BlisPar_->entry(BlisParams::pseudoWeight);
     
@@ -788,6 +792,11 @@ BlisModel::findIntegers(bool startAgain)
         }
     }
 
+    if (!intObjIndices_) {
+        intObjIndices_ = new int [numCols];
+        memset(intObjIndices_, 0, sizeof(int) * numCols);
+    }
+    
     objects_ = new BcpsObject * [(numIntObjects_ + numObjects)];
     intColIndices_ = new int [numIntObjects_];
     numObjects_ = numIntObjects_ + numObjects;
@@ -1442,14 +1451,14 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
     // Debug.
     //------------------------------------------------------
 
-#ifdef BLIS_DEBUG
+#if 1 
     std::cout << "BlisModel::decode()-- objSense="<< objSense_
 	      <<  "; numElements="<< numElements 
 	      << "; numberIntegers_=" << numIntObjects_ 
 	      << "; numStart = " << numStart <<std::endl;
 #endif
 
-#ifdef BLIS_DEBUG
+#if 1
     int i;
     std::cout << "origConUB_=";
     for (i = 0; i < numRows; ++i){
