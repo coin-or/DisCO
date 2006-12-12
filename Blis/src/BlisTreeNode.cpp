@@ -46,9 +46,11 @@
 //#include "BlisVariable.h"
 
 #define REMOVE_SLACK 1
-#define BLIS_MEMORY_USAGE 1
+#define BLIS_MEMORY_USAGE 0
 
+#if BLIS_MEMORY_USAGE
 #include <malloc.h>
+#endif
 
 //#############################################################################
 
