@@ -49,6 +49,9 @@ TO BUILD AND RUN SERIAL ABC
 TO BUILD AND RUN PARALLEL ABC
 =============================
 
+./configure -enable-debug --with-mpi-incdir=/usr/include --with-mpi-lib='-L/usr/lib -lmpi -llam -lutil' MPICC=mpicc MPICXX=mpiCC
+
+
 1. Build Alps parallel library. Please refer to the INSTALL file in AlpsDir.
 
 2. Build Abc. In AbcDir, 'make' to build the executable, which will 
