@@ -291,7 +291,7 @@ BlisModel::setupSelf()
     int j;
 
     if (broker_->getMsgLevel() > 0) {
-	if (broker_->getProcType() != AlpsProcessTypeMaster) {
+	if (broker_->getProcType() == AlpsProcessTypeMaster) {
 	    bcpsMessageHandler_->message(BCPS_S_VERSION, bcpsMessages())
 		<< CoinMessageEol;
 	    blisMessageHandler()->message(BLIS_S_VERSION, blisMessages())
@@ -793,7 +793,7 @@ BlisModel::findIntegers(bool startAgain)
 	if (lpSolver_->isInteger(iCol)) ++numIntObjects_;
     }
 
-#if 1
+#if 0
     std::cout << "==== findInteger: numIntObjects_ = " 
               << numIntObjects_ << std::endl;
 #endif
