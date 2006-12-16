@@ -20,6 +20,7 @@
 #include "AlpsKnowledge.h"
 #include "AlpsParameterBase.h"
 
+#include "Blis.h"
 
 //#############################################################################
 //#############################################################################
@@ -30,22 +31,16 @@ class BlisParams : public AlpsParameterSet {
   /** Character parameters. All of these variable are used as booleans
       (ture = 1, false = 0). */
   enum chrParams{
-      /** Whether generate cuts at all. Default: true.*/
-    constraint,
-    /** Whether generate cuts during rampup. Default: false.*/
-    cutDuringRampup,
-    /** Whether call heuristics. Default: true.*/
-    heuristic,
-    /** Presolve or not*/
-    presolve,
-    //
-    endOfChrParams
+      /** Whether generate cuts during rampup. Default: false.*/
+      cutDuringRampup,
+      /** Presolve or not*/
+      presolve,
+      //
+      endOfChrParams
   };
   
   /** Integer paramters. */
   enum intParams{
-      /** The number of candidate used in strong branching. Default: 10. */
-      strongCandSize,
 
       /** Branching strategy.
           0: max infeasibilty, 
@@ -55,19 +50,11 @@ class BlisParams : public AlpsParameterSet {
       */
       branchStrategy,
 
-      /** Heuristics control.
-          -1: disable, 
-          0: default, 
-          1: moderate, 
-          2: aggressive. 
-      */
-      heurRound,
-
       /** Cut generators control. 
-          -1: disable, 
-          0: default, 
-          1: moderate, 
-          2: aggressive. 
+          -2: root,
+          -1: auto, 
+          0: disable,
+          any positive frequency
       */
       cutClique,
       cutGomory,
@@ -76,63 +63,76 @@ class BlisParams : public AlpsParameterSet {
       cutMir,
       cutOddHole,
       cutProbing,
+      cutStrategy, /** All constraint generators */
       cutTwoMir,
-      /** -1 auto, 0, no, 1 yes 
-       default: -1 */
+      
+      /** -1 auto, 0, no, any integer frequency */
       difference,
-      /** The relibility of pseudocost. */
-      pseudoRelibility,
+      
+      /** Heuristics control.
+          -2: root,
+          -1: auto,
+          0: disable, 
+          any positive frequency
+      */
+      heurStrategy, /** All heuristics */      
+      heurRound,
+      
       /** The look ahead of pseudocost. */
       lookAhead,
-      //
+      /** The relibility of pseudocost. */
+      pseudoRelibility,
+      /** The number of candidate used in strong branching. Default: 10. */
+      strongCandSize,
+      ///
       endOfIntParams
   };
 
   /** Double parameters. */
   enum dblParams{
-    /** Tolrence to treat as an integer. Default: 1.0e-5 */
-    integerTol,
+      /** Limit the max number cuts applied at a node. 
+          maxNumCons = (CutFactor - 1) * numCoreConstraints. */
+      cutFactor,
+      
+      /** The value added to relaxation value when deciding fathom. 
+          Default:1.0e-6 */
+      cutoffInc,
 
-    /** The value added to relaxation value when deciding fathom. 
-	Default:1.0e-6 */
-    cutoffInc,
-    
-    /** If the relative gap between best feasible and best relaxed fall into
-	this gap, search stops. Default: 1.0e-6 */
-    optimalRelGap,
+      /** Dense constraint factor.*/    
+      denseConFactor,
+      
+      /** Tolrence to treat as an integer. Default: 1.0e-5 */
+      integerTol,
+      
+      /** If the relative gap between best feasible and best relaxed fall into
+          this gap, search stops. Default: 1.0e-6 */
+      optimalRelGap,
+      
+      /** If the absolute gap between best feasible and best relaxed fall into
+          this gap, search stops. Default: 1.0e-4 */
+      optimalAbsGap,
+      
+      /** Weight used to calculate pseudocost. */
+      pseudoWeight,
 
-    /** If the absolute gap between best feasible and best relaxed fall into
-	this gap, search stops. Default: 1.0e-4 */
-    optimalAbsGap,
-
-    /** Weight used to calculate pseudocost. */
-    pseudoWeight,
-
-    /** Limit the max number cuts applied at a node. 
-        maxNumCons = (CutFactor - 1) * numCoreConstraints. */
-    cutFactor,
-
-    /** Dense constraint factor.*/    
-    denseConFactor,
-
-    /** Scaling indicator of a constraint.*/    
-    scaleConFactor,
-    //
-    endOfDblParams
+      /** Scaling indicator of a constraint.*/    
+      scaleConFactor,
+      ///
+      endOfDblParams
   };
 
   /** String parameters. */
   enum strParams{
-    strDummy,
-    //
-    endOfStrParams
+      strDummy,
+      //
+      endOfStrParams
   };
 
   /** There are no string array parameters. */
   enum strArrayParams{
-    strArrayDummy,
-    //
-    endOfStrArrayParams
+      strArrayDummy,
+      ///
+      endOfStrArrayParams
   };
 
  public:

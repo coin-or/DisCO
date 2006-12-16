@@ -124,12 +124,12 @@ BlisModel::init()
     optimalAbsGap_ = 1.0e-6;
 
     /// Heuristic
-    heuristic_ = true;
+    heurStrategy_ = true;
     numHeuristics_ = 0;
     heuristics_ = NULL;
 
     /// Cons related
-    constraint_ = 0;
+    cutStrategy_ = 0;
     numCutGenerators_ = 0;
     generators_ = NULL;
     constraintPool_ = NULL;
@@ -430,17 +430,18 @@ BlisModel::setupSelf()
     // Add heuristics.
     //------------------------------------------------------
 
-    heuristic_ = BlisPar_->entry(BlisParams::heuristic);
+    heurStrategy_ = BlisPar_->entry(BlisParams::heurStrategy);
     int useRound = BlisPar_->entry(BlisParams::heurRound); 
 
-    if (heuristic_) {
-        if (useRound > -2) {
-            // Add rounding heuristic
-            BlisHeurRound *heurRound = new BlisHeurRound(this, 
-                                                         "Rounding",
-                                                         useRound);
-            addHeuristic(heurRound);
-        }
+    if (useRound == BLIS_NOT_SET) {
+        useRound = heurStrategy_;
+    }
+    if (useRound) {
+        // Add rounding heuristic
+        BlisHeurRound *heurRound = new BlisHeurRound(this, 
+                                                     "Rounding",
+                                                     useRound);
+        addHeuristic(heurRound);
     }
 
     //------------------------------------------------------
@@ -489,10 +490,10 @@ BlisModel::setupSelf()
     oldConstraints_ = new BlisConstraint* [maxNumCons_];
     oldConstraintsSize_ = maxNumCons_;
     
-    constraint_ = BlisPar_->entry(BlisParams::constraint); 
+    cutStrategy_ = BlisPar_->entry(BlisParams::cutStrategy); 
 
 #ifdef BLIS_DEBUG
-    std::cout << "constraint_ = " << constraint_ << std::endl;
+    std::cout << "cutStrategy_ = " << cutStrategy_ << std::endl;
 #endif
 
     int clique = BlisPar_->entry(BlisParams::cutClique);
@@ -508,85 +509,108 @@ BlisModel::setupSelf()
     // Add cut generators.
     //------------------------------------------------------
 
-    if (!constraint_) {
-	constraint_ = -2;
+    if (probe == BLIS_NOT_SET) {
+        probe = cutStrategy_;
     }
-    else {
-	// Reset to -2, so that addCutGenerator can adjust it properly.
-	constraint_ = -2;
-        if (probe > -2) {
-            CglProbing *probing = new CglProbing;
-            probing->setUsingObjective(true);
-            probing->setMaxPass(1);
-            probing->setMaxPassRoot(5);
-            // Number of unsatisfied variables to look at
-            probing->setMaxProbe(10);
-            probing->setMaxProbeRoot(1000);
-            // How far to follow the consequences
-            probing->setMaxLook(50);
-            probing->setMaxLookRoot(500);
-            // Only look at rows with fewer than this number of elements
-            probing->setMaxElements(200);
-            probing->setRowCuts(3);
-            addCutGenerator(probing, "Probing", probe);
-        }
-        if (clique > -2) {
-            CglClique *cliqueCut = new CglClique ;
-            cliqueCut->setStarCliqueReport(false);
-            cliqueCut->setRowCliqueReport(false);
-            addCutGenerator(cliqueCut, "Clique", clique);
-        }
-        if (oddHole > -2) {
-            CglOddHole *oldHoleCut = new CglOddHole;
-            oldHoleCut->setMinimumViolation(0.005);
-            oldHoleCut->setMinimumViolationPer(0.00002);
-            // try larger limit
-            oldHoleCut->setMaximumEntries(200);
-            addCutGenerator(oldHoleCut, "OddHole", oddHole);
-        }
-        if (fCover > -2) {
-            CglFlowCover *flowGen = new CglFlowCover;
-            addCutGenerator(flowGen, "FlowCover", fCover);
-        }
-        if (knap > -2) {
-            CglKnapsackCover *knapCut = new CglKnapsackCover;
-            addCutGenerator(knapCut, "Knapsack", knap);
-        }
-        if (mir > -2) {
-            CglMixedIntegerRounding2 *mixedGen = new CglMixedIntegerRounding2;
-            addCutGenerator(mixedGen, "MIR", mir);
-        }
-        if (gomory > -2) {
-            CglGomory *gomoryCut = new CglGomory;
-            // try larger limit
-            gomoryCut->setLimit(300);
-            addCutGenerator(gomoryCut, "Gomory", gomory);
-        }
-        if (twoMir > -2) {
-            CglTwomir *twoMirCut =  new CglTwomir;
-            addCutGenerator(twoMirCut, "Two mir", twoMir);
-        }
+    if (probe != 0) {
+        CglProbing *probing = new CglProbing;
+        probing->setUsingObjective(true);
+        probing->setMaxPass(1);
+        probing->setMaxPassRoot(5);
+        // Number of unsatisfied variables to look at
+        probing->setMaxProbe(10);
+        probing->setMaxProbeRoot(1000);
+        // How far to follow the consequences
+        probing->setMaxLook(50);
+        probing->setMaxLookRoot(500);
+        // Only look at rows with fewer than this number of elements
+        probing->setMaxElements(200);
+        probing->setRowCuts(3);
+        addCutGenerator(probing, "Probing", probe);
+    }
 
+    if (clique == BLIS_NOT_SET) {
+        clique = cutStrategy_;
+    }
+    if (clique != 0) {
+        CglClique *cliqueCut = new CglClique ;
+        cliqueCut->setStarCliqueReport(false);
+        cliqueCut->setRowCliqueReport(false);
+        addCutGenerator(cliqueCut, "Clique", clique);
+    }
 
-        // Random vector
-        // TODO, if generating variable, then need more space.
-        conRandoms_ = new double [numCols_];
-        double deseed = 12345678.0;
-        double DSEED2 = 2147483647.0;
+    if (oddHole == BLIS_NOT_SET) {
+        oddHole = cutStrategy_;
+    }
+    if (oddHole != 0) {
+        CglOddHole *oldHoleCut = new CglOddHole;
+        oldHoleCut->setMinimumViolation(0.005);
+        oldHoleCut->setMinimumViolationPer(0.00002);
+        // try larger limit
+        oldHoleCut->setMaximumEntries(200);
+        addCutGenerator(oldHoleCut, "OddHole", oddHole);
+    }
+
+    if (fCover == BLIS_NOT_SET) {
+         fCover = cutStrategy_;
+    }
+    if (fCover != 0) {
+        CglFlowCover *flowGen = new CglFlowCover;
+        addCutGenerator(flowGen, "FlowCover", fCover);
+    }
+
+    if (knap == BLIS_NOT_SET) {
+        knap = cutStrategy_;
+    }
+    if (knap != 0) {
+        CglKnapsackCover *knapCut = new CglKnapsackCover;
+        addCutGenerator(knapCut, "Knapsack", knap);
+    }
+
+    if (mir == BLIS_NOT_SET) {
+        mir = cutStrategy_;
+    }
+    if (mir != 0) {
+        CglMixedIntegerRounding2 *mixedGen = new CglMixedIntegerRounding2;
+        addCutGenerator(mixedGen, "MIR", mir);
+    }
+
+    if (gomory == BLIS_NOT_SET) {
+        gomory = cutStrategy_;
+    }
+    if (gomory != 0) {
+        CglGomory *gomoryCut = new CglGomory;
+        // try larger limit
+        gomoryCut->setLimit(300);
+        addCutGenerator(gomoryCut, "Gomory", gomory);
+    }
+
+    if (twoMir == BLIS_NOT_SET) {
+        twoMir = cutStrategy_;
+    }
+    if (twoMir != 0) {
+        CglTwomir *twoMirCut =  new CglTwomir;
+        addCutGenerator(twoMirCut, "Two mir", twoMir);
+    }
+    
+    // Random vector
+    // TODO, if generating variable, then need more space.
+    conRandoms_ = new double [numCols_];
+    double deseed = 12345678.0;
+    double DSEED2 = 2147483647.0;
         
-        for (j = 0; j < numCols_; ++j) {
-            deseed *= 16807.0;
-            int jseed = (int) (deseed / DSEED2);
-            deseed -= (double) jseed * DSEED2;
-            double random = deseed / DSEED2;
-            conRandoms_[j] = random;
-	    //std::cout << "conRandoms_[" << j << "]="
-	    //      <<conRandoms_[j]<< std::endl;
-        }
+    for (j = 0; j < numCols_; ++j) {
+        deseed *= 16807.0;
+        int jseed = (int) (deseed / DSEED2);
+        deseed -= (double) jseed * DSEED2;
+        double random = deseed / DSEED2;
+        conRandoms_[j] = random;
+        //std::cout << "conRandoms_[" << j << "]="
+        //      <<conRandoms_[j]<< std::endl;
     }
     
 #ifdef BLIS_DEBUG_MORE
-    std::cout << "AFTER: constraint_ = " << constraint_ << std::endl;
+    std::cout << "AFTER: cutStrategy_ = " << cutStrategy_ << std::endl;
 #endif
 
     return true;
@@ -1183,6 +1207,7 @@ BlisModel::addCutGenerator(CglCutGenerator * generator,
 			   bool atSolution,
 			   bool whenInfeasible)
 {
+
 #if 0
     if (!generators_) {        
         generators_ = new BlisCutGenerator* [50];
@@ -1204,7 +1229,6 @@ BlisModel::addCutGenerator(CglCutGenerator * generator,
     temp = NULL;
 #endif
 
-    constraint_ = ALPS_MAX(strategy, constraint_);
 }
 
 //#############################################################################

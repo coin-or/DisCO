@@ -36,6 +36,11 @@
 #define BLIS_OPTIMAL          0
 #define BLIS_UNKNOWN        202
 
+#define BLIS_NOT_SET       -555
+#define BLIS_ROOT            -2
+#define BLIS_AUTO            -1
+#define BLIS_NONE             0
+
 //#############################################################################
 
 enum BLIS_SOL_TYPE {

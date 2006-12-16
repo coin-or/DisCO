@@ -29,14 +29,8 @@ BlisParams::createKeywordList() {
   // CharPar
   //--------------------------------------------------------
  
-   keys_.push_back(make_pair(std::string("Blis_constraint"),
-			    AlpsParameter(AlpsCharPar, constraint)));
-
    keys_.push_back(make_pair(std::string("Blis_cutDuringRampup"),
 			     AlpsParameter(AlpsCharPar, cutDuringRampup)));
-   
-   keys_.push_back(make_pair(std::string("Blis_heuristic"),
-			     AlpsParameter(AlpsCharPar, heuristic)));
    
    keys_.push_back(make_pair(std::string("Blis_presolve"),
 			     AlpsParameter(AlpsCharPar, presolve)));
@@ -49,17 +43,8 @@ BlisParams::createKeywordList() {
   // Int Parameters
   //--------------------------------------------------------
 
-  keys_.push_back(make_pair(std::string("Blis_strongCandSize"),
-			    AlpsParameter(AlpsIntPar, strongCandSize)));
-
-  // keys_.push_back(make_pair(std::string("Blis_logLevel"),
-  //		    AlpsParameter(AlpsIntPar, logLevel)));
-
   keys_.push_back(make_pair(std::string("Blis_branchStrategy"),
 			    AlpsParameter(AlpsIntPar, branchStrategy)));
-
-  keys_.push_back(make_pair(std::string("Blis_heurRound"),
-			    AlpsParameter(AlpsIntPar, heurRound)));
 
   keys_.push_back(make_pair(std::string("Blis_cutClique"),
 			    AlpsParameter(AlpsIntPar, cutClique)));
@@ -82,44 +67,55 @@ BlisParams::createKeywordList() {
   keys_.push_back(make_pair(std::string("Blis_cutProbing"),
 			    AlpsParameter(AlpsIntPar, cutProbing)));
 
+  keys_.push_back(make_pair(std::string("Blis_cutStrategy"),
+			    AlpsParameter(AlpsIntPar, cutStrategy)));
+
   keys_.push_back(make_pair(std::string("Blis_cutTwoMir"),
 			    AlpsParameter(AlpsIntPar, cutTwoMir)));
 
   keys_.push_back(make_pair(std::string("Blis_difference"),
 			    AlpsParameter(AlpsIntPar, difference)));
-
+  
+  keys_.push_back(make_pair(std::string("Blis_heurRound"),
+			    AlpsParameter(AlpsIntPar, heurRound)));
+  
+  keys_.push_back(make_pair(std::string("Blis_heurStrategy"),
+                            AlpsParameter(AlpsIntPar, heurStrategy)));
+  
+  keys_.push_back(make_pair(std::string("Blis_lookAhead"),
+			    AlpsParameter(AlpsIntPar, lookAhead)));
+  
   keys_.push_back(make_pair(std::string("Blis_pseudoRelibility"),
 			    AlpsParameter(AlpsIntPar, pseudoRelibility)));
 
-  keys_.push_back(make_pair(std::string("Blis_lookAhead"),
-			    AlpsParameter(AlpsIntPar, lookAhead)));
-
+  keys_.push_back(make_pair(std::string("Blis_strongCandSize"),
+			    AlpsParameter(AlpsIntPar, strongCandSize)));
   
   //--------------------------------------------------------
   // Double Parameters.
   //--------------------------------------------------------
   
-  keys_.push_back(make_pair(std::string("Blis_integerTol"),
-			    AlpsParameter(AlpsDoublePar, integerTol)));
+  keys_.push_back(make_pair(std::string("Blis_cutFactor"),
+			    AlpsParameter(AlpsDoublePar, cutFactor)));
   
   keys_.push_back(make_pair(std::string("Blis_cutoffInc"),
 			    AlpsParameter(AlpsDoublePar, cutoffInc)));
   
+  keys_.push_back(make_pair(std::string("Blis_denseConFactor"),
+			    AlpsParameter(AlpsDoublePar, denseConFactor)));
+
+  keys_.push_back(make_pair(std::string("Blis_integerTol"),
+			    AlpsParameter(AlpsDoublePar, integerTol)));
+  
   keys_.push_back(make_pair(std::string("Blis_optimalRelGap"),
 			    AlpsParameter(AlpsDoublePar, optimalRelGap)));
   
-  keys_.push_back(make_pair(std::string("Blis_optimalRelGap"),
+  keys_.push_back(make_pair(std::string("Blis_optimalAbsGap"),
 			    AlpsParameter(AlpsDoublePar, optimalAbsGap)));
   
   keys_.push_back(make_pair(std::string("Blis_pseudoWeight"),
 			    AlpsParameter(AlpsDoublePar, pseudoWeight)));
   
-  keys_.push_back(make_pair(std::string("Blis_cutFactor"),
-			    AlpsParameter(AlpsDoublePar, cutFactor)));
-  
-  keys_.push_back(make_pair(std::string("Blis_denseConFactor"),
-			    AlpsParameter(AlpsDoublePar, denseConFactor)));
-
   keys_.push_back(make_pair(std::string("Blis_scaleConFactor"),
 			    AlpsParameter(AlpsDoublePar, scaleConFactor)));
   
@@ -138,42 +134,41 @@ BlisParams::setDefaultEntries() {
   // Char Parameters.
   //-------------------------------------------------------------
 
-  setEntry(constraint, true);
   setEntry(cutDuringRampup, false);
-  setEntry(heuristic, true);
   setEntry(presolve, false);
   
   //-------------------------------------------------------------
   // Int Parameters.
   //-------------------------------------------------------------
 
-  setEntry(strongCandSize, 10);
-  // setEntry(logLevel, 0);
   setEntry(branchStrategy, 1);
-  setEntry(heurRound, 0);
-  setEntry(cutClique, 0);
-  setEntry(cutGomory, 0);
-  setEntry( cutFlowCover, 0);
-  setEntry(cutKnapsack, 0);
-  setEntry(cutMir, 0);
-  setEntry(cutOddHole, -2);
-  setEntry(cutProbing, 0);
-  setEntry(cutTwoMir, -2);
+  setEntry(cutClique, BLIS_NOT_SET);
+  setEntry(cutGomory, BLIS_NOT_SET);
+  setEntry(cutFlowCover, BLIS_NOT_SET);
+  setEntry(cutKnapsack, BLIS_NOT_SET);
+  setEntry(cutMir, BLIS_NOT_SET);
+  setEntry(cutOddHole, 0);
+  setEntry(cutProbing, BLIS_NOT_SET);
+  setEntry(cutStrategy, -1);
+  setEntry(cutTwoMir, 0);
   setEntry(difference, -1);
-  setEntry(pseudoRelibility, 8);
+  setEntry(heurRound, BLIS_NOT_SET);
+  setEntry(heurStrategy, -1);
   setEntry(lookAhead, 4);
+  setEntry(pseudoRelibility, 8);
+  setEntry(strongCandSize, 10);
   
   //-------------------------------------------------------------
   // Double Parameters
   //-------------------------------------------------------------
 
-  setEntry(integerTol, 1.0e-5);
+  setEntry(cutFactor, 4.0);
   setEntry(cutoffInc, 1.0e-6);
+  setEntry(denseConFactor, 5.0);
+  setEntry(integerTol, 1.0e-5);
   setEntry(optimalRelGap, 1.0e-6);
   setEntry(optimalAbsGap, 1.0e-4);
   setEntry(pseudoWeight, 1.0);
-  setEntry(cutFactor, 4.0);
-  setEntry(denseConFactor, 5.0);
   setEntry(scaleConFactor, 1000000.0);
 
   //-------------------------------------------------------------

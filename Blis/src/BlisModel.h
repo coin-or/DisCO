@@ -184,7 +184,7 @@ class BlisModel : public BcpsModel {
     //------------------------------------------------------
 
     /** If use cut generators. */
-    int constraint_; 
+    int cutStrategy_; 
     
     /** Number of cut generators used. */
     int numCutGenerators_;
@@ -273,7 +273,7 @@ class BlisModel : public BcpsModel {
     double optimalAbsGap_;
 
     /// If use heuristics
-    bool heuristic_;
+    bool heurStrategy_;
     
     /// Store new cuts in each pass
     OsiCuts newCutPool_;
@@ -578,12 +578,12 @@ class BlisModel : public BcpsModel {
         oldConstraints_ = NULL; 
     }
     //@}
-
+    
     /** Query constraint generation strategy. */
-    int useCons() const { return constraint_; }
+    int getCutStrategy() const { return cutStrategy_; }
 
     /** Set constraint generation strategy. */
-    void setUseCons(int u) { constraint_ = u; }
+    void setCutStrategy(int u) { cutStrategy_ = u; }
 
     /** Get the thresheld to be considered as a dense constraint. */
     int getDenseConCutoff() const { return denseConCutoff_; }

@@ -197,14 +197,14 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     model->isRoot_ = isRoot;
 
     genConsHere = false;
-    if (model->useCons() == -2) {
+    if (model->getCutStrategy() == BLIS_NONE) {
 	genConsHere = false;
     }
-    else if (model->useCons() == -1) {
+    else if (model->getCutStrategy() == BLIS_ROOT) {
 	// The original root only
 	if (isRoot && index_ == 0) genConsHere = true;
     }
-    else if (model->useCons() == 0) {
+    else if (model->getCutStrategy() == BLIS_AUTO) {
 	if (depth_ < maxConstraintDepth) {
             if (!diving_ || isRoot) genConsHere = true;
 	}
@@ -241,7 +241,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     
 #ifdef BLIS_DEBUG
     std::cout << "PROCESS: genConsHere=" << genConsHere
-	      << ", useCons=" << model->useCons()
+	      << ", useCons=" << model->getCutStrategy()
 	      << ", numCoreRows=" << numCoreRows
 	      << ", numStartRows=" << numStartRows
 	      << ", currNumOldCons=" << currNumOldCons << std::endl;
@@ -583,7 +583,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         // Apply heuristics.
         //--------------------------------------------------
         
-        if (keepOn && model->heuristic_) {
+        if (keepOn && (model->heurStrategy_ != BLIS_NONE)) {
             heurObjValue = getKnowledgeBroker()->getIncumbentValue();
             for (k = 0; k < model->numHeuristics(); ++k) {
                 foundSolution = false;
@@ -2440,7 +2440,7 @@ int BlisTreeNode::installSubProblem(BcpsModel *m)
 int 
 BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & cutPool) 
 {
-    int i, numCGs;
+    int i, j, numCGs;
     int status = BLIS_LP_OPTIMAL;
     int preNumRowCons = 0;
     int preNumColCons = 0;
@@ -2463,16 +2463,15 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & cutPool)
 	//----------------------------------------------------
 	
 	strategy =  model->cutGenerators(i)->strategy();
-	maxStrategy = ALPS_MAX(strategy, maxStrategy);
       
 	bool useThis = false;
-	if (strategy == -2) {
+	if (strategy == BLIS_NONE) {
 	    useThis = false;
 	}
-	else if (strategy == -1) {
+	else if (strategy == BLIS_ROOT) {
 	    if (model->isRoot_) useThis = true;
 	}
-	else if (strategy == 0) {
+	else if (strategy == BLIS_AUTO) {
 	    if (!diving_ || model->isRoot_) useThis = true;
 	}
 	else if (strategy > 0) {
@@ -2528,18 +2527,22 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & cutPool)
 	    // NOTE: only modify if user choose automatic.
 	    //------------------------------------------------
 	    
-	    if ( (model->useCons() == 0) && 
+	    if ( (model->getCutStrategy() == BLIS_AUTO) && 
 		 (model->cutGenerators(i)->noConsCalls() > 30) ) {
 		// disable.
-		model->cutGenerators(i)->setStrategy(-2);
-		maxStrategy = ALPS_MAX(strategy, maxStrategy);
+		model->cutGenerators(i)->setStrategy(BLIS_NONE);
+                for (j = 0; j < numCGs; ++j) {
+                    strategy =  model->cutGenerators(j)->strategy();
+                    if (strategy != BLIS_NONE) {
+                        break;
+                    }
+                }
+                
+                if (j == numCGs) {
+                    model->setCutStrategy(BLIS_NONE);
+                }
 	    }
 	}
-    }
-    
-    if ( (model->useCons() == 0) && (maxStrategy == -2) ){
-	// Previously automatic, now all cut generators have been disabled.
-	model->setUseCons(-2);
     }
     
     return status;
