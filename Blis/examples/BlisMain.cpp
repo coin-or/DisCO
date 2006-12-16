@@ -30,6 +30,8 @@
 #include "CglKnapsackCover.hpp"
 #include "CglOddHole.hpp"
 
+#include "BlisConfig.h"
+
 #if  COIN_HAS_MPI
 #include "AlpsKnowledgeBrokerMPI.h"
 #else
