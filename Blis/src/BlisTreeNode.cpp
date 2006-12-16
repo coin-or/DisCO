@@ -580,7 +580,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         }
 
         //--------------------------------------------------
-        // Apply heuristics.
+        // Call heuristics.
         //--------------------------------------------------
         
         if (keepOn && (model->heurStrategy_ != BLIS_NONE)) {
@@ -2438,7 +2438,7 @@ int BlisTreeNode::installSubProblem(BcpsModel *m)
 //#############################################################################
 
 int 
-BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & cutPool) 
+BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet) 
 {
     int i, j, numCGs;
     int status = BLIS_LP_OPTIMAL;
@@ -2496,13 +2496,25 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & cutPool)
 
 	if (useThis) {
 	    newCons = 0;
-	    preNumRowCons = cutPool.sizeRowCuts();
-	    preNumColCons = cutPool.sizeColCuts();
+	    preNumRowCons = osiCutSet.sizeRowCuts();
+	    preNumColCons = osiCutSet.sizeColCuts();
           
 	    useTime = CoinCpuTime();
 	    mustResolve = 
-		model->cutGenerators(i)->generateCons(cutPool, fullScan);
+		model->cutGenerators(i)->generateCons(osiCutSet, fullScan);
 	    useTime = CoinCpuTime() - useTime;
+
+            // Statistics
+            model->cutGenerators(i)->addCalls(1);
+            preNumRowCons = osiCutSet.sizeRowCuts() - preNumRowCons;
+            preNumColCons = osiCutSet.sizeColCuts() - preNumColCons;
+            if (preNumRowCons + preNumColCons == 0) {
+                model->cutGenerators(i)->addNoConsCalls(1);
+            }
+            else {
+                model->cutGenerators(i)->addNumConsGenerated(preNumRowCons + 
+                                                             preNumColCons);
+            }
 
 	    if (mustResolve) {
 		// TODO: Only probing will return ture.
@@ -2511,7 +2523,7 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & cutPool)
 #ifdef BLIS_DEBUG
 		    std::cout << "CUTGEN: after probing, this node survived."
 			      << std::endl;
-#endif             
+#endif
 		}
 		else {
 #ifdef BLIS_DEBUG

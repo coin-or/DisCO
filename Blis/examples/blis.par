@@ -25,15 +25,15 @@ Alps_eliteSize 1
 Alps_maxHubWorkSize 2
 Alps_searchStrategy 0   # 0: Best quality, 1: Breadth, 2: Depth, 3: estimate, 4 hybrid
 
-Alps_instance ./enigma.mps
+Alps_instance ./egout.mps
 
 Blis_cutDuringRampup 0 # 1 true; 0 false
-Blis_cutStrategy    -1  # -2: root, -1: auto, 0: disable, any positive integer
+Blis_cutStrategy    0  # -2: root, -1: auto, 0: disable, any positive integer
 
-Blis_cutClique     -1   # -2: root, -1: auto, 0: disable, any positive integer
-Blis_cutGomory     -1
-Blis_cutFlowCover  -1
-Blis_cutKnapsack   -1
+Blis_cutClique      0   # -2: root, -1: auto, 0: disable, any positive integer
+Blis_cutGomory      0
+Blis_cutFlowCover   0
+Blis_cutKnapsack    0
 
 Blis_cutProbing     0
 
