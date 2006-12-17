@@ -67,9 +67,12 @@ class BlisHeuristic {
 
     /** The times of calling this heuristic. */
     int calls_;
-    
- public:
 
+    /** The times of calling this heuristic and no solutions found. */
+    int noSolsCalls_;
+    
+public:
+    
     /** Default Constructor. */
     BlisHeuristic() {
         model_ = NULL;
@@ -78,6 +81,7 @@ class BlisHeuristic {
         numSolutions_ = 0;
         time_ = 0.0;
         calls_ = 0;
+        noSolsCalls_ = 0;
     }
     
     /** Useful constructor. */
@@ -93,6 +97,7 @@ class BlisHeuristic {
         numSolutions_ = 0;
         time_ = 0.0;
         calls_ = 0;
+        noSolsCalls_ = 0;
     }
 
     /** Distructor. */
@@ -106,6 +111,7 @@ class BlisHeuristic {
         numSolutions_ = 0;
         time_ = 0.0;
         calls_ = 0;
+        noSolsCalls_ = 0;
     }
  
     /** update model (This is needed if cliques update matrix etc). */
@@ -114,7 +120,7 @@ class BlisHeuristic {
     /** Get/set strategy. */
     //@{
     virtual void setStrategy(int strategy) { strategy_ = strategy; }
-    virtual int strategy() { return strategy_; }
+    virtual int strategy() const { return strategy_; }
     //@]
 
     /** Clone a heuristic. */
@@ -140,14 +146,32 @@ class BlisHeuristic {
                                double * newSolution,
                                OsiCuts & cs) { return 0; }
     
+    /** return name of generator. */
+    inline const char * name() const { return name_; }
+    
+    /** Record number of solutions found. */
+    inline void addNumSolutions(int num=1) { numSolutions_ += num; }
+
     /** Number of solutions found. */
-    int numSolutions() { return numSolutions_; }
+    inline int numSolutions() const { return numSolutions_; }
     
+    /** Record Cpu time used. */
+    inline void addTime(double t=0.0) { time_ += t; }
+
     /** Cpu time used. */
-    inline double time() { return time_; }
+    inline double time() const { return time_; }
     
-    /** Cpu time used. */
-    inline int calls() { return calls_; }
+    /** Record number of times called. */
+    inline void addCalls(int c=1) { calls_ += c; }
+    
+    /** Number of times called. */
+    inline int calls() const { return calls_; } 
+
+    /** Number called and no cons found. */
+    inline int noSolCalls() const { return noSolsCalls_; }
+
+    /** Increase the number of no cons called. */
+    inline void addNoSolCalls(int n=1) { noSolsCalls_ += n; }
 };
 
 #endif

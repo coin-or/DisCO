@@ -30,12 +30,12 @@ Alps_instance ./egout.mps
 Blis_cutDuringRampup 0 # 1 true; 0 false
 Blis_cutStrategy    0  # -2: root, -1: auto, 0: disable, any positive integer
 
-Blis_cutClique      0   # -2: root, -1: auto, 0: disable, any positive integer
-Blis_cutGomory      0
-Blis_cutFlowCover   0
-Blis_cutKnapsack    0
+Blis_cutClique      -1   # -2: root, -1: auto, 0: disable, any positive integer
+Blis_cutGomory      -1
+Blis_cutFlowCover   -1
+Blis_cutKnapsack    -1
 
-Blis_cutProbing     0
+Blis_cutProbing    0
 
 Blis_cutMir         0
 

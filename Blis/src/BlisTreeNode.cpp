@@ -159,6 +159,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     AlpsPhase phase = knowledgeBroker_->getPhase();
     int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
     
+    BlisParams * BlisPar = model->BlisPar();
+
     //------------------------------------------------------
     // Check if this can be fathomed by objective cutoff.
     //------------------------------------------------------
@@ -197,6 +199,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     model->isRoot_ = isRoot;
 
     genConsHere = false;
+
     if (model->getCutStrategy() == BLIS_NONE) {
 	genConsHere = false;
     }
@@ -212,6 +215,14 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     else {
 	genConsHere = true;
     }
+
+    // Spcicial handling of generaing constraints during rampup
+    if (phase == ALPS_PHASE_RAMPUP) {
+        bool genCutsDuringRampup = BlisPar->entry(BlisParams::cutDuringRampup);
+        if (genCutsDuringRampup) {
+            genConsHere = true;
+        }
+    }   
     
     //======================================================
     // Restore, load and solve the subproblem.
@@ -239,14 +250,14 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     origNumOldCons = numStartRows - numCoreRows;
     currNumOldCons = origNumOldCons;
     
-#ifdef BLIS_DEBUG
-    std::cout << "PROCESS: genConsHere=" << genConsHere
-	      << ", useCons=" << model->getCutStrategy()
-	      << ", numCoreRows=" << numCoreRows
-	      << ", numStartRows=" << numStartRows
-	      << ", currNumOldCons=" << currNumOldCons << std::endl;
+#if 0
+    std::cout << "PROCESS: genConsHere =" << genConsHere
+	      << ", cut strategy =" << model->getCutStrategy()
+	      << ", numCoreRows =" << numCoreRows
+	      << ", numStartRows =" << numStartRows
+	      << ", currNumOldCons =" << currNumOldCons << std::endl;
 #endif
-
+    
     if (currNumOldCons > 0) {
 	oldConsPos = new int [currNumOldCons];
 	for (k = 0; k < currNumOldCons; ++k) {
@@ -268,9 +279,11 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         // Bounding to get the quality of this node.
         //--------------------------------------------------
         
-        if (isRoot && (model->boundingPass_ == 1)) {
+        if ( (knowledgeBroker_->getProcType() == AlpsProcessTypeMaster) && 
+             isRoot && (model->boundingPass_ == 1) ) {
             if (msgLevel > 0) {
-                model->blisMessageHandler()->message(BLIS_ROOT_PROCESS, model->blisMessages())
+                model->blisMessageHandler()->message(BLIS_ROOT_PROCESS, 
+                                                     model->blisMessages())
                     << CoinMessageEol;
                 model->solver()->messageHandler()->setLogLevel(1);
             }
@@ -283,12 +296,13 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         status = bound(model);
 
 	if (model->boundingPass_ == 1) {
-            model->solver()->messageHandler()->setLogLevel(0);
 	    int iter = model->solver()->getIterationCount();
 	    model->addNumIterations(iter);
             if (isRoot) {
                 getKnowledgeBroker()->tempTimer().stop();
-                if (msgLevel > 0) {
+                if ((knowledgeBroker_->getProcType() == AlpsProcessTypeMaster)&& 
+                    (msgLevel > 0)) {
+                    model->solver()->messageHandler()->setLogLevel(0);
                     model->blisMessageHandler()->message(BLIS_ROOT_TIME, model->blisMessages())
                         << getKnowledgeBroker()->tempTimer().getCpuTime() 
                         << CoinMessageEol;
@@ -585,29 +599,49 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         
         if (keepOn && (model->heurStrategy_ != BLIS_NONE)) {
             heurObjValue = getKnowledgeBroker()->getIncumbentValue();
+
             for (k = 0; k < model->numHeuristics(); ++k) {
-                foundSolution = false;
-                foundSolution = 
-                    model->heuristics(k)->searchSolution(heurObjValue,
-                                                         heurSolution);
-		if (foundSolution) {
-                    model->setBestSolution(BLIS_SOL_ROUNDING,
-                                           heurObjValue,
-                                           heurSolution);
-                    BlisSolution* ksol = new BlisSolution(numCols, 
-							  heurSolution, 
-							  heurObjValue);
-                    getKnowledgeBroker()->addKnowledge(ALPS_SOLUTION,
-                                                       ksol,
-                                                       heurObjValue);
-                    // Update cutoff
-                    cutoff = getKnowledgeBroker()->getIncumbentValue();
-                    if (quality_ > cutoff) {
-                        setStatus(AlpsNodeStatusFathomed);
-                        goto TERM_PROCESS;
+                int heurStrategy = model->heuristics(k)->strategy();
+                
+                if (heurStrategy != BLIS_NONE) {
+
+                    getKnowledgeBroker()->tempTimer().start();
+                    foundSolution = false;
+                    foundSolution = 
+                        model->heuristics(k)->searchSolution(heurObjValue,
+                                                             heurSolution);
+                    getKnowledgeBroker()->tempTimer().stop();
+
+                    model->heuristics(k)->
+                        addTime(getKnowledgeBroker()->tempTimer().getCpuTime());
+                    model->heuristics(k)->addCalls(1);
+
+                    if (foundSolution) {
+                        model->heuristics(k)->addNumSolutions(1);
+                        int noSols = model->heuristics(k)->noSolCalls();
+                        model->heuristics(k)->addNoSolCalls(-noSols);
+                        model->setBestSolution(BLIS_SOL_ROUNDING,
+                                               heurObjValue,
+                                               heurSolution);
+                        BlisSolution* ksol = new BlisSolution(numCols, 
+                                                              heurSolution, 
+                                                              heurObjValue);
+                        getKnowledgeBroker()->addKnowledge(ALPS_SOLUTION,
+                                                           ksol,
+                                                           heurObjValue);
+                        // Update cutoff
+                        cutoff = getKnowledgeBroker()->getIncumbentValue();
+                        if (quality_ > cutoff) {
+                            setStatus(AlpsNodeStatusFathomed);
+                            goto TERM_PROCESS;
+                        }
                     }
-		}
-            }
+                    else {
+                        model->heuristics(k)->addNoSolCalls(1);
+                    }
+                    
+                } // EOF heurStrategy
+            }    
         }
         
         //--------------------------------------------------
@@ -616,13 +650,13 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         
         if ( keepOn && genConsHere && (numAppliedCons < maxNumCons) ) {
             
-            OsiCuts newCutPool;
+            OsiCuts newOsiCuts;
             
             memcpy(currLpSolution, 
                    model->getLpSolution(),
                    numCols * sizeof(double));
             
-            status = generateConstraints(model, newCutPool);
+            status = generateConstraints(model, newOsiCuts);
             
             if (status != BLIS_LP_OPTIMAL) {
                 setStatus(AlpsNodeStatusFathomed);
@@ -631,16 +665,16 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
             }
             
             // TODO: column cuts, which are already installed by probing.
-            tempNum = newCutPool.sizeRowCuts();
+            tempNum = newOsiCuts.sizeRowCuts();
             
             if (tempNum > 0) {
-                applyConstraints(model, newCutPool, currLpSolution);
+                applyConstraints(model, newOsiCuts, currLpSolution);
                 keepOn = true;
-                tempNum = newCutPool.sizeRowCuts();
+                tempNum = newOsiCuts.sizeRowCuts();
 
                 // Move cuts from OsiCuts to vector newConstraints.
                 for (k = 0; k < tempNum; ++k) {
-                    aCon = BlisOsiCutToConstraint(&(newCutPool.rowCut(k)));
+                    aCon = BlisOsiCutToConstraint(&(newOsiCuts.rowCut(k)));
 
 		    //aCon->hashing(model);
 
@@ -1183,8 +1217,10 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 		}
 
 #ifdef BLIS_DEBUG_MORE
-		std::cout << "SAVE: REL: numModSoftColLB = " << numModSoftColLB 
-			  << ", numModSoftColUB = " << numModSoftColUB 
+		std::cout << "SAVE: REL: numModSoftColLB = " 
+                          << numModSoftColLB 
+			  << ", numModSoftColUB = " 
+                          << numModSoftColUB 
 			  << std::endl;
 #endif
             
@@ -1239,7 +1275,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 		    // If this node has a list of cuts before pointers in 
 		    // model->oldConstraints() will be kept. Safe!
 		    if (numNewCons > 0) {
-			desc->appendAddedConstraints(numNewCons, newConstraints);
+			desc->appendAddedConstraints(numNewCons,
+                                                     newConstraints);
                     }
 		    
 		    //--------------------------------------
@@ -1298,6 +1335,37 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     //------------------------------------------------------
     
  TERM_PROCESS:
+
+    if ( (getKnowledgeBroker()->getProcType() == AlpsProcessTypeMaster) &&
+         isRoot && genConsHere && (msgLevel > 0) ) {
+        int numT = model->numCutGenerators();
+        for (k = 0; k < numT; ++k) {
+            if ( model->cutGenerators(k)->calls() > 0) {
+                model->blisMessageHandler()->message(BLIS_CUT_STAT_ROOT,
+                                                     model->blisMessages())
+                    << model->cutGenerators(k)->name()
+                    << model->cutGenerators(k)->calls()
+                    << model->cutGenerators(k)->numConsGenerated()
+                    << model->cutGenerators(k)->time()
+                    << model->cutGenerators(k)->strategy()
+                    << CoinMessageEol;
+            }   
+        }
+
+        numT = model->numHeuristics();
+        for (k = 0; k < numT; ++k) {
+            if ( model->heuristics(k)->calls() > 0) {
+                model->blisMessageHandler()->message(BLIS_HEUR_STAT_ROOT,
+                                                     model->blisMessages())
+                    << model->heuristics(k)->name()
+                    << model->heuristics(k)->calls()
+                    << model->heuristics(k)->numSolutions()
+                    << model->heuristics(k)->time()
+                    << model->heuristics(k)->strategy()
+                    << CoinMessageEol;
+            }   
+        }
+    }
 
     delete [] heurSolution;
     delete [] currLpSolution;
@@ -1865,8 +1933,9 @@ int BlisTreeNode::selectBranchObject(BlisModel *model,
 int BlisTreeNode::bound(BcpsModel *model) 
 {
     int status = BLIS_OK;
-    BlisModel *m = dynamic_cast<BlisModel *>(model);
-    
+
+    BlisModel *m = dynamic_cast<BlisModel *>(model);   
+ 
 #ifdef BLIS_DEBUG_MORE
     int j;
     int numCols = m->solver()->getNumCols();
@@ -1878,7 +1947,7 @@ int BlisTreeNode::bound(BcpsModel *model)
     }
 #endif
 
-
+    // Bounding
     m->solver()->resolve();
 
     if (m->solver()->isAbandoned()) {
@@ -2446,12 +2515,11 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet)
     int preNumColCons = 0;
     int newCons = 0;
     int strategy = -2;
-    int maxStrategy = -2;
     
     bool mustResolve = false;
     bool fullScan = true;
     
-    double useTime;
+    double genCutTime;
     
     numCGs = model->numCutGenerators();
   
@@ -2464,29 +2532,30 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet)
 	
 	strategy =  model->cutGenerators(i)->strategy();
       
-	bool useThis = false;
+	bool useThisCutGenerator = false;
 	if (strategy == BLIS_NONE) {
-	    useThis = false;
+	    useThisCutGenerator = false;
 	}
 	else if (strategy == BLIS_ROOT) {
-	    if (model->isRoot_) useThis = true;
+	    if (model->isRoot_) useThisCutGenerator = true;
 	}
 	else if (strategy == BLIS_AUTO) {
-	    if (!diving_ || model->isRoot_) useThis = true;
+	    if (!diving_ || model->isRoot_) useThisCutGenerator = true;
 	}
 	else if (strategy > 0) {
 	    // Num of nodes is set at the beginning of process().
 	    int numNodes = model->getNumNodes();
 	    if ((numNodes-1) % strategy == 0) {
-		useThis = true;
+		useThisCutGenerator = true;
 	    }
 	}
 	
 #ifdef BLIS_DEBUG_MORE
 	std::cout<<"CUTGEN: " << model->cutGenerators(i)->name() 
-		 <<": useThis="<<useThis<<", diving=" <<diving_
-		 << ", strategy=" << strategy 
-		 << ", num of nodes=" << model->getNumNodes()
+		 <<": useThisCutGenerator ="<<useThisCutGenerator
+                 <<", diving =" << diving_
+		 << ", strategy =" << strategy 
+		 << ", num of nodes =" << model->getNumNodes()
 		 <<std::endl;
 #endif
 
@@ -2494,17 +2563,18 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet)
 	// Generator constraints.
 	//----------------------------------------------------
 
-	if (useThis) {
+	if (useThisCutGenerator) {
 	    newCons = 0;
 	    preNumRowCons = osiCutSet.sizeRowCuts();
 	    preNumColCons = osiCutSet.sizeColCuts();
           
-	    useTime = CoinCpuTime();
+	    genCutTime = CoinCpuTime();
 	    mustResolve = 
 		model->cutGenerators(i)->generateCons(osiCutSet, fullScan);
-	    useTime = CoinCpuTime() - useTime;
-
+	    genCutTime = CoinCpuTime() - genCutTime;
+            
             // Statistics
+            model->cutGenerators(i)->addTime(genCutTime);
             model->cutGenerators(i)->addCalls(1);
             preNumRowCons = osiCutSet.sizeRowCuts() - preNumRowCons;
             preNumColCons = osiCutSet.sizeColCuts() - preNumColCons;
@@ -2512,6 +2582,9 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet)
                 model->cutGenerators(i)->addNoConsCalls(1);
             }
             else {
+                // Reset to 0
+                int noCuts = model->cutGenerators(i)->noConsCalls();
+                model->cutGenerators(i)->addNoConsCalls(-noCuts);
                 model->cutGenerators(i)->addNumConsGenerated(preNumRowCons + 
                                                              preNumColCons);
             }
@@ -2539,10 +2612,7 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet)
 	    // NOTE: only modify if user choose automatic.
 	    //------------------------------------------------
 	    
-	    if ( (model->getCutStrategy() == BLIS_AUTO) && 
-		 (model->cutGenerators(i)->noConsCalls() > 30) ) {
-		// disable.
-		model->cutGenerators(i)->setStrategy(BLIS_NONE);
+	    if (model->getCutStrategy() == BLIS_NONE) {
                 for (j = 0; j < numCGs; ++j) {
                     strategy =  model->cutGenerators(j)->strategy();
                     if (strategy != BLIS_NONE) {

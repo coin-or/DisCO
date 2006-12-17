@@ -157,7 +157,7 @@ BlisConGenerator::generateCons(OsiCuts & coinCuts , bool fullScan)
         //--------------------------------------------------
 
 	int j;
-        double start = CoinCpuTime();
+        //double start = CoinCpuTime();
         int numConsBefore = coinCuts.sizeCuts();   
         int numRowsBefore = coinCuts.sizeRowCuts();   
 
@@ -222,8 +222,10 @@ BlisConGenerator::generateCons(OsiCuts & coinCuts , bool fullScan)
 	    }
 	}
 
+#if 0
         //--------------------------------------------------
-        // Update statistics.
+        // Update statistics. 
+        // Let Blis do this, 12/17/06
         //--------------------------------------------------
 
         ++calls_;
@@ -231,6 +233,11 @@ BlisConGenerator::generateCons(OsiCuts & coinCuts , bool fullScan)
         time_ += (CoinCpuTime() - start);
         if (numConsGenerated_ == 0) {
             ++noConsCalls_;
+        }
+#endif
+        
+        if ( (strategy_ == BLIS_AUTO) && (noConsCalls_ > BLIS_CUT_DISABLE) ) {
+            strategy_ = BLIS_NONE;
         }
     }
 

@@ -49,6 +49,7 @@
 void 
 BlisModel::init() 
 {
+    processType_ = AlpsProcessTypeMaster;
     origLpSolver_ = NULL;
     presolvedLpSolver_ = NULL;
     lpSolver_ = NULL;
@@ -305,6 +306,8 @@ BlisModel::setupSelf()
     
     startTime_ = CoinCpuTime();
 
+    processType_ = broker_->getProcType();
+
     //------------------------------------------------------
     // Allocate memory.
     //------------------------------------------------------
@@ -444,6 +447,16 @@ BlisModel::setupSelf()
         addHeuristic(heurRound);
     }
 
+    // Adjust heurStrategy
+    for (j = 0; j < numHeuristics_; ++j) {
+        if (heuristics_[j]->strategy() != BLIS_NONE) {
+            // Doesn't matter what's the strategy, we just want to 
+            // call heuristics.
+            heurStrategy_ = heuristics_[j]->strategy();
+            break;
+        }
+    }
+
     //------------------------------------------------------
     // Cut generators settings.
     //------------------------------------------------------
@@ -497,8 +510,8 @@ BlisModel::setupSelf()
 #endif
 
     int clique = BlisPar_->entry(BlisParams::cutClique);
-    int gomory = BlisPar_->entry(BlisParams::cutGomory); 
     int fCover = BlisPar_->entry(BlisParams::cutFlowCover);
+    int gomory = BlisPar_->entry(BlisParams::cutGomory); 
     int knap = BlisPar_->entry(BlisParams::cutKnapsack); 
     int mir = BlisPar_->entry(BlisParams::cutMir); 
     int oddHole = BlisPar_->entry(BlisParams::cutOddHole);
@@ -510,9 +523,10 @@ BlisModel::setupSelf()
     //------------------------------------------------------
 
     if (probe == BLIS_NOT_SET) {
-        probe = cutStrategy_;
+        // Only at root by default
+        probe = BLIS_ROOT;
     }
-    if (probe != 0) {
+    if (probe != BLIS_NONE) {
         CglProbing *probing = new CglProbing;
         probing->setUsingObjective(true);
         probing->setMaxPass(1);
@@ -532,7 +546,7 @@ BlisModel::setupSelf()
     if (clique == BLIS_NOT_SET) {
         clique = cutStrategy_;
     }
-    if (clique != 0) {
+    if (clique != BLIS_NONE) {
         CglClique *cliqueCut = new CglClique ;
         cliqueCut->setStarCliqueReport(false);
         cliqueCut->setRowCliqueReport(false);
@@ -540,9 +554,10 @@ BlisModel::setupSelf()
     }
 
     if (oddHole == BLIS_NOT_SET) {
-        oddHole = cutStrategy_;
+        // Disable by default
+        oddHole = BLIS_NONE;
     }
-    if (oddHole != 0) {
+    if (oddHole != BLIS_NONE) {
         CglOddHole *oldHoleCut = new CglOddHole;
         oldHoleCut->setMinimumViolation(0.005);
         oldHoleCut->setMinimumViolationPer(0.00002);
@@ -554,15 +569,15 @@ BlisModel::setupSelf()
     if (fCover == BLIS_NOT_SET) {
          fCover = cutStrategy_;
     }
-    if (fCover != 0) {
+    if (fCover != BLIS_NONE) {
         CglFlowCover *flowGen = new CglFlowCover;
-        addCutGenerator(flowGen, "FlowCover", fCover);
+        addCutGenerator(flowGen, "Flow Cover", fCover);
     }
 
     if (knap == BLIS_NOT_SET) {
         knap = cutStrategy_;
     }
-    if (knap != 0) {
+    if (knap != BLIS_NONE) {
         CglKnapsackCover *knapCut = new CglKnapsackCover;
         addCutGenerator(knapCut, "Knapsack", knap);
     }
@@ -570,7 +585,7 @@ BlisModel::setupSelf()
     if (mir == BLIS_NOT_SET) {
         mir = cutStrategy_;
     }
-    if (mir != 0) {
+    if (mir != BLIS_NONE) {
         CglMixedIntegerRounding2 *mixedGen = new CglMixedIntegerRounding2;
         addCutGenerator(mixedGen, "MIR", mir);
     }
@@ -578,7 +593,7 @@ BlisModel::setupSelf()
     if (gomory == BLIS_NOT_SET) {
         gomory = cutStrategy_;
     }
-    if (gomory != 0) {
+    if (gomory != BLIS_NONE) {
         CglGomory *gomoryCut = new CglGomory;
         // try larger limit
         gomoryCut->setLimit(300);
@@ -586,11 +601,12 @@ BlisModel::setupSelf()
     }
 
     if (twoMir == BLIS_NOT_SET) {
-        twoMir = cutStrategy_;
+        // Disable by default
+        twoMir = BLIS_NONE;
     }
-    if (twoMir != 0) {
+    if (twoMir != BLIS_NONE) {
         CglTwomir *twoMirCut =  new CglTwomir;
-        addCutGenerator(twoMirCut, "Two mir", twoMir);
+        addCutGenerator(twoMirCut, "Two MIR", twoMir);
     }
     
     // Random vector
@@ -608,7 +624,18 @@ BlisModel::setupSelf()
         //std::cout << "conRandoms_[" << j << "]="
         //      <<conRandoms_[j]<< std::endl;
     }
-    
+
+    // Adjust cutstrategy
+    for (j = 0; j < numCutGenerators_; ++j) {
+        int strategy = cutGenerators(j)->strategy();
+        if (strategy != BLIS_NONE) {
+            // Doesn't matter what's the strategy, we just want to 
+            // Generate cuts.
+            cutStrategy_ =  strategy;
+            break;
+        }
+    }
+     
 #ifdef BLIS_DEBUG_MORE
     std::cout << "AFTER: cutStrategy_ = " << cutStrategy_ << std::endl;
 #endif
@@ -1577,7 +1604,8 @@ BlisModel::registerKnowledge() {
 void 
 BlisModel::modelLog() 
 {
-
+    if (processType_ != AlpsProcessTypeMaster) return;
+    
     int logFileLevel = AlpsPar_->entry(AlpsParams::logFileLevel);
     int msgLevel = AlpsPar_->entry(AlpsParams::msgLevel);
     if (logFileLevel > 0) {
@@ -1585,11 +1613,39 @@ BlisModel::modelLog()
 	std::ofstream logFout(logfile.c_str(), std::ofstream::app);
 	writeParameters(logFout);
     }
+
     if (msgLevel > 1) {
 	blisMessageHandler()->message(BLIS_PEAK_MEMORY, blisMessages())
 	    << peakMemory_ << CoinMessageEol;
     }
-    
+
+    if (msgLevel > 0) {
+        int k;
+        for (k = 0; k < numCutGenerators_; ++k) {
+            if (cutGenerators(k)->calls() > 0) {
+                blisMessageHandler()->message(BLIS_CUT_STAT_FINAL,
+                                              blisMessages())
+                    << cutGenerators(k)->name()
+                    << cutGenerators(k)->calls()
+                    << cutGenerators(k)->numConsGenerated()
+                    << cutGenerators(k)->time()
+                    << cutGenerators(k)->strategy()
+                    << CoinMessageEol;
+            }
+        }
+        for (k = 0; k < numHeuristics_; ++k) {
+            if (heuristics(k)->calls() > 0) {
+                blisMessageHandler()->message(BLIS_HEUR_STAT_FINAL,
+                                              blisMessages())
+                    << heuristics(k)->name()
+                    << heuristics(k)->calls()
+                    << heuristics(k)->numSolutions()
+                    << heuristics(k)->time()
+                    << heuristics(k)->strategy()
+                    << CoinMessageEol;
+            }   
+        }
+    }    
 }
 
 //#############################################################################

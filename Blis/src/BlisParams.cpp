@@ -147,10 +147,10 @@ BlisParams::setDefaultEntries() {
   setEntry(cutFlowCover, BLIS_NOT_SET);
   setEntry(cutKnapsack, BLIS_NOT_SET);
   setEntry(cutMir, BLIS_NOT_SET);
-  setEntry(cutOddHole, 0);
+  setEntry(cutOddHole, BLIS_NOT_SET);
   setEntry(cutProbing, BLIS_NOT_SET);
-  setEntry(cutStrategy, -1);
-  setEntry(cutTwoMir, 0);
+  setEntry(cutStrategy, BLIS_AUTO);
+  setEntry(cutTwoMir, BLIS_NOT_SET);
   setEntry(difference, -1);
   setEntry(heurRound, BLIS_NOT_SET);
   setEntry(heurStrategy, -1);

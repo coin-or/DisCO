@@ -220,19 +220,19 @@ class BlisConGenerator  {
     inline void addNumConsUsed(int n) { numConsUsed_ += n; }
 
     /** Cpu time used. */
-    inline double time() { return time_; }
+    inline double time() const { return time_; }
     
     /** Increase Cpu time used. */
     inline void addTime(double t) { time_ += t; }
     
     /** Number called. */
-    inline int calls() { return calls_; }
+    inline int calls() const { return calls_; }
 
     /** Increase the number of called. */
     inline void addCalls(int n=1) { calls_ += n; }
 
     /** Number called and no cons found. */
-    inline int noConsCalls() { return noConsCalls_; }
+    inline int noConsCalls() const { return noConsCalls_; }
 
     /** Increase the number of no cons called. */
     inline void addNoConsCalls(int n=1) { noConsCalls_ += n; }

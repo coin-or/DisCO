@@ -41,6 +41,10 @@
 #define BLIS_AUTO            -1
 #define BLIS_NONE             0
 
+#define BLIS_CUT_DISABLE     20
+
+#define BLIS_HEUR_ROUND_DISABLE     10000
+
 //#############################################################################
 
 enum BLIS_SOL_TYPE {

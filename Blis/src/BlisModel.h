@@ -29,6 +29,7 @@
 #include "OsiCuts.hpp"
 #include "OsiSolverInterface.hpp"
 
+#include "AlpsEnumProcessT.h"
 #include "AlpsParams.h"
 #include "AlpsTreeNode.h"
 
@@ -53,6 +54,9 @@ class BlisConstraint;
 class BlisModel : public BcpsModel {
 
  private:
+
+    // process type (master, hub or worker)
+    AlpsProcessType processType_;
 
     //------------------------------------------------------
     // LP SOLVER.
@@ -681,6 +685,9 @@ class BlisModel : public BcpsModel {
     //------------------------------------------------------
     // PARALLEL
     //------------------------------------------------------
+    
+    /** Get process type */
+    AlpsProcessType getProcessType() const { return processType_; }
 
     /** Register knowledge. */
     virtual void registerKnowledge();    

@@ -69,7 +69,7 @@ BlisHeurRound::searchSolution(double & solutionValue, double * betterSolution)
 {
     int foundBetter = false;
     
-    if (strategy_ == -2) {
+    if (strategy_ == BLIS_NONE) {
         // This heuristic has been disabled.
         return foundBetter;
     }
@@ -393,6 +393,12 @@ BlisHeurRound::searchSolution(double & solutionValue, double * betterSolution)
     if (foundBetter) ++numSolutions_;
     time_ += (CoinCpuTime() - start);
     
+    if (noSolsCalls_ > BLIS_HEUR_ROUND_DISABLE) {
+        if (strategy_ == BLIS_AUTO) {
+            strategy_ = BLIS_NONE;
+        }
+    }
+
     return foundBetter;
 }
 
