@@ -1,10 +1,10 @@
 Alps_timeLimit 100
 Alps_msgLevel 4
 
-Alps_processNum 6
 Alps_hubNum 2
 Alps_masterInitNodeNum 4
 Alps_hubInitNodeNum 4
+Alps_hubMsgLevel 0
 Alps_interClusterBalance 1      # 1: balancing load, 0: don't.
 Alps_intraClusterBalance 1      # 1: balancing load, 0: don't.
 Alps_unitWorkNodes 30           # or unit time
@@ -24,7 +24,7 @@ Alps_nodeLogInterval 100
 Alps_eliteSize 1
 Alps_maxHubWorkSize 2
 Alps_searchStrategy 0   # 0: Best quality, 1: Breadth, 2: Depth, 3: estimate, 4 hybrid
-
+Alps_workMsgLevel  0
 Alps_instance ./egout.mps
 
 Blis_cutDuringRampup 0 # 1 true; 0 false
