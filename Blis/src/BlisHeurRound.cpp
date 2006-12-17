@@ -386,12 +386,13 @@ BlisHeurRound::searchSolution(double & solutionValue, double * betterSolution)
     delete [] rowActivity;
 
     //------------------------------------------------------
-    // Update statistics.
+    // Adjust strategy
     //------------------------------------------------------
-
-    ++calls_;
-    if (foundBetter) ++numSolutions_;
-    time_ += (CoinCpuTime() - start);
+    
+    // Let Blis do this, 12/17/06
+    //++calls_;
+    //if (foundBetter) ++numSolutions_;
+    //time_ += (CoinCpuTime() - start);
     
     if (noSolsCalls_ > BLIS_HEUR_ROUND_DISABLE) {
         if (strategy_ == BLIS_AUTO) {
