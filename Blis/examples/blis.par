@@ -31,15 +31,15 @@ Blis_cutDuringRampup 0 # 1 true; 0 false
 Blis_cutStrategy    0  # -2: root, -1: auto, 0: disable, any positive integer
 
 Blis_cutClique      -1   # -2: root, -1: auto, 0: disable, any positive integer
-Blis_cutGomory      -1
+Blis_cutGomory      -2
 Blis_cutFlowCover   -1
 Blis_cutKnapsack    -1
 
-Blis_cutProbing    0
-
-Blis_cutMir         0
+Blis_cutMir          -2
 
 Blis_cutOddHole     0
+Blis_cutProbing    0
+
 Blis_cutTwoMir      0
 
 Blis_heurStrategy  -1   # -2: root, -1: auto, 0: disable, any positive integer
