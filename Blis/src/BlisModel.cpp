@@ -149,18 +149,22 @@ BlisModel::readInstance(const char* dataFile)
 {
     int j;
     
+    int msgLevel =  AlpsPar_->entry(AlpsParams::msgLevel);
+
     //------------------------------------------------------
     // Read in data from MPS file.
     //------------------------------------------------------
     
     CoinMpsIO *mps = new CoinMpsIO;
+    
     int rc = mps->readMps(dataFile, "");
     if(rc) {
         delete mps;
         throw CoinError("Unable to read in instance",
                         "readInstance",
                         "BlisModel");
-    }   
+    }
+    mps->messageHandler()->setLogLevel(msgLevel);
 
     //------------------------------------------------------
     // Get problem data.

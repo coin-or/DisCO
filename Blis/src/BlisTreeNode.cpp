@@ -158,6 +158,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 
     AlpsPhase phase = knowledgeBroker_->getPhase();
     int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
+    int hubMsgLevel = model->AlpsPar()->entry(AlpsParams::hubMsgLevel);
+    int workerMsgLevel = model->AlpsPar()->entry(AlpsParams::workerMsgLevel);
     
     BlisParams * BlisPar = model->BlisPar();
 
@@ -219,8 +221,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     // Spcicial handling of generaing constraints during rampup
     if (phase == ALPS_PHASE_RAMPUP) {
         bool genCutsDuringRampup = BlisPar->entry(BlisParams::cutDuringRampup);
-        if (genCutsDuringRampup) {
-            genConsHere = true;
+        if (!genCutsDuringRampup) {
+            genConsHere = false;
         }
     }   
     
@@ -1336,13 +1338,30 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     
  TERM_PROCESS:
 
-    if ( (getKnowledgeBroker()->getProcType() == AlpsProcessTypeMaster) &&
-         isRoot && genConsHere && (msgLevel > 0) ) {
+    bool printCutStat = false;
+    if (isRoot && genConsHere) {
+        if ( (getKnowledgeBroker()->getProcType() == AlpsProcessTypeMaster) &&
+             (msgLevel > 0) ) {
+            printCutStat = true;
+        }
+        else if ( (getKnowledgeBroker()->getProcType() == AlpsProcessTypeHub) &&
+                  (hubMsgLevel > 0) ) {
+            printCutStat = true;
+        }
+        else if ( (getKnowledgeBroker()->getProcType() == AlpsProcessTypeWorker) &&
+                  (workerMsgLevel > 0) ) {
+            printCutStat = true;
+        }
+    }
+    //printCutStat = true;
+
+    if (printCutStat) {
         int numT = model->numCutGenerators();
         for (k = 0; k < numT; ++k) {
-            if ( model->cutGenerators(k)->calls() > 0) {
-                model->blisMessageHandler()->message(BLIS_CUT_STAT_ROOT,
+            if ( model->cutGenerators(k)->calls() > -1) {
+                model->blisMessageHandler()->message(BLIS_CUT_STAT_NODE,
                                                      model->blisMessages())
+                    << index_
                     << model->cutGenerators(k)->name()
                     << model->cutGenerators(k)->calls()
                     << model->cutGenerators(k)->numConsGenerated()
@@ -1354,9 +1373,10 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 
         numT = model->numHeuristics();
         for (k = 0; k < numT; ++k) {
-            if ( model->heuristics(k)->calls() > 0) {
-                model->blisMessageHandler()->message(BLIS_HEUR_STAT_ROOT,
+            if ( model->heuristics(k)->calls() > -1) {
+                model->blisMessageHandler()->message(BLIS_HEUR_STAT_NODE,
                                                      model->blisMessages())
+                    << index_
                     << model->heuristics(k)->name()
                     << model->heuristics(k)->calls()
                     << model->heuristics(k)->numSolutions()
