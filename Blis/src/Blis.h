@@ -43,7 +43,7 @@
 
 #define BLIS_CUT_DISABLE     20
 
-#define BLIS_HEUR_ROUND_DISABLE     10000
+#define BLIS_HEUR_ROUND_DISABLE     1000000
 
 //#############################################################################
 

@@ -2535,6 +2535,9 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet)
     int preNumColCons = 0;
     int newCons = 0;
     int strategy = -2;
+
+    // Only autmatic stategy has depth limit.
+    int maxConstraintDepth = 20;
     
     bool mustResolve = false;
     bool fullScan = true;
@@ -2560,7 +2563,9 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet)
 	    if (model->isRoot_) useThisCutGenerator = true;
 	}
 	else if (strategy == BLIS_AUTO) {
+	  if (depth_ < maxConstraintDepth) {
 	    if (!diving_ || model->isRoot_) useThisCutGenerator = true;
+	  }
 	}
 	else if (strategy > 0) {
 	    // Num of nodes is set at the beginning of process().

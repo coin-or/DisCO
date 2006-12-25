@@ -5,8 +5,8 @@ Alps_hubMsgLevel 2
 Alps_workerMsgLevel 0
 
 Alps_hubNum 2
-Alps_masterInitNodeNum 4
-Alps_hubInitNodeNum 4
+Alps_masterInitNodeNum 63
+Alps_hubInitNodeNum 63
 Alps_hubMsgLevel 0
 Alps_interClusterBalance 1      # 1: balancing load, 0: don't.
 Alps_intraClusterBalance 1      # 1: balancing load, 0: don't.

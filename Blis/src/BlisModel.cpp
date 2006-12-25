@@ -456,7 +456,7 @@ BlisModel::setupSelf()
         if (heuristics_[j]->strategy() != BLIS_NONE) {
             // Doesn't matter what's the strategy, we just want to 
             // call heuristics.
-            heurStrategy_ = heuristics_[j]->strategy();
+	  heurStrategy_ = 1;//BLIS_AUTO;
             break;
         }
     }
@@ -635,7 +635,7 @@ BlisModel::setupSelf()
         if (strategy != BLIS_NONE) {
             // Doesn't matter what's the strategy, we just want to 
             // Generate cuts.
-            cutStrategy_ =  strategy;
+            cutStrategy_ =  BLIS_AUTO;
             break;
         }
     }
