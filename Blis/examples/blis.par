@@ -1,10 +1,10 @@
-Alps_timeLimit 1
-Alps_nodeLimit 100000
+Alps_timeLimit 10000
+Alps_nodeLimit 1000000
 Alps_msgLevel 2
 Alps_hubMsgLevel 2
 Alps_workerMsgLevel 0
 
-Alps_hubNum 1
+Alps_hubNum 2
 Alps_masterInitNodeNum 64
 Alps_hubInitNodeNum 64
 Alps_hubMsgLevel 0
@@ -28,7 +28,7 @@ Alps_eliteSize 1
 Alps_maxHubWorkSize 2
 Alps_searchStrategy 0   # 0: Best quality, 1: Breadth, 2: Depth, 3: estimate, 4 hybrid
 Alps_workMsgLevel  0
-Alps_instance /home/yanxu/data/mip/stein27.mps
+Alps_instance /home/yanxu/data/mip/stein45.mps
 
 Blis_cutDuringRampup 0 # 1 true; 0 false
 Blis_cutStrategy    0  # -2: root, -1: auto, 0: disable, any positive integer
