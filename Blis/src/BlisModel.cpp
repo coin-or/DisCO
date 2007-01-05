@@ -296,12 +296,15 @@ BlisModel::setupSelf()
     int j;
 
     if (broker_->getMsgLevel() > 0) {
-	if (broker_->getProcType() == AlpsProcessTypeMaster) {
-	    bcpsMessageHandler_->message(BCPS_S_VERSION, bcpsMessages())
-		<< CoinMessageEol;
-	    blisMessageHandler()->message(BLIS_S_VERSION, blisMessages())
-		<< CoinMessageEol;
-	}
+
+      //std::cout << "**** getProcType = " << broker_->getProcType() << std::endl;
+      //if (broker_->getProcType() == AlpsProcessTypeMaster) {
+      if (broker_->getProcRank() == broker_->getMasterRank()) {
+	bcpsMessageHandler_->message(BCPS_S_VERSION, bcpsMessages())
+	  << CoinMessageEol;
+	blisMessageHandler()->message(BLIS_S_VERSION, blisMessages())
+	  << CoinMessageEol;
+      }
     }
     
     //------------------------------------------------------
