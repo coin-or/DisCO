@@ -43,7 +43,11 @@ Coin-Alps or Alps_2006Jun07).  Then you type
    ./configure
 
 or 
-   ./configure -enable-debug --with-mpi-incdir=/home/yanxu1/src/mpich/include --with-mpi-lib='-L/home/yanxu1/src/mpich/lib  -lmpich -lpthread -lrt' MPICC=mpicc MPICXX=mpiCC
+   ./configure --with-mpi-incdir=/home/yanxu1/src/mpich/include --with-mpi-lib='-L/home/yanxu1/src/mpich/lib  -lmpich -lpthread -lrt' MPICC=mpicc MPICXX=mpiCC
+
+or 
+
+ ./configure --enable-debug --with-mpi-incdir=/home/yanxu1/src/mpich/include --with-mpi-lib='-L/home/yanxu1/src/mpich/lib  -lmpich -lpthread -lrt' MPICC=mpicc MPICXX=mpiCC ADDLIBS='-L/usr/totalview/lib -ltvheap Wl,rpath,/usr/totalview/lib'
 
 Note that you might have to specify additional options, in case you
 don't want to use the default choices that configure makes (e.g.,
