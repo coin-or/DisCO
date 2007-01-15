@@ -1909,8 +1909,6 @@ int BlisTreeNode::selectBranchObject(BlisModel *model,
 
     if (phase == ALPS_PHASE_RAMPUP) {
       strategy = model->rampUpBranchStrategy();
-      std::cout << "+++selectBranchObject: Strategy = " << strategy << std::endl;
-
     }
     else {
       strategy = model->branchStrategy();

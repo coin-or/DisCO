@@ -1,4 +1,4 @@
-Alps_instance ~/data/mip/air05.mps
+Alps_instance /data/mip/egout.mps
 
 Alps_timeLimit 7200
 #Alps_nodeLimit 4000000
@@ -12,7 +12,8 @@ Alps_hubNum 2
 Alps_interClusterBalance 1      # 1: balancing load, 0: don't.
 Alps_intraClusterBalance 1      # 1: balancing load, 0: don't.
 
-#Alps_searchStrategy 4   # 0: Best quality, 1: Breadth, 2: Depth, 3: estimate, 4 hybrid
+#Alps_rampUpSearchStrategy 0
+#Alps_searchStrategy 4   # 0: Best, 1: Best-est, 2: Breath, 3: Depth, 4 hybrid
 
 #Alps_nodeLogInterval 100
 Alps_hubWorkClusterSizeLimit 2
@@ -51,7 +52,8 @@ Blis_cutTwoMir      0
 Blis_heurStrategy  -1   # -2: root, -1: auto, 0: disable, any positive integer
 Blis_heurRound     -1   # -2: root, -1: auto, 0: disable, any positive integer
 
-Blis_branchStrategy 0  # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
+Blis_branchStrategy 2   # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
+Blis_rampUpBranchStrategy 0
 
 Blis_pseudoWeight        0.8  # [0.0, 1.0]
 Blis_pseudoRelibility      8
@@ -59,4 +61,4 @@ Blis_lookAhead             4
 Blis_denseConFactor        5.0
 Blis_scaleConFactor        100000000.0
 Blis_difference    1
-Blis_rampUpBranchStrategy  0
+

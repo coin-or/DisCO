@@ -418,7 +418,7 @@ BlisModel::setupSelf()
     //------------------------------------------------------
 
     int brStrategy = BlisPar_->entry(BlisParams::branchStrategy);
-    std::cout << "1. brStrategy = " << brStrategy << std::endl;
+
     if (brStrategy == BLIS_BS_MAXINFEAS) {
         // Max inf
         branchStrategy_ = new BlisBranchStrategyMaxInf(this);
@@ -440,7 +440,7 @@ BlisModel::setupSelf()
     }
 
     brStrategy = BlisPar_->entry(BlisParams::rampUpBranchStrategy);
-    std::cout << "2. brStrategy = " << brStrategy << std::endl;
+
     if (brStrategy == BLIS_BS_MAXINFEAS) {
         // Max inf
       rampUpBranchStrategy_ = new BlisBranchStrategyMaxInf(this);
