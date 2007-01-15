@@ -32,6 +32,7 @@
 #include "BcpsObject.h"
 
 #include "BlisBranchObjectInt.h"
+#include "BlisBranchStrategyMaxInf.h"
 #include "BlisBranchStrategyPseudo.h"
 #include "BlisBranchStrategyRel.h"
 #include "BlisBranchStrategyStrong.h"
@@ -420,7 +421,7 @@ BlisModel::setupSelf()
     std::cout << "1. brStrategy = " << brStrategy << std::endl;
     if (brStrategy == BLIS_BS_MAXINFEAS) {
         // Max inf
-        branchStrategy_ = new BlisBranchStrategyStrong(this);
+        branchStrategy_ = new BlisBranchStrategyMaxInf(this);
     }
     else if (brStrategy == BLIS_BS_PSEUDOCOST) {
         // Pseudocost
@@ -442,7 +443,7 @@ BlisModel::setupSelf()
     std::cout << "2. brStrategy = " << brStrategy << std::endl;
     if (brStrategy == BLIS_BS_MAXINFEAS) {
         // Max inf
-      rampUpBranchStrategy_ = new BlisBranchStrategyStrong(this);
+      rampUpBranchStrategy_ = new BlisBranchStrategyMaxInf(this);
     }
     else if (brStrategy == BLIS_BS_PSEUDOCOST) {
         // Pseudocost

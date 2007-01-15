@@ -51,7 +51,7 @@ Blis_cutTwoMir      0
 Blis_heurStrategy  -1   # -2: root, -1: auto, 0: disable, any positive integer
 Blis_heurRound     -1   # -2: root, -1: auto, 0: disable, any positive integer
 
-Blis_branchStrategy 1  # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
+Blis_branchStrategy 0  # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
 
 Blis_pseudoWeight        0.8  # [0.0, 1.0]
 Blis_pseudoRelibility      8

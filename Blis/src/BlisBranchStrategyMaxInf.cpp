@@ -39,61 +39,62 @@ int
 BlisBranchStrategyMaxInf::createCandBranchObjects(int numPassesLeft)
 {
 
-  int numObjects = model->numObjects();
-  int numInfs = 0;
-
-  int i, col, preferDir, maxInfDir, maxScoreDir;
-
-  double sacore, maxScore = 0.0;
-  double infeasibility, maxInf = 0.0;
-
-  BlisModel *model = dynamic_cast<BlisModel *>(model_);
-
-  BlisObjectInt * intObject = 0;
-  BlisObjectInt * maxInfIntObject = 0;
-  BlisObjectInt * maxScoreIntObject = 0;
-
-  double objCoef = model->getObjCoef();
-
-  for (i = 0; i < numObjects; ++i) {
-	  
-    // TODO: currently all integer object.
-    intObject = dynamic_cast<BlisObjectInt *>(model->objects(i));
-    infeasibility = intObject->infeasibility(model, preferDir);
+    int numInfs = 0;
     
-    if (infeasibility) {
-      ++numInfs;
-
-      if (infeasibility > maxInf) {
-	maxInfIntObject = intObject;
-	maxInfDir = preferDir;
-	maxInf = infeasiblity;
-      }
-
-      col = intObject->columnIndex();
-      score = ALPS_FABS(objCoef[col] * infeasibility);
-     
-      if (score > maxScore) {
-	maxScoreIntObject = intObject;
-	maxScoreDir = preferDir;
-	maxScore = score;
-      }
-    }
-  }
-
-  assert(numInfs > 0);
-
-  if (maxScoreIntObject) {
-    maxInfIntObject = maxInfIntObject;
-    maxInfDir = maxScoreDir;
-  }
-  
-  numBranchObjects_ = 1;
-  branchObjects_ = new BcpsBranchObject* [1];
-  branchObjects_[0] = maxInfIntObject->createBranchObject(model,
-							  maxInfDir);
+    int i, col, preferDir, maxInfDir, maxScoreDir;
+    
+    double score, maxScore = 0.0;
+    double infeasibility, maxInf = 0.0;
+    
+    BlisModel *model = dynamic_cast<BlisModel *>(model_);
+    
+    BlisObjectInt * intObject = 0;
+    BlisObjectInt * maxInfIntObject = 0;
+    BlisObjectInt * maxScoreIntObject = 0;
+    
+    int numObjects = model->numObjects();
+    
+    double *objCoef = model->getObjCoef();
+    
+    for (i = 0; i < numObjects; ++i) {
+	
+        // TODO: currently all integer object.
+        intObject = dynamic_cast<BlisObjectInt *>(model->objects(i));
+        infeasibility = intObject->infeasibility(model, preferDir);
         
-  return 0;
+        if (infeasibility) {
+            ++numInfs;
+            
+            if (infeasibility > maxInf) {
+                maxInfIntObject = intObject;
+                maxInfDir = preferDir;
+                maxInf = infeasibility;
+            }
+            
+            col = intObject->columnIndex();
+            score = ALPS_FABS(objCoef[col] * infeasibility);
+            
+            if (score > maxScore) {
+                maxScoreIntObject = intObject;
+                maxScoreDir = preferDir;
+                maxScore = score;
+            }
+        }
+    }
+
+    assert(numInfs > 0);
+    
+    if (maxScoreIntObject) {
+        maxInfIntObject = maxInfIntObject;
+        maxInfDir = maxScoreDir;
+    }
+    
+    numBranchObjects_ = 1;
+    branchObjects_ = new BcpsBranchObject* [1];
+    branchObjects_[0] = maxInfIntObject->createBranchObject(model,
+                                                            maxInfDir);
+    
+    return 0;
 }
 
 //#############################################################################
@@ -103,12 +104,11 @@ BlisBranchStrategyMaxInf::createCandBranchObjects(int numPassesLeft)
     return 0. 
     If bestSorFar is NULL, then always return branching direction(1 or -1).
 */
-
 int
 BlisBranchStrategyMaxInf::betterBranchObject(BcpsBranchObject * thisOne,
 					     BcpsBranchObject * bestSoFar)
 {
-  return thisOne->getDirection();
+    return thisOne->getDirection();
 }
 
 //#############################################################################

@@ -81,11 +81,11 @@ libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libBlis_la_LIBADD =
 am_libBlis_la_OBJECTS = BlisBranchObjectInt.lo \
-	BlisBranchStrategyPseudo.lo BlisBranchStrategyRel.lo \
-	BlisBranchStrategyStrong.lo BlisConGenerator.lo \
-	BlisConstraint.lo BlisHelp.lo BlisHeurRound.lo BlisMessage.lo \
-	BlisModel.lo BlisObjectInt.lo BlisParams.lo BlisPresolve.lo \
-	BlisPseudo.lo BlisTreeNode.lo
+	BlisBranchStrategyMaxInf.lo BlisBranchStrategyPseudo.lo \
+	BlisBranchStrategyRel.lo BlisBranchStrategyStrong.lo \
+	BlisConGenerator.lo BlisConstraint.lo BlisHelp.lo \
+	BlisHeurRound.lo BlisMessage.lo BlisModel.lo BlisObjectInt.lo \
+	BlisParams.lo BlisPresolve.lo BlisPseudo.lo BlisTreeNode.lo
 libBlis_la_OBJECTS = $(am_libBlis_la_OBJECTS)
 depcomp = $(SHELL) $(top_srcdir)/../depcomp
 am__depfiles_maybe = depfiles
@@ -287,6 +287,8 @@ lib_LTLIBRARIES = libBlis.la
 libBlis_la_SOURCES = \
 	BlisBranchObjectInt.cpp \
 	BlisBranchObjectInt.h \
+	BlisBranchStrategyMaxInf.cpp \
+	BlisBranchStrategyMaxInf.h \
 	BlisBranchStrategyPseudo.cpp \
 	BlisBranchStrategyPseudo.h \
 	BlisBranchStrategyRel.cpp \
@@ -363,6 +365,7 @@ DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/inc
 include_HEADERS = \
 	../inc/config_blis.h \
 	BlisBranchObjectInt.h \
+	BlisBranchStrategyMaxInf.h \
 	BlisBranchStrategyPseudo.h \
 	BlisBranchStrategyRel.h \
 	BlisBranchStrategyStrong.h \
@@ -462,6 +465,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisBranchObjectInt.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisBranchStrategyMaxInf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisBranchStrategyPseudo.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisBranchStrategyRel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisBranchStrategyStrong.Plo@am__quote@
