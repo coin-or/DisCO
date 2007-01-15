@@ -102,3 +102,85 @@ BlisPseudocost::update(int dir,
 }
 
 //#############################################################################
+
+/** Pack pseudocost to the given object. */
+AlpsReturnCode 
+BlisPseudocost::encodeTo(AlpsEncoded *encoded) const 
+{
+    AlpsReturnCode status = ALPS_OK;
+    
+    encoded->writeRep(weight_);
+    encoded->writeRep(upCost_);
+    encoded->writeRep(upCount_);
+    encoded->writeRep(downCost_);
+    encoded->writeRep(downCount_);
+    encoded->writeRep(score_);
+    
+    return status;
+}
+
+//#############################################################################
+
+/** Unpack pseudocost from the given encode object. */
+AlpsReturnCode 
+BlisPseudocost::decodeFrom(AlpsEncoded &encoded)
+{
+    AlpsReturnCode status = ALPS_OK;
+
+    encoded.readRep(weight_);
+    encoded.readRep(upCost_);
+    encoded.readRep(upCount_);
+    encoded.readRep(downCost_);
+    encoded.readRep(downCount_);
+    encoded.readRep(score_);
+    
+    return status;
+}
+
+//#############################################################################
+
+AlpsEncoded*
+BlisPseudocost::encode() const 
+{
+    AlpsEncoded* encoded = new AlpsEncoded("BLIS_PSEUDO");
+    
+    encoded->writeRep(weight_);
+    encoded->writeRep(upCost_);
+    encoded->writeRep(upCount_);
+    encoded->writeRep(downCost_);
+    encoded->writeRep(downCount_);
+    encoded->writeRep(score_);
+    
+    return encoded;
+}
+
+//#############################################################################
+
+AlpsKnowledge* 
+BlisPseudocost::decode(AlpsEncoded& encoded) const 
+{
+    double weight;
+    int upCount;
+    double upCost;
+    int downCount;
+    double downCost;
+    double score;
+
+    encoded.readRep(weight);
+    encoded.readRep(upCost);
+    encoded.readRep(upCount);
+    encoded.readRep(downCost);
+    encoded.readRep(downCount);
+    encoded.readRep(score);
+
+    BlisPseudocost *pcost = new  BlisPseudocost(upCost,
+                                                upCount,
+                                                downCost,
+                                                downCount,
+                                                score);
+    pcost->setWeight(weight);
+
+    return pcost;
+}
+
+//#############################################################################

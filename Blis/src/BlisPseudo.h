@@ -18,26 +18,27 @@
 #define BlisPseudo_h_
 
 #include "CoinError.hpp"
+#include "AlpsKnowledge.h"
 
 //#############################################################################
 
-class BlisPseudocost 
+class BlisPseudocost : public AlpsKnowledge
 {
- private:
+private:
     /** Use to calculate score. */
     double weight_;
-
-    /** How many times being branched up. */
-    int upCount_;
 
     /** Average object change when branching up. */
     double upCost_;
 
-    /** How many times being branched down. */
-    int downCount_;
+    /** How many times being branched up. */
+    int upCount_;
 
     /** Average object change when branching down. */
     double downCost_;
+
+    /** How many times being branched down. */
+    int downCount_;
 
     /** The estimated importance. 
         Score = weight * MIN(downCost_, upCost_) +
@@ -49,10 +50,10 @@ class BlisPseudocost
     /** Default constructor. */
     BlisPseudocost() : 
         weight_(1.0),
-        upCount_(0),
         upCost_(0.0), 
-        downCount_(0), 
+        upCount_(0),
         downCost_(0.0),
+        downCount_(0), 
         score_(0.0)
         {}
     
@@ -64,10 +65,10 @@ class BlisPseudocost
                    double s)
         :
         weight_(1.0),
-        upCount_(un),
         upCost_(uc), 
-        downCount_(dn),
+        upCount_(un),
         downCost_(dc),
+        downCount_(dn),
         score_(s) 
         {}
     
@@ -103,8 +104,23 @@ class BlisPseudocost
     /** Get down branching cost. */
     double getDownCost() { return downCost_; } 
 
-   /** Get importance. */
-    double getScore() { return score_; } 
+    /** Get importance. */
+    double getScore() { return score_; }
+
+    /** Set importance. */
+    void setScore(double s) { score_ = s; }
+
+    /** Pack pseudocost to the given object. */
+    AlpsReturnCode encodeTo(AlpsEncoded *encoded) const;
+    
+    /** Unpack pseudocost from the given encode object. */
+    AlpsReturnCode decodeFrom(AlpsEncoded &encoded);
+
+    /** Encode this node for message passing. */
+    virtual AlpsEncoded* encode() const;
+
+    /** Decode a node from an encoded object. */
+    virtual AlpsKnowledge* decode(AlpsEncoded&) const;
 };
 
 #endif
