@@ -28,9 +28,8 @@
 #include "BlisModel.h"
 
 
-/** Blis branching strategy default class
-    This class implements a simple default algorithm, betterBranchObject(),
-    for choosing a branching variable. */
+/** Blis branching strategy.
+    This class implements pseudocost branching. */
 class BlisBranchStrategyPseudo : public BcpsBranchStrategy {
 
  private:

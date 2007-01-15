@@ -47,6 +47,20 @@
 
 //#############################################################################
 
+/** Branching strategy.
+    0: max infeasibilty, 
+    1: pseudocost, 
+    2: relibility, 
+    3: strong branching.
+*/
+#define BLIS_BS_MAXINFEAS     0
+#define BLIS_BS_PSEUDOCOST    1
+#define BLIS_BS_RELIBILITY    2   
+#define BLIS_BS_STRONG        3
+
+
+//#############################################################################
+
 enum BLIS_SOL_TYPE {
     BLIS_SOL_BOUNDING,
     BLIS_SOL_BRANCHING,

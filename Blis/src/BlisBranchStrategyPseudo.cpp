@@ -391,7 +391,7 @@ BlisBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft)
         
         for (i = 0; i < numInfs; ++i) {
             
-            if (infObjects[i]->pseudocost().getUpCost() > 
+            if (infObjects[i]->pseudocost().getUpCost() < 
                 infObjects[i]->pseudocost().getDownCost()) {
                 preferDir = 1;
             }

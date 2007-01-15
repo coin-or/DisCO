@@ -107,6 +107,7 @@ BlisModel::init()
     peakMemory_ = 0.0;
     
     branchStrategy_ = NULL;
+    rampUpBranchStrategy_ = NULL;
     priority_ = NULL;
     nodeWeight_ = 1.0;
 
@@ -416,21 +417,44 @@ BlisModel::setupSelf()
     //------------------------------------------------------
 
     int brStrategy = BlisPar_->entry(BlisParams::branchStrategy);
-    if (brStrategy == 0) {
+    std::cout << "1. brStrategy = " << brStrategy << std::endl;
+    if (brStrategy == BLIS_BS_MAXINFEAS) {
         // Max inf
-        branchStrategy_ =  new BlisBranchStrategyStrong(this);
+        branchStrategy_ = new BlisBranchStrategyStrong(this);
     }
-    else if (brStrategy == 1) {
+    else if (brStrategy == BLIS_BS_PSEUDOCOST) {
         // Pseudocost
-        branchStrategy_ =  new BlisBranchStrategyPseudo(this, 1);
+        branchStrategy_ = new BlisBranchStrategyPseudo(this, 1);
     }
-    else if (brStrategy == 2) {
+    else if (brStrategy == BLIS_BS_RELIBILITY) {
         // Relibility
-        branchStrategy_ =  new BlisBranchStrategyRel(this, relibility);
+        branchStrategy_ = new BlisBranchStrategyRel(this, relibility);
     }
-    else if (brStrategy == 3) {
+    else if (brStrategy == BLIS_BS_STRONG) {
         // Strong
-        branchStrategy_ =  new BlisBranchStrategyStrong(this);
+        branchStrategy_ = new BlisBranchStrategyStrong(this);
+    }
+    else {
+        throw CoinError("Unknown branch strategy.", "setupSelf","BlisModel");
+    }
+
+    brStrategy = BlisPar_->entry(BlisParams::rampUpBranchStrategy);
+    std::cout << "2. brStrategy = " << brStrategy << std::endl;
+    if (brStrategy == BLIS_BS_MAXINFEAS) {
+        // Max inf
+      rampUpBranchStrategy_ = new BlisBranchStrategyStrong(this);
+    }
+    else if (brStrategy == BLIS_BS_PSEUDOCOST) {
+        // Pseudocost
+        rampUpBranchStrategy_ = new BlisBranchStrategyPseudo(this, 1);
+    }
+    else if (brStrategy == BLIS_BS_RELIBILITY) {
+        // Relibility
+        rampUpBranchStrategy_ = new BlisBranchStrategyRel(this, relibility);
+    }
+    else if (brStrategy == BLIS_BS_STRONG) {
+        // Strong
+        rampUpBranchStrategy_ = new BlisBranchStrategyStrong(this);
     }
     else {
         throw CoinError("Unknown branch strategy.", "setupSelf","BlisModel");
@@ -1005,6 +1029,7 @@ BlisModel::gutsOfDestructor()
     delete constraintPool_;
     delete [] oldConstraints_;
     delete branchStrategy_;
+    delete rampUpBranchStrategy_;
 
     delete [] conRandoms_;
     

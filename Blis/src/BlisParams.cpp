@@ -88,6 +88,9 @@ BlisParams::createKeywordList() {
   keys_.push_back(make_pair(std::string("Blis_pseudoRelibility"),
 			    AlpsParameter(AlpsIntPar, pseudoRelibility)));
 
+  keys_.push_back(make_pair(std::string("Blis_rampUpBranchStrategy"),
+			    AlpsParameter(AlpsIntPar, rampUpBranchStrategy)));
+
   keys_.push_back(make_pair(std::string("Blis_strongCandSize"),
 			    AlpsParameter(AlpsIntPar, strongCandSize)));
   
@@ -156,6 +159,7 @@ BlisParams::setDefaultEntries() {
   setEntry(heurStrategy, -1);
   setEntry(lookAhead, 4);
   setEntry(pseudoRelibility, 8);
+  setEntry(rampUpBranchStrategy, BLIS_BS_PSEUDOCOST);
   setEntry(strongCandSize, 10);
   
   //-------------------------------------------------------------

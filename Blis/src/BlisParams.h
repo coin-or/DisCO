@@ -81,6 +81,14 @@ class BlisParams : public AlpsParameterSet {
       lookAhead,
       /** The relibility of pseudocost. */
       pseudoRelibility,
+
+      /** Branching strategy.
+          0: max infeasibilty, 
+          1: pseudocost, 
+          2: relibility, 
+          3: strong branching.
+      */
+      rampUpBranchStrategy,
       /** The number of candidate used in strong branching. Default: 10. */
       strongCandSize,
       ///

@@ -120,9 +120,6 @@ class BlisModel : public BcpsModel {
     int numSolutions_;
     int numHeurSolutions_;
 
-    /** Saved lp solution for temporatory usage. */
-    //double *savedLpSolution_;
-    
     /** Incumbent objective value. */
     double incObjValue_;
 
@@ -149,6 +146,7 @@ class BlisModel : public BcpsModel {
 
     /** Variable selection function. */
     BcpsBranchStrategy * branchStrategy_;
+    BcpsBranchStrategy * rampUpBranchStrategy_;
 
     // Hotstart strategy 0 = off, 
     // 1 = branch if incorrect,
@@ -401,9 +399,6 @@ class BlisModel : public BcpsModel {
     /** Get active lp solution. */
     const double * getLpSolution() const { return lpSolver_->getColSolution();}
     
-    /** Return the stored lp solution. */
-    //double * savedLpSolution() { return savedLpSolution_; }
-    
     //------------------------------------------------------
     // MILP SOLUTION
     //------------------------------------------------------
@@ -468,6 +463,8 @@ class BlisModel : public BcpsModel {
         if (branchStrategy_) delete branchStrategy_;
         branchStrategy_ = &method;
     }
+    inline BcpsBranchStrategy * rampUpBranchStrategy() const
+	{ return rampUpBranchStrategy_; }
     //@}
 
     /** \name Object manipulation routines

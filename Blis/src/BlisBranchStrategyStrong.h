@@ -46,9 +46,7 @@ typedef struct {
 //#############################################################################
 
 
-/** Blis branching strategy default class
-    This class implements a simple default algorithm, betterBranchObject(),
-    for choosing a branching variable. */
+/** This class implements strong branching. */
 class BlisBranchStrategyStrong : public BcpsBranchStrategy {
 
  private:

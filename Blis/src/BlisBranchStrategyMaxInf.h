@@ -14,55 +14,44 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
-
-//#############################################################################
-// NOTE: Borrow ideas from COIN/Cbc
-//#############################################################################
-
-
-#ifndef BlisBranchStrategyRel_h_
-#define BlisBranchStrategyRel_h_
+#ifndef BlisBranchStrategyMaxInf_h_
+#define BlisBranchStrategyMaxInf_h_
 
 #include "BcpsBranchObject.h"
 #include "BcpsBranchStrategy.h"
 #include "BlisModel.h"
 
-
-/** Blis branching strategy.
-    This class implements reliability branching. */
-class BlisBranchStrategyRel : public BcpsBranchStrategy {
+/** This class implements maximum infeasibility branching. */
+class BlisBranchStrategyMaxInf : public BcpsBranchStrategy {
 
  private:
-    /** Illegal Assignment operator.*/
-    BlisBranchStrategyRel& operator=(const BlisBranchStrategyRel& rhs);
 
-    int relibility_;
+  /** Illegal Assignment operator.*/
+    BlisBranchStrategyMaxInf& operator=(const BlisBranchStrategyMaxInf& rhs);
     
  public:
+    
+    /** MaxInf Constructor. */
+    BlisBranchStrategyMaxInf() {}
 
-    /** Default Constructor. */
-    BlisBranchStrategyRel() : relibility_(1) {}
-
-    /** Useful Constructor. */
-    BlisBranchStrategyRel(BlisModel *model, int rel)
-        : 
-        BcpsBranchStrategy(model), 
-        relibility_(rel)
+    /** MaxInf Constructor. */
+    BlisBranchStrategyMaxInf(BlisModel *model)
+        : BcpsBranchStrategy(model)
         {}
-
+    
     /** Destructor. */
-    virtual ~BlisBranchStrategyRel() {}
+    virtual ~BlisBranchStrategyMaxInf() {}
     
     /** Copy constructor. */
-    BlisBranchStrategyRel(const BlisBranchStrategyRel &);
+    BlisBranchStrategyMaxInf(const BlisBranchStrategyMaxInf &);
     
-    /** Set relibility. */
-    void setRelibility(int rel) { relibility_ = rel; }    
-
     /** Clone a brancing strategy. */
     virtual BcpsBranchStrategy * clone() const {
-	return new BlisBranchStrategyRel(*this);
+	return new BlisBranchStrategyMaxInf(*this);
     }
+    
+    /** Create a set of candidate branching objects. */
+    virtual int createCandBranchObjects(int numPassesLeft);
     
     /** Compare branching object thisOne to bestSoFar. If thisOne is better 
 	than bestObject, return branching direction(1 or -1), otherwise
@@ -71,9 +60,6 @@ class BlisBranchStrategyRel : public BcpsBranchStrategy {
     */
     virtual int betterBranchObject(BcpsBranchObject * thisOne,
 				   BcpsBranchObject * bestSoFar);
-
-    /** Create a set of candidate branching objects. */
-    int createCandBranchObjects(int numPassesLeft);
 };
 
 #endif

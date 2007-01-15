@@ -33,6 +33,8 @@ lib_LTLIBRARIES = libBlis.la
 libBlis_la_SOURCES = \
 	BlisBranchObjectInt.cpp \
 	BlisBranchObjectInt.h \
+	BlisBranchStrategyMaxInf.cpp \
+	BlisBranchStrategyMaxInf.h \
 	BlisBranchStrategyPseudo.cpp \
 	BlisBranchStrategyPseudo.h \
 	BlisBranchStrategyRel.cpp \
@@ -118,6 +120,7 @@ DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/inc
 include_HEADERS = \
 	../inc/config_blis.h \
 	BlisBranchObjectInt.h \
+	BlisBranchStrategyMaxInf.h \
 	BlisBranchStrategyPseudo.h \
 	BlisBranchStrategyRel.h \
 	BlisBranchStrategyStrong.h \

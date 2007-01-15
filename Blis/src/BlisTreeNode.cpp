@@ -717,7 +717,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     if (needBranch) { 
 	
         // Find the best branching object
-        numPassesLeft = 20;      
+        numPassesLeft = 10;      
         bStatus = -1;
         
         while (bStatus == -1) { 
@@ -1893,6 +1893,10 @@ int BlisTreeNode::selectBranchObject(BlisModel *model,
                                      int numPassesLeft) 
 {
     int bStatus = 0;
+    BcpsBranchStrategy *strategy = 0;
+
+    AlpsPhase phase = knowledgeBroker_->getPhase();
+        
 
     if(branchObject_) {
         delete branchObject_;
@@ -1903,7 +1907,15 @@ int BlisTreeNode::selectBranchObject(BlisModel *model,
     // Get branching strategy.
     //------------------------------------------------------
 
-    BcpsBranchStrategy *strategy = model->branchStrategy();
+    if (phase == ALPS_PHASE_RAMPUP) {
+      strategy = model->rampUpBranchStrategy();
+      std::cout << "+++selectBranchObject: Strategy = " << strategy << std::endl;
+
+    }
+    else {
+      strategy = model->branchStrategy();
+    }
+
     if (!strategy) {
         throw CoinError("No branch strategy.", "process()","BlisTreeNode");
     }
