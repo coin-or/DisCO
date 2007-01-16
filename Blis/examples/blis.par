@@ -1,11 +1,11 @@
-Alps_instance ~/data/mip/air04.mps
+Alps_instance /data/mip/flugpl.mps
 
 Alps_timeLimit 7200
 #Alps_nodeLimit 4000000
 
-Alps_msgLevel 102
-Alps_hubMsgLevel 4
-Alps_workerMsgLevel 1
+Alps_msgLevel 2
+Alps_hubMsgLevel 1
+Alps_workerMsgLevel 0
 
 Alps_hubNum 2
 
