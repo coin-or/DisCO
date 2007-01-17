@@ -1600,6 +1600,92 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
 
 //#############################################################################
 
+AlpsEncoded* 
+BlisModel::encodeKnowlegeShared() const
+{
+    AlpsEncoded* encoded = 0;
+
+    int k = 0;
+    int size = 0;
+    
+    bool sharePseudo = true;
+    bool shareCon = false;
+    bool shareVar = false;
+    
+    if (sharePseudo || shareCon || shareVar) {
+
+        // NOTE: "ALPS_MODEL_GEN" is the type name. We don't need to
+        //       register it since ALPS_MODEL is registered.
+        encoded = new AlpsEncoded("ALPS_MODEL_GEN");
+
+        if (sharePseudo) {
+            BlisObjectInt *intObj = NULL;
+            encoded->writeRep(numIntObjects_);
+            
+            for (k = 0; k < numIntObjects_; ++k) {
+                intObj = dynamic_cast<BlisObjectInt *>(objects_[k]);
+                (intObj->pseudocost()).encodeTo(encoded);
+            }
+        }
+        else {
+            size = 0;
+            encoded->writeRep(size);
+        }
+        
+        if (shareCon) {
+            
+        }
+        else {
+            size = 0;
+            encoded->writeRep(size);
+        }
+
+        if (shareVar) {
+            
+        }
+        else {
+            size = 0;
+            encoded->writeRep(size);
+        }
+    }
+    
+    assert(encoded->size() < broker_->getLargeSize());
+
+    return encoded;
+}
+
+//#############################################################################
+
+void 
+BlisModel::decodeKnowledgeShared(AlpsEncoded& encoded)
+{
+    int k, size = 0;
+    
+    // Encode and store pseudocost
+    BlisObjectInt *intObj = NULL;
+    encoded.readRep(size);
+    for (k = 0; k < size; ++k) {
+        intObj = dynamic_cast<BlisObjectInt *>(objects_[k]);
+        (intObj->pseudocost()).decodeFrom(encoded);
+    }
+        
+    // Encode and store generated constraints that should be shared.
+    encoded.readRep(size);
+    for (k = 0; k < size; ++k) {
+        // TODO
+        assert(0);
+    }
+    
+    // Encode and store variables that should be shared.
+    encoded.readRep(size);
+    for (k = 0; k < size; ++k) {
+        // TODO
+        assert(0);
+    }
+}
+
+//#############################################################################
+
 /** Register knowledge. */
 void 
 BlisModel::registerKnowledge() {

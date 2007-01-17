@@ -57,7 +57,7 @@ public:
         score_(0.0)
         {}
 	
-    /** Useful constructor. */
+        /** Useful constructor. */
 	BlisPseudocost(double uc, 
 		       int un,
 		       double dc, 
@@ -112,6 +112,12 @@ public:
     void update(const int dir,
                 const double objDiff,
                 const double solValue);
+
+    /** Update pseudocost. */
+    void update(double upCost,
+                int upCount,
+                double downCost,
+                int downCount);
     
     /** Get up branching count. */
     int getUpCount() { return upCount_; }

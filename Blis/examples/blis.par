@@ -1,4 +1,4 @@
-Alps_instance /data/mip/flugpl.mps
+Alps_instance /data/mip/egout.mps
 
 Alps_timeLimit 7200
 #Alps_nodeLimit 4000000
@@ -52,8 +52,8 @@ Blis_cutTwoMir      0
 Blis_heurStrategy  -1   # -2: root, -1: auto, 0: disable, any positive integer
 Blis_heurRound     -1   # -2: root, -1: auto, 0: disable, any positive integer
 
-#Blis_branchStrategy 2   # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
-Blis_rampUpBranchStrategy 0
+#Blis_branchStrategy 1   # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
+Blis_rampUpBranchStrategy 1
 
 Blis_pseudoWeight        0.8  # [0.0, 1.0]
 Blis_pseudoRelibility      8

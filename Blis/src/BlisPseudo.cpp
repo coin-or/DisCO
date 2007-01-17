@@ -103,6 +103,26 @@ BlisPseudocost::update(int dir,
 
 //#############################################################################
 
+void 
+BlisPseudocost::update(double upCost, int upCount, 
+                       double downCost, int downCount)
+{
+    if (upCount) {
+        upCount_ += upCount;
+        upCost_ = (upCost_ + upCost)/upCount;
+    }
+
+    if (downCount) {
+        downCount_ += downCount;
+        downCost_ = (downCost_ + downCost)/downCount_;
+    }
+
+    score_ = weight_* ALPS_MIN(upCost_, downCost_) + 
+        (1.0 - weight_) * ALPS_MAX(upCost_, downCost_);
+}
+
+//#############################################################################
+
 /** Pack pseudocost to the given object. */
 AlpsReturnCode 
 BlisPseudocost::encodeTo(AlpsEncoded *encoded) const 
@@ -115,7 +135,17 @@ BlisPseudocost::encodeTo(AlpsEncoded *encoded) const
     encoded->writeRep(downCost_);
     encoded->writeRep(downCount_);
     encoded->writeRep(score_);
-    
+
+#if 0
+    std::cout << "encodeTo: weight_=" << weight_ 
+              << ", upCost_=" << upCost_
+              << ", upCount_=" << upCount_
+              << ", downCost_=" << downCost_ 
+              << ", downCount_=" << downCount_
+              << ", score_=" << score_
+              << std::endl;
+#endif
+
     return status;
 }
 
@@ -127,13 +157,28 @@ BlisPseudocost::decodeFrom(AlpsEncoded &encoded)
 {
     AlpsReturnCode status = ALPS_OK;
 
-    encoded.readRep(weight_);
-    encoded.readRep(upCost_);
-    encoded.readRep(upCount_);
-    encoded.readRep(downCost_);
-    encoded.readRep(downCount_);
-    encoded.readRep(score_);
-    
+    double weight, upCost, downCost, score;
+    int upCount, downCount;   
+
+    encoded.readRep(weight);
+    encoded.readRep(upCost);
+    encoded.readRep(upCount);
+    encoded.readRep(downCost);
+    encoded.readRep(downCount);
+    encoded.readRep(score);
+
+    update(upCost, upCount, downCost, downCount);
+
+#if 0
+    std::cout << "decodeFrom: weight=" << weight 
+              << ", upCost=" << upCost
+              << ", upCount=" << upCount
+              << ", downCost=" << downCost
+              << ", downCount=" << downCount 
+              << ", score=" << score
+              << std::endl;
+#endif
+
     return status;
 }
 
@@ -173,11 +218,11 @@ BlisPseudocost::decode(AlpsEncoded& encoded) const
     encoded.readRep(downCount);
     encoded.readRep(score);
 
-    BlisPseudocost *pcost = new  BlisPseudocost(upCost,
-                                                upCount,
-                                                downCost,
-                                                downCount,
-                                                score);
+    BlisPseudocost *pcost = new BlisPseudocost(upCost,
+                                               upCount,
+                                               downCost,
+                                               downCount,
+                                               score);
     pcost->setWeight(weight);
 
     return pcost;

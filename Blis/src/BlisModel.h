@@ -700,11 +700,18 @@ class BlisModel : public BcpsModel {
     /** Register knowledge. */
     virtual void registerKnowledge();    
     
-    /** The method that encodes the model into a encoded object. */
+    /** The method that encodes the model into an encoded object. */
     virtual AlpsEncoded* encode() const;
     
-    /** The method that decodes the model from a encoded object. */
+    /** The method that decodes the model from an encoded object. */
     virtual void decodeToSelf(AlpsEncoded&);
+    
+    /** Encode knowledge to be shared with others into an encoded object. 
+        Return NULL means that no knowledge can be shared. */
+    virtual AlpsEncoded* encodeKnowlegeShared() const;
+    
+    /** Decode and store shared knowledge from an encoded object. */
+    virtual void decodeKnowledgeShared(AlpsEncoded&);
 };
 
 #endif /* End of file */
