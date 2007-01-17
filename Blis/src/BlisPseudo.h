@@ -27,26 +27,26 @@ class BlisPseudocost : public AlpsKnowledge
 private:
     /** Use to calculate score. */
     double weight_;
-
+    
     /** Average object change when branching up. */
     double upCost_;
-
+    
     /** How many times being branched up. */
     int upCount_;
-
+    
     /** Average object change when branching down. */
     double downCost_;
-
+    
     /** How many times being branched down. */
     int downCount_;
-
+    
     /** The estimated importance. 
         Score = weight * MIN(downCost_, upCost_) +
         (1.0 - weight) * MAX(downCost_, upCost_)
     */
     double score_;
     
- public:
+public:
     /** Default constructor. */
     BlisPseudocost() : 
         weight_(1.0),
@@ -56,11 +56,11 @@ private:
         downCount_(0), 
         score_(0.0)
         {}
-    
+	
     /** Useful constructor. */
-    BlisPseudocost(double uc, 
-                   int un,
-                   double dc, 
+	BlisPseudocost(double uc, 
+		       int un,
+		       double dc, 
                    int dn,
                    double s)
         :
@@ -71,7 +71,28 @@ private:
         downCount_(dn),
         score_(s) 
         {}
-    
+	
+	/** Copy constructor */
+	BlisPseudocost(const BlisPseudocost& cost) {
+	    weight_ = cost.weight_;
+	    upCost_ = cost.upCost_;
+	    upCount_ = cost.upCount_;
+	    downCost_ = cost.downCost_;
+	    downCount_ = cost.downCount_;
+	    score_ = cost.score_;
+	}
+	
+	/** Overload operator = */
+	BlisPseudocost& operator=(const BlisPseudocost& cost) {
+	    weight_ = cost.weight_;
+	    upCost_ = cost.upCost_;
+	    upCount_ = cost.upCount_;
+	    downCost_ = cost.downCost_;
+	    downCount_ = cost.downCount_;
+	    score_ = cost.score_;
+	    return *this;
+	}
+	
     /** Set weigth. */
     void setWeight(double w) { 
         if (w < 0.0 || w > 1.0) {   

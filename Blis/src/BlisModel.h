@@ -43,6 +43,7 @@
 #include "BlisHeuristic.h"
 #include "BlisMessage.h"
 #include "BlisParams.h"
+#include "BlisPseudo.h"
 #include "BlisPresolve.h"
 
 //#############################################################################
@@ -250,6 +251,16 @@ class BlisModel : public BcpsModel {
     int *tempConLBPos_;
     int *tempConUBPos_;
     //@}
+
+    //------------------------------------------------------
+    // Knowledge can be shared
+    //------------------------------------------------------
+
+    /** Pseudocost that can be shared. */
+    //std::vector< BlisPseudocost> pcostPoolShare;
+
+    /** Constraints that can be shared.  */
+    BcpsConstraintPool constraintPoolShare;
 
  public:
 
