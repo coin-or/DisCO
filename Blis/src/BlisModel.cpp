@@ -1615,7 +1615,7 @@ BlisModel::encodeKnowlegeShared() const
     int phase = broker_->getPhase();
 
     if (phase == ALPS_PHASE_RAMPUP) {
-      sharePseudo = BlisPar_->entry(BlisParams::sharePseudocostRampup);
+      sharePseudo = BlisPar_->entry(BlisParams::sharePseudocostRampUp);
     }
     else if (phase == ALPS_PHASE_SEARCH) {
       sharePseudo = BlisPar_->entry(BlisParams::sharePseudocostSearch);
@@ -1661,6 +1661,7 @@ BlisModel::encodeKnowlegeShared() const
 
 	// Make sure don't exceed large size.
 	assert(encoded->size() < broker_->getLargeSize());
+        std::cout << "%%%%%% sharePseudo, size = " <<encoded->size()<< std::endl;
     }
 
     return encoded;

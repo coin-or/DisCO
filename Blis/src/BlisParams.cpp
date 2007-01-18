@@ -29,15 +29,15 @@ BlisParams::createKeywordList() {
   // CharPar
   //--------------------------------------------------------
  
-   keys_.push_back(make_pair(std::string("Blis_cutDuringRampup"),
-			     AlpsParameter(AlpsCharPar, cutDuringRampup)));
+   keys_.push_back(make_pair(std::string("Blis_cutDuringRampUp"),
+			     AlpsParameter(AlpsCharPar, cutDuringRampUp)));
    
    keys_.push_back(make_pair(std::string("Blis_presolve"),
 			     AlpsParameter(AlpsCharPar, presolve)));
     
-   keys_.push_back(make_pair(std::string("Blis_sharePseudocostRampup"),
+   keys_.push_back(make_pair(std::string("Blis_sharePseudocostRampUp"),
 			     AlpsParameter(AlpsCharPar,
-					   sharePseudocostRampup)));
+					   sharePseudocostRampUp)));
     
    keys_.push_back(make_pair(std::string("Blis_sharePseudocostSearch"),
 			     AlpsParameter(AlpsCharPar,
@@ -145,9 +145,9 @@ BlisParams::setDefaultEntries() {
   // Char Parameters.
   //-------------------------------------------------------------
 
-  setEntry(cutDuringRampup, false);
+  setEntry(cutDuringRampUp, false);
   setEntry(presolve, false);
-  setEntry(sharePseudocostRampup, true);
+  setEntry(sharePseudocostRampUp, true);
   setEntry(sharePseudocostSearch, false);
 
   //-------------------------------------------------------------

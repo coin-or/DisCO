@@ -220,7 +220,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 
     // Spcicial handling of generaing constraints during rampup
     if (phase == ALPS_PHASE_RAMPUP) {
-        bool genCutsDuringRampup = BlisPar->entry(BlisParams::cutDuringRampup);
+        bool genCutsDuringRampup = BlisPar->entry(BlisParams::cutDuringRampUp);
         if (!genCutsDuringRampup) {
             genConsHere = false;
         }

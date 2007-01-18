@@ -31,11 +31,11 @@ class BlisParams : public AlpsParameterSet {
       (ture = 1, false = 0). */
   enum chrParams{
       /** Whether generate cuts during rampup. Default: false.*/
-      cutDuringRampup,
+      cutDuringRampUp,
       /** Presolve or not*/
       presolve,
       /** Share pseudocost during ramp up */
-      sharePseudocostRampup,
+      sharePseudocostRampUp,
       /** Share pseudocost during search */
       sharePseudocostSearch,
       //
