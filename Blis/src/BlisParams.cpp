@@ -35,6 +35,14 @@ BlisParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("Blis_presolve"),
 			     AlpsParameter(AlpsCharPar, presolve)));
     
+   keys_.push_back(make_pair(std::string("Blis_sharePseudocostRampup"),
+			     AlpsParameter(AlpsCharPar,
+					   sharePseudocostRampup)));
+    
+   keys_.push_back(make_pair(std::string("Blis_sharePseudocostRampup"),
+			     AlpsParameter(AlpsCharPar,
+					   sharePseudocostSearch)));
+    
   //--------------------------------------------------------
   // BoolArrayPar
   //--------------------------------------------------------
@@ -139,7 +147,9 @@ BlisParams::setDefaultEntries() {
 
   setEntry(cutDuringRampup, false);
   setEntry(presolve, false);
-  
+  setEntry(sharePseudocostRampup, true);
+  setEntry(sharePseudocostSearch, false);
+
   //-------------------------------------------------------------
   // Int Parameters.
   //-------------------------------------------------------------

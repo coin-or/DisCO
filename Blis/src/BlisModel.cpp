@@ -1611,7 +1611,18 @@ BlisModel::encodeKnowlegeShared() const
     bool sharePseudo = true;
     bool shareCon = false;
     bool shareVar = false;
-    
+
+    int phase = broker_->getPhase();
+
+    if (phase == ALPS_PHASE_RAMPUP) {
+      sharePseudo = BlisPar_->entry(BlisParams::sharePseudocostRampup);
+    }
+    else if (phase == ALPS_PHASE_SEARCH) {
+      sharePseudo = BlisPar_->entry(BlisParams::sharePseudocostSearch);
+    }
+
+    std::cout << "\n%%%%%% sharePseudo = " << sharePseudo 
+	      << std::endl;
     if (sharePseudo || shareCon || shareVar) {
 
         // NOTE: "ALPS_MODEL_GEN" is the type name. We don't need to
@@ -1647,9 +1658,10 @@ BlisModel::encodeKnowlegeShared() const
             size = 0;
             encoded->writeRep(size);
         }
+
+	// Make sure don't exceed large size.
+	assert(encoded->size() < broker_->getLargeSize());
     }
-    
-    assert(encoded->size() < broker_->getLargeSize());
 
     return encoded;
 }

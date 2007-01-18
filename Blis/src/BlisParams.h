@@ -34,6 +34,10 @@ class BlisParams : public AlpsParameterSet {
       cutDuringRampup,
       /** Presolve or not*/
       presolve,
+      /** Share pseudocost during ramp up */
+      sharePseudocostRampup,
+      /** Share pseudocost during search */
+      sharePseudocostSearch,
       //
       endOfChrParams
   };
@@ -108,7 +112,7 @@ class BlisParams : public AlpsParameterSet {
       /** Dense constraint factor.*/    
       denseConFactor,
       
-      /** Tolrence to treat as an integer. Default: 1.0e-5 */
+      /** Tolerance to treat as an integer. Default: 1.0e-5 */
       integerTol,
       
       /** If the relative gap between best feasible and best relaxed fall into

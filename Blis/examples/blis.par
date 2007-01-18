@@ -1,4 +1,4 @@
-Alps_instance /data/mip/egout.mps
+Alps_instance ~/data/mip/blend2.mps
 
 Alps_timeLimit 7200
 #Alps_nodeLimit 4000000
@@ -7,7 +7,7 @@ Alps_msgLevel 2
 Alps_hubMsgLevel 1
 Alps_workerMsgLevel 0
 
-Alps_hubNum 2
+Alps_hubNum 1
 
 Alps_interClusterBalance 1      # 1: balancing load, 0: don't.
 Alps_intraClusterBalance 1      # 1: balancing load, 0: don't.
@@ -25,7 +25,7 @@ Alps_hubWorkClusterSizeLimit 2
 #Alps_unitWorkTime 0.03 
 
 #Alps_needWorkThreshold 0.5
-#Alps_changeWorkThreshold 0.10
+Alps_changeWorkThreshold 0.10
 
 #Alps_donorThreshold 0.10
 #Alps_receiverThreshold 0.10
@@ -62,3 +62,4 @@ Blis_denseConFactor        5.0
 Blis_scaleConFactor        100000000.0
 Blis_difference    1
 
+Blis_sharePseudocostSearch 1
