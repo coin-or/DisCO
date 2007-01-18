@@ -39,7 +39,7 @@ BlisParams::createKeywordList() {
 			     AlpsParameter(AlpsCharPar,
 					   sharePseudocostRampup)));
     
-   keys_.push_back(make_pair(std::string("Blis_sharePseudocostRampup"),
+   keys_.push_back(make_pair(std::string("Blis_sharePseudocostSearch"),
 			     AlpsParameter(AlpsCharPar,
 					   sharePseudocostSearch)));
     
