@@ -286,6 +286,7 @@ BlisBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft)
     //--------------------------------------------------
     
     numFirsts = firstObjects.size();
+    std::cout << "PSEUDO: numFirsts = " << numFirsts << std::endl;
     if (numFirsts > 0) {
       std::cout << "PSEUDO: numFirsts = " << numFirsts << std::endl;
       
