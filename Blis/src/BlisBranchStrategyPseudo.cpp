@@ -286,9 +286,9 @@ BlisBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft)
     //--------------------------------------------------
     
     numFirsts = firstObjects.size();
-    std::cout << "PSEUDO: numFirsts = " << numFirsts << std::endl;
+    //std::cout << "PSEUDO: numFirsts = " << numFirsts << std::endl;
     if (numFirsts > 0) {
-      std::cout << "PSEUDO: numFirsts = " << numFirsts << std::endl;
+        //std::cout << "PSEUDO: numFirsts = " << numFirsts << std::endl;
       
         //--------------------------------------------------
         // Backup solver status and mark hot start.
