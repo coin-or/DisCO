@@ -257,7 +257,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     origNumOldCons = numStartRows - numCoreRows;
     currNumOldCons = origNumOldCons;
     
-#if 1
+#if 0
     std::cout << "PROCESS: genConsHere =" << genConsHere
 	      << ", cut strategy =" << model->getCutStrategy()
 	      << ", numCoreRows =" << numCoreRows
