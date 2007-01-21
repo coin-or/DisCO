@@ -315,8 +315,10 @@ CoinWarmStartBasis *BlisDecodeWarmStart(AlpsEncoded &encoded,
     ws->assignBasisStatus(numCols, numRows, 
 			  structuralStatus, artificialStatus);
     
-    return ws;
-    
+    assert(!structuralStatus);
+    assert(!artificialStatus);
+
+    return ws;   
 }
 
 //#############################################################################

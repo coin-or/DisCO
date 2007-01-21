@@ -68,7 +68,7 @@ class BlisNodeDesc : public BcpsNodeDesc {
 	{}
 
     /** Destructor. */
-    virtual ~BlisNodeDesc() { delete basis_; }
+        virtual ~BlisNodeDesc() { delete basis_; basis_ = NULL;  }
 
     /** Set basis. */ 
     void setBasis(CoinWarmStartBasis *&ws) { 
@@ -134,6 +134,7 @@ class BlisNodeDesc : public BcpsNodeDesc {
 	int ava;
 	encoded.readRep(ava);
 	if (ava == 1) {
+            if (basis_) delete basis_;
 	    basis_ = BlisDecodeWarmStart(encoded, &status);
 	}
 	else {

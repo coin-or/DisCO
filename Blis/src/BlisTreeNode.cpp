@@ -2570,7 +2570,7 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet)
 	    useThisCutGenerator = false;
 	}
 	else if (strategy == BLIS_ROOT) {
-	    if (model->isRoot_) useThisCutGenerator = true;
+	    if (model->isRoot_ && (index_ == 0)) useThisCutGenerator = true;
 	}
 	else if (strategy == BLIS_AUTO) {
 	  if (depth_ < maxConstraintDepth) {
@@ -3046,7 +3046,9 @@ BlisTreeNode::decode(AlpsEncoded& encoded) const
     
     // Unpack Alps portion.
     treeNode = new BlisTreeNode(nodeDesc);
-    treeNode->decodeAlps(encoded);
+    nodeDesc = NULL;
+
+    treeNode->decodeAlps(encoded);  
     
     // Unpack Bcps portion.
     int type = 0;
@@ -3058,6 +3060,7 @@ BlisTreeNode::decode(AlpsEncoded& encoded) const
 
 	// Set bo in treeNode.
 	treeNode->setBranchObject(bo);
+        bo = NULL;
     }
     
     // Nothing to unpack for Blis portion.

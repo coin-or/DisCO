@@ -1488,7 +1488,7 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
     encoded.readRep(numElems_);
 
     int numElements;
-    double* elementValue;
+    double* elementValue = NULL;
     encoded.readRep(elementValue, numElements);
     assert(numElements == numElems_);
 
@@ -1596,6 +1596,9 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
 
     delete [] index;
     index = NULL;
+
+    delete [] elementValue;
+    elementValue = NULL;
 }
 
 //#############################################################################
@@ -1621,8 +1624,6 @@ BlisModel::encodeKnowlegeShared() const
       sharePseudo = BlisPar_->entry(BlisParams::sharePseudocostSearch);
     }
 
-    std::cout << "\n%%%%%% sharePseudo = " << sharePseudo 
-	      << std::endl;
     if (sharePseudo || shareCon || shareVar) {
 
         // NOTE: "ALPS_MODEL_GEN" is the type name. We don't need to
@@ -1661,7 +1662,6 @@ BlisModel::encodeKnowlegeShared() const
 
 	// Make sure don't exceed large size.
 	assert(encoded->size() < broker_->getLargeSize());
-        std::cout << "%%%%%% sharePseudo, size = " <<encoded->size()<< std::endl;
     }
 
     return encoded;
