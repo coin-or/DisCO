@@ -188,6 +188,7 @@ class BlisModel : public BcpsModel {
 
     /** If use cut generators. */
     int cutStrategy_; 
+    //int cutStrategyRampUp_;
     
     /** Number of cut generators used. */
     int numCutGenerators_;
@@ -592,7 +593,9 @@ class BlisModel : public BcpsModel {
     //@}
     
     /** Query constraint generation strategy. */
-    int getCutStrategy() const { return cutStrategy_; }
+    int getCutStrategy() const {
+        return cutStrategy_; 
+    }
 
     /** Set constraint generation strategy. */
     void setCutStrategy(int u) { cutStrategy_ = u; }

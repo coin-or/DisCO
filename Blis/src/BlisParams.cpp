@@ -29,9 +29,6 @@ BlisParams::createKeywordList() {
   // CharPar
   //--------------------------------------------------------
  
-   keys_.push_back(make_pair(std::string("Blis_cutDuringRampUp"),
-			     AlpsParameter(AlpsCharPar, cutDuringRampUp)));
-   
    keys_.push_back(make_pair(std::string("Blis_presolve"),
 			     AlpsParameter(AlpsCharPar, presolve)));
     
@@ -53,6 +50,9 @@ BlisParams::createKeywordList() {
 
   keys_.push_back(make_pair(std::string("Blis_branchStrategy"),
 			    AlpsParameter(AlpsIntPar, branchStrategy)));
+
+  keys_.push_back(make_pair(std::string("Blis_branchStrategyRampUp"),
+			    AlpsParameter(AlpsIntPar, branchStrategyRampUp)));
 
   keys_.push_back(make_pair(std::string("Blis_cutClique"),
 			    AlpsParameter(AlpsIntPar, cutClique)));
@@ -78,6 +78,9 @@ BlisParams::createKeywordList() {
   keys_.push_back(make_pair(std::string("Blis_cutStrategy"),
 			    AlpsParameter(AlpsIntPar, cutStrategy)));
 
+  keys_.push_back(make_pair(std::string("Blis_cutStrategyRampUp"),
+			    AlpsParameter(AlpsIntPar, cutStrategyRampUp)));
+
   keys_.push_back(make_pair(std::string("Blis_cutTwoMir"),
 			    AlpsParameter(AlpsIntPar, cutTwoMir)));
 
@@ -95,9 +98,6 @@ BlisParams::createKeywordList() {
   
   keys_.push_back(make_pair(std::string("Blis_pseudoRelibility"),
 			    AlpsParameter(AlpsIntPar, pseudoRelibility)));
-
-  keys_.push_back(make_pair(std::string("Blis_rampUpBranchStrategy"),
-			    AlpsParameter(AlpsIntPar, rampUpBranchStrategy)));
 
   keys_.push_back(make_pair(std::string("Blis_strongCandSize"),
 			    AlpsParameter(AlpsIntPar, strongCandSize)));
@@ -145,7 +145,6 @@ BlisParams::setDefaultEntries() {
   // Char Parameters.
   //-------------------------------------------------------------
 
-  setEntry(cutDuringRampUp, false);
   setEntry(presolve, false);
   setEntry(sharePseudocostRampUp, true);
   setEntry(sharePseudocostSearch, false);
@@ -154,7 +153,8 @@ BlisParams::setDefaultEntries() {
   // Int Parameters.
   //-------------------------------------------------------------
 
-  setEntry(branchStrategy, 1);
+  setEntry(branchStrategy, BLIS_BS_PSEUDOCOST);
+  setEntry(branchStrategyRampUp, BLIS_BS_PSEUDOCOST);
   setEntry(cutClique, BLIS_NOT_SET);
   setEntry(cutGomory, BLIS_NOT_SET);
   setEntry(cutFlowCover, BLIS_NOT_SET);
@@ -163,13 +163,13 @@ BlisParams::setDefaultEntries() {
   setEntry(cutOddHole, BLIS_NOT_SET);
   setEntry(cutProbing, BLIS_NOT_SET);
   setEntry(cutStrategy, BLIS_AUTO);
+  setEntry(cutStrategyRampUp, BLIS_ROOT);
   setEntry(cutTwoMir, BLIS_NOT_SET);
   setEntry(difference, -1);
   setEntry(heurRound, BLIS_NOT_SET);
   setEntry(heurStrategy, -1);
   setEntry(lookAhead, 4);
   setEntry(pseudoRelibility, 8);
-  setEntry(rampUpBranchStrategy, BLIS_BS_PSEUDOCOST);
   setEntry(strongCandSize, 10);
   
   //-------------------------------------------------------------

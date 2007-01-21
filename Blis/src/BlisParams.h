@@ -30,8 +30,6 @@ class BlisParams : public AlpsParameterSet {
   /** Character parameters. All of these variable are used as booleans
       (ture = 1, false = 0). */
   enum chrParams{
-      /** Whether generate cuts during rampup. Default: false.*/
-      cutDuringRampUp,
       /** Presolve or not*/
       presolve,
       /** Share pseudocost during ramp up */
@@ -52,6 +50,7 @@ class BlisParams : public AlpsParameterSet {
           3: strong branching.
       */
       branchStrategy,
+      branchStrategyRampUp,
 
       /** Cut generators control. 
           -2: root,
@@ -59,6 +58,9 @@ class BlisParams : public AlpsParameterSet {
           0: disable,
           any positive frequency
       */
+      cutStrategy, /** All constraint generators */
+      cutStrategyRampUp,
+
       cutClique,
       cutGomory,
       cutFlowCover,
@@ -66,7 +68,6 @@ class BlisParams : public AlpsParameterSet {
       cutMir,
       cutOddHole,
       cutProbing,
-      cutStrategy, /** All constraint generators */
       cutTwoMir,
       
       /** -1 auto, 0, no, any integer frequency */
@@ -86,13 +87,6 @@ class BlisParams : public AlpsParameterSet {
       /** The relibility of pseudocost. */
       pseudoRelibility,
 
-      /** Branching strategy.
-          0: max infeasibilty, 
-          1: pseudocost, 
-          2: relibility, 
-          3: strong branching.
-      */
-      rampUpBranchStrategy,
       /** The number of candidate used in strong branching. Default: 10. */
       strongCandSize,
       ///

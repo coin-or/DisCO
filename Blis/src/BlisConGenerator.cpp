@@ -137,7 +137,9 @@ BlisConGenerator::generateCons(OsiCuts & coinCuts , bool fullScan)
 {
     bool status = false;
     
-    if (strategy_ == -2) {
+    assert(strategy_ > BLIS_ROOT - 1);
+    
+    if (strategy_ == BLIS_NONE) {
         // This con generator has been disabled.
         return false;
     }

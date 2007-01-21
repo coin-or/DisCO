@@ -439,7 +439,7 @@ BlisModel::setupSelf()
         throw CoinError("Unknown branch strategy.", "setupSelf","BlisModel");
     }
 
-    brStrategy = BlisPar_->entry(BlisParams::rampUpBranchStrategy);
+    brStrategy = BlisPar_->entry(BlisParams::branchStrategyRampUp);
 
     if (brStrategy == BLIS_BS_MAXINFEAS) {
         // Max inf

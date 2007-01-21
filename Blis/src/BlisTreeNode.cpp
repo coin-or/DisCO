@@ -118,7 +118,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 
     int numAppliedCons = 0;
     int maxPass = 20;
-
+    int cutStrategy;
+    
     // Only autmatic stategy has depth limit.
     int maxConstraintDepth = 20;
 
@@ -202,14 +203,26 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 
     genConsHere = false;
 
-    if (model->getCutStrategy() == BLIS_NONE) {
+    if (phase == ALPS_PHASE_RAMPUP) {
+        cutStrategy = BlisPar->entry(BlisParams::cutStrategyRampUp);
+    }
+    else if (phase == ALPS_PHASE_SEARCH) {
+        cutStrategy = model->getCutStrategy();
+    }
+    else {
+        assert(0);
+    }
+
+    assert(cutStrategy > -3);
+    
+    if (cutStrategy == BLIS_NONE) {
 	genConsHere = false;
     }
-    else if (model->getCutStrategy() == BLIS_ROOT) {
+    else if (cutStrategy == BLIS_ROOT) {
 	// The original root only
-	if (isRoot && index_ == 0) genConsHere = true;
+	if (isRoot && (index_ == 0)) genConsHere = true;
     }
-    else if (model->getCutStrategy() == BLIS_AUTO) {
+    else if (cutStrategy == BLIS_AUTO) {
 	if (depth_ < maxConstraintDepth) {
             if (!diving_ || isRoot) genConsHere = true;
 	}
@@ -218,14 +231,6 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 	genConsHere = true;
     }
 
-    // Spcicial handling of generaing constraints during rampup
-    if (phase == ALPS_PHASE_RAMPUP) {
-        bool genCutsDuringRampup = BlisPar->entry(BlisParams::cutDuringRampUp);
-        if (!genCutsDuringRampup) {
-            genConsHere = false;
-        }
-    }   
-    
     //======================================================
     // Restore, load and solve the subproblem.
     // (1) LP infeasible
@@ -252,7 +257,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     origNumOldCons = numStartRows - numCoreRows;
     currNumOldCons = origNumOldCons;
     
-#if 0
+#if 1
     std::cout << "PROCESS: genConsHere =" << genConsHere
 	      << ", cut strategy =" << model->getCutStrategy()
 	      << ", numCoreRows =" << numCoreRows
@@ -1339,7 +1344,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
  TERM_PROCESS:
 
     bool printCutStat = false;
-    if (isRoot && genConsHere) {
+    if (genConsHere) {
         if ( (getKnowledgeBroker()->getProcType() == AlpsProcessTypeMaster) &&
              (msgLevel > 0) ) {
             printCutStat = true;
