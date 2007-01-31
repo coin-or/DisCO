@@ -21,7 +21,7 @@
 
 //#############################################################################
 
-#if (defined(__GNUC__) && defined(__linux__))
+#if defined(__linux__)
 #define BLIS_MEMORY_USAGE 1
 #endif
 
