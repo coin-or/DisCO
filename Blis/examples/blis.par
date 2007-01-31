@@ -14,22 +14,16 @@ Alps_intraClusterBalance 1      # 1: balancing load, 0: don't.
 
 #Alps_searchStrategy     4   # 0: Best, 1: Best-est, 2: Breath, 3: Depth, 4 hybrid
 #Alps_searchStrategyRampUp  0
-
 #Alps_nodeLogInterval 100
 #Alps_hubWorkClusterSizeLimit 2
-
 #Alps_masterInitNodeNum 8
 #Alps_hubInitNodeNum 16
-
 #Alps_unitWorkNodes 100         # or unit time
 #Alps_unitWorkTime 0.03 
-
 #Alps_needWorkThreshold 0.5
 #Alps_changeWorkThreshold 0.10
-
 #Alps_donorThreshold 0.10
 #Alps_receiverThreshold 0.10
-
 #Alps_masterBalancePeriod 0.3
 #Alps_hubReportPeriod 0.5
 
@@ -64,3 +58,5 @@ Blis_difference    1
 
 Blis_sharePseudocostRampUp 1
 #Blis_sharePseudocostSearch 1
+
+Blis_checkMemory 1

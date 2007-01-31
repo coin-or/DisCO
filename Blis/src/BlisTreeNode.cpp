@@ -1357,7 +1357,13 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
             printCutStat = true;
         }
     }
-    //printCutStat = true;
+
+    if (printCutStat == true) {
+        printCutStat = false;
+        if ( (msgLevel > 100) || (index_ == 0) ) {
+            printCutStat = true;
+        }
+    }
 
     if (printCutStat) {
         int numT = model->numCutGenerators();
@@ -1419,6 +1425,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     
 #ifdef BLIS_MEMORY_USAGE
     bool checkMemory = BlisPar->entry(BlisParams::checkMemory);
+    //std::cout << "checkMemory = " << checkMemory << std::endl;
     if (checkMemory) {
         struct mallinfo memInfo = mallinfo();
         double memUsage = static_cast<double>(memInfo.uordblks + memInfo.hblkhd) / 1024.0;

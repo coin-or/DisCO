@@ -148,7 +148,7 @@ BlisParams::setDefaultEntries() {
   // Char Parameters.
   //-------------------------------------------------------------
 
-    setEntry(checkMemory, false);
+  setEntry(checkMemory, false);
   setEntry(presolve, false);
   setEntry(sharePseudocostRampUp, true);
   setEntry(sharePseudocostSearch, false);
