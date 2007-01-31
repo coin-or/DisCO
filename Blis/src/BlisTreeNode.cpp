@@ -33,6 +33,7 @@
 
 #include "BcpsBranchStrategy.h"
 
+#include "Blis.h"
 #include "BlisBranchObjectInt.h"
 #include "BlisConstraint.h"
 #include "BlisHelp.h"
@@ -47,9 +48,7 @@
 
 #define REMOVE_SLACK 1
 
-#define BLIS_MEMORY_USAGE 0
-
-#if BLIS_MEMORY_USAGE
+#ifdef BLIS_MEMORY_USAGE
 #include <malloc.h>
 #endif
 
@@ -1418,16 +1417,19 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     }
 #endif
     
-#if BLIS_MEMORY_USAGE
-    struct mallinfo memInfo = mallinfo();
-    double memUsage = static_cast<double>(memInfo.uordblks + memInfo.hblkhd) / 1024.0;
-    memUsage /= 1024.0;
-    if (memUsage > model->getPeakMemory()) {
-        model->setPeakMemory(memUsage);
-        //std::cout << "memusge = " << model->getPeakMemory() << std::endl;
+#ifdef BLIS_MEMORY_USAGE
+    bool checkMemory = BlisPar->entry(BlisParams::checkMemory);
+    if (checkMemory) {
+        struct mallinfo memInfo = mallinfo();
+        double memUsage = static_cast<double>(memInfo.uordblks + memInfo.hblkhd) / 1024.0;
+        memUsage /= 1024.0;
+        if (memUsage > model->getPeakMemory()) {
+            model->setPeakMemory(memUsage);
+            //std::cout << "memusge = " << model->getPeakMemory() << std::endl;
+        }
     }
 #endif
-
+    
     return status;
 }
 

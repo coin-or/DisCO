@@ -1746,10 +1746,15 @@ BlisModel::modelLog()
 	writeParameters(logFout);
     }
 
-    if (msgLevel > 1) {
-	blisMessageHandler()->message(BLIS_PEAK_MEMORY, blisMessages())
-	    << peakMemory_ << CoinMessageEol;
+#ifdef BLIS_MEMORY_USAGE
+    if (msgLevel > 0) {
+        bool checkMemory = BlisPar_->entry(BlisParams::checkMemory);
+        if (checkMemory) {
+            blisMessageHandler()->message(BLIS_PEAK_MEMORY, blisMessages())
+                << peakMemory_ << CoinMessageEol;
+        }
     }
+#endif
 
     if (msgLevel > 0) {
         int k;

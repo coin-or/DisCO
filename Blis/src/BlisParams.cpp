@@ -29,6 +29,9 @@ BlisParams::createKeywordList() {
   // CharPar
   //--------------------------------------------------------
  
+    keys_.push_back(make_pair(std::string("Blis_checkMemory"),
+                              AlpsParameter(AlpsCharPar, checkMemory)));
+    
    keys_.push_back(make_pair(std::string("Blis_presolve"),
 			     AlpsParameter(AlpsCharPar, presolve)));
     
@@ -145,6 +148,7 @@ BlisParams::setDefaultEntries() {
   // Char Parameters.
   //-------------------------------------------------------------
 
+    setEntry(checkMemory, false);
   setEntry(presolve, false);
   setEntry(sharePseudocostRampUp, true);
   setEntry(sharePseudocostSearch, false);

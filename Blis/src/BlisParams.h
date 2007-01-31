@@ -30,7 +30,9 @@ class BlisParams : public AlpsParameterSet {
   /** Character parameters. All of these variable are used as booleans
       (ture = 1, false = 0). */
   enum chrParams{
-      /** Presolve or not*/
+      /** Check memory */
+      checkMemory,
+      /** Presolve or not */
       presolve,
       /** Share pseudocost during ramp up */
       sharePseudocostRampUp,
