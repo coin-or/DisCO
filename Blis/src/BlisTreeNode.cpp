@@ -261,7 +261,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 	      << ", cut strategy =" << model->getCutStrategy()
 	      << ", numCoreRows =" << numCoreRows
 	      << ", numStartRows =" << numStartRows
-	      << ", currNumOldCons =" << currNumOldCons << std::endl;
+	      << ", currNumOldCons =" << currNumOldCons 
+              << ", index_ = " << index_ << std::endl;
 #endif
     
     if (currNumOldCons > 0) {
@@ -653,7 +654,15 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         //--------------------------------------------------
         // Generate constraints.
         //--------------------------------------------------
-        
+
+#if 0
+        std::cout << "keepOn = " << keepOn
+                  << ", geneConsHere = " << genConsHere
+                  << ", numAppliedCons = " << numAppliedCons
+                  << ", maxNumCons = " << maxNumCons
+                  << std::endl;
+#endif
+
         if ( keepOn && genConsHere && (numAppliedCons < maxNumCons) ) {
             
             OsiCuts newOsiCuts;
@@ -2569,7 +2578,9 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet)
     double genCutTime;
     
     numCGs = model->numCutGenerators();
-  
+
+    //std::cout << "**** numCGs = "<< numCGs << std::endl;
+    
     
     for (i = 0 ; i < numCGs; ++i) {
 	
@@ -2599,7 +2610,7 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet)
 	    }
 	}
 	
-#ifdef BLIS_DEBUG_MORE
+#if 0
 	std::cout<<"CUTGEN: " << model->cutGenerators(i)->name() 
 		 <<": useThisCutGenerator ="<<useThisCutGenerator
                  <<", diving =" << diving_

@@ -1,6 +1,6 @@
-Alps_instance ~/data/mip/egout.mps
+Alps_instance ~/data/mip/swath3.mps
 
-Alps_timeLimit 72000
+Alps_timeLimit 720
 #Alps_nodeLimit 4000000
 
 Alps_msgLevel 2
@@ -28,15 +28,15 @@ Alps_intraClusterBalance 1      # 1: balancing load, 0: don't.
 #Alps_hubReportPeriod 0.5
 
 
-Blis_cutStrategyRampUp -2 # 1 true; 0 false
-Blis_cutStrategy      0  # -2: root, -1: auto, 0: disable, any positive integer
+Blis_cutStrategyRampUp -2 
+Blis_cutStrategy      0 # -2: root, -1: auto, 0: disable, any positive integer
 
-Blis_cutClique      -2   # -2: root, -1: auto, 0: disable, any positive integer
-Blis_cutGomory      -2
-Blis_cutFlowCover   -2
-Blis_cutKnapsack    -2
+#Blis_cutClique      -2   # -2: root, -1: auto, 0: disable, any positive integer
+#Blis_cutGomory      -2
+#Blis_cutFlowCover   -2
+#Blis_cutKnapsack    -2
 
-Blis_cutMir         -2
+#Blis_cutMir         -2
 
 Blis_cutOddHole     0
 Blis_cutProbing     0
@@ -47,7 +47,7 @@ Blis_heurStrategy  -1   # -2: root, -1: auto, 0: disable, any positive integer
 Blis_heurRound     -1   # -2: root, -1: auto, 0: disable, any positive integer
 
 #Blis_branchStrategy 1   # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
-Blis_branchStrategyRampUp 1
+#Blis_branchStrategyRampUp 0
 
 Blis_pseudoWeight        0.8  # [0.0, 1.0]
 Blis_pseudoRelibility      8
