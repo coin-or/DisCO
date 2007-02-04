@@ -220,7 +220,7 @@ BlisBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft)
         }
             
         if (numInfs) {
-#ifdef BLIS_DEBUG_MORE
+#if 0
             std::cout << "PSEUDO: numInfs = " << numInfs
                       << std::endl;
 #endif
