@@ -31,6 +31,9 @@ BlisParams::createKeywordList() {
  
     keys_.push_back(make_pair(std::string("Blis_checkMemory"),
                               AlpsParameter(AlpsCharPar, checkMemory)));
+
+    keys_.push_back(make_pair(std::string("Blis_cutRampUp"),
+                              AlpsParameter(AlpsCharPar, cutRampUp)));
     
    keys_.push_back(make_pair(std::string("Blis_presolve"),
 			     AlpsParameter(AlpsCharPar, presolve)));
@@ -80,9 +83,6 @@ BlisParams::createKeywordList() {
 
   keys_.push_back(make_pair(std::string("Blis_cutStrategy"),
 			    AlpsParameter(AlpsIntPar, cutStrategy)));
-
-  keys_.push_back(make_pair(std::string("Blis_cutStrategyRampUp"),
-			    AlpsParameter(AlpsIntPar, cutStrategyRampUp)));
 
   keys_.push_back(make_pair(std::string("Blis_cutTwoMir"),
 			    AlpsParameter(AlpsIntPar, cutTwoMir)));
@@ -149,6 +149,7 @@ BlisParams::setDefaultEntries() {
   //-------------------------------------------------------------
 
   setEntry(checkMemory, false);
+  setEntry(cutRampUp, true);
   setEntry(presolve, false);
   setEntry(sharePseudocostRampUp, true);
   setEntry(sharePseudocostSearch, false);
@@ -167,7 +168,6 @@ BlisParams::setDefaultEntries() {
   setEntry(cutOddHole, BLIS_NOT_SET);
   setEntry(cutProbing, BLIS_NOT_SET);
   setEntry(cutStrategy, BLIS_AUTO);
-  setEntry(cutStrategyRampUp, BLIS_ROOT);
   setEntry(cutTwoMir, BLIS_NOT_SET);
   setEntry(difference, -1);
   setEntry(heurRound, BLIS_NOT_SET);

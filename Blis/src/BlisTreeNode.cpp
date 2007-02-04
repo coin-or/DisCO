@@ -202,15 +202,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 
     genConsHere = false;
 
-    if (phase == ALPS_PHASE_RAMPUP) {
-        cutStrategy = BlisPar->entry(BlisParams::cutStrategyRampUp);
-    }
-    else if (phase == ALPS_PHASE_SEARCH) {
-        cutStrategy = model->getCutStrategy();
-    }
-    else {
-        assert(0);
-    }
+    cutStrategy = model->getCutStrategy();
 
     assert(cutStrategy > -3);
     
@@ -228,6 +220,12 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     }
     else {
 	genConsHere = true;
+    }
+
+    if (genConsHere && (phase == ALPS_PHASE_RAMPUP)) {
+	if (!(BlisPar->entry(BlisParams::cutRampUp))) {
+	    genConsHere = false;
+	}
     }
 
     //======================================================

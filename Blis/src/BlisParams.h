@@ -30,13 +30,19 @@ class BlisParams : public AlpsParameterSet {
   /** Character parameters. All of these variable are used as booleans
       (ture = 1, false = 0). */
   enum chrParams{
-      /** Check memory */
+      /** Check memory.
+	  Default: false */
       checkMemory,
+      /** Generate cuts during rampup. 
+	  Default: true */
+      cutRampUp,
       /** Presolve or not */
       presolve,
-      /** Share pseudocost during ramp up */
+      /** Share pseudocost during ramp up.
+	  Default: true */
       sharePseudocostRampUp,
-      /** Share pseudocost during search */
+      /** Share pseudocost during search
+	  Default: false */
       sharePseudocostSearch,
       //
       endOfChrParams
@@ -61,7 +67,6 @@ class BlisParams : public AlpsParameterSet {
           any positive frequency
       */
       cutStrategy, /** All constraint generators */
-      cutStrategyRampUp,
 
       cutClique,
       cutGomory,

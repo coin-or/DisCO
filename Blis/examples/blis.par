@@ -1,4 +1,4 @@
-Alps_instance ~/data/mip/swath3.mps
+Alps_instance ~/data/mip/egout.mps
 
 Alps_timeLimit 720
 #Alps_nodeLimit 4000000
@@ -28,7 +28,7 @@ Alps_intraClusterBalance 1      # 1: balancing load, 0: don't.
 #Alps_hubReportPeriod 0.5
 
 
-Blis_cutStrategyRampUp -2 
+Blis_cutRampUp 1      # true(1) or false(0) 
 Blis_cutStrategy      0 # -2: root, -1: auto, 0: disable, any positive integer
 
 #Blis_cutClique      -2   # -2: root, -1: auto, 0: disable, any positive integer
