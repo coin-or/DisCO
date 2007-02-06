@@ -31,14 +31,13 @@
 #include "CglOddHole.hpp"
 
 #include "BlisConfig.h"
+#include "BlisModel.h"
 
 #if  COIN_HAS_MPI
 #include "AlpsKnowledgeBrokerMPI.h"
 #else
 #include "AlpsKnowledgeBrokerSerial.h"
 #endif
-
-#include "BlisModel.h"
 
 // NOTE: gcc compiler doesn't recognize COIN_HAS_CLP, COIN_HAS_MPI
 
