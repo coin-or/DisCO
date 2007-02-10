@@ -1614,22 +1614,27 @@ BlisModel::encodeKnowlegeShared() const
     bool sharePseudo = true;
     bool shareCon = false;
     bool shareVar = false;
-
+    
     int phase = broker_->getPhase();
-
+    
     if (phase == ALPS_PHASE_RAMPUP) {
-      sharePseudo = BlisPar_->entry(BlisParams::sharePseudocostRampUp);
+        sharePseudo = BlisPar_->entry(BlisParams::sharePseudocostRampUp);
     }
     else if (phase == ALPS_PHASE_SEARCH) {
-      sharePseudo = BlisPar_->entry(BlisParams::sharePseudocostSearch);
+        sharePseudo = BlisPar_->entry(BlisParams::sharePseudocostSearch);
     }
 
     if (sharePseudo || shareCon || shareVar) {
-
+#if 1
+        std::cout << "++++ sharePseudo =  " << sharePseudo
+                  << ", shareCon = " << shareCon
+                  << ", shareVar = " << shareVar
+                  << std::endl;
+#endif        
         // NOTE: "ALPS_MODEL_GEN" is the type name. We don't need to
         //       register it since ALPS_MODEL is registered.
         encoded = new AlpsEncoded("ALPS_MODEL_GEN");
-
+        
         if (sharePseudo) {
             BlisObjectInt *intObj = NULL;
             encoded->writeRep(numIntObjects_);
