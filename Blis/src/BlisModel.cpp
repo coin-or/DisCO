@@ -576,6 +576,7 @@ BlisModel::setupSelf()
     }
 
     if (clique == BLIS_NOT_SET) {
+        // Only at root by default
         clique = cutStrategy_;
     }
     if (clique != BLIS_NONE) {
@@ -615,7 +616,8 @@ BlisModel::setupSelf()
     }
 
     if (mir == BLIS_NOT_SET) {
-        mir = cutStrategy_;
+        // Disable by default
+        twoMir = BLIS_NONE;
     }
     if (mir != BLIS_NONE) {
         CglMixedIntegerRounding2 *mixedGen = new CglMixedIntegerRounding2;
