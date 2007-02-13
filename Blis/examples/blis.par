@@ -57,6 +57,6 @@ Blis_scaleConFactor        100000000.0
 Blis_difference    1
 
 Blis_sharePseudocostRampUp 1
-#Blis_sharePseudocostSearch 1
+Blis_sharePseudocostSearch 1
 
 Blis_checkMemory 1
