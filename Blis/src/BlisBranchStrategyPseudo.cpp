@@ -340,9 +340,11 @@ BlisBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft)
             // Update pseudocost.
             if(downGood) {
                 firstObjects[i]->pseudocost().update(-1, downDeg, lpX);
+                model->setSharedObjectMark(firstObjects[i]->getObjectIndex());
             }
             if(downGood) {
                 firstObjects[i]->pseudocost().update(1, upDeg, lpX);
+                model->setSharedObjectMark(firstObjects[i]->getObjectIndex());
             }
         }
 

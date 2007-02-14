@@ -160,6 +160,9 @@ class BlisModel : public BcpsModel {
     /** The set of objects. */
     BcpsObject **objects_;
 
+    /** The objects that can be shared. */
+    char *sharedObjectMark_;
+
     /** Priorities of integer object. */
     int * priority_;
 
@@ -256,9 +259,6 @@ class BlisModel : public BcpsModel {
     //------------------------------------------------------
     // Knowledge can be shared
     //------------------------------------------------------
-
-    /** Pseudocost that can be shared. */
-    //std::vector< BlisPseudocost> pcostPoolShare;
 
     /** Constraints that can be shared.  */
     BcpsConstraintPool constraintPoolShare;
@@ -493,6 +493,16 @@ class BlisModel : public BcpsModel {
 
     /** Get the specified object. */
     inline BcpsObject * objects(int which) { return objects_[which]; }
+
+    /** Mark object to be shared. */
+    void setSharedObjectMark(int i) { sharedObjectMark_[i] = 1; }
+    
+    /** Clear all the share mark. */
+    void clearSharedObjectMark() {
+        for (int k = 0; k < numIntObjects_; ++k) {
+            sharedObjectMark_[k] = 0;
+        }
+    }
     
     /** Delete all object information. */
     void deleteObjects();
@@ -711,7 +721,7 @@ class BlisModel : public BcpsModel {
     
     /** Encode knowledge to be shared with others into an encoded object. 
         Return NULL means that no knowledge can be shared. */
-    virtual AlpsEncoded* encodeKnowlegeShared() const;
+    virtual AlpsEncoded* encodeKnowlegeShared();
     
     /** Decode and store shared knowledge from an encoded object. */
     virtual void decodeKnowledgeShared(AlpsEncoded&);

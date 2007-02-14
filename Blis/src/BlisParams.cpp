@@ -102,6 +102,12 @@ BlisParams::createKeywordList() {
   keys_.push_back(make_pair(std::string("Blis_pseudoRelibility"),
 			    AlpsParameter(AlpsIntPar, pseudoRelibility)));
 
+  keys_.push_back(make_pair(std::string("Blis_sharePcostDepth"),
+			    AlpsParameter(AlpsIntPar, sharePcostDepth)));
+
+  keys_.push_back(make_pair(std::string("Blis_sharePcostFrequency"),
+			    AlpsParameter(AlpsIntPar, sharePcostFrequency)));
+
   keys_.push_back(make_pair(std::string("Blis_strongCandSize"),
 			    AlpsParameter(AlpsIntPar, strongCandSize)));
   
@@ -174,6 +180,8 @@ BlisParams::setDefaultEntries() {
   setEntry(heurStrategy, -1);
   setEntry(lookAhead, 4);
   setEntry(pseudoRelibility, 8);
+  setEntry(sharePcostDepth, 10);
+  setEntry(sharePcostFrequency, 100);
   setEntry(strongCandSize, 10);
   
   //-------------------------------------------------------------

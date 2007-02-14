@@ -904,6 +904,11 @@ BlisModel::findIntegers(bool startAgain)
 	    intColIndices_[numIntObjects_++] = iCol;
 	}
     }
+
+    if (numIntObjects_) {
+        sharedObjectMark_ = new char [numIntObjects_];
+        memset(sharedObjectMark_, 0, sizeof(char) * numIntObjects_);
+    }
     
     // Now append other objects
     memcpy(objects_ + numIntObjects_, oldObject, numObjects*sizeof(BcpsObject *));
@@ -1606,16 +1611,19 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
 //#############################################################################
 
 AlpsEncoded* 
-BlisModel::encodeKnowlegeShared() const
+BlisModel::encodeKnowlegeShared()
 {
     AlpsEncoded* encoded = 0;
 
     int k = 0;
     int size = 0;
+    int numShared = 0;
+    int frequency = -1, depth = -1;
     
     bool sharePseudo = true;
     bool shareCon = false;
     bool shareVar = false;
+    bool share = false;
     
     int phase = broker_->getPhase();
     
@@ -1624,49 +1632,65 @@ BlisModel::encodeKnowlegeShared() const
     }
     else if (phase == ALPS_PHASE_SEARCH) {
         sharePseudo = BlisPar_->entry(BlisParams::sharePseudocostSearch);
-    }
-
-    if (sharePseudo || shareCon || shareVar) {
-#if 1
-        std::cout << "++++ sharePseudo =  " << sharePseudo
-                  << ", shareCon = " << shareCon
-                  << ", shareVar = " << shareVar
-                  << std::endl;
-#endif        
-        // NOTE: "ALPS_MODEL_GEN" is the type name. We don't need to
-        //       register it since ALPS_MODEL is registered.
-        encoded = new AlpsEncoded("ALPS_MODEL_GEN");
-        
         if (sharePseudo) {
-            BlisObjectInt *intObj = NULL;
-            encoded->writeRep(numIntObjects_);
-            
-            for (k = 0; k < numIntObjects_; ++k) {
-                intObj = dynamic_cast<BlisObjectInt *>(objects_[k]);
-                (intObj->pseudocost()).encodeTo(encoded);
+            // Depth and frequency
+            depth = BlisPar_->entry(BlisParams::sharePcostDepth);
+            frequency =  BlisPar_->entry(BlisParams::sharePcostFrequency);
+            if ( (numNodes_ % frequency != 0) || 
+                 (broker_->getTreeDepth() >  depth) ) {
+                sharePseudo = false;
             }
         }
+    }
+
+    if (sharePseudo) {
+        for (k = 0; k < numIntObjects_; ++k) {
+            if (sharedObjectMark_[k]){
+                ++numShared;
+            }
+        }
+        if (numShared) share = true;
+    }
+    // TODO: cuts, etc.
+
+#if 0
+    std::cout << "++++ sharePseudo =  " << sharePseudo
+              << ", shareCon = " << shareCon
+              << ", shareVar = " << shareVar
+              << ", numShared = " << numShared 
+              << ", numNodes_ = " << numNodes_
+              << ", frequency = " << frequency
+              << ", depth = " << depth
+              << ", treeDepth = " << broker_->getTreeDepth()
+              << ", share = " << share << std::endl;
+#endif        
+
+    if (share) {
+        // NOTE: "ALPS_MODEL_GEN" is the type name. We don't need to
+        //       register it since ALPS_MODEL is registered.
+        
+        BlisObjectInt *intObj = NULL;
+        
+        if (numShared > 0) {
+            encoded = new AlpsEncoded("ALPS_MODEL_GEN");
+            // Record how many can be shared.
+            encoded->writeRep(numShared);
+            for (k = 0; k < numIntObjects_; ++k) {
+                if (sharedObjectMark_[k]) {
+                    // Recored which object.
+                    encoded->writeRep(k);
+                    intObj = dynamic_cast<BlisObjectInt*>(objects_[k]);
+                    (intObj->pseudocost()).encodeTo(encoded);
+                }    
+            }
+            
+            // Clear the mark for next round of sharing.
+            clearSharedObjectMark();
+        }
         else {
-            size = 0;
-            encoded->writeRep(size);
+            encoded->writeRep(numShared);
         }
         
-        if (shareCon) {
-            
-        }
-        else {
-            size = 0;
-            encoded->writeRep(size);
-        }
-
-        if (shareVar) {
-            
-        }
-        else {
-            size = 0;
-            encoded->writeRep(size);
-        }
-
 	// Make sure don't exceed large size.
 	assert(encoded->size() < broker_->getLargeSize());
     }
@@ -1679,16 +1703,18 @@ BlisModel::encodeKnowlegeShared() const
 void 
 BlisModel::decodeKnowledgeShared(AlpsEncoded& encoded)
 {
-    int k, size = 0;
+    int k, objIndex, size = 0;
     
     // Encode and store pseudocost
     BlisObjectInt *intObj = NULL;
     encoded.readRep(size);
     for (k = 0; k < size; ++k) {
-        intObj = dynamic_cast<BlisObjectInt *>(objects_[k]);
+        encoded.readRep(objIndex);
+        intObj = dynamic_cast<BlisObjectInt *>(objects_[objIndex]);
         (intObj->pseudocost()).decodeFrom(encoded);
     }
-        
+
+#if 0        
     // Encode and store generated constraints that should be shared.
     encoded.readRep(size);
     for (k = 0; k < size; ++k) {
@@ -1702,6 +1728,7 @@ BlisModel::decodeKnowledgeShared(AlpsEncoded& encoded)
         // TODO
         assert(0);
     }
+#endif
 }
 
 //#############################################################################

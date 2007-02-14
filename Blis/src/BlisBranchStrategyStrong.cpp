@@ -352,6 +352,7 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
                 col = intObject->columnIndex();
                 lpX = saveSolution[col];
                 intObject->pseudocost().update(-1, objChange, lpX);
+                model->setSharedObjectMark(intObject->getObjectIndex());
 
 		candStrongs[i].finishedDown = true ;
 		if (newObjValue >= model->getCutoff()) {
@@ -446,7 +447,8 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
                 col = intObject->columnIndex();
                 lpX = saveSolution[col];
                 intObject->pseudocost().update(1, objChange, lpX);
-
+                model->setSharedObjectMark(intObject->getObjectIndex());
+                
 		candStrongs[i].finishedUp = true ;
 		if (newObjValue >= model->getCutoff()) {
 		    objChange = ALPS_DBL_MAX; // Cutoff

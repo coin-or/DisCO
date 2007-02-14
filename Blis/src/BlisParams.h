@@ -94,6 +94,10 @@ class BlisParams : public AlpsParameterSet {
       /** The relibility of pseudocost. */
       pseudoRelibility,
 
+      /** Maximum tree depth of sharing pseudocost. */
+      sharePcostDepth,
+      /** Frequency of sharing pseudocost. */
+      sharePcostFrequency,
       /** The number of candidate used in strong branching. Default: 10. */
       strongCandSize,
       ///

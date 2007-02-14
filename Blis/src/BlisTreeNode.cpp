@@ -2036,6 +2036,7 @@ int BlisTreeNode::bound(BcpsModel *model)
 #endif
 
             intObject->pseudocost().update(dir, objDeg, lpX);
+            m->setSharedObjectMark(intObject->getObjectIndex());
         }
 
         // Update quality of this nodes.
