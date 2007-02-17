@@ -30,9 +30,6 @@ class BlisParams : public AlpsParameterSet {
   /** Character parameters. All of these variable are used as booleans
       (ture = 1, false = 0). */
   enum chrParams{
-      /** Check memory.
-	  Default: false */
-      checkMemory,
       /** Generate cuts during rampup. 
 	  Default: true */
       cutRampUp,

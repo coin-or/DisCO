@@ -21,12 +21,6 @@
 
 //#############################################################################
 
-#if defined(__linux__)
-#define BLIS_MEMORY_USAGE 1
-#endif
-
-//#############################################################################
-
 #define BLIS_OK             0
 #define BLIS_LP_OPTIMAL     0
 #define BLIS_LP_ABANDONED   1

@@ -48,10 +48,6 @@
 
 #define REMOVE_SLACK 1
 
-#ifdef BLIS_MEMORY_USAGE
-#include <malloc.h>
-#endif
-
 //#############################################################################
 
 AlpsTreeNode*
@@ -1427,20 +1423,6 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 	std::cout << "SAVE: DBG: TERM: "
 		  << "k=" << k << ", len=" << aCon->getSize()
 		  << ", node=" << index_ << std::endl;
-    }
-#endif
-    
-#ifdef BLIS_MEMORY_USAGE
-    bool checkMemory = BlisPar->entry(BlisParams::checkMemory);
-    //std::cout << "checkMemory = " << checkMemory << std::endl;
-    if (checkMemory) {
-        struct mallinfo memInfo = mallinfo();
-        double memUsage = static_cast<double>(memInfo.uordblks + memInfo.hblkhd) / 1024.0;
-        memUsage /= 1024.0;
-        if (memUsage > model->getPeakMemory()) {
-            model->setPeakMemory(memUsage);
-            //std::cout << "memusge = " << model->getPeakMemory() << std::endl;
-        }
     }
 #endif
     
