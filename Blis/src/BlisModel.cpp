@@ -554,8 +554,8 @@ BlisModel::setupSelf()
     //------------------------------------------------------
 
     if (probe == BLIS_NOT_SET) {
-        // Only at root by default
-        probe = BLIS_ROOT;
+        // Disable by default
+        probe = BLIS_NONE;
     }
     if (probe != BLIS_NONE) {
         CglProbing *probing = new CglProbing;
@@ -576,7 +576,7 @@ BlisModel::setupSelf()
 
     if (clique == BLIS_NOT_SET) {
         // Only at root by default
-        clique = cutStrategy_;
+        clique = BLIS_ROOT;
     }
     if (clique != BLIS_NONE) {
         CglClique *cliqueCut = new CglClique ;
@@ -607,7 +607,8 @@ BlisModel::setupSelf()
     }
 
     if (knap == BLIS_NOT_SET) {
-        knap = cutStrategy_;
+        // Only at root by default
+        knap = BLIS_ROOT;
     }
     if (knap != BLIS_NONE) {
         CglKnapsackCover *knapCut = new CglKnapsackCover;
@@ -616,7 +617,7 @@ BlisModel::setupSelf()
 
     if (mir == BLIS_NOT_SET) {
         // Disable by default
-        twoMir = BLIS_NONE;
+        mir = BLIS_NONE;
     }
     if (mir != BLIS_NONE) {
         CglMixedIntegerRounding2 *mixedGen = new CglMixedIntegerRounding2;
@@ -624,7 +625,8 @@ BlisModel::setupSelf()
     }
 
     if (gomory == BLIS_NOT_SET) {
-        gomory = cutStrategy_;
+        // Only at root by default
+        gomory = BLIS_ROOT;
     }
     if (gomory != BLIS_NONE) {
         CglGomory *gomoryCut = new CglGomory;

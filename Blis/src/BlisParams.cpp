@@ -190,7 +190,7 @@ BlisParams::setDefaultEntries() {
   setEntry(integerTol, 1.0e-5);
   setEntry(optimalRelGap, 1.0e-6);
   setEntry(optimalAbsGap, 1.0e-4);
-  setEntry(pseudoWeight, 1.0);
+  setEntry(pseudoWeight, 0.8);
   setEntry(scaleConFactor, 1000000.0);
 
   //-------------------------------------------------------------
