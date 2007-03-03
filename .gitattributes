@@ -11,6 +11,11 @@ Blis/configure.ac -text
 Blis/examples/BlisMain.cpp -text
 Blis/examples/Makefile.in -text
 Blis/examples/blis.par -text
+Blis/examples/data/hard/fc.60.20.2.mps -text
+Blis/examples/data/hard/mas76.mps -text
+Blis/examples/data/hard/mik.250-10-100.1.mps -text
+Blis/examples/data/hard/pk1.mps -text
+Blis/examples/data/hard/rout.mps -text
 Blis/examples/egout.mps -text
 Blis/examples/flugpl.mps -text
 Blis/examples/gen.mps -text
