@@ -19,7 +19,7 @@ Blis/examples/data/hard/mik.250-10-100.1.mps -text
 Blis/examples/data/hard/nexp.50.20.1.1.mps -text
 Blis/examples/data/hard/pk1.mps -text
 Blis/examples/data/hard/rout.mps -text
-Blis/examples/data/hard/sp97ar.mps -text
+Blis/examples/data/hard/sp97ar.mps.gz -text
 Blis/examples/data/hard/stats -text
 Blis/examples/data/stats -text
 Blis/examples/egout.mps -text
