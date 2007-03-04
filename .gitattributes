@@ -12,11 +12,13 @@ Blis/examples/BlisMain.cpp -text
 Blis/examples/Makefile.in -text
 Blis/examples/blis.par -text
 Blis/examples/data/air05.mps.gz -text
+Blis/examples/data/batchRun -text
 Blis/examples/data/bell5.mps.gz -text
 Blis/examples/data/bienst1.mps.gz -text
 Blis/examples/data/cls.T90.C3.F100.S4.mps.gz -text
 Blis/examples/data/cls.T90.C4.F100.S1.mps.gz -text
 Blis/examples/data/cls.T90.C4.F100.S3.mps.gz -text
+Blis/examples/data/collectResults -text
 Blis/examples/data/dano3_4.mps.gz -text
 Blis/examples/data/fc.60.20.3.mps.gz -text
 Blis/examples/data/fc.60.20.6.mps.gz -text
