@@ -10,13 +10,13 @@
 #          Matthew Saltzman, Clemson University                            #
 #                                                                          #
 #                                                                          #
-# Copyright (C) 2001-2006, Lehigh University, Yan Xu, and Ted Ralphs.      #
+# Copyright (C) 2001-2007, Lehigh University, Yan Xu, and Ted Ralphs.      #
 # All Rights Reserved.                                                     #
 #==========================================================================#
 
 ## $Id: $
 
-# Author:  Yan Xu                 SAS     2006-04-13
+# Author:  Yan Xu                 Lehigh     2006-04-13
 
 AUTOMAKE_OPTIONS = foreign
 
