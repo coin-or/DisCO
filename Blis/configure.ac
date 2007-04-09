@@ -117,6 +117,7 @@ AC_CONFIG_LINKS(test/BlisMain.cpp:examples/BlisMain.cpp
 # configuration header file)
 AC_CONFIG_FILES([Makefile
 		 examples/Makefile
+		 examples/VRP/Makefile
                  src/Makefile
                  test/Makefile
 		 blis_addlibs.txt])

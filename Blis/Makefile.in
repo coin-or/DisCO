@@ -77,6 +77,7 @@ DIST_COMMON = README $(am__configure_deps) \
 	$(srcdir)/blis_addlibs.txt.in $(top_srcdir)/configure \
 	$(top_srcdir)/examples/BlisMain.cpp \
 	$(top_srcdir)/examples/Makefile.in \
+	$(top_srcdir)/examples/VRP/Makefile.in \
 	$(top_srcdir)/examples/flugpl.mps \
 	$(top_srcdir)/inc/config_blis.h.in AUTHORS INSTALL
 @HAVE_EXTERNALS_TRUE@am__append_2 = Externals
@@ -91,7 +92,8 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno configure.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/inc/config_blis.h
-CONFIG_CLEAN_FILES = examples/Makefile blis_addlibs.txt
+CONFIG_CLEAN_FILES = examples/Makefile examples/VRP/Makefile \
+	blis_addlibs.txt
 SOURCES =
 DIST_SOURCES =
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
@@ -289,11 +291,16 @@ SUBDIRS = src $(am__append_1)
 ########################################################################
 
 # Here we need include all files that are not mentioned in other Makefiles
-EXTRA_DIST = examples/Blis/BlisMain.cpp examples/Blis/blis.par \
-	examples/Blis/egout.mps examples/Blis/flugpl.mps \
-	examples/Blis/gen.mps examples/Blis/knap1.mps \
-	examples/Blis/knap2.mps examples/Blis/knap3.mps \
-	$(am__append_2)
+EXTRA_DIST = examples/BlisMain.cpp examples/blis.par \
+	examples/egout.mps examples/flugpl.mps examples/gen.mps \
+	examples/knap1.mps examples/knap2.mps examples/knap3.mps \
+	examples/VRP/AUTHORS examples/VRP/INSTALL examples/VRP/LICENSE \
+	examples/VRP/Makefile.in examples/VRP/README \
+	examples/VRP/VrpCutGenerator.cpp \
+	examples/VRP/VrpCutGenerator.h examples/VRP/VrpMain.cpp \
+	examples/VRP/VrpModel.cpp examples/VRP/VrpModel.h \
+	examples/VRP/VrpParams.cpp examples/VRP/VrpParams.h \
+	examples/VRP/VrpSolution.h $(am__append_2)
 
 ########################################################################
 #                  Installation of the addlibs file                    #
@@ -360,6 +367,8 @@ $(top_srcdir)/inc/config_blis.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 distclean-hdr:
 	-rm -f inc/config_blis.h inc/stamp-h1
 examples/Makefile: $(top_builddir)/config.status $(top_srcdir)/examples/Makefile.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+examples/VRP/Makefile: $(top_builddir)/config.status $(top_srcdir)/examples/VRP/Makefile.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 blis_addlibs.txt: $(top_builddir)/config.status $(srcdir)/blis_addlibs.txt.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
@@ -509,7 +518,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/. $(distdir)/.. $(distdir)/../BuildTools $(distdir)/examples $(distdir)/examples/Blis $(distdir)/inc
+	$(mkdir_p) $(distdir)/. $(distdir)/.. $(distdir)/../BuildTools $(distdir)/examples $(distdir)/examples/VRP $(distdir)/inc
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \

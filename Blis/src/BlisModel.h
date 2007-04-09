@@ -448,7 +448,12 @@ class BlisModel : public BcpsModel {
 	into simple integer infeasibility (\p numIntegerInfs)
 	and all other reports of infeasibility(\p numObjectInfs).
     */
-    bool feasibleSolution(int & numIntegerInfs, int & numObjectInfs);
+    virtual bool feasibleSolution(int & numIntegerInfs, int & numObjectInfs);
+    
+    /** User's criteria for a feasible solution. Return true (feasible)
+	or false (infeasible) 
+    */
+    virtual bool userFeasibleSolution() { return true; }
     
     //------------------------------------------------------
     // BRANCHING
@@ -551,7 +556,10 @@ class BlisModel : public BcpsModel {
     // CONSTRAINTS.
     //------------------------------------------------------
 
-    /** Add a cut generator. */
+    /** Add a Blis cut generator. */
+    void addCutGenerator(BlisConGenerator * generator);
+
+    /** Add a Cgl cut generator. */
     void addCutGenerator(CglCutGenerator * generator,
 			 const char * name = NULL,
 			 int strategy = 0,

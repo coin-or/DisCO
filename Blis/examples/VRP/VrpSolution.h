@@ -1,0 +1,71 @@
+/*===========================================================================*
+ * This file is part of the BiCePS Linear Integer Solver (BLIS).             *
+ *                                                                           *
+ * ALPS is distributed under the Common Public License as part of the        *
+ * COIN-OR repository (http://www.coin-or.org).                              *
+ *                                                                           *
+ * Authors: Yan Xu, SAS Institute Inc.                                       *
+ *          Ted Ralphs, Lehigh University                                    *
+ *          Laszlo Ladanyi, IBM T.J. Watson Research Center                  *
+ *          Matthew Saltzman, Clemson University                             *
+ *                                                                           * 
+ *                                                                           *
+ * Copyright (C) 2001-2006, Lehigh University, Yan Xu, and Ted Ralphs.       *
+ * All Rights Reserved.                                                      *
+ *===========================================================================*/
+
+#ifndef VrpSolution_h_
+#define VrpSolution_h_
+
+#include "Alps.h"
+#include "BlisSolution.h"
+
+//#############################################################################
+/** This class contains a vrp solution */
+//#############################################################################
+
+class VrpSolution : public BlisSolution {
+
+protected:
+
+public:
+    
+    /** Default constructor. */
+    VrpSolution() 
+	: 
+	BlisSolution()
+	{}
+
+    /** Useful constructor. */
+    VrpSolution(int s, const double *values, double objValue)
+	:
+	BlisSolution(s, values, objValue)
+	{}
+
+    /** Destructor. */
+    virtual ~VrpSolution() { }
+    
+    /** Print the solution.*/
+    virtual void print(std::ostream& os) const {};
+    
+    /** The method that encodes the solution into a encoded object. */
+    virtual AlpsEncoded* encode() const {
+	//AlpsEncoded* encoded = new AlpsEncoded("ALPS_SOLUTION");
+	//encodeBcps(encoded);
+	// Nothing to do for Vrp part.
+	return encoded;
+    }
+  
+    /** The method that decodes the solution from a encoded object. */
+    virtual AlpsKnowledge* decode(AlpsEncoded& encoded) const {
+	//VrpSolution * sol = new VrpSolution();
+	//sol->decodeBcps(encoded);
+	return sol;
+    }
+    
+};
+
+//#############################################################################
+//#############################################################################
+
+#endif

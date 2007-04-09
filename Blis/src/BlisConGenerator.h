@@ -162,7 +162,7 @@ class BlisConGenerator  {
 	The routine returns true if reoptimisation is needed (because the 
 	state of the solver interface has been modified).
     */
-    bool generateCons(OsiCuts &cs, bool fullScan); 
+    virtual bool generateCons(OsiCuts &cs, bool fullScan); 
     //@}
 
     /**@name Gets and sets */

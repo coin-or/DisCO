@@ -739,12 +739,17 @@ BlisModel::feasibleSolution(int & numIntegerInfs)
 #endif
     
     for (i = 0; i < numIntObjects_; ++i) {
-      if ( ! checkInteger(savedLpSolution[intColIndices_[i]]) ) {
-	++numIntegerInfs;
-	feasible = false;
-      }
+	if ( ! checkInteger(savedLpSolution[intColIndices_[i]]) ) {
+	    ++numIntegerInfs;
+	    feasible = false;
+	    break;
+	}
     }
 
+    if (feasible) {
+	feasible = userFeasibleSolution();
+    }
+    
     return feasible;
 }
 
@@ -1098,7 +1103,11 @@ BlisModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
     numObjectInfs = numUnsatisfied - numIntegerInfs;
 
     //printf("numUnsatisfied = %d\n",numUnsatisfied);
-    
+
+    if (!numUnsatisfied) {
+	return userFeasibleSolution();
+    }
+
     return (!numUnsatisfied);
 }
 
@@ -1297,6 +1306,22 @@ BlisModel::addCutGenerator(CglCutGenerator * generator,
     temp = NULL;
 #endif
 
+}
+
+//#############################################################################
+
+void 
+BlisModel::addCutGenerator(BlisConGenerator * generator)
+{
+    BlisConGenerator ** temp = generators_;
+
+    generators_ = new BlisConGenerator * [(numCutGenerators_ + 1)];
+    memcpy(generators_, temp, numCutGenerators_ * sizeof(BlisConGenerator *));
+    
+    generators_[numCutGenerators_++] = generator;
+
+    delete [] temp;
+    temp = NULL;
 }
 
 //#############################################################################

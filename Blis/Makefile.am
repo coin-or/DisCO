@@ -42,15 +42,27 @@ endif
 # Here we need include all files that are not mentioned in other Makefiles
 
 EXTRA_DIST = \
-	examples/Blis/BlisMain.cpp \
-	examples/Blis/blis.par \
-	examples/Blis/egout.mps \
-	examples/Blis/flugpl.mps \
-	examples/Blis/gen.mps \
-	examples/Blis/knap1.mps \
-	examples/Blis/knap2.mps \
-	examples/Blis/knap3.mps
-
+	examples/BlisMain.cpp \
+	examples/blis.par \
+	examples/egout.mps \
+	examples/flugpl.mps \
+	examples/gen.mps \
+	examples/knap1.mps \
+	examples/knap2.mps \
+	examples/knap3.mps \
+	examples/VRP/AUTHORS \
+	examples/VRP/INSTALL \
+	examples/VRP/LICENSE \
+	examples/VRP/Makefile.in \
+	examples/VRP/README \
+	examples/VRP/VrpCutGenerator.cpp \
+	examples/VRP/VrpCutGenerator.h \
+	examples/VRP/VrpMain.cpp \
+	examples/VRP/VrpModel.cpp \
+	examples/VRP/VrpModel.h \
+	examples/VRP/VrpParams.cpp \
+	examples/VRP/VrpParams.h \
+	examples/VRP/VrpSolution.h
 
 ########################################################################
 #                           Extra Targets                              #

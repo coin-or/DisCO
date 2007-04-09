@@ -388,7 +388,6 @@ BlisBranchStrategyRel::createCandBranchObjects(int numPassesLeft)
         // All object's pseudocost have been initialized.
         // Sort them, and do strong branch for the unreliable one
         // NOTE: it set model->savedLpSolution.
-	// model->feasibleSolution(numIntegerInfs, numObjectInfs);
         
         sumDeg = 0.0;
         

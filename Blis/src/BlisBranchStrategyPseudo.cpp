@@ -387,12 +387,11 @@ BlisBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft)
         branchObjects_ = new BcpsBranchObject* [numInfs];        
         
         // NOTE: it set model->savedLpSolution.
-	//model->feasibleSolution(numIntegerInfs, numObjectInfs);
         
         sumDeg = 0.0;
-        
+	
         for (i = 0; i < numInfs; ++i) {
-            
+	    
             if (infObjects[i]->pseudocost().getUpCost() < 
                 infObjects[i]->pseudocost().getDownCost()) {
                 preferDir = 1;

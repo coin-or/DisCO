@@ -102,8 +102,6 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
     for (pass = 0; pass < 2; ++pass) {
 	
 	// Compute how many infeasible objects. 
-        // NOTE: it set model->savedLpSolution. 1/14/07: not used
-	// model->feasibleSolution(numIntegerInfs, numObjectInfs);
 
 	sumDeg = 0.0; 
 	numInfs = 0;
@@ -359,10 +357,6 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
 		    objChange = ALPS_DBL_MAX; // say infeasible
 		} 
                 else {    
-		    if(model->feasibleSolution(candStrongs[i].numIntInfDown)){
-			printf("STRONG:easy:down:found a feasible solution\n");
-		    }
-		    
 		    // See if integer solution
 		    if (model->feasibleSolution(candStrongs[i].numIntInfDown,
 						candStrongs[i].numObjInfDown)) {
