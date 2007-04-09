@@ -26,7 +26,9 @@
 #include "OsiSolverInterface.hpp"
 #include "OsiCuts.hpp"
 
+
 class BlisModel;
+
 class OsiRowCut;
 class OsiRowCutDebugger;
 class CglCutGenerator;
@@ -48,7 +50,7 @@ class CglCutGenerator;
 
 class BlisConGenerator  {
 
- private:
+protected:
     /** The client model. */
     BlisModel *model_;
     
@@ -136,7 +138,7 @@ class BlisConGenerator  {
     BlisConGenerator & operator=(const BlisConGenerator& rhs);
     
     /** Destructor. */
-    ~BlisConGenerator()
+    virtual ~BlisConGenerator()
         {
             free(name_);
             name_= NULL;

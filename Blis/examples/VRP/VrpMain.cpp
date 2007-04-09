@@ -19,12 +19,13 @@
 #include "CoinError.hpp"
 #include "CoinTime.hpp"
 
+#include "BlisConfig.h"
+
 #include "OsiSolverInterface.hpp"
 #ifdef COIN_HAS_CLP
 #include "OsiClpSolverInterface.hpp"
 #endif
 
-#include "BlisConfig.h"
 #include "VrpModel.h"
 
 #if  COIN_HAS_MPI
@@ -45,7 +46,7 @@ int main(int argc, char *argv[])
 	lpSolver.messageHandler()->setLogLevel(0);
 #endif
 	
-	// Create BLIS model 
+	// Create VRP model 
 	VrpModel model;
 	model.setSolver(&lpSolver);
 	
