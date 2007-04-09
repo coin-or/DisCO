@@ -23,6 +23,7 @@ Blis/examples/VRP/VrpModel.h -text
 Blis/examples/VRP/VrpParams.cpp -text
 Blis/examples/VRP/VrpParams.h -text
 Blis/examples/VRP/VrpSolution.h -text
+Blis/examples/VRP/VrpVariable.h -text
 Blis/examples/VRP/data/sample.vrp -text
 Blis/examples/VRP/vrp.par -text
 Blis/examples/blis.par -text
