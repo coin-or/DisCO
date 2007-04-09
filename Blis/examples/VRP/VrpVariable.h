@@ -27,7 +27,8 @@ class VrpVariable : public BlisVariable
 private:
 
    /* The endpoints of the edge */
-   int ends[2];
+   int ends_[2];
+   int uind_;
    double objCoef_;
    int size_;
    int *indices_;
@@ -36,18 +37,19 @@ private:
 public:
 
     VrpVariable() : objCoef_(0.0), size_(0), indices_(NULL), values_(NULL) {
-       ends[0] = 0;
-       ends[1] = 0;
+       ends_[0] = 0;
+       ends_[1] = 0;
     }
 
     VrpVariable(int v1, int v2, int cost) {
-       ends[0] = (v1 < v2) : v1 ? v2;
-       ends[1] = (v1 < v2) : v2 ? v1;
+       ends_[0] = v1 < v2 ? v1 : v2;
+       ends_[1] = v1 < v2 ? v2 : v1;
+       uind_ = ends_[1]*(ends_[1] - 1)/2 + ends_[0];
        size_ = 2;
        indices_ = new int[size_];
-       values_ = new int[size_];
-       indices_[0] = ends[0];
-       indices_[1] = ends[1];
+       values_ = new double[size_];
+       indices_[0] = ends_[0];
+       indices_[1] = ends_[1];
        values_[0] = values_[1] = 1.0;
        intType_ = 'B';
        lbHard_ = 0.0;
@@ -59,6 +61,7 @@ public:
 	  delete [] indices_; indices_ = NULL;
 	  delete [] values_; values_ = NULL;
        }
+    }
     
 };
 
