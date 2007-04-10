@@ -29,14 +29,14 @@ private:
    /* The endpoints of the edge */
    int ends_[2];
    int uind_;
-   double objCoef_;
+   int objCoef_;
    int size_;
    int *indices_;
    double *values_;
    
 public:
 
-    VrpVariable() : objCoef_(0.0), size_(0), indices_(NULL), values_(NULL) {
+    VrpVariable() : objCoef_(0), size_(0), indices_(NULL), values_(NULL) {
        ends_[0] = 0;
        ends_[1] = 0;
     }
@@ -62,6 +62,10 @@ public:
 	  delete [] values_; values_ = NULL;
        }
     }
+
+    int getCost() { return objCoef_; }
+
+    void setCost(int cost) { objCoef_ = cost; }
     
 };
 

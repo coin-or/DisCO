@@ -17,8 +17,11 @@
 
 //#############################################################################
 
+#include <vector>
+
 #include "BlisModel.h"
 #include "VrpVariable.h"
+#include "VrpCommonTypes.h"
 
 //#############################################################################
 
@@ -26,12 +29,40 @@
 class VrpModel : public BlisModel 
 {    
 private:
-    
+
+   char name_[100];
+   int vertnum_;
+   int edgenum_;
+   int numroutes_;
+   int depot_;
+   int capacity_;
+   int wtype_;
+   int *demand_;
+   int *posx_;
+   int *posy_;
+   double *coordx_;
+   double *coordy_;
+   double *coordz_;
+   std::vector<VrpVariable *> edges_;
+   std::vector<best_tours> curTour_;
+   
 public:
 
     /** Default construtor. */
-    VrpModel() {}
+    VrpModel() : vertnum_(0), edgenum_(0), numroutes_(0), depot_(0),
+       capacity_(0), wtype_(0){
+       demand_ = 0;
+       posx_ = 0;
+       posy_ = 0;
+       coordx_ = 0;
+       coordy_ = 0;
+       coordz_ = 0;
+    }
 
+    VrpModel(const char* dataFile){
+       readInstance(dataFile);
+    }
+    
     /** Destructor. */
     virtual ~VrpModel() {}
 
@@ -52,7 +83,13 @@ public:
      *	or false (infeasible) 
      */
     virtual bool userFeasibleSolution() { return true; }
-    
+
+    int index (int v0, int v1) {
+       return(v0 < v1 ? v1*(v1 - 1)/2 + v0 : v0*(v0 - 1)/2 + v1);
+    }
+
+    int compute_cost(int v0, int v1); 
+   
 };
 
 //#############################################################################
