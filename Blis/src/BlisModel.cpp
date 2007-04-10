@@ -190,13 +190,8 @@ BlisModel::readInstance(const char* dataFile)
     memcpy(origConLB_, mps->getRowLower(), sizeof(double) * numRows_);
     memcpy(origConUB_, mps->getRowUpper(), sizeof(double) * numRows_);
     
-    //memcpy(startVarLB_, mps->getColLower(), sizeof(double) * numCols_);
-    //memcpy(startVarUB_, mps->getColUpper(), sizeof(double) * numCols_);
-    
-    //memcpy(startConLB_, mps->getRowLower(), sizeof(double) * numRows_);
-    //memcpy(startConUB_, mps->getRowUpper(), sizeof(double) * numRows_);
-    
-    objSense_ = 1.0; /* Default from MPS is minimization */
+    // Default from MPS is minimization.
+    objSense_ = 1.0;
     
     objCoef_ = new double [numCols_];
     memcpy(objCoef_, mps->getObjCoefficients(), sizeof(double) * numCols_);
@@ -227,25 +222,68 @@ BlisModel::readInstance(const char* dataFile)
     }
     
     //------------------------------------------------------
-    // load problem to lp solver.
+    // Create core variables and constraints.
     //------------------------------------------------------
+
+#ifdef BLIS_DEBUG
+    std::cout << "readInstance: numCols_ " << numCols_ 
+	      << ", numRows_" << numRows_ 
+	      << std::endl;
+    std::cout << "Create core ..." << std::endl;
+#endif
+
+    numCoreVariables_ = numCols_;
+    numCoreConstraints_ = numRows_;
     
-    if (!origLpSolver_) {
-        origLpSolver_ = new OsiClpSolverInterface();
+    coreVariables_ = new BcpsVariable* [numCols_];
+    coreConstraints_ = new BcpsConstraint* [numRows_];
+    
+    for (j = 0; j < numCols_; ++j) {
+	BlisVariable * var = new BlisVariable(origVarLB_[j],
+					      origVarUB_[j], 
+					      origVarLB_[j], 
+					      origVarUB_[j]);
+	coreVariables_[j] = var;
+	var = NULL;
+	coreVariables_[j]->setObjectIndex(j);
+	coreVariables_[j]->setRepType(BCPS_CORE);
+	coreVariables_[j]->setIntType(colType_[j]);
+	coreVariables_[j]->setStatus(BCPS_NONREMOVALBE);
     }
 
+    for (j = 0; j < numRows_; ++j) {
+        BlisConstraint *con = new BlisConstraint(origConLB_[j], 
+                                                 origConUB_[j], 
+                                                 origConLB_[j], 
+                                                 origConUB_[j]);
+        coreConstraints_[j] = con;
+        con = NULL;
+        coreConstraints_[j]->setObjectIndex(j);
+        coreConstraints_[j]->setRepType(BCPS_CORE);
+        //coreContraints_[j]->setIntType(colType_[j]);
+        coreConstraints_[j]->setStatus(BCPS_NONREMOVALBE);
+    }
+
+    delete mps;
+}
+
+//############################################################################ 
+
+void 
+BlisModel::loadProblem(BcpsVariable **variable, 
+		       double *rowLower,
+		       double *rowUpper)
+{
     origLpSolver_->loadProblem(*colMatrix_,
 			       origVarLB_, origVarUB_,   
 			       objCoef_,
-			       origConLB_, origConUB_);
+			       rowLower, rowUpper);
     
     origLpSolver_->setObjSense(objSense_);
     origLpSolver_->setInteger(intColIndices_, numIntObjects_);
     
-    delete mps;
-    
     if (numIntObjects_ == 0) {
-        
+	// Pure lp
 	// solve lp and throw error.
 	//lpSolver_->initialSolve();
 	//throw CoinError("The problem does not have integer variables", 
@@ -256,6 +294,7 @@ BlisModel::readInstance(const char* dataFile)
                 << CoinMessageEol;
         }
     }
+    
 }
 
 //############################################################################ 
@@ -317,6 +356,16 @@ BlisModel::setupSelf()
     processType_ = broker_->getProcType();
 
     //------------------------------------------------------
+    // load problem to lp solver.
+    //------------------------------------------------------
+    
+    if (!origLpSolver_) {
+        origLpSolver_ = new OsiClpSolverInterface();
+    }
+    
+    loadProblem(coreVariables_, origConLB_, origConUB_);
+    
+    //------------------------------------------------------
     // Allocate memory.
     //------------------------------------------------------
 
@@ -349,53 +398,7 @@ BlisModel::setupSelf()
     //------------------------------------------------------
     
     // Disable Alps message
-    //AlpsPar()->setEntry(AlpsParams::msgLevel, 1);
-    
-    //------------------------------------------------------
-    // Create core variables and constraints.
-    //------------------------------------------------------
-
-#ifdef BLIS_DEBUG
-    std::cout << "setupSelf: numCols_ " << numCols_ 
-	      << ", numRows_" << numRows_ 
-	      << std::endl;
-    std::cout << "Create core ..." << std::endl;
-#endif
-
-    numCoreVariables_ = numCols_;
-    numCoreConstraints_ = numRows_;
-    
-    // BlisVariable ** tempVars = new BlisVariable* [numCols_];
-    // BlisConstraint ** tempCons = new BlisConstraint* [numRows_];
-
-    coreVariables_ = new BcpsVariable* [numCols_];
-    coreConstraints_ = new BcpsConstraint* [numRows_];
-    
-    for (j = 0; j < numCols_; ++j) {
-	BlisVariable * var = new BlisVariable(origVarLB_[j],
-					      origVarUB_[j], 
-					      origVarLB_[j], 
-					      origVarUB_[j]);
-	coreVariables_[j] = var;
-	var = NULL;
-	coreVariables_[j]->setObjectIndex(j);
-	coreVariables_[j]->setRepType(BCPS_CORE);
-	coreVariables_[j]->setIntType(colType_[j]);
-	coreVariables_[j]->setStatus(BCPS_NONREMOVALBE);
-    }
-
-    for (j = 0; j < numRows_; ++j) {
-        BlisConstraint *con = new BlisConstraint(origConLB_[j], 
-                                                 origConUB_[j], 
-                                                 origConLB_[j], 
-                                                 origConUB_[j]);
-        coreConstraints_[j] = con;
-        con = NULL;
-        coreConstraints_[j]->setObjectIndex(j);
-        coreConstraints_[j]->setRepType(BCPS_CORE);
-        //coreContraints_[j]->setIntType(colType_[j]);
-        coreConstraints_[j]->setStatus(BCPS_NONREMOVALBE);
-    }
+    // AlpsPar()->setEntry(AlpsParams::msgLevel, 1);
     
     //------------------------------------------------------
     // Identify integers.

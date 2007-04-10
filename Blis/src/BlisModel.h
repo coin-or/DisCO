@@ -49,6 +49,7 @@
 //#############################################################################
 
 class BlisConstraint;
+class BcpsVariable;
 
 //#############################################################################
 
@@ -80,6 +81,7 @@ class BlisModel : public BcpsModel {
 
     /** Original variable and constraint bounds. */
     //@{
+    // Only used in readInstance.
     double *origVarLB_;
     double *origVarUB_;
     double *origConLB_;
@@ -316,9 +318,17 @@ class BlisModel : public BcpsModel {
     /** Intialize member data */
     void init();
 
-    /** Read in the instance data */
+    /** 1) Read in the instance data. 
+	2) Classify variable type
+	3) Create core variables and constraints.
+    */
     virtual void readInstance(const char* dataFile);
 
+    /** Load problem to lp solver. Assume lp solver is ready. */
+    virtual void loadProblem(BcpsVariable **variable, 
+			     double *rowLower,
+			     double *rowUpper);
+    
     /** Read in Alps, Blis parameters. */
     virtual void readParameters(const int argnum, const char * const *arglist);
 
@@ -328,7 +338,13 @@ class BlisModel : public BcpsModel {
     /** Create the root node based on model. */
     virtual AlpsTreeNode * createRoot();
     
-    /** Do necessary work to make model usable. Return success or not. */
+    /** Do necessary work to make model usable. Return success or not. 
+	1) load problem to lp solver.
+	2) Identify integers
+	3) Set branch strategy
+	4) Add heuristics
+	5) Add Cgl cut generators
+    */
     virtual bool setupSelf();
 
     /** Preprocessing the model. */
