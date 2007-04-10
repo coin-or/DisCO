@@ -50,6 +50,7 @@
 
 class BlisConstraint;
 class BcpsVariable;
+class BlisVariable;
 
 //#############################################################################
 
@@ -330,10 +331,18 @@ class BlisModel : public BcpsModel {
      */
     virtual void loadProblem(int numVars,
 			     int numCons,
-			     BcpsVariable **variable,
+			     BcpsVariable **vars,
 			     double *conLower,
 			     double *conUpper);
     
+    virtual void loadProblem(int numVars,
+			     int numCons,
+			     std::vector<BlisVariable *> vars,
+			     double *conLower,
+			     double *conUpper,
+			     double objSense,
+			     double *objCoef);
+
     /** Read in Alps, Blis parameters. */
     virtual void readParameters(const int argnum, const char * const *arglist);
 

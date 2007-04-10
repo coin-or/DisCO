@@ -69,16 +69,6 @@ public:
     /** Read in the instance data. */
     virtual void readInstance(const char* dateFile);
 
-    /** 1) Load problem to lp solver. Assume lp solver is ready. 
-     *  2) Set objective sense
-     *  3) Set integer
-     */
-    virtual void loadProblem(int numVars,
-			     int numCons,
-			     BcpsVariable **variable,
-			     double *conLower,
-			     double *conUpper);
-    
     /** User's criteria for a feasible solution. Return true (feasible)
      *	or false (infeasible) 
      */
@@ -90,6 +80,14 @@ public:
 
     int compute_cost(int v0, int v1); 
    
+    /** 1) Load problem to lp solver. Assume lp solver is ready. 
+     *  2) Set objective sense
+     *  3) Set integer
+     */
+    void loadProblem(int numVars,
+		     int numCons,
+		     std::vector<VrpVariable *> vars);
+ 
 };
 
 //#############################################################################

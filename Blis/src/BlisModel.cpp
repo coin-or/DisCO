@@ -15,6 +15,7 @@
  *===========================================================================*/
 
 #include <cstdio>
+#include <vector>
 
 #include "CoinFinite.hpp"
 #include "CoinTime.hpp"
@@ -272,7 +273,7 @@ BlisModel::readInstance(const char* dataFile)
 void 
 BlisModel::loadProblem(int numVars,
 		       int numCons,
-		       BcpsVariable **variable,
+		       BcpsVariable **vars,
 		       double *conLower,
 		       double *conUpper)
 {
@@ -285,6 +286,82 @@ BlisModel::loadProblem(int numVars,
     origLpSolver_->setInteger(intColIndices_, numIntObjects_);
     
     if (numIntObjects_ == 0) {
+	// Pure lp
+	// solve lp and throw error.
+	//lpSolver_->initialSolve();
+	//throw CoinError("The problem does not have integer variables", 
+        //	"readInstance", "BlisModel");
+
+        if (broker_->getMsgLevel() > 0) {
+            bcpsMessageHandler_->message(BLIS_W_LP, blisMessages())
+                << CoinMessageEol;
+        }
+    }
+    
+}
+
+//#############################################################################
+
+void 
+BlisModel::loadProblem(int numVars,
+		       int numCons,
+		       std::vector<BlisVariable *> vars,
+		       double *conLower,
+		       double *conUpper,
+		       double objSense,
+		       double *objCoef)
+{
+
+    CoinBigIndex i, j, numNonzeros = 0, numInt = 0;
+    int size;
+
+    double* collb = new double [numVars];
+    double* colub = new double [numVars];
+    double* obj = new double [numVars];
+
+    int* varIndices;
+    double *varValues;
+
+    for (i = 0; i < numVars; ++i) {
+       numNonzeros += vars[i]->getSize();
+       if (vars[i]->getIntType() != 'C'){
+	  numInt++;
+       }
+    }
+
+    CoinBigIndex * start = new CoinBigIndex [numVars+1];
+    int* indices = new int[numNonzeros];
+    double* values = new double[numNonzeros];
+    int* intVars = new int[numInt];
+
+    // Get collb, colub, obj, and matrix from variables
+    for (numInt = 0, numNonzeros = 0, i = 0; i < numVars; ++i) {
+       collb[i] = vars[i]->getLbHard();
+       colub[i] = vars[i]->getUbHard();
+       start[i] = numNonzeros;
+       if (vars[i]->getIntType() != 'C'){
+	  intVars[numInt++] = 1;
+       }
+       varValues = vars[i]->getValues();
+       varIndices = vars[i]->getIndices();
+       size = vars[i]->getSize();
+       for (j = 0; j < size; ++j, ++numNonzeros){
+	  indices[numNonzeros] = varIndices[j];
+	  values[numNonzeros] = varValues[j];
+       }
+    }
+
+    // Load to lp solver
+    origLpSolver_->loadProblem(numVars, numCons,
+			       start, indices, values,
+			       collb, colub, obj,
+			       conLower, conUpper);
+    
+    origLpSolver_->setObjSense(objSense);
+
+    origLpSolver_->setInteger(intVars, numInt);    
+    
+    if (numInt == 0) {
 	// Pure lp
 	// solve lp and throw error.
 	//lpSolver_->initialSolve();
@@ -1997,4 +2074,5 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
     }
 }
 
-//#############################################################################
+
+
