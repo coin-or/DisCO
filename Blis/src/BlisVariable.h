@@ -29,7 +29,7 @@ class BlisVariable : public BcpsVariable {
     int size_;
     int *indices_;
     double *values_;
-
+    
  public:
 
     BlisVariable() : objCoef_(0.0), size_(0), indices_(NULL), values_(NULL) {}

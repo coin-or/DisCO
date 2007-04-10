@@ -247,8 +247,9 @@ BlisModel::readInstance(const char* dataFile)
 	var = NULL;
 	coreVariables_[j]->setObjectIndex(j);
 	coreVariables_[j]->setRepType(BCPS_CORE);
-	coreVariables_[j]->setIntType(colType_[j]);
 	coreVariables_[j]->setStatus(BCPS_NONREMOVALBE);
+
+	coreVariables_[j]->setIntType(colType_[j]);
     }
 
     for (j = 0; j < numRows_; ++j) {
@@ -260,7 +261,6 @@ BlisModel::readInstance(const char* dataFile)
         con = NULL;
         coreConstraints_[j]->setObjectIndex(j);
         coreConstraints_[j]->setRepType(BCPS_CORE);
-        //coreContraints_[j]->setIntType(colType_[j]);
         coreConstraints_[j]->setStatus(BCPS_NONREMOVALBE);
     }
 
@@ -270,14 +270,16 @@ BlisModel::readInstance(const char* dataFile)
 //############################################################################ 
 
 void 
-BlisModel::loadProblem(BcpsVariable **variable, 
-		       double *rowLower,
-		       double *rowUpper)
+BlisModel::loadProblem(int numVars,
+		       int numCons,
+		       BcpsVariable **variable,
+		       double *conLower,
+		       double *conUpper)
 {
     origLpSolver_->loadProblem(*colMatrix_,
 			       origVarLB_, origVarUB_,   
 			       objCoef_,
-			       rowLower, rowUpper);
+			       conLower, conUpper);
     
     origLpSolver_->setObjSense(objSense_);
     origLpSolver_->setInteger(intColIndices_, numIntObjects_);
@@ -363,7 +365,8 @@ BlisModel::setupSelf()
         origLpSolver_ = new OsiClpSolverInterface();
     }
     
-    loadProblem(coreVariables_, origConLB_, origConUB_);
+    loadProblem(numCols_, numRows_,
+		coreVariables_, origConLB_, origConUB_);
     
     //------------------------------------------------------
     // Allocate memory.

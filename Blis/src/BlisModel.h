@@ -319,15 +319,20 @@ class BlisModel : public BcpsModel {
     void init();
 
     /** 1) Read in the instance data. 
-	2) Classify variable type
-	3) Create core variables and constraints.
-    */
+     *	2) Classify variable type
+     *  3) Create core variables and constraints.
+     */
     virtual void readInstance(const char* dataFile);
 
-    /** Load problem to lp solver. Assume lp solver is ready. */
-    virtual void loadProblem(BcpsVariable **variable, 
-			     double *rowLower,
-			     double *rowUpper);
+    /** 1) Load problem to lp solver. Assume lp solver is ready. 
+     *  2) Set objective sense
+     *  3) Set integer
+     */
+    virtual void loadProblem(int numVars,
+			     int numCons,
+			     BcpsVariable **variable,
+			     double *conLower,
+			     double *conUpper);
     
     /** Read in Alps, Blis parameters. */
     virtual void readParameters(const int argnum, const char * const *arglist);
