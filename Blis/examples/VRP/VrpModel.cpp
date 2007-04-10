@@ -168,7 +168,7 @@ VrpModel::readInstance(const char* dataFile)
 	 break;
        case 1 : /*TYPE*/
 	 sscanf(line, "%s", tmp);
-	 if (!strcmp("CVRP", tmp)){
+	 if (strcmp("CVRP", tmp) != 0){
 	    fprintf(stderr, "This is not a recognized file type!\n");
 	    exit(1);
 	 }
@@ -238,7 +238,7 @@ VrpModel::readInstance(const char* dataFile)
 			     "EDGE_WEIGHT_TYPE declared wrong\n");
 		     exit(1);
 		  } else {
-		     edges_[index(i, j)] = new VrpVariable(i, j, (int) fdummy);
+		     edges_.push_back(new VrpVariable(i, j, (int) fdummy));
 		  }
 	       }
 	       if ((wformat==3 || wformat==6) && 
@@ -451,7 +451,7 @@ VrpModel::readInstance(const char* dataFile)
    if (wtype_ != _EXPLICIT){
       for (i = 1, k = 0; i < vertnum_; i++){
 	 for (j = 0; j < i; j++){
-	    edges_[index(i, j)] = new VrpVariable(i, j, compute_cost(i, j));
+	    edges_.push_back(new VrpVariable(i, j, compute_cost(i, j)));
 	 }
       }
       wtype_ = _EXPLICIT;
@@ -466,7 +466,7 @@ int
 VrpModel::compute_cost(int v0, int v1){
 
    if (wtype_ == _EXPLICIT){
-      return(edges_[index(v0, v1)]->getCost());
+      return((int)edges_[index(v0, v1)]->getObjCoef());
    }
 
    double q1, q2, q3, dx, dy, dz;
@@ -519,78 +519,76 @@ VrpModel::loadProblem(int numVars,
    CoinBigIndex i, j, numNonzeros = 0, numInt = 0;
    int size;
    
+   int* varIndices = 0;
+   double* varValues = 0;
    double* collb = new double [numVars];
    double* colub = new double [numVars];
-   double* obj = new double [numVars];
-   
-   int* varIndices;
-   double *varValues;
-   
-   double *conUpper = new double[vertnum_];
-   double *conLower = new double[vertnum_];
-   double *objCoef = new double[edgenum_];
+   double* conUpper = new double[vertnum_];
+   double* conLower = new double[vertnum_];
+   double* objCoef = new double[edgenum_];
 
    for (i = 0; i < edgenum_; i++){
-      objCoef[i] = edges_[i]->getCost();
+      objCoef[i] = edges_[i]->getObjCoef();
    }
 
    conLower[0] = conUpper[0] = numroutes_;
    for (i = 1; i < vertnum_; i++){
       conUpper[i] = conLower[i] = 2.0;
    }
+   
+   for (i = 0; i < numVars; ++i) {
+      numNonzeros += vars[i]->getSize();
+      if (vars[i]->getIntType() != 'C'){
+	 numInt++;
+      }
+   }
+   
+   CoinBigIndex * start = new CoinBigIndex [numVars+1];
+   int* indices = new int[numNonzeros];
+   double* values = new double[numNonzeros];
+   int* intVars = new int[numInt];
+   
+   // Get collb, colub, obj, and matrix from variables
+   for (numInt = 0, numNonzeros = 0, i = 0; i < numVars; ++i) {
+      collb[i] = vars[i]->getLbHard();
+      colub[i] = vars[i]->getUbHard();
+      start[i] = numNonzeros;
+      if (vars[i]->getIntType() != 'C'){
+	 intVars[numInt++] = i;
+      }
+      varValues = vars[i]->getValues();
+      varIndices = vars[i]->getIndices();
+      size = vars[i]->getSize();
+      for (j = 0; j < size; ++j, ++numNonzeros){
+	 indices[numNonzeros] = varIndices[j];
+	 values[numNonzeros] = varValues[j];
+      }
+   }
+   start[i] = numNonzeros;
 
-    for (i = 0; i < numVars; ++i) {
-       numNonzeros += vars[i]->getSize();
-       if (vars[i]->getIntType() != 'C'){
-	  numInt++;
-       }
-    }
-
-    CoinBigIndex * start = new CoinBigIndex [numVars+1];
-    int* indices = new int[numNonzeros];
-    double* values = new double[numNonzeros];
-    int* intVars = new int[numInt];
-
-    // Get collb, colub, obj, and matrix from variables
-    for (numInt = 0, numNonzeros = 0, i = 0; i < numVars; ++i) {
-       collb[i] = vars[i]->getLbHard();
-       colub[i] = vars[i]->getUbHard();
-       start[i] = numNonzeros;
-       if (vars[i]->getIntType() != 'C'){
-	  intVars[numInt++] = 1;
-       }
-       varValues = vars[i]->getValues();
-       varIndices = vars[i]->getIndices();
-       size = vars[i]->getSize();
-       for (j = 0; j < size; ++j, ++numNonzeros){
-	  indices[numNonzeros] = varIndices[j];
-	  values[numNonzeros] = varValues[j];
-       }
-    }
-
-    // Load to lp solver
-    solver()->loadProblem(numVars, numCons,
-			       start, indices, values,
-			       collb, colub, obj,
-			       conLower, conUpper);
-    
-    solver()->setObjSense(1.0);
-
-    solver()->setInteger(intVars, numInt);    
-    
-    if (numInt == 0) {
-	// Pure lp
-	// solve lp and throw error.
-	//lpSolver_->initialSolve();
-	//throw CoinError("The problem does not have integer variables", 
-        //	"readInstance", "BlisModel");
-
-        if (broker_->getMsgLevel() > 0) {
-            bcpsMessageHandler_->message(BLIS_W_LP, blisMessages())
-                << CoinMessageEol;
-        }
-    }
-    
+   // Load to lp solver
+   solver()->loadProblem(numVars, numCons,
+			 start, indices, values,
+			 collb, colub, objCoef,
+			 conLower, conUpper);
+   
+   solver()->setObjSense(1.0);
+   
+   solver()->setInteger(intVars, numInt);    
+   
+   if (numInt == 0) {
+      // Pure lp
+      // solve lp and throw error.
+      //lpSolver_->initialSolve();
+      //throw CoinError("The problem does not have integer variables", 
+      //	"readInstance", "BlisModel");
+      
+      if (broker_->getMsgLevel() > 0) {
+	 bcpsMessageHandler_->message(BLIS_W_LP, blisMessages())
+	    << CoinMessageEol;
+      }
+   }
+   
 }
 
 

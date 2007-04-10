@@ -29,14 +29,10 @@ private:
    /* The endpoints of the edge */
    int ends_[2];
    int uind_;
-   int objCoef_;
-   int size_;
-   int *indices_;
-   double *values_;
    
 public:
 
-    VrpVariable() : objCoef_(0), size_(0), indices_(NULL), values_(NULL) {
+    VrpVariable() {
        ends_[0] = 0;
        ends_[1] = 0;
     }
@@ -45,28 +41,20 @@ public:
        ends_[0] = v1 < v2 ? v1 : v2;
        ends_[1] = v1 < v2 ? v2 : v1;
        uind_ = ends_[1]*(ends_[1] - 1)/2 + ends_[0];
-       size_ = 2;
-       indices_ = new int[size_];
-       values_ = new double[size_];
-       indices_[0] = ends_[0];
-       indices_[1] = ends_[1];
-       values_[0] = values_[1] = 1.0;
-       intType_ = 'B';
-       lbHard_ = 0.0;
-       ubHard_ = 1.0;
+       int *indices = new int[2];
+       double *values = new double[2];
+       indices[0] = ends_[0];
+       indices[1] = ends_[1];
+       values[0] = values[1] = 1.0;
+       setData(2, indices, values);
+       setIntType('B');
+       setLbHard(0.0);
+       setUbHard(1.0);
+       setObjCoef((double) cost);
     }
 
-    virtual ~VrpVariable(){ 
-       if (size_ > 0) {
-	  delete [] indices_; indices_ = NULL;
-	  delete [] values_; values_ = NULL;
-       }
-    }
+    virtual ~VrpVariable() {}
 
-    int getCost() { return objCoef_; }
-
-    void setCost(int cost) { objCoef_ = cost; }
-    
 };
 
 //#############################################################################

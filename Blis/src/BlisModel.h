@@ -371,7 +371,7 @@ class BlisModel : public BcpsModel {
     virtual void setSolver(OsiSolverInterface *si) { origLpSolver_ = si; }
     
     /** Get lp solver. */
-    virtual OsiSolverInterface *solver() { return lpSolver_; }
+    virtual OsiSolverInterface *solver() { return origLpSolver_; }
 
     /** Resolving a lp. */
     bool resolve();

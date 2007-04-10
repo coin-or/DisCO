@@ -73,6 +73,7 @@ class BlisVariable : public BcpsVariable {
     
     /** Return data  */
     /**@{*/
+    double getObjCoef()    { return objCoef_; }    
     int getSize() const     { return size_; }
     int* getIndices() const { return indices_; }
     double* getValues()     { return values_; }    
@@ -91,7 +92,8 @@ class BlisVariable : public BcpsVariable {
 	memcpy(indices_, ind, sizeof(int) * s);
 	memcpy(values_, val, sizeof(double) * s);
     }
-    /**@}*/
+    void setObjCoef(double coef)    { objCoef_ = coef; }    
+   /**@}*/
 
  protected:
 
