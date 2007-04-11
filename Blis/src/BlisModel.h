@@ -319,6 +319,42 @@ class BlisModel : public BcpsModel {
     /** Intialize member data */
     void init();
 
+    /** Pass a matrix in **/
+    void setColMatrix(CoinPackedMatrix *mat){ colMatrix_ = mat; }
+    
+    /** Pass column upper bounds **/
+    void setNumCons(int num){ numRows_ = num; }
+    
+    /** Pass column upper bounds **/
+    void setNumVars(int num){ numCols_ = num; }
+    
+    /** Pass column upper bounds **/
+    void setNumElems(int num){ numElems_ = num; }
+    
+    /** Pass column upper bounds **/
+    void setConLb(double *cl){ origConLB_ = cl; }
+    
+    /** Pass column lower bounds **/
+    void setConUb(double *cu){ origConUB_ = cu; }
+    
+    /** Pass variable upper bounds **/
+    void setVarLb(double *lb){ origVarLB_ = lb; }
+    
+    /** Pass variable lower bounds **/
+    void setVarUb(double *ub){ origVarUB_ = ub; }
+    
+    /** Set objective sense **/
+    void setObjSense(double os){ objSense_ = os; }
+    
+    /** set integrailty status of variables **/
+    void setInteger(int *indices, int num){
+       intColIndices_ = indices;
+       numIntObjects_ = num;
+    }
+    
+    /** Set objective sense **/
+    void setObjCoef(double *obj){ objCoef_ = obj; }
+    
     /** 1) Read in the instance data. 
      *	2) Classify variable type
      *  3) Create core variables and constraints.
@@ -371,7 +407,10 @@ class BlisModel : public BcpsModel {
     virtual void setSolver(OsiSolverInterface *si) { origLpSolver_ = si; }
     
     /** Get lp solver. */
-    virtual OsiSolverInterface *solver() { return origLpSolver_; }
+    virtual OsiSolverInterface *getSolver() { return origLpSolver_; }
+
+    /** Get lp solver. */
+    virtual OsiSolverInterface *solver() { return lpSolver_; }
 
     /** Resolving a lp. */
     bool resolve();

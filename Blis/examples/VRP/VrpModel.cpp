@@ -457,7 +457,7 @@ VrpModel::readInstance(const char* dataFile)
       wtype_ = _EXPLICIT;
    }
 
-   loadProblem(edgenum_, vertnum_, edges_); 
+   loadProblem(); 
 }
 
 //#############################################################################
@@ -511,18 +511,15 @@ VrpModel::compute_cost(int v0, int v1){
 //#############################################################################
 
 void 
-VrpModel::loadProblem(int numVars,
-		      int numCons,
-		      std::vector<VrpVariable *> vars)
+VrpModel::loadProblem()
 {
-
    CoinBigIndex i, j, numNonzeros = 0, numInt = 0;
    int size;
    
    int* varIndices = 0;
    double* varValues = 0;
-   double* collb = new double [numVars];
-   double* colub = new double [numVars];
+   double* collb = new double [edgenum_];
+   double* colub = new double [edgenum_];
    double* conUpper = new double[vertnum_];
    double* conLower = new double[vertnum_];
    double* objCoef = new double[edgenum_];
@@ -536,29 +533,29 @@ VrpModel::loadProblem(int numVars,
       conUpper[i] = conLower[i] = 2.0;
    }
    
-   for (i = 0; i < numVars; ++i) {
-      numNonzeros += vars[i]->getSize();
-      if (vars[i]->getIntType() != 'C'){
+   for (i = 0; i < edgenum_; ++i) {
+      numNonzeros += edges_[i]->getSize();
+      if (edges_[i]->getIntType() != 'C'){
 	 numInt++;
       }
    }
    
-   CoinBigIndex * start = new CoinBigIndex [numVars+1];
+   CoinBigIndex * start = new CoinBigIndex [edgenum_+1];
    int* indices = new int[numNonzeros];
    double* values = new double[numNonzeros];
    int* intVars = new int[numInt];
    
    // Get collb, colub, obj, and matrix from variables
-   for (numInt = 0, numNonzeros = 0, i = 0; i < numVars; ++i) {
-      collb[i] = vars[i]->getLbHard();
-      colub[i] = vars[i]->getUbHard();
+   for (numInt = 0, numNonzeros = 0, i = 0; i < edgenum_; ++i) {
+      collb[i] = edges_[i]->getLbHard();
+      colub[i] = edges_[i]->getUbHard();
       start[i] = numNonzeros;
-      if (vars[i]->getIntType() != 'C'){
+      if (edges_[i]->getIntType() != 'C'){
 	 intVars[numInt++] = i;
       }
-      varValues = vars[i]->getValues();
-      varIndices = vars[i]->getIndices();
-      size = vars[i]->getSize();
+      varValues = edges_[i]->getValues();
+      varIndices = edges_[i]->getIndices();
+      size = edges_[i]->getSize();
       for (j = 0; j < size; ++j, ++numNonzeros){
 	 indices[numNonzeros] = varIndices[j];
 	 values[numNonzeros] = varValues[j];
@@ -567,14 +564,16 @@ VrpModel::loadProblem(int numVars,
    start[i] = numNonzeros;
 
    // Load to lp solver
-   solver()->loadProblem(numVars, numCons,
-			 start, indices, values,
-			 collb, colub, objCoef,
-			 conLower, conUpper);
+   setColMatrix(new CoinPackedMatrix(true, vertnum_, edgenum_, numNonzeros, 
+				     values, indices, start, 0));
    
-   solver()->setObjSense(1.0);
-   
-   solver()->setInteger(intVars, numInt);    
+   setConLb(conLower);
+   setConUb(conUpper);
+   setVarLb(collb);
+   setVarUb(colub);
+   setObjSense(1.0);
+   setObjCoef(objCoef);
+   setInteger(intVars, numInt);    
    
    if (numInt == 0) {
       // Pure lp

@@ -277,27 +277,30 @@ BlisModel::loadProblem(int numVars,
 		       double *conLower,
 		       double *conUpper)
 {
-    origLpSolver_->loadProblem(*colMatrix_,
-			       origVarLB_, origVarUB_,   
-			       objCoef_,
-			       conLower, conUpper);
-    
-    origLpSolver_->setObjSense(objSense_);
-    origLpSolver_->setInteger(intColIndices_, numIntObjects_);
-    
-    if (numIntObjects_ == 0) {
-	// Pure lp
-	// solve lp and throw error.
-	//lpSolver_->initialSolve();
-	//throw CoinError("The problem does not have integer variables", 
-        //	"readInstance", "BlisModel");
+   numCols_ = colMatrix_->getNumCols();
+   numRows_ = colMatrix_->getNumRows();
+   numElems_ = colMatrix_->getNumElements();
 
-        if (broker_->getMsgLevel() > 0) {
-            bcpsMessageHandler_->message(BLIS_W_LP, blisMessages())
-                << CoinMessageEol;
-        }
-    }
-    
+   origLpSolver_->loadProblem(*colMatrix_,
+			      origVarLB_, origVarUB_,   
+			      objCoef_,
+			      conLower, conUpper);
+   
+   origLpSolver_->setObjSense(objSense_);
+   origLpSolver_->setInteger(intColIndices_, numIntObjects_);
+   
+   if (numIntObjects_ == 0) {
+      // Pure lp
+      // solve lp and throw error.
+      //lpSolver_->initialSolve();
+      //throw CoinError("The problem does not have integer variables", 
+      //	"readInstance", "BlisModel");
+      
+      if (broker_->getMsgLevel() > 0) {
+	 bcpsMessageHandler_->message(BLIS_W_LP, blisMessages())
+	    << CoinMessageEol;
+      }
+   }
 }
 
 //#############################################################################

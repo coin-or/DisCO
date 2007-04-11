@@ -84,9 +84,7 @@ public:
      *  2) Set objective sense
      *  3) Set integer
      */
-    void loadProblem(int numVars,
-		     int numCons,
-		     std::vector<VrpVariable *> vars);
+    void loadProblem();
  
 };
 
