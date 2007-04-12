@@ -355,7 +355,8 @@ class BlisModel : public BcpsModel {
     /** Set objective sense **/
     void setObjCoef(double *obj){ objCoef_ = obj; }
     
-    /** 1) Read in the instance data. 
+    /** For parallel code, only the master calls this function.
+     *  1) Read in the instance data. 
      *	2) Classify variable type
      *  3) Create core variables and constraints.
      */
@@ -385,16 +386,20 @@ class BlisModel : public BcpsModel {
     /** Write out parameters. */
     virtual void writeParameters(std::ostream& outstream) const;
 
-    /** Create the root node based on model. */
+    /** For parallel code, only the master calls this function.
+     *  Create the root node based on model. 
+     *  Create variable and constraints
+     */
     virtual AlpsTreeNode * createRoot();
     
-    /** Do necessary work to make model usable. Return success or not. 
-	1) load problem to lp solver.
-	2) Identify integers
-	3) Set branch strategy
-	4) Add heuristics
-	5) Add Cgl cut generators
-    */
+    /** For parallel code, only non-master processes call this function.
+     *  Do necessary work to make model usable. Return success or not. 
+     *	1) load problem to lp solver.
+     *	2) Identify integers
+     *	3) Set branch strategy
+     *	4) Add heuristics
+     *	5) Add Cgl cut generators
+     */
     virtual bool setupSelf();
 
     /** Preprocessing the model. */
