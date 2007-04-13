@@ -80,11 +80,11 @@ public:
 
     int compute_cost(int v0, int v1); 
    
-    /** 1) Load problem to lp solver. Assume lp solver is ready. 
+    /** 1) Set colMatrix_, origColLB_, etc.
      *  2) Set objective sense
      *  3) Set integer
      */
-    void loadProblem();
+    void setProblem();
  
 };
 

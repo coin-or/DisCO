@@ -457,7 +457,7 @@ VrpModel::readInstance(const char* dataFile)
       wtype_ = _EXPLICIT;
    }
 
-   loadProblem(); 
+   setProblem(); 
 }
 
 //#############################################################################
@@ -511,7 +511,7 @@ VrpModel::compute_cost(int v0, int v1){
 //#############################################################################
 
 void 
-VrpModel::loadProblem()
+VrpModel::setProblem()
 {
    CoinBigIndex i, j, numNonzeros = 0, numInt = 0;
    int size;
