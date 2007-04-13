@@ -21,6 +21,8 @@
 
 //#############################################################################
 
+#include <vector>
+
 #include "CoinMpsIO.hpp"
 #include "CoinPackedMatrix.hpp"
 
@@ -109,8 +111,14 @@ class BlisModel : public BcpsModel {
     int numIntObjects_;
     int *intColIndices_;  // size of numIntObjects_
     char *colType_;
-    ///@}
-   
+    //@}
+
+    /** User's input objects. */
+    //@{
+    std::vector<BcpsVariable *> inputVar_;
+    std::vector<BcpsConstraint *> inputCon_;
+    //@}
+
     //------------------------------------------------------
     // PRESOLVE
     //------------------------------------------------------
@@ -167,7 +175,7 @@ class BlisModel : public BcpsModel {
     char *sharedObjectMark_;
 
     /** Priorities of integer object. */
-    int * priority_;
+    int *priority_;
 
     /** Active node. */
     AlpsTreeNode *activeNode_;
@@ -186,7 +194,7 @@ class BlisModel : public BcpsModel {
     int numHeuristics_;
 
     /** The list of heuristics. */
-    BlisHeuristic ** heuristics_;
+    BlisHeuristic **heuristics_;
 
     //------------------------------------------------------
     // CONSTRAINTS.
@@ -203,7 +211,7 @@ class BlisModel : public BcpsModel {
     int maxNumCons_;
 
     /** The list of cut generators used. */
-    BlisConGenerator ** generators_;
+    BlisConGenerator **generators_;
 
     /** Store all the cuts. */
     BcpsConstraintPool *constraintPool_;
@@ -218,7 +226,7 @@ class BlisModel : public BcpsModel {
     int numOldConstraints_;
 
     /** Random keys. */
-    double * conRandoms_;
+    double *conRandoms_;
     
     /** Dense constraint cutoff */
     int denseConCutoff_;
@@ -231,7 +239,7 @@ class BlisModel : public BcpsModel {
     BlisParams *BlisPar_;
     
     /** Message handler. */
-    CoinMessageHandler * blisMessageHandler_;
+    CoinMessageHandler *blisMessageHandler_;
 
     /** Blis messages. */
     CoinMessages blisMessages_;
@@ -298,6 +306,15 @@ class BlisModel : public BcpsModel {
     /** Record the path from leaf to root. */
     std::vector<AlpsTreeNode *> leafToRootPath;    
 
+
+ protected:
+
+    /** Intialize member data */
+    void init();
+
+    /** Create variables and constraints. */
+    void createObjects();
+    
  public:
 
     /** Default construtor. */
@@ -315,9 +332,6 @@ class BlisModel : public BcpsModel {
     //------------------------------------------------------
     // SETUP, LP SOLVER
     //------------------------------------------------------
-
-    /** Intialize member data */
-    void init();
 
     /** Pass a matrix in **/
     void setColMatrix(CoinPackedMatrix *mat){ colMatrix_ = mat; }
@@ -356,9 +370,10 @@ class BlisModel : public BcpsModel {
     void setObjCoef(double *obj){ objCoef_ = obj; }
     
     /** For parallel code, only the master calls this function.
-     *  1) Read in the instance data. 
-     *	2) Classify variable type
-     *  3) Create core variables and constraints.
+     *  1) Read in the instance data
+     *  2) Set colMatrix_, origVarLB_, origVarUB_, origConLB_, origConUB
+     *     numCols_, numRows_, objSense_, objCoef_.
+     *	3) Classify variable type, set numIntObjects_ and intColIndices_.
      */
     virtual void readInstance(const char* dataFile);
 
@@ -366,12 +381,6 @@ class BlisModel : public BcpsModel {
      *  2) Set objective sense
      *  3) Set integer
      */
-    virtual void loadProblem(int numVars,
-			     int numCons,
-			     BcpsVariable **vars,
-			     double *conLower,
-			     double *conUpper);
-    
     virtual void loadProblem(int numVars,
 			     int numCons,
 			     std::vector<BlisVariable *> vars,

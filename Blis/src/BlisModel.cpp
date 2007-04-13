@@ -145,7 +145,7 @@ BlisModel::init()
 //#############################################################################
 
 // Read from file (currently MPS format. TODO: LP format).
-// Load to solver.
+
 void
 BlisModel::readInstance(const char* dataFile)
 {
@@ -222,17 +222,27 @@ BlisModel::readInstance(const char* dataFile)
 	}
     }
     
+    delete mps;
+}
+
+//############################################################################ 
+
+void 
+BlisModel::createObjects()
+{
+    int j;
+    
     //------------------------------------------------------
     // Create core variables and constraints.
     //------------------------------------------------------
-
+    
 #ifdef BLIS_DEBUG
     std::cout << "readInstance: numCols_ " << numCols_ 
 	      << ", numRows_" << numRows_ 
 	      << std::endl;
     std::cout << "Create core ..." << std::endl;
 #endif
-
+    
     numCoreVariables_ = numCols_;
     numCoreConstraints_ = numRows_;
     
@@ -249,10 +259,9 @@ BlisModel::readInstance(const char* dataFile)
 	coreVariables_[j]->setObjectIndex(j);
 	coreVariables_[j]->setRepType(BCPS_CORE);
 	coreVariables_[j]->setStatus(BCPS_NONREMOVALBE);
-
 	coreVariables_[j]->setIntType(colType_[j]);
     }
-
+    
     for (j = 0; j < numRows_; ++j) {
         BlisConstraint *con = new BlisConstraint(origConLB_[j], 
                                                  origConUB_[j], 
@@ -264,43 +273,6 @@ BlisModel::readInstance(const char* dataFile)
         coreConstraints_[j]->setRepType(BCPS_CORE);
         coreConstraints_[j]->setStatus(BCPS_NONREMOVALBE);
     }
-
-    delete mps;
-}
-
-//############################################################################ 
-
-void 
-BlisModel::loadProblem(int numVars,
-		       int numCons,
-		       BcpsVariable **vars,
-		       double *conLower,
-		       double *conUpper)
-{
-   numCols_ = colMatrix_->getNumCols();
-   numRows_ = colMatrix_->getNumRows();
-   numElems_ = colMatrix_->getNumElements();
-
-   origLpSolver_->loadProblem(*colMatrix_,
-			      origVarLB_, origVarUB_,   
-			      objCoef_,
-			      conLower, conUpper);
-   
-   origLpSolver_->setObjSense(objSense_);
-   origLpSolver_->setInteger(intColIndices_, numIntObjects_);
-   
-   if (numIntObjects_ == 0) {
-      // Pure lp
-      // solve lp and throw error.
-      //lpSolver_->initialSolve();
-      //throw CoinError("The problem does not have integer variables", 
-      //	"readInstance", "BlisModel");
-      
-      if (broker_->getMsgLevel() > 0) {
-	 bcpsMessageHandler_->message(BLIS_W_LP, blisMessages())
-	    << CoinMessageEol;
-      }
-   }
 }
 
 //#############################################################################
@@ -365,12 +337,6 @@ BlisModel::loadProblem(int numVars,
     origLpSolver_->setInteger(intVars, numInt);    
     
     if (numInt == 0) {
-	// Pure lp
-	// solve lp and throw error.
-	//lpSolver_->initialSolve();
-	//throw CoinError("The problem does not have integer variables", 
-        //	"readInstance", "BlisModel");
-
         if (broker_->getMsgLevel() > 0) {
             bcpsMessageHandler_->message(BLIS_W_LP, blisMessages())
                 << CoinMessageEol;
@@ -384,8 +350,7 @@ BlisModel::loadProblem(int numVars,
 /** Read in Alps parameters. */
 void 
 BlisModel::readParameters(const int argnum, const char * const * arglist)
-{
-    //std::cout << "Reading in ALPS parameters ..." << std::endl;
+{    //std::cout << "Reading in ALPS parameters ..." << std::endl;
     AlpsPar_->readFromArglist(argnum, arglist);
     //std::cout << "Reading in BLIS parameters ..." << std::endl;
     BlisPar_->readFromArglist(argnum, arglist);
@@ -419,14 +384,14 @@ BlisModel::setupSelf()
 
     if (broker_->getMsgLevel() > 0) {
 
-      //std::cout << "**** getProcType = " << broker_->getProcType() << std::endl;
-      //if (broker_->getProcType() == AlpsProcessTypeMaster) {
-      if (broker_->getProcRank() == broker_->getMasterRank()) {
-	bcpsMessageHandler_->message(BCPS_S_VERSION, bcpsMessages())
-	  << CoinMessageEol;
-	blisMessageHandler()->message(BLIS_S_VERSION, blisMessages())
-	  << CoinMessageEol;
-      }
+        //std::cout << "**** getProcType = " << broker_->getProcType() << std::endl;
+        //if (broker_->getProcType() == AlpsProcessTypeMaster) {
+        if (broker_->getProcRank() == broker_->getMasterRank()) {
+            bcpsMessageHandler_->message(BCPS_S_VERSION, bcpsMessages())
+                << CoinMessageEol;
+            blisMessageHandler()->message(BLIS_S_VERSION, blisMessages())
+                << CoinMessageEol;
+        }
     }
     
     //------------------------------------------------------
@@ -438,16 +403,17 @@ BlisModel::setupSelf()
     processType_ = broker_->getProcType();
 
     //------------------------------------------------------
-    // load problem to lp solver.
+    // Load data to lp solver.
     //------------------------------------------------------
+
+    lpSolver_->loadProblem(*colMatrix_,
+			   origVarLB_, origVarUB_, 
+			   objCoef_,
+			   origConLB_, origConUB_);
     
-    if (!origLpSolver_) {
-        origLpSolver_ = new OsiClpSolverInterface();
-    }
-    
-    loadProblem(numCols_, numRows_,
-		coreVariables_, origConLB_, origConUB_);
-    
+    lpSolver_->setObjSense(objSense_);
+    lpSolver_->setInteger(intColIndices_, numIntObjects_);
+
     //------------------------------------------------------
     // Allocate memory.
     //------------------------------------------------------
@@ -569,7 +535,7 @@ BlisModel::setupSelf()
         if (heuristics_[j]->strategy() != BLIS_NONE) {
             // Doesn't matter what's the strategy, we just want to 
             // call heuristics.
-	  heurStrategy_ = 1;//BLIS_AUTO;
+            heurStrategy_ = 1;//BLIS_AUTO;
             break;
         }
     }
@@ -1240,110 +1206,123 @@ BlisModel::passInPriorities (const int * priorities,
 
 AlpsTreeNode * 
 BlisModel::createRoot() {
-  
-  //-------------------------------------------------------------
-  // NOTE: Root will be deleted by ALPS. Root is an explicit node.
-  //-------------------------------------------------------------
     
-  BlisTreeNode* root = new BlisTreeNode;
-  BlisNodeDesc* desc = new BlisNodeDesc(this);
-  root->setDesc(desc);
+    //-------------------------------------------------------------
+    // Create objects.
+    //-------------------------------------------------------------
 
-  //-------------------------------------------------------------
-  // NOTE: Although original data are stored in model when reading. 
-  //   Root desc still store a full copy of col and row bounds when creating.
-  //   It will store soft differences after finding a branching object. 
-  //   The soft difference are due to reduced cost fixing and probing.
-  //   Also the added cols and rows will be stored.
-  //-------------------------------------------------------------
-  int k;
+    createObjects();
+    
+    if (numIntObjects_ == 0) {
+        if (broker_->getMsgLevel() > 0) {
+            bcpsMessageHandler_->message(BLIS_W_LP, blisMessages())
+                << CoinMessageEol;
+        }
+    }
+    
+    //-------------------------------------------------------------
+    // NOTE: Root will be deleted by ALPS. Root is an explicit node.
+    //-------------------------------------------------------------
+    
+    BlisTreeNode* root = new BlisTreeNode;
+    BlisNodeDesc* desc = new BlisNodeDesc(this);
+    root->setDesc(desc);
 
-  BcpsVariable ** vars = getCoreVariables();
-  BcpsConstraint ** cons = getCoreConstraints();
+    //-------------------------------------------------------------
+    // NOTE: Although original data are stored in model when reading. 
+    //   Root desc still store a full copy of col and row bounds when creating.
+    //   It will store soft differences after finding a branching object. 
+    //   The soft difference are due to reduced cost fixing and probing.
+    //   Also the added cols and rows will be stored.
+    //-------------------------------------------------------------
+    int k;
+    
+    BcpsVariable ** vars = getCoreVariables();
+    BcpsConstraint ** cons = getCoreConstraints();
 
 #ifdef BLIS_DEBUG
-  std::cout << "BLIS: createRoot(): numCoreVariables_=" << numCoreVariables_
-	    << ", numCoreConstraints_=" << numCoreConstraints_ << std::endl;
+    std::cout << "BLIS: createRoot(): numCoreVariables_=" << numCoreVariables_
+              << ", numCoreConstraints_=" << numCoreConstraints_ << std::endl;
 #endif  
-
-  int *varIndices1 = new int [numCoreVariables_];
-  int *varIndices2 = new int [numCoreVariables_];
-  int *varIndices3 = NULL; //new int [numCoreVariables_];
-  int *varIndices4 = NULL; //new int [numCoreVariables_];
-  double *vlhe = new double [numCoreVariables_];
-  double *vuhe = new double [numCoreVariables_];
-  double *vlse = NULL; //new double [numCoreVariables_];
-  double *vuse = NULL; //new double [numCoreVariables_];
-
-  int *conIndices1 = new int [numCoreConstraints_];
-  int *conIndices2 = new int [numCoreConstraints_];
-  int *conIndices3 = NULL; //new int [numCoreConstraints_];
-  int *conIndices4 = NULL; //new int [numCoreConstraints_];
-  double *clhe = new double [numCoreConstraints_];
-  double *cuhe = new double [numCoreConstraints_];
-  double *clse = NULL; //new double [numCoreConstraints_];
-  double *cuse = NULL; //new double [numCoreConstraints_];
-
-  //-------------------------------------------------------------
-  // Get var bounds and indices.
-  //-------------------------------------------------------------
-
-  for (k = 0; k < numCoreVariables_; ++k) {
-    vlhe[k] = vars[k]->getLbHard();
-    vuhe[k] = vars[k]->getUbHard();
-    //vlse[k] = vars[k]->getLbSoft();
-    //vuse[k] = vars[k]->getUbSoft();
-    varIndices1[k] = k;
-    varIndices2[k] = k;
     
-    //varIndices3[k] = k;
-    //varIndices4[k] = k;
+    int *varIndices1 = new int [numCoreVariables_];
+    int *varIndices2 = new int [numCoreVariables_];
+    int *varIndices3 = NULL; //new int [numCoreVariables_];
+    int *varIndices4 = NULL; //new int [numCoreVariables_];
+    double *vlhe = new double [numCoreVariables_];
+    double *vuhe = new double [numCoreVariables_];
+    double *vlse = NULL; //new double [numCoreVariables_];
+    double *vuse = NULL; //new double [numCoreVariables_];
+    
+    int *conIndices1 = new int [numCoreConstraints_];
+    int *conIndices2 = new int [numCoreConstraints_];
+    int *conIndices3 = NULL; //new int [numCoreConstraints_];
+    int *conIndices4 = NULL; //new int [numCoreConstraints_];
+    double *clhe = new double [numCoreConstraints_];
+    double *cuhe = new double [numCoreConstraints_];
+    double *clse = NULL; //new double [numCoreConstraints_];
+    double *cuse = NULL; //new double [numCoreConstraints_];
 
+    //-------------------------------------------------------------
+    // Get var bounds and indices.
+    //-------------------------------------------------------------
+    
+    for (k = 0; k < numCoreVariables_; ++k) {
+        vlhe[k] = vars[k]->getLbHard();
+        vuhe[k] = vars[k]->getUbHard();
+        //vlse[k] = vars[k]->getLbSoft();
+        //vuse[k] = vars[k]->getUbSoft();
+        varIndices1[k] = k;
+        varIndices2[k] = k;
+        
+        //varIndices3[k] = k;
+        //varIndices4[k] = k;
+        
 #ifdef BLIS_DEBUG_MORE
-    std::cout << "BLIS: createRoot(): var "<< k << ": hard: lb=" << vlhe[k]
-	      << ", ub=" << vuhe[k] << std::endl;
+        std::cout << "BLIS: createRoot(): var "<< k << ": hard: lb=" << vlhe[k]
+                  << ", ub=" << vuhe[k] << std::endl;
 #endif  
+        
+    }
+
+    //-------------------------------------------------------------  
+    // Get con bounds and indices.
+    //-------------------------------------------------------------
     
-  }
-
-  //-------------------------------------------------------------  
-  // Get con bounds and indices.
-  //-------------------------------------------------------------
-
-  for (k = 0; k < numCoreConstraints_; ++k) {
-    clhe[k] = cons[k]->getLbHard();
-    cuhe[k] = cons[k]->getUbHard();
-    //clse[k] = cons[k]->getLbSoft();
-    //cuse[k] = cons[k]->getUbSoft();
-    conIndices1[k] = k;
-    conIndices2[k] = k;
-    //conIndices3[k] = k;
-    //conIndices4[k] = k;
-  }
-
-  int *tempInd = NULL;
-  BcpsObject **tempObj = NULL;
+    for (k = 0; k < numCoreConstraints_; ++k) {
+        clhe[k] = cons[k]->getLbHard();
+        cuhe[k] = cons[k]->getUbHard();
+        //clse[k] = cons[k]->getLbSoft();
+        //cuse[k] = cons[k]->getUbSoft();
+        conIndices1[k] = k;
+        conIndices2[k] = k;
+        //conIndices3[k] = k;
+        //conIndices4[k] = k;
+    }
+    
+    int *tempInd = NULL;
+    BcpsObject **tempObj = NULL;
   
-  desc->assignVars(0 /*numRem*/, tempInd,
-		   0 /*numAdd*/, tempObj,
-		   false, numCoreVariables_, varIndices1, vlhe, /*Var hard lb*/
-		   false, numCoreVariables_, varIndices2, vuhe, /*Var hard ub*/
-		   false, 0, varIndices3, vlse, /*Var soft lb*/
-		   false, 0, varIndices4, vuse);/*Var soft ub*/
-  desc->assignCons(0 /*numRem*/, tempInd,
-		   0 /*numAdd*/, tempObj,
-		   false, numCoreConstraints_,conIndices1,clhe, /*Con hard lb*/
-		   false, numCoreConstraints_,conIndices2,cuhe, /*Con hard ub*/
-		   false, 0,conIndices3,clse, /*Con soft lb*/
-		   false, 0,conIndices4,cuse);/*Con soft ub*/
+    desc->assignVars(0 /*numRem*/, tempInd,
+                     0 /*numAdd*/, tempObj,
+                     false, numCoreVariables_, varIndices1, vlhe, /*Var hard lb*/
+                     false, numCoreVariables_, varIndices2, vuhe, /*Var hard ub*/
+                     false, 0, varIndices3, vlse, /*Var soft lb*/
+                     false, 0, varIndices4, vuse);/*Var soft ub*/
+    desc->assignCons(0 /*numRem*/, tempInd,
+                     0 /*numAdd*/, tempObj,
+                     false, numCoreConstraints_,conIndices1,clhe, /*Con hard lb*/
+                     false, numCoreConstraints_,conIndices2,cuhe, /*Con hard ub*/
+                     false, 0,conIndices3,clse, /*Con soft lb*/
+                     false, 0,conIndices4,cuse);/*Con soft ub*/
+    
+    //-------------------------------------------------------------  
+    // Mark it as an explicit node.
+    //-------------------------------------------------------------
 
-  //-------------------------------------------------------------  
-  // Mark it as an explicit node.
-  //-------------------------------------------------------------
-
-  root->setExplicit(1);
-  
-  return root;
+    root->setExplicit(1);
+    
+    return root;
 }
 
 //#############################################################################
@@ -1541,6 +1520,7 @@ void
 BlisModel::decodeToSelf(AlpsEncoded& encoded) 
 {
     AlpsReturnCode status = ALPS_OK;
+    int j, ind = -1;
 
     //------------------------------------------------------
     // Decode Alps part. 
@@ -1621,6 +1601,23 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
     encoded.readRep(index, numElements);
     assert(numElements == numElems_);
 
+    int* colLen = new int [numCols_];
+
+    for (j = 0; j < numCols; ++j) {
+        colLen[j] = colStart[(j+1)] - colStart[j];
+    }
+    
+    // create colMatrix_
+    if (colMatrix_) delete colMatrix_;
+    colMatrix_ =  new CoinPackedMatrix(true, // column-majored
+                                       numRows_,
+                                       numCols_,
+                                       numElems_,
+                                       elementValue, 
+                                       index,
+                                       colStart,
+                                       colLen);
+    
     //------------------------------------------------------
     // Variable type.
     //------------------------------------------------------
@@ -1635,7 +1632,6 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
     //------------------------------------------------
 
     colType_ = new char [numCols_];
-    int j, ind = -1;
     for(j = 0; j < numCols_; ++j) {
 	colType_[j] = 'C';
     }
@@ -1694,19 +1690,6 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
     assert(lpSolver_);
 
     //------------------------------------------------------
-    // Load data to lp solver.
-    //------------------------------------------------------
-
-    lpSolver_->loadProblem(numCols, numRows,
-			   colStart, index, elementValue,
-			   origVarLB_, origVarUB_, 
-			   objCoef_,
-			   origConLB_, origConUB_);
-    
-    lpSolver_->setObjSense(objSense_);
-    lpSolver_->setInteger(intColIndices_, numIntObjects_);
-
-    //------------------------------------------------------
     // Clean up.
     //------------------------------------------------------
 
@@ -1718,6 +1701,10 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
 
     delete [] elementValue;
     elementValue = NULL;
+
+    delete [] colLen;
+    colLen = NULL;
+    
 }
 
 //#############################################################################
