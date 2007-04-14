@@ -1428,6 +1428,10 @@ BlisModel::encode() const
     const int numCols = lpSolver_->getNumCols();
     encoded->writeRep(numCols);
 
+    // Core node decription
+    encoded->writeRep(numCoreConstraints_);
+    encoded->writeRep(numCoreVariables_);
+
 #ifdef BLIS_DEBUG
     std::cout << "BlisModel::encode()-- numRows="<< numRows << "; numCols=" 
 	      << numCols << std::endl;
@@ -1543,9 +1547,15 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
     encoded.readRep(numRows_);
     encoded.readRep(numCols_);    
 
+    encoded.readRep(numCoreConstraints_);
+    encoded.readRep(numCoreVariables_);
+
 #ifdef BLIS_DEBUG
     std::cout << "BlisModel::decode()-- numRows_="<< numRows_ 
-	      << "; numCols_=" << numCols_ << std::endl;
+	      << "; numCols_=" << numCols_ 
+	      << "; numCoreConstraints_= " << numCoreConstraints_
+	      << "; coreVariables_ = " << coreVariables_
+	      << std::endl;
 #endif
 
     //------------------------------------------------------
