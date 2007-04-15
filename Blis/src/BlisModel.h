@@ -76,10 +76,7 @@ class BlisModel : public BcpsModel {
     OsiSolverInterface *lpSolver_;
     
     //------------------------------------------------------
-    // PROBLEM DATA. Populate when 
-    // 1) readInstance(),
-    // 2) loadProblem(),
-    // 3) decodeToSelf().
+    // PROBLEM DATA. Populate when loadProblem(),
     //------------------------------------------------------
     
     /** Column majored matrix.(For MPS file, etc.) */
@@ -303,11 +300,8 @@ class BlisModel : public BcpsModel {
     /// Store new cuts in each pass
     OsiCuts newCutPool_;
     
- public:
-
     /** Record the path from leaf to root. */
     std::vector<AlpsTreeNode *> leafToRootPath;    
-
 
  protected:
 
@@ -374,23 +368,26 @@ class BlisModel : public BcpsModel {
     /** For parallel code, only the master calls this function.
      *  1) Read in the instance data
      *  2) Set colMatrix_, varLB_, varUB_, conLB_, conUB
-     *     numCols_, numRows_, objSense_, objCoef_.
-     *	3) Set numIntObjects_ and intColIndices_.
+     *     numCols_, numRows_
+     *  3) Set objCoef_ and objSense_
+     *  4) Set numIntObjects_ and intColIndices_
+     *  5) Create variables and constraints
      */
     virtual void readInstance(const char* dataFile);
 
-    /** 1) Load problem to lp solver. Assume lp solver is ready. 
-     *  2) Set objective sense
-     *  3) Set integer
+    /** For parallel code, only the master calls this function.
+     *  1) Set colMatrix_, varLB_, varUB_, conLB_, conUB
+     *     numCols_, numRows_
+     *  2) Set objCoef_ and objSense_
+     *	3) Set numIntObjects_ and intColIndices_
+     *  4) Set variables_ and constraints_
+     *  NOTE: Blis takes over the memory ownship of vars and cons, which 
+     *        means users must NOT free vars or cons.
      */
-    virtual void loadProblem(int numVars,
-			     int numCons,
+    virtual void loadProblem(double objSense,
 			     std::vector<BlisVariable *> vars,
-			     double *conLower,
-			     double *conUpper,
-			     double objSense,
-			     double *objCoef);
-
+                             std::vector<BlisConstraint *> cons);
+    
     /** Read in Alps, Blis parameters. */
     virtual void readParameters(const int argnum, const char * const *arglist);
 
@@ -399,14 +396,13 @@ class BlisModel : public BcpsModel {
 
     /** For parallel code, only the master calls this function.
      *  Create the root node based on model. 
-     *  Create variable and constraints
      */
     virtual AlpsTreeNode * createRoot();
     
     /** All processes call this function.
      *  Do necessary work to make model usable. Return success or not. 
-     *	1) load problem to lp solver.
-     *	2) Identify integers
+     *	1) Identify integers
+     *	2) load problem to LP solver.
      *	3) Set branch strategy
      *	4) Add heuristics
      *	5) Add Cgl cut generators
@@ -601,7 +597,7 @@ class BlisModel : public BcpsModel {
     //@}
 
     /** Identify integer variable. */
-    void findIntegers(bool startAgain);
+    void createIntgerObjects(bool startAgain);
 
     /** Get integers' object indices. */
     int* getIntObjIndices() const { return intObjIndices_; }

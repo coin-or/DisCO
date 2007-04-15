@@ -55,9 +55,11 @@ BlisModel::init()
     origLpSolver_ = NULL;
     presolvedLpSolver_ = NULL;
     lpSolver_ = NULL;
+
     numCols_ = 0;
     numRows_ = 0;
     numElems_ = 0;
+
     colMatrix_ = 0;
 
     varLB_ = NULL;
@@ -208,6 +210,19 @@ BlisModel::readInstance(const char* dataFile)
 	    intColIndices_[numIntObjects_++] = j;
 	}
     }
+
+    //-------------------------------------------------------------
+    // Create variables and constraints.
+    //-------------------------------------------------------------
+
+    createObjects();
+    
+    if (numIntObjects_ == 0) {
+        if (broker_->getMsgLevel() > 0) {
+            bcpsMessageHandler_->message(BLIS_W_LP, blisMessages())
+                << CoinMessageEol;
+        }
+    }
     
     delete mps;
 }
@@ -220,33 +235,27 @@ BlisModel::createObjects()
     int j;
     
     //------------------------------------------------------
-    // Create core variables and constraints.
+    // Create variables and constraints.
     //------------------------------------------------------
     
 #ifdef BLIS_DEBUG
-    std::cout << "readInstance: numCols_ " << numCols_ 
+    std::cout << "createObjects: numCols_ " << numCols_ 
 	      << ", numRows_" << numRows_ 
 	      << std::endl;
-    std::cout << "Create core ..." << std::endl;
 #endif
-    
-    numCoreVariables_ = numCols_;
-    numCoreConstraints_ = numRows_;
-    
-    coreVariables_ = new BcpsVariable* [numCols_];
-    coreConstraints_ = new BcpsConstraint* [numRows_];
     
     for (j = 0; j < numCols_; ++j) {
 	BlisVariable * var = new BlisVariable(varLB_[j],
 					      varUB_[j], 
 					      varLB_[j], 
 					      varUB_[j]);
-	coreVariables_[j] = var;
-	var = NULL;
-	coreVariables_[j]->setObjectIndex(j);
-	coreVariables_[j]->setRepType(BCPS_CORE);
-	coreVariables_[j]->setStatus(BCPS_NONREMOVALBE);
-	coreVariables_[j]->setIntType(colType_[j]);
+
+	var->setObjectIndex(j);
+	var->setRepType(BCPS_CORE);
+	var->setStatus(BCPS_NONREMOVALBE);
+	var->setIntType(colType_[j]);
+	variables_.push_back(var);
+        var = NULL;
     }
     
     for (j = 0; j < numRows_; ++j) {
@@ -254,82 +263,133 @@ BlisModel::createObjects()
                                                  conUB_[j], 
                                                  conLB_[j], 
                                                  conUB_[j]);
-        coreConstraints_[j] = con;
-        con = NULL;
-        coreConstraints_[j]->setObjectIndex(j);
-        coreConstraints_[j]->setRepType(BCPS_CORE);
-        coreConstraints_[j]->setStatus(BCPS_NONREMOVALBE);
+        con->setObjectIndex(j);
+        con->setRepType(BCPS_CORE);
+        con->setStatus(BCPS_NONREMOVALBE);
+        constraints_.push_back(con);
+        con = NULL;        
     }
+    
+    // Set all objects as core by default.
+    numCoreVariables_ = numCols_;
+    numCoreConstraints_ = numRows_;
 }
 
 //#############################################################################
 
+/** For parallel code, only the master calls this function.
+ *  1) Set colMatrix_, varLB_, varUB_, conLB_, conUB
+ *     numCols_, numRows_
+ *  2) Set objCoef_ and objSense_
+ *  3) Set numIntObjects_ and intColIndices_
+ *  4) Set variables_ and constraints_
+ *  NOTE: Blis takes over the memory ownship of vars and cons, which 
+ *        means users must NOT free vars or cons.
+ */
 void 
-BlisModel::loadProblem(int numVars,
-		       int numCons,
-		       std::vector<BlisVariable *> vars,
-		       double *conLower,
-		       double *conUpper,
-		       double objSense,
-		       double *objCoef)
+BlisModel::loadProblem(double objSense,
+                       std::vector<BlisVariable *> vars,
+                       std::vector<BlisConstraint *> cons)
 {
 
-    CoinBigIndex i, j, numNonzeros = 0, numInt = 0;
-    int size;
+    CoinBigIndex i, j;
+    int k, size;  
 
-    double* collb = new double [numVars];
-    double* colub = new double [numVars];
-    double* obj = new double [numVars];
+    int* varIndices = NULL;
+    double *varValues = NULL;
 
-    int* varIndices;
-    double *varValues;
+    numCols_ = vars.size();
+    numRows_ = cons.size();
 
-    for (i = 0; i < numVars; ++i) {
-       numNonzeros += vars[i]->getSize();
-       if (vars[i]->getIntType() != 'C'){
-	  numInt++;
-       }
+    varLB_ = new double [numCols_];
+    varUB_ = new double [numCols_];
+
+    conLB_ = new double [numRows_];
+    conUB_ = new double [numRows_];
+    
+    objCoef_ = new double [numCols_];
+
+    objSense_ = objSense;
+    
+    // Get numElems_ and numIntObjects_
+    for (i = 0; i < numCols_; ++i) {
+        numElems_ += vars[i]->getSize();
+        if (vars[i]->getIntType() != 'C'){
+            numIntObjects_++;
+        }
     }
 
-    CoinBigIndex * start = new CoinBigIndex [numVars+1];
-    int* indices = new int[numNonzeros];
-    double* values = new double[numNonzeros];
-    int* intVars = new int[numInt];
+    intColIndices_ = new int[numIntObjects_];
 
-    // Get collb, colub, obj, and matrix from variables
-    for (numInt = 0, numNonzeros = 0, i = 0; i < numVars; ++i) {
-       collb[i] = vars[i]->getLbHard();
-       colub[i] = vars[i]->getUbHard();
-       start[i] = numNonzeros;
-       if (vars[i]->getIntType() != 'C'){
-	  intVars[numInt++] = 1;
-       }
-       varValues = vars[i]->getValues();
-       varIndices = vars[i]->getIndices();
-       size = vars[i]->getSize();
-       for (j = 0; j < size; ++j, ++numNonzeros){
-	  indices[numNonzeros] = varIndices[j];
-	  values[numNonzeros] = varValues[j];
-       }
-    }
-
-    // Load to lp solver
-    origLpSolver_->loadProblem(numVars, numCons,
-			       start, indices, values,
-			       collb, colub, obj,
-			       conLower, conUpper);
+    //------------------------------------------------------
+    // Set matrix, bounds, integer info.
+    //------------------------------------------------------
     
-    origLpSolver_->setObjSense(objSense);
+    // For colMatrix_, need free memory
+    CoinBigIndex * start = new CoinBigIndex [numCols_+1];
+    int* indices = new int[numElems_];
+    double* values = new double[numElems_];
+    int* length = new int [numCols_];
 
-    origLpSolver_->setInteger(intVars, numInt);    
-    
-    if (numInt == 0) {
-        if (broker_->getMsgLevel() > 0) {
-            bcpsMessageHandler_->message(BLIS_W_LP, blisMessages())
-                << CoinMessageEol;
+    // Get varLB_, varUB_, objCoef_, and matrix from variables
+    for (numIntObjects_ = 0, numElems_ = 0, i = 0; i < numCols_; ++i) {
+        varLB_[i] = vars[i]->getLbHard();
+        varUB_[i] = vars[i]->getUbHard();
+        objCoef_[i] = vars[i]->getObjCoef();
+        
+        start[i] = numElems_;
+        if (vars[i]->getIntType() != 'C'){
+            intColIndices_[numIntObjects_++] = i;
+        }
+        varValues = vars[i]->getValues();
+        varIndices = vars[i]->getIndices();
+        size = vars[i]->getSize();
+        for (j = 0; j < size; ++j, ++numElems_){
+            indices[numElems_] = varIndices[j];
+            values[numElems_] = varValues[j];
         }
     }
     
+    for (k = 0; k < numCols_; ++k) {
+        length[k] = start[(k+1)] - start[k];
+    }
+    
+    colMatrix_ =  new CoinPackedMatrix(true, // column-majored
+                                       numRows_,
+                                       numCols_,
+                                       numElems_,
+                                       values, 
+                                       indices,
+                                       start,
+                                       length);
+
+
+    // Get conLB_ and conUB_
+    for (k = 0; k < numRows_; ++k) {
+        conLB_[k] = cons[k]->getLbHard();
+        conUB_[k] = cons[k]->getUbHard();
+    }
+        
+    //------------------------------------------------------
+    // Set variables_ and constraints_
+    //------------------------------------------------------
+    
+    for (k = 0; k < numCols_; ++k) {
+        variables_.push_back(vars[k]);
+    }
+    
+    for (k = 0; k < numRows_; ++k) {
+        constraints_.push_back(cons[k]);
+    }
+    
+    //------------------------------------------------------
+    // Free memory
+    //------------------------------------------------------
+
+    delete [] start;
+    delete [] length;
+    delete [] indices;
+    delete [] values;    
 }
 
 //############################################################################ 
@@ -390,7 +450,7 @@ BlisModel::setupSelf()
     processType_ = broker_->getProcType();
 
     //------------------------------------------------------
-    // Set integersClassify variable type.
+    // Set IntObjectIndices_ and colType_.
     //------------------------------------------------------
 
     intObjIndices_ = new int [numCols_];
@@ -463,7 +523,7 @@ BlisModel::setupSelf()
     // Identify integers.
     //------------------------------------------------------
     
-    findIntegers(true);
+    createIntgerObjects(true);
     
     // lpSolver_->initialSolve();
     
@@ -900,7 +960,7 @@ BlisModel::setBestSolution(BLIS_SOL_TYPE how,
 //############################################################################ 
 
 void 
-BlisModel::findIntegers(bool startAgain)
+BlisModel::createIntgerObjects(bool startAgain)
 {
     assert(lpSolver_);
 
@@ -1011,7 +1071,7 @@ BlisModel::deleteObjects()
     delete [] objects_;
     objects_ = NULL;
     numObjects_ = 0;
-    findIntegers(true);
+    createIntgerObjects(true);
 }
 
 //#############################################################################
@@ -1177,7 +1237,7 @@ BlisModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
 /*
   Set branching priorities.
 
-  Setting integer priorities looks pretty robust; the call to findIntegers
+  Setting integer priorities looks pretty robust; the call to createIntgerObjects
   makes sure that integer objects are in place. Setting priorities for
   other objects is entirely dependent on their existence, and the routine may
   quietly fail in several directions.
@@ -1191,7 +1251,7 @@ BlisModel::passInPriorities (const int * priorities,
     // FIXME: not completed.
     int i;
 
-    findIntegers(false);
+    createIntgerObjects(false);
 
     if (!priority_) {
 	priority_ = new int[numObjects_];
@@ -1218,19 +1278,6 @@ AlpsTreeNode *
 BlisModel::createRoot() {
     
     //-------------------------------------------------------------
-    // Create objects.
-    //-------------------------------------------------------------
-
-    createObjects();
-    
-    if (numIntObjects_ == 0) {
-        if (broker_->getMsgLevel() > 0) {
-            bcpsMessageHandler_->message(BLIS_W_LP, blisMessages())
-                << CoinMessageEol;
-        }
-    }
-    
-    //-------------------------------------------------------------
     // NOTE: Root will be deleted by ALPS. Root is an explicit node.
     //-------------------------------------------------------------
     
@@ -1247,67 +1294,62 @@ BlisModel::createRoot() {
     //-------------------------------------------------------------
     int k;
     
-    BcpsVariable ** vars = getCoreVariables();
-    BcpsConstraint ** cons = getCoreConstraints();
+    std::vector<BcpsVariable *> vars = getVariables();
+    std::vector<BcpsConstraint *> cons = getConstraints();
+
+    int numVars = vars.size();
+    int numCons = cons.size();
 
 #ifdef BLIS_DEBUG
-    std::cout << "BLIS: createRoot(): numCoreVariables_=" << numCoreVariables_
+    std::cout << "BLIS: createRoot(): numVars=" << numVars
+              << ", numCons=" << numCons 
+              << "; numCoreVariables_=" << numCoreVariables_
               << ", numCoreConstraints_=" << numCoreConstraints_ << std::endl;
-#endif  
+#endif
     
-    int *varIndices1 = new int [numCoreVariables_];
-    int *varIndices2 = new int [numCoreVariables_];
-    int *varIndices3 = NULL; //new int [numCoreVariables_];
-    int *varIndices4 = NULL; //new int [numCoreVariables_];
-    double *vlhe = new double [numCoreVariables_];
-    double *vuhe = new double [numCoreVariables_];
-    double *vlse = NULL; //new double [numCoreVariables_];
-    double *vuse = NULL; //new double [numCoreVariables_];
+    int *varIndices1 = new int [numVars];
+    int *varIndices2 = new int [numVars];
+    int *varIndices3 = NULL;
+    int *varIndices4 = NULL;
+    double *vlhe = new double [numVars];
+    double *vuhe = new double [numVars];
+    double *vlse = NULL;
+    double *vuse = NULL;
     
-    int *conIndices1 = new int [numCoreConstraints_];
-    int *conIndices2 = new int [numCoreConstraints_];
-    int *conIndices3 = NULL; //new int [numCoreConstraints_];
-    int *conIndices4 = NULL; //new int [numCoreConstraints_];
-    double *clhe = new double [numCoreConstraints_];
-    double *cuhe = new double [numCoreConstraints_];
-    double *clse = NULL; //new double [numCoreConstraints_];
-    double *cuse = NULL; //new double [numCoreConstraints_];
+    int *conIndices1 = new int [numCons];
+    int *conIndices2 = new int [numCons];
+    int *conIndices3 = NULL;
+    int *conIndices4 = NULL;
+    double *clhe = new double [numCons];
+    double *cuhe = new double [numCons];
+    double *clse = NULL;
+    double *cuse = NULL;
 
     //-------------------------------------------------------------
     // Get var bounds and indices.
     //-------------------------------------------------------------
     
-    for (k = 0; k < numCoreVariables_; ++k) {
+    for (k = 0; k < numVars; ++k) {
         vlhe[k] = vars[k]->getLbHard();
         vuhe[k] = vars[k]->getUbHard();
-        //vlse[k] = vars[k]->getLbSoft();
-        //vuse[k] = vars[k]->getUbSoft();
         varIndices1[k] = k;
         varIndices2[k] = k;
-        
-        //varIndices3[k] = k;
-        //varIndices4[k] = k;
         
 #ifdef BLIS_DEBUG_MORE
         std::cout << "BLIS: createRoot(): var "<< k << ": hard: lb=" << vlhe[k]
                   << ", ub=" << vuhe[k] << std::endl;
 #endif  
-        
     }
 
     //-------------------------------------------------------------  
     // Get con bounds and indices.
     //-------------------------------------------------------------
     
-    for (k = 0; k < numCoreConstraints_; ++k) {
+    for (k = 0; k < numCons; ++k) {
         clhe[k] = cons[k]->getLbHard();
         cuhe[k] = cons[k]->getUbHard();
-        //clse[k] = cons[k]->getLbSoft();
-        //cuse[k] = cons[k]->getUbSoft();
         conIndices1[k] = k;
         conIndices2[k] = k;
-        //conIndices3[k] = k;
-        //conIndices4[k] = k;
     }
     
     int *tempInd = NULL;
@@ -1315,16 +1357,16 @@ BlisModel::createRoot() {
   
     desc->assignVars(0 /*numRem*/, tempInd,
                      0 /*numAdd*/, tempObj,
-                     false, numCoreVariables_, varIndices1, vlhe, /*Var hard lb*/
-                     false, numCoreVariables_, varIndices2, vuhe, /*Var hard ub*/
-                     false, 0, varIndices3, vlse, /*Var soft lb*/
-                     false, 0, varIndices4, vuse);/*Var soft ub*/
+                     false, numVars, varIndices1, vlhe, /*Var hard lb*/
+                     false, numVars, varIndices2, vuhe, /*Var hard ub*/
+                     false, 0, varIndices3, vlse,       /*Var soft lb*/
+                     false, 0, varIndices4, vuse);      /*Var soft ub*/
     desc->assignCons(0 /*numRem*/, tempInd,
                      0 /*numAdd*/, tempObj,
-                     false, numCoreConstraints_,conIndices1,clhe, /*Con hard lb*/
-                     false, numCoreConstraints_,conIndices2,cuhe, /*Con hard ub*/
-                     false, 0,conIndices3,clse, /*Con soft lb*/
-                     false, 0,conIndices4,cuse);/*Con soft ub*/
+                     false, numCons, conIndices1, clhe, /*Con hard lb*/
+                     false, numCons, conIndices2, cuhe, /*Con hard ub*/
+                     false, 0,conIndices3,clse,         /*Con soft lb*/
+                     false, 0,conIndices4,cuse);        /*Con soft ub*/
     
     //-------------------------------------------------------------  
     // Mark it as an explicit node.
@@ -1564,7 +1606,7 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
     std::cout << "BlisModel::decode()-- numRows_="<< numRows_ 
 	      << "; numCols_=" << numCols_ 
 	      << "; numCoreConstraints_= " << numCoreConstraints_
-	      << "; coreVariables_ = " << coreVariables_
+	      << "; variables_ = " << variables_
 	      << std::endl;
 #endif
 
