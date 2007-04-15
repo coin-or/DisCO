@@ -58,8 +58,8 @@ class BlisVariable;
 
 class BlisModel : public BcpsModel {
 
- private:
-
+protected:
+    
     // process type (master, hub or worker)
     AlpsProcessType processType_;
 
@@ -329,40 +329,38 @@ class BlisModel : public BcpsModel {
     // SETUP, LP SOLVER
     //------------------------------------------------------
 
-    /** Pass a matrix in **/
+    /** Pass a matrix in */
     void setColMatrix(CoinPackedMatrix *mat){ colMatrix_ = mat; }
     
-    /** Pass column upper bounds **/
+    /** Pass column upper bounds */
     void setNumCons(int num){ numRows_ = num; }
     
-    /** Pass column upper bounds **/
+    /** Pass column upper bounds */
     void setNumVars(int num){ numCols_ = num; }
     
-    /** Pass column upper bounds **/
+    /** Pass column upper bounds */
     void setNumElems(int num){ numElems_ = num; }
     
-    /** Pass column upper bounds **/
+    /** Pass column upper bounds */
     void setConLb(double *cl){ conLB_ = cl; }
     
-    /** Pass column lower bounds **/
+    /** Pass column lower bounds */
     void setConUb(double *cu){ conUB_ = cu; }
     
-    /** Pass variable upper bounds **/
+    /** Pass variable upper bounds */
     void setVarLb(double *lb){ varLB_ = lb; }
     
-    /** Pass variable lower bounds **/
+    /** Pass variable lower bounds */
     void setVarUb(double *ub){ varUB_ = ub; }
     
-    /** Set objective sense **/
-    void setObjSense(double os){ objSense_ = os; }
-    
-    /** set integrailty status of variables **/
-    void setInteger(int *indices, int num){
-       intColIndices_ = indices;
-       numIntObjects_ = num;
+    /** Pass variable types */
+    void setColType(char *colType){
+        colType_ = colType;
     }
+    /** Set objective sense */
+    void setObjSense(double os){ objSense_ = os; }   
     
-    /** Set objective sense **/
+    /** Pass objective coefficients */
     void setObjCoef(double *obj){ objCoef_ = obj; }
     
     /** For parallel code, only the master calls this function.
@@ -370,8 +368,9 @@ class BlisModel : public BcpsModel {
      *  2) Set colMatrix_, varLB_, varUB_, conLB_, conUB
      *     numCols_, numRows_
      *  3) Set objCoef_ and objSense_
-     *  4) Set numIntObjects_ and intColIndices_
+     *  4) Set colType_ ('C', 'I', or 'B')
      *  5) Create variables and constraints
+     *  6) Set numCoreVariables_ and numCoreConstraints_
      */
     virtual void readInstance(const char* dataFile);
 
@@ -379,8 +378,9 @@ class BlisModel : public BcpsModel {
      *  1) Set colMatrix_, varLB_, varUB_, conLB_, conUB
      *     numCols_, numRows_
      *  2) Set objCoef_ and objSense_
-     *	3) Set numIntObjects_ and intColIndices_
+     *  3) Set colType_ ('C', 'I', or 'B')
      *  4) Set variables_ and constraints_
+     *  5) Set numCoreVariables_ and numCoreConstraints_
      *  NOTE: Blis takes over the memory ownship of vars and cons, which 
      *        means users must NOT free vars or cons.
      */
@@ -401,11 +401,12 @@ class BlisModel : public BcpsModel {
     
     /** All processes call this function.
      *  Do necessary work to make model usable. Return success or not. 
-     *	1) Identify integers
-     *	2) load problem to LP solver.
-     *	3) Set branch strategy
-     *	4) Add heuristics
-     *	5) Add Cgl cut generators
+     *  1) Set numIntObjects_, intColIndices_, intObjectIndices_
+     *	2) Load problem to LP solver.
+     *	3) Create integer objects (must after load to lp since using lp info)
+     *	4) Set branch strategy
+     *	5) Add heuristics
+     *	6) Add Cgl cut generators
      */
     virtual bool setupSelf();
 

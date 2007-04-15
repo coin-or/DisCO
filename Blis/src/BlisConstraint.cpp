@@ -138,7 +138,7 @@ AlpsReturnCode
 BlisConstraint::encode(AlpsEncoded *encoded) 
 {
     AlpsReturnCode status = ALPS_OK;
-    status = encodeBcps(encoded);
+    status = encodeBcpsObject(encoded);
     status = encodeBlis(encoded);
     return status;
 }
@@ -153,7 +153,7 @@ BlisConstraint::decode(AlpsEncoded& encoded) const
     BlisConstraint* con = new BlisConstraint();    
     
     // Unpack Bcps object part.
-    status = con->decodeBcps(encoded);
+    status = con->decodeBcpsObject(encoded);
     if (status) {
 	throw CoinError("Failed to decode Bcps part",
 			"decode", 

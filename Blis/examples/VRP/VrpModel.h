@@ -43,12 +43,19 @@ private:
    double *coordx_;
    double *coordy_;
    double *coordz_;
+
+   // edges_ hold the same elements as variables_ does, do not free memory.
    std::vector<VrpVariable *> edges_;
+
    std::vector<best_tours> curTour_;
 
 protected:
 
-    void setProblem();
+   /** 1) Set colMatrix_, varLB_, varUB_, conLB_, conUB, numCols_, numRows_
+    *  2) Set objCoef_ and objSense_
+    *  3) Set colType_ ('C', 'I', or 'B')
+    */
+   void setModelData();
    
 public:
 
@@ -70,13 +77,17 @@ public:
     /** Destructor. */
     virtual ~VrpModel() {}
 
-    /** 1) Read in the instance data
-     *  2) Set colMatrix_, varLB_, varUB_, conLB_, conUB_
-     *     numCols_, numRows_, objSense_, objCoef_.
-     *  3) Set numIntObjects_ and intColIndices_.
+    /** For parallel code, only the master calls this function.
+     *  1) Read in the instance data
+     *  2) Set colMatrix_, varLB_, varUB_, conLB_, conUB
+     *     numCols_, numRows_
+     *  3) Set objCoef_ and objSense_
+     *  4) Set colType_ ('C', 'I', or 'B')
+     *  5) Create variables and constraints
+     *  6) Set numCoreVariables_ and numCoreConstraints_
      */
     virtual void readInstance(const char* dateFile);
-
+    
     /** User's criteria for a feasible solution. Return true (feasible)
      *	or false (infeasible) 
      */

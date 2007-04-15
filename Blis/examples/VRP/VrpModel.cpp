@@ -14,15 +14,21 @@
 
 #include <vector>
 
+#include "BlisConstraint.h"
+
 #include "VrpModel.h"
 #include "VrpConstants.h"
 
 //#############################################################################
 
-/** 1) Read in the instance data
+/** For parallel code, only the master calls this function.
+ *  1) Read in the instance data
  *  2) Set colMatrix_, varLB_, varUB_, conLB_, conUB
- *     numCols_, numRows_, objSense_, objCoef_.
- *  3) Set numIntObjects_ and intColIndices_.
+ *     numCols_, numRows_
+ *  3) Set objCoef_ and objSense_
+ *  4) Set colType_ ('C', 'I', or 'B')
+ *  5) Create variables and constraints
+ *  6) Set numCoreVariables_ and numCoreConstraints_
  */
 void
 VrpModel::readInstance(const char* dataFile)
@@ -463,7 +469,40 @@ VrpModel::readInstance(const char* dataFile)
       wtype_ = _EXPLICIT;
    }
 
-   setProblem(); 
+   //-------------------------------------------------------
+   // 2) Set colMatrix_, varLB_, varUB_, conLB_, conUB
+   //    numCols_, numRows_
+   // 3) Set objCoef_ and objSense_
+   // 4) Set colType_ ('C', 'I', or 'B')
+   //-------------------------------------------------------
+   
+   setModelData(); 
+   
+   //-------------------------------------------------------
+   // 5) Create variables and constraints
+   // 6) Set numCoreVariables_ and numCoreConstraints_
+   //-------------------------------------------------------
+   
+   for (k = 0; k < numCols_; ++k) {
+       variables_.push_back(edges_[k]);
+   }
+
+   for (k = 0; k < numRows_; ++k) {
+       BlisConstraint *con = new BlisConstraint(conLB_[k], 
+                                                conUB_[k], 
+                                                conLB_[k], 
+                                                conUB_[k]);
+       con->setObjectIndex(k);
+       con->setRepType(BCPS_CORE);
+       con->setStatus(BCPS_NONREMOVALBE);
+       constraints_.push_back(con);
+       con = NULL;   
+   }
+   
+   // Set all objects as core
+   numCoreVariables_ = numCols_;
+   numCoreConstraints_ = numRows_;
+
 }
 
 //#############################################################################
@@ -517,7 +556,7 @@ VrpModel::compute_cost(int v0, int v1){
 //#############################################################################
 
 void 
-VrpModel::setProblem()
+VrpModel::setModelData()
 {
    CoinBigIndex i, j, numNonzeros = 0, numInt = 0;
    int size;
@@ -539,16 +578,15 @@ VrpModel::setProblem()
    for (i = 1; i < vertnum_; i++){
       conUpper[i] = conLower[i] = 2.0;
    }
+
+   char* colType = new char[edgenum_];
    
    // Get number of integer and number of nonzero for memory allocation.
    for (i = 0; i < edgenum_; ++i) {
-      numNonzeros += edges_[i]->getSize();
-      if (edges_[i]->getIntType() != 'C'){
-	 numInt++;
-      }
+       numNonzeros += edges_[i]->getSize();
+       colType[i] = edges_[i]->getIntType();
    }
 
-   int* intVars = new int[numInt];
    int* indices = new int[numNonzeros];
    double* values = new double[numNonzeros];
    CoinBigIndex * start = new CoinBigIndex [edgenum_+1];
@@ -557,12 +595,11 @@ VrpModel::setProblem()
    for (numInt = 0, numNonzeros = 0, i = 0; i < edgenum_; ++i) {
       collb[i] = edges_[i]->getLbHard();
       colub[i] = edges_[i]->getUbHard();
+
       start[i] = numNonzeros;
-      if (edges_[i]->getIntType() != 'C'){
-	 intVars[numInt++] = i;
-      }
       varValues = edges_[i]->getValues();
       varIndices = edges_[i]->getIndices();
+
       size = edges_[i]->getSize();
       for (j = 0; j < size; ++j, ++numNonzeros){
 	 indices[numNonzeros] = varIndices[j];
@@ -577,13 +614,17 @@ VrpModel::setProblem()
    
    setNumCons(vertnum_);
    setNumVars(edgenum_);
+
    setConLb(conLower);
    setConUb(conUpper);
+
    setVarLb(collb);
    setVarUb(colub);
+
    setObjSense(1.0);
    setObjCoef(objCoef);
-   setInteger(intVars, numInt);    
+
+   setColType(colType);    
    
    if (numInt == 0) {
       if (broker_->getMsgLevel() > 0) {

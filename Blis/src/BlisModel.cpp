@@ -200,15 +200,23 @@ BlisModel::readInstance(const char* dataFile)
     memcpy(objCoef_, mps->getObjCoefficients(), sizeof(double) * numCols_);
     
     //------------------------------------------------------
-    // Set integers
+    // Set colType_
     //------------------------------------------------------
     
-    intColIndices_ = new int [numCols_];
-    numIntObjects_ = 0;
+    colType_ = new char [numCols_];   
+
     for(j = 0; j < numCols_; ++j) {
-	if (!(mps->isContinuous(j))) {
-	    intColIndices_[numIntObjects_++] = j;
+	if (mps->isContinuous(j)) {
+            colType_[j] = 'C';
 	}
+        else {
+            if (varLB_[j] == 0 && varUB_[j] == 1.0) {
+		colType_[j] = 'B';
+	    }
+            else {
+                colType_[j] = 'I';
+            }
+        }
     }
 
     //-------------------------------------------------------------
@@ -450,32 +458,26 @@ BlisModel::setupSelf()
     processType_ = broker_->getProcType();
 
     //------------------------------------------------------
-    // Set IntObjectIndices_ and colType_.
+    // Set numIntObjects_, intColIndices_, intObjectIndices_ 
     //------------------------------------------------------
 
+    // TODO: now integer, later other objects
     intObjIndices_ = new int [numCols_];
     memset(intObjIndices_, 0, sizeof(int) * numCols_);
- 
-    colType_ = new char [numCols_];   
-    for (j = 0; j < numIntObjects_; ++j) {
-	colType_[intColIndices_[j]] = 'I';
-    }
     
+    numIntObjects_ = 0;  
+    intColIndices_ = new int [numCols_];
+ 
     for(j = 0; j < numCols_; ++j) {
-	if (colType_[j] == 'I') {
-	    if (varLB_[j] == 0 && varUB_[j] == 1.0) {
-		colType_[j] = 'B';
-	    }
-	}
-	else {
-	    colType_[j] = 'C';
+	if (colType_[j] == 'I' || colType_[j] == 'B') {
+            intColIndices_[numIntObjects_++] = j;
 	}
     }
 
     //------------------------------------------------------
-    // Load data to lp solver.
+    // Load data to LP solver.
     //------------------------------------------------------
-
+    
     lpSolver_->loadProblem(*colMatrix_,
 			   varLB_, varUB_, 
 			   objCoef_,
@@ -483,6 +485,12 @@ BlisModel::setupSelf()
     
     lpSolver_->setObjSense(objSense_);
     lpSolver_->setInteger(intColIndices_, numIntObjects_);
+
+    //------------------------------------------------------
+    // Create integer objects.
+    //------------------------------------------------------
+    
+    createIntgerObjects(true);   
 
     //------------------------------------------------------
     // Allocate memory.
@@ -518,14 +526,6 @@ BlisModel::setupSelf()
     
     // Disable Alps message
     // AlpsPar()->setEntry(AlpsParams::msgLevel, 1);
-    
-    //------------------------------------------------------
-    // Identify integers.
-    //------------------------------------------------------
-    
-    createIntgerObjects(true);
-    
-    // lpSolver_->initialSolve();
     
 #ifdef BLIS_DEBUG_MORE
     std::string problemName;
@@ -1175,6 +1175,8 @@ BlisModel::gutsOfDestructor()
 	delete presolvedLpSolver_;
 	delete lpSolver_;
     }
+
+    delete sharedObjectMark_;
 }
 
 //#############################################################################
