@@ -531,12 +531,6 @@ VrpModel::setProblem()
    double* conLower = new double[vertnum_];
    double* objCoef = new double[edgenum_];
 
-   int* intVars = new int[numInt];
-
-   CoinBigIndex * start = new CoinBigIndex [edgenum_+1];
-   int* indices = new int[numNonzeros];
-   double* values = new double[numNonzeros];
-
    for (i = 0; i < edgenum_; i++){
       objCoef[i] = edges_[i]->getObjCoef();
    }
@@ -546,12 +540,18 @@ VrpModel::setProblem()
       conUpper[i] = conLower[i] = 2.0;
    }
    
+   // Get number of integer and number of nonzero for memory allocation.
    for (i = 0; i < edgenum_; ++i) {
       numNonzeros += edges_[i]->getSize();
       if (edges_[i]->getIntType() != 'C'){
 	 numInt++;
       }
    }
+
+   int* intVars = new int[numInt];
+   int* indices = new int[numNonzeros];
+   double* values = new double[numNonzeros];
+   CoinBigIndex * start = new CoinBigIndex [edgenum_+1];
    
    // Get collb, colub, obj, and matrix from variables
    for (numInt = 0, numNonzeros = 0, i = 0; i < edgenum_; ++i) {
@@ -571,7 +571,7 @@ VrpModel::setProblem()
    }
    start[i] = numNonzeros;
 
-   // Load to lp solver
+   // Set input data
    setColMatrix(new CoinPackedMatrix(true, vertnum_, edgenum_, numNonzeros, 
 				     values, indices, start, 0));
    
