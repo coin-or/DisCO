@@ -47,6 +47,7 @@ private:
    // edges_ hold the same elements as variables_ does, do not free memory.
    std::vector<VrpVariable *> edges_;
 
+   // Do we need this? Solution?
    std::vector<best_tours> curTour_;
 
 protected:
@@ -75,7 +76,14 @@ public:
     }
     
     /** Destructor. */
-    virtual ~VrpModel() {}
+    virtual ~VrpModel() {
+        delete [] demand_; demand_ = 0;
+        delete [] posx_; posx_ = 0;
+        delete [] posy_; posy_ = 0;
+        delete [] coordx_; coordx_ = 0;
+        delete [] coordy_; coordy_ = 0;
+        delete [] coordz_; coordz_ = 0;
+    }
 
     /** For parallel code, only the master calls this function.
      *  1) Read in the instance data

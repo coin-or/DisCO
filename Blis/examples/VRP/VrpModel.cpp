@@ -463,7 +463,8 @@ VrpModel::readInstance(const char* dataFile)
    if (wtype_ != _EXPLICIT){
       for (i = 1, k = 0; i < vertnum_; i++){
 	 for (j = 0; j < i; j++){
-	    edges_.push_back(new VrpVariable(i, j, compute_cost(i, j)));
+             VrpVariable *aVar = new VrpVariable(i, j, compute_cost(i, j));
+             edges_.push_back(aVar);
 	 }
       }
       wtype_ = _EXPLICIT;
@@ -487,6 +488,11 @@ VrpModel::readInstance(const char* dataFile)
        variables_.push_back(edges_[k]);
    }
 
+#if 0
+   std::cout << "numCols = " << numCols_
+             << "; variables_.size() = " << variables_.size() << std::endl;
+#endif
+
    for (k = 0; k < numRows_; ++k) {
        BlisConstraint *con = new BlisConstraint(conLB_[k], 
                                                 conUB_[k], 
@@ -496,7 +502,7 @@ VrpModel::readInstance(const char* dataFile)
        con->setRepType(BCPS_CORE);
        con->setStatus(BCPS_NONREMOVALBE);
        constraints_.push_back(con);
-       con = NULL;   
+       con = NULL;
    }
    
    // Set all objects as core
@@ -626,13 +632,6 @@ VrpModel::setModelData()
 
    setColType(colType);    
    
-   if (numInt == 0) {
-      if (broker_->getMsgLevel() > 0) {
-	 bcpsMessageHandler_->message(BLIS_W_LP, blisMessages())
-	    << CoinMessageEol;
-      }
-   }
-
    delete [] start;
    delete [] indices;
    delete [] values;

@@ -65,10 +65,8 @@ class BlisVariable : public BcpsVariable {
         }
     
     virtual ~BlisVariable(){ 
-	if (size_ > 0) {
-	    delete [] indices_; indices_ = NULL;
-	    delete [] values_; values_ = NULL;
-	}
+        delete [] indices_; indices_ = NULL;
+        delete [] values_; values_ = NULL;
     }
     
     /** Return data  */

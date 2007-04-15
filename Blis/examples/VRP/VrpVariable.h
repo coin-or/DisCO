@@ -41,8 +41,8 @@ public:
        ends_[0] = v1 < v2 ? v1 : v2;
        ends_[1] = v1 < v2 ? v2 : v1;
        uind_ = ends_[1]*(ends_[1] - 1)/2 + ends_[0];
-       int *indices = new int[2];
-       double *values = new double[2];
+       int indices [2];
+       double values [2];
        indices[0] = ends_[0];
        indices[1] = ends_[1];
        values[0] = values[1] = 1.0;
@@ -53,7 +53,9 @@ public:
        setObjCoef((double) cost);
     }
 
-    virtual ~VrpVariable() {}
+    virtual ~VrpVariable() {
+        //std::cout << "delete a vrp variable " << std::endl;
+    }
 
 };
 

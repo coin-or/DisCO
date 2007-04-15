@@ -142,6 +142,8 @@ BlisModel::init()
     oldConstraintsSize_ = 0;
     numOldConstraints_ = 0;
     conRandoms_ = NULL;
+
+    sharedObjectMark_ = NULL;
 }
 
 //#############################################################################
@@ -224,13 +226,6 @@ BlisModel::readInstance(const char* dataFile)
     //-------------------------------------------------------------
 
     createObjects();
-    
-    if (numIntObjects_ == 0) {
-        if (broker_->getMsgLevel() > 0) {
-            bcpsMessageHandler_->message(BLIS_W_LP, blisMessages())
-                << CoinMessageEol;
-        }
-    }
     
     delete mps;
 }
@@ -473,6 +468,12 @@ BlisModel::setupSelf()
             intColIndices_[numIntObjects_++] = j;
 	}
     }
+    if (numIntObjects_ == 0) {
+        if (broker_->getMsgLevel() > 0) {
+            bcpsMessageHandler_->message(BLIS_W_LP, blisMessages())
+                << CoinMessageEol;
+        }
+    }   
 
     //------------------------------------------------------
     // Load data to LP solver.
@@ -1176,7 +1177,8 @@ BlisModel::gutsOfDestructor()
 	delete lpSolver_;
     }
 
-    delete sharedObjectMark_;
+    delete [] sharedObjectMark_; 
+    sharedObjectMark_ = NULL;
 }
 
 //#############################################################################
