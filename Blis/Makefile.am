@@ -55,8 +55,8 @@ EXTRA_DIST = \
 	examples/VRP/LICENSE \
 	examples/VRP/Makefile.in \
 	examples/VRP/README \
-	examples/VrpCommonTypes.h \
-	examples/VrpConstants.h \
+	examples/VRP/VrpCommonTypes.h \
+	examples/VRP/VrpConstants.h \
 	examples/VRP/VrpCutGenerator.cpp \
 	examples/VRP/VrpCutGenerator.h \
 	examples/VRP/VrpMain.cpp \
@@ -65,7 +65,7 @@ EXTRA_DIST = \
 	examples/VRP/VrpParams.cpp \
 	examples/VRP/VrpParams.h \
 	examples/VRP/VrpSolution.h \
-	examples/VrpVariable.h
+	examples/VRP/VrpVariable.h
 
 ########################################################################
 #                           Extra Targets                              #
