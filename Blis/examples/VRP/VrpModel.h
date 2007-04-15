@@ -45,6 +45,10 @@ private:
    double *coordz_;
    std::vector<VrpVariable *> edges_;
    std::vector<best_tours> curTour_;
+
+protected:
+
+    void setProblem();
    
 public:
 
@@ -66,7 +70,11 @@ public:
     /** Destructor. */
     virtual ~VrpModel() {}
 
-    /** Read in the instance data. */
+    /** 1) Read in the instance data
+     *  2) Set colMatrix_, varLB_, varUB_, conLB_, conUB_
+     *     numCols_, numRows_, objSense_, objCoef_.
+     *  3) Set numIntObjects_ and intColIndices_.
+     */
     virtual void readInstance(const char* dateFile);
 
     /** User's criteria for a feasible solution. Return true (feasible)
@@ -79,12 +87,6 @@ public:
     }
 
     int compute_cost(int v0, int v1); 
-   
-    /** 1) Set colMatrix_, origColLB_, etc.
-     *  2) Set objective sense
-     *  3) Set integer
-     */
-    void setProblem();
  
 };
 

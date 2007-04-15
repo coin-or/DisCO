@@ -60,10 +60,10 @@ BlisModel::init()
     numElems_ = 0;
     colMatrix_ = 0;
 
-    origVarLB_ = NULL;
-    origVarUB_ = NULL;
-    origConLB_ = NULL;
-    origConUB_ = NULL;
+    varLB_ = NULL;
+    varUB_ = NULL;
+    conLB_ = NULL;
+    conUB_ = NULL;
 
     startVarLB_ = NULL;
     startVarUB_ = NULL;
@@ -179,17 +179,17 @@ BlisModel::readInstance(const char* dataFile)
     colMatrix_ = new CoinPackedMatrix();    
     *colMatrix_ = *(mps->getMatrixByCol());
     
-    origVarLB_ = new double [numCols_];
-    origVarUB_ = new double [numCols_];
+    varLB_ = new double [numCols_];
+    varUB_ = new double [numCols_];
 
-    origConLB_ = new double [numRows_];
-    origConUB_ = new double [numRows_];
+    conLB_ = new double [numRows_];
+    conUB_ = new double [numRows_];
     
-    memcpy(origVarLB_, mps->getColLower(), sizeof(double) * numCols_);
-    memcpy(origVarUB_, mps->getColUpper(), sizeof(double) * numCols_);
+    memcpy(varLB_, mps->getColLower(), sizeof(double) * numCols_);
+    memcpy(varUB_, mps->getColUpper(), sizeof(double) * numCols_);
     
-    memcpy(origConLB_, mps->getRowLower(), sizeof(double) * numRows_);
-    memcpy(origConUB_, mps->getRowUpper(), sizeof(double) * numRows_);
+    memcpy(conLB_, mps->getRowLower(), sizeof(double) * numRows_);
+    memcpy(conUB_, mps->getRowUpper(), sizeof(double) * numRows_);
     
     // Default from MPS is minimization.
     objSense_ = 1.0;
@@ -198,27 +198,14 @@ BlisModel::readInstance(const char* dataFile)
     memcpy(objCoef_, mps->getObjCoefficients(), sizeof(double) * numCols_);
     
     //------------------------------------------------------
-    // Classify variable type.
+    // Set integers
     //------------------------------------------------------
-
-    colType_ = new char [numCols_];
-    intObjIndices_ = new int [numCols_];
-    memset(intObjIndices_, 0, sizeof(int) * numCols_);
     
     intColIndices_ = new int [numCols_];
     numIntObjects_ = 0;
     for(j = 0; j < numCols_; ++j) {
-	if (mps->isContinuous(j)) {
-	    colType_[j] = 'C';
-	}
-	else {
+	if (!(mps->isContinuous(j))) {
 	    intColIndices_[numIntObjects_++] = j;
-	    if (origVarLB_[j] == 0 && origVarUB_[j] == 1.0) {
-		colType_[j] = 'B';
-	    }
-	    else {
-		colType_[j] = 'I';
-	    }
 	}
     }
     
@@ -250,10 +237,10 @@ BlisModel::createObjects()
     coreConstraints_ = new BcpsConstraint* [numRows_];
     
     for (j = 0; j < numCols_; ++j) {
-	BlisVariable * var = new BlisVariable(origVarLB_[j],
-					      origVarUB_[j], 
-					      origVarLB_[j], 
-					      origVarUB_[j]);
+	BlisVariable * var = new BlisVariable(varLB_[j],
+					      varUB_[j], 
+					      varLB_[j], 
+					      varUB_[j]);
 	coreVariables_[j] = var;
 	var = NULL;
 	coreVariables_[j]->setObjectIndex(j);
@@ -263,10 +250,10 @@ BlisModel::createObjects()
     }
     
     for (j = 0; j < numRows_; ++j) {
-        BlisConstraint *con = new BlisConstraint(origConLB_[j], 
-                                                 origConUB_[j], 
-                                                 origConLB_[j], 
-                                                 origConUB_[j]);
+        BlisConstraint *con = new BlisConstraint(conLB_[j], 
+                                                 conUB_[j], 
+                                                 conLB_[j], 
+                                                 conUB_[j]);
         coreConstraints_[j] = con;
         con = NULL;
         coreConstraints_[j]->setObjectIndex(j);
@@ -403,13 +390,36 @@ BlisModel::setupSelf()
     processType_ = broker_->getProcType();
 
     //------------------------------------------------------
+    // Set integersClassify variable type.
+    //------------------------------------------------------
+
+    intObjIndices_ = new int [numCols_];
+    memset(intObjIndices_, 0, sizeof(int) * numCols_);
+ 
+    colType_ = new char [numCols_];   
+    for (j = 0; j < numIntObjects_; ++j) {
+	colType_[intColIndices_[j]] = 'I';
+    }
+    
+    for(j = 0; j < numCols_; ++j) {
+	if (colType_[j] == 'I') {
+	    if (varLB_[j] == 0 && varUB_[j] == 1.0) {
+		colType_[j] = 'B';
+	    }
+	}
+	else {
+	    colType_[j] = 'C';
+	}
+    }
+
+    //------------------------------------------------------
     // Load data to lp solver.
     //------------------------------------------------------
 
     lpSolver_->loadProblem(*colMatrix_,
-			   origVarLB_, origVarUB_, 
+			   varLB_, varUB_, 
 			   objCoef_,
-			   origConLB_, origConUB_);
+			   conLB_, conUB_);
     
     lpSolver_->setObjSense(objSense_);
     lpSolver_->setInteger(intColIndices_, numIntObjects_);
@@ -1039,11 +1049,11 @@ BlisModel::gutsOfDestructor()
     delete [] colType_;
     delete colMatrix_;
 
-    delete [] origVarLB_;
-    delete [] origVarUB_;
+    delete [] varLB_;
+    delete [] varUB_;
 
-    delete [] origConLB_;
-    delete [] origConUB_;
+    delete [] conLB_;
+    delete [] conUB_;
 
     delete [] startVarLB_;
     delete [] startVarUB_;
@@ -1563,10 +1573,10 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
     //------------------------------------------------------
 
     int numCols;
-    encoded.readRep(origVarLB_, numCols);
+    encoded.readRep(varLB_, numCols);
     assert(numCols == numCols_);
 
-    encoded.readRep(origVarUB_, numCols);
+    encoded.readRep(varUB_, numCols);
     assert(numCols == numCols_);
     
     //------------------------------------------------------
@@ -1584,10 +1594,10 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
     
     int numRows;
     
-    encoded.readRep(origConLB_, numRows);
+    encoded.readRep(conLB_, numRows);
     assert(numRows == numRows_);
 
-    encoded.readRep(origConUB_, numRows);
+    encoded.readRep(conUB_, numRows);
     assert(numRows == numRows_);
     
     //------------------------------------------------------
@@ -1648,7 +1658,7 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
     for(j = 0; j < numInts; ++j) {
 	ind = intColIndices_[j];
 	assert(ind >= 0 && ind < numCols_);
-	if (origVarLB_[ind] == 0.0 && origVarUB_[ind] == 1.0) {
+	if (varLB_[ind] == 0.0 && varUB_[ind] == 1.0) {
 	    colType_[ind] = 'B';
 	}
 	else {
@@ -1669,9 +1679,9 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
 
 #if 0
     int i;
-    std::cout << "origConUB_=";
+    std::cout << "conUB_=";
     for (i = 0; i < numRows; ++i){
-	std::cout <<origConUB_[i]<<" ";
+	std::cout <<conUB_[i]<<" ";
     }
     std::cout << std::endl;
     std::cout << "elementValue=";
@@ -1725,15 +1735,17 @@ BlisModel::encodeKnowlegeShared()
     AlpsEncoded* encoded = 0;
 
     int k = 0;
-    int size = 0;
     int numShared = 0;
     int frequency = -1, depth = -1;
     
     bool sharePseudo = true;
+    bool share = false;
+
+#if 0
     bool shareCon = false;
     bool shareVar = false;
-    bool share = false;
-    
+#endif
+
     int phase = broker_->getPhase();
     
     if (phase == ALPS_PHASE_RAMPUP) {

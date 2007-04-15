@@ -76,23 +76,24 @@ class BlisModel : public BcpsModel {
     OsiSolverInterface *lpSolver_;
     
     //------------------------------------------------------
-    // PROBLEM DATA. Populate when readInstance() or decodeToSelf().
+    // PROBLEM DATA. Populate when 
+    // 1) readInstance(),
+    // 2) loadProblem(),
+    // 3) decodeToSelf().
     //------------------------------------------------------
     
-    /** Orignial column majored matrix.(For MPS file, etc.) */
+    /** Column majored matrix.(For MPS file, etc.) */
     CoinPackedMatrix *colMatrix_;    
 
-    /** Original variable and constraint bounds. */
+    /** Variable and constraint bounds. */
     //@{
-    // Only used in readInstance.
-    double *origVarLB_;
-    double *origVarUB_;
-    double *origConLB_;
-    double *origConUB_;
+    double *varLB_;
+    double *varUB_;
+    double *conLB_;
+    double *conUB_;
     //@}
 
-    /** Number of columns/rows/elements in active subproblem. 
-        Initaially is the same as numCoreVariables. */
+    /** Number of columns/rows/elements */
     //@{
     int numCols_;
     int numRows_;
@@ -107,10 +108,8 @@ class BlisModel : public BcpsModel {
 
     /** Column types. */
     //@{
-    int *intObjIndices_; // size of numCols_
     int numIntObjects_;
     int *intColIndices_;  // size of numIntObjects_
-    char *colType_;
     //@}
 
     /** User's input objects. */
@@ -147,6 +146,9 @@ class BlisModel : public BcpsModel {
     //------------------------------------------------------
     // SEARCHING.
     //------------------------------------------------------
+
+    int *intObjIndices_; // size of numCols_
+    char *colType_;
 
     /** Starting var/con bounds for processing each node */
     //@{
@@ -346,16 +348,16 @@ class BlisModel : public BcpsModel {
     void setNumElems(int num){ numElems_ = num; }
     
     /** Pass column upper bounds **/
-    void setConLb(double *cl){ origConLB_ = cl; }
+    void setConLb(double *cl){ conLB_ = cl; }
     
     /** Pass column lower bounds **/
-    void setConUb(double *cu){ origConUB_ = cu; }
+    void setConUb(double *cu){ conUB_ = cu; }
     
     /** Pass variable upper bounds **/
-    void setVarLb(double *lb){ origVarLB_ = lb; }
+    void setVarLb(double *lb){ varLB_ = lb; }
     
     /** Pass variable lower bounds **/
-    void setVarUb(double *ub){ origVarUB_ = ub; }
+    void setVarUb(double *ub){ varUB_ = ub; }
     
     /** Set objective sense **/
     void setObjSense(double os){ objSense_ = os; }
@@ -371,9 +373,9 @@ class BlisModel : public BcpsModel {
     
     /** For parallel code, only the master calls this function.
      *  1) Read in the instance data
-     *  2) Set colMatrix_, origVarLB_, origVarUB_, origConLB_, origConUB
+     *  2) Set colMatrix_, varLB_, varUB_, conLB_, conUB
      *     numCols_, numRows_, objSense_, objCoef_.
-     *	3) Classify variable type, set numIntObjects_ and intColIndices_.
+     *	3) Set numIntObjects_ and intColIndices_.
      */
     virtual void readInstance(const char* dataFile);
 
@@ -401,7 +403,7 @@ class BlisModel : public BcpsModel {
      */
     virtual AlpsTreeNode * createRoot();
     
-    /** For parallel code, only non-master processes call this function.
+    /** All processes call this function.
      *  Do necessary work to make model usable. Return success or not. 
      *	1) load problem to lp solver.
      *	2) Identify integers
@@ -460,13 +462,13 @@ class BlisModel : public BcpsModel {
     /** Get number of rows. */
     int getNumRows() { return lpSolver_->getNumRows(); }
 
-    /** Get original variable bounds arrary. */
-    double *origVarLB() { return origVarLB_; }
-    double *origVarUB() { return origVarUB_; }
+    /** Get variable bounds arrary. */
+    double *varLB() { return varLB_; }
+    double *varUB() { return varUB_; }
 
     /** Get original constraint bounds arrary. */
-    double *origConLB() { return origConLB_; }
-    double *origConUB() { return origConUB_; }
+    double *conLB() { return conLB_; }
+    double *conUB() { return conUB_; }
 
     /** The starting variable bounds arrary of a subproblem (internal use). */
     double *startVarLB() { return startVarLB_; }

@@ -18,6 +18,12 @@
 #include "VrpConstants.h"
 
 //#############################################################################
+
+/** 1) Read in the instance data
+ *  2) Set colMatrix_, varLB_, varUB_, conLB_, conUB
+ *     numCols_, numRows_, objSense_, objCoef_.
+ *  3) Set numIntObjects_ and intColIndices_.
+ */
 void
 VrpModel::readInstance(const char* dataFile)
 {
@@ -518,11 +524,18 @@ VrpModel::setProblem()
    
    int* varIndices = 0;
    double* varValues = 0;
+
    double* collb = new double [edgenum_];
    double* colub = new double [edgenum_];
    double* conUpper = new double[vertnum_];
    double* conLower = new double[vertnum_];
    double* objCoef = new double[edgenum_];
+
+   int* intVars = new int[numInt];
+
+   CoinBigIndex * start = new CoinBigIndex [edgenum_+1];
+   int* indices = new int[numNonzeros];
+   double* values = new double[numNonzeros];
 
    for (i = 0; i < edgenum_; i++){
       objCoef[i] = edges_[i]->getObjCoef();
@@ -539,11 +552,6 @@ VrpModel::setProblem()
 	 numInt++;
       }
    }
-   
-   CoinBigIndex * start = new CoinBigIndex [edgenum_+1];
-   int* indices = new int[numNonzeros];
-   double* values = new double[numNonzeros];
-   int* intVars = new int[numInt];
    
    // Get collb, colub, obj, and matrix from variables
    for (numInt = 0, numNonzeros = 0, i = 0; i < edgenum_; ++i) {
@@ -567,6 +575,8 @@ VrpModel::setProblem()
    setColMatrix(new CoinPackedMatrix(true, vertnum_, edgenum_, numNonzeros, 
 				     values, indices, start, 0));
    
+   setNumCons(vertnum_);
+   setNumVars(edgenum_);
    setConLb(conLower);
    setConUb(conUpper);
    setVarLb(collb);
@@ -576,19 +586,17 @@ VrpModel::setProblem()
    setInteger(intVars, numInt);    
    
    if (numInt == 0) {
-      // Pure lp
-      // solve lp and throw error.
-      //lpSolver_->initialSolve();
-      //throw CoinError("The problem does not have integer variables", 
-      //	"readInstance", "BlisModel");
-      
       if (broker_->getMsgLevel() > 0) {
 	 bcpsMessageHandler_->message(BLIS_W_LP, blisMessages())
 	    << CoinMessageEol;
       }
    }
-   
+
+   delete [] start;
+   delete [] indices;
+   delete [] values;
 }
 
+//#############################################################################
 
 

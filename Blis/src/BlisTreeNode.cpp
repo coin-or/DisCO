@@ -2105,13 +2105,6 @@ int BlisTreeNode::installSubProblem(BcpsModel *m)
     CoinFillN(startRowLB, numCoreCons, -ALPS_DBL_MAX);
     CoinFillN(startRowUB, numCoreCons, ALPS_DBL_MAX);
 
-#if 0
-    //memcpy(startColLB, model->origVarLB(), sizeof(double) * numCoreVars);
-    //memcpy(startColUB, model->origVarUB(), sizeof(double) * numCoreVars);
-    //memcpy(startRowLB, model->origConLB(), sizeof(double) * numCoreCons);
-    //memcpy(startRowUB, model->origConUB(), sizeof(double) * numCoreCons);
-#endif
-
     int numOldCons = 0;
     int tempInt = 0;
     BlisConstraint *aCon = NULL;
