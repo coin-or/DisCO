@@ -102,7 +102,7 @@ class BlisVariable : public BcpsVariable {
 	encoded->writeRep(objCoef_);
 	encoded->writeRep(indices_, size_);
 	encoded->writeRep(values_, size_);
-
+        
 	return status;
     }    
 

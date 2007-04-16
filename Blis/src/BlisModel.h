@@ -795,7 +795,13 @@ protected:
     AlpsProcessType getProcessType() const { return processType_; }
 
     /** Register knowledge. */
-    virtual void registerKnowledge();    
+    virtual void registerKnowledge();  
+
+    /** Pack Blis portion of node into an encoded object. */
+    AlpsReturnCode encodeBlis(AlpsEncoded *encoded) const;
+
+    /** Unpack Blis portion of node from an encoded object. */
+    AlpsReturnCode decodeBlis(AlpsEncoded &encoded);  
     
     /** The method that encodes the model into an encoded object. */
     virtual AlpsEncoded* encode() const;

@@ -284,7 +284,7 @@ BlisModel::createObjects()
  *  1) Set colMatrix_, varLB_, varUB_, conLB_, conUB
  *     numCols_, numRows_
  *  2) Set objCoef_ and objSense_
- *  3) Set numIntObjects_ and intColIndices_
+ *  3) Set colType_ ('C', 'I', or 'B')
  *  4) Set variables_ and constraints_
  *  NOTE: Blis takes over the memory ownship of vars and cons, which 
  *        means users must NOT free vars or cons.
@@ -314,18 +314,21 @@ BlisModel::loadProblem(double objSense,
 
     objSense_ = objSense;
     
-    // Get numElems_ and numIntObjects_
+    colType_ = new char [numCols_];
+    
+    // Get numElems_ and colType_
     for (i = 0; i < numCols_; ++i) {
         numElems_ += vars[i]->getSize();
-        if (vars[i]->getIntType() != 'C'){
-            numIntObjects_++;
-        }
+        colType_[i] = vars[i]->getIntType();
     }
 
-    intColIndices_ = new int[numIntObjects_];
+#if 1
+    std::cout << "numCols_ = " << numCols_ 
+              << "; numRows_ = " << numRows_ << std::endl;
+#endif
 
     //------------------------------------------------------
-    // Set matrix, bounds, integer info.
+    // Set matrix, bounds
     //------------------------------------------------------
     
     // For colMatrix_, need free memory
@@ -335,15 +338,13 @@ BlisModel::loadProblem(double objSense,
     int* length = new int [numCols_];
 
     // Get varLB_, varUB_, objCoef_, and matrix from variables
-    for (numIntObjects_ = 0, numElems_ = 0, i = 0; i < numCols_; ++i) {
+    for (numElems_ = 0, i = 0; i < numCols_; ++i) {
         varLB_[i] = vars[i]->getLbHard();
         varUB_[i] = vars[i]->getUbHard();
         objCoef_[i] = vars[i]->getObjCoef();
         
         start[i] = numElems_;
-        if (vars[i]->getIntType() != 'C'){
-            intColIndices_[numIntObjects_++] = i;
-        }
+
         varValues = vars[i]->getValues();
         varIndices = vars[i]->getIndices();
         size = vars[i]->getSize();
@@ -1447,6 +1448,82 @@ BlisModel::addCutGenerator(BlisConGenerator * generator)
 
 //#############################################################################
 
+AlpsReturnCode 
+BlisModel::encodeBlis(AlpsEncoded *encoded) const
+{
+    AlpsReturnCode status = ALPS_OK;
+    
+    BlisPar_->pack(*encoded);
+
+    encoded->writeRep(objSense_);
+    
+    return status;
+}
+
+//#############################################################################
+
+AlpsReturnCode 
+BlisModel::decodeBlis(AlpsEncoded &encoded)
+{
+    AlpsReturnCode status = ALPS_OK;
+    
+    BlisPar_->unpack(encoded);
+
+    encoded.readRep(objSense_);
+
+    //------------------------------------------------------
+    // 1) Set colMatrix_, varLB_, varUB_, conLB_, conUB
+    //    numCols_, numRows_
+    // 2) Set objCoef_ and objSense_
+    // 3) Set colType_ ('C', 'I', or 'B')
+    // 4) Set numCoreVariables_ and numCoreConstraints_
+    //------------------------------------------------------
+
+    std::vector<BlisVariable *> vars;
+    std::vector<BlisConstraint *> cons;
+
+    int k;
+    int size = variables_.size();
+    for (k = 0; k < size; ++k) {
+        BlisVariable * aVar = dynamic_cast<BlisVariable *>(variables_[k]);
+        vars.push_back(aVar);
+    }
+    
+    size = constraints_.size(); 
+    for (k = 0; k < size; ++k) {
+        BlisConstraint * aCon = dynamic_cast<BlisConstraint *>(constraints_[k]);
+        cons.push_back(aCon);
+    }
+    
+    // LoadProblem will fill variables_ and constraints_
+    variables_.clear();
+    constraints_.clear();
+    loadProblem(objSense_, vars, cons);
+    
+    return status;
+}
+
+//#############################################################################
+
+#if 1
+// Send variables and constraints.
+AlpsEncoded* 
+BlisModel::encode() const 
+{ 
+    AlpsReturnCode status = ALPS_OK;
+
+    // NOTE: "ALPS_MODEL" is the type name.
+    AlpsEncoded* encoded = new AlpsEncoded("ALPS_MODEL");
+
+    status = encodeAlps(encoded);
+    status = encodeBcps(encoded);
+    status = encodeBlis(encoded);
+
+    return encoded;
+}
+
+#else
+
 AlpsEncoded* 
 BlisModel::encode() const 
 { 
@@ -1574,7 +1651,23 @@ BlisModel::encode() const
     return encoded;
 }
 
+#endif
+
 //#############################################################################
+
+#if 1
+
+void
+BlisModel::decodeToSelf(AlpsEncoded& encoded) 
+{
+    AlpsReturnCode status = ALPS_OK;
+
+    status = decodeAlps(encoded);
+    status = decodeBcps(encoded);
+    status = decodeBlis(encoded);
+}
+
+#else
 
 void
 BlisModel::decodeToSelf(AlpsEncoded& encoded) 
@@ -1772,6 +1865,7 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
     colLen = NULL;
     
 }
+#endif
 
 //#############################################################################
 

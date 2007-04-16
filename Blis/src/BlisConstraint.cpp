@@ -75,7 +75,7 @@ BlisConstraint::BlisConstraint(const BlisConstraint & rhs)
 {
     size_ = rhs.size_;
     
-    if (size_ <= 0) {
+    if (size_ < 0) {
 	std::cout << "ERROR: size_ = " << size_ << std::endl;
 	assert(size_);
     }
@@ -98,7 +98,7 @@ AlpsReturnCode
 BlisConstraint::encodeBlis(AlpsEncoded *encoded) 
 {
     AlpsReturnCode status = ALPS_OK;
-    if (size_ <= 0) {
+    if (size_ < 0) {
 	std::cout << "ERROR: encodeBlis: size_=" << size_<<std::endl;
 	assert(size_ > 0);
     }
@@ -120,7 +120,7 @@ BlisConstraint::decodeBlis(AlpsEncoded &encoded)
 {
     AlpsReturnCode status = ALPS_OK;
     encoded.readRep(indices_, size_);
-    if (size_ <= 0) {
+    if (size_ < 0) {
 	std::cout << "ERROR: decodeBlis: con1, size_=" << size_<<std::endl;
 	assert(size_ > 0);
     }
