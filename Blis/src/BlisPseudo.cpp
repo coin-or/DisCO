@@ -18,6 +18,7 @@
 #include <cassert>
 
 #include "Alps.h"
+#include "Blis.h"
 
 #include "BlisPseudo.h"
 
@@ -187,7 +188,7 @@ BlisPseudocost::decodeFrom(AlpsEncoded &encoded)
 AlpsEncoded*
 BlisPseudocost::encode() const 
 {
-    AlpsEncoded* encoded = new AlpsEncoded("BLIS_PSEUDO");
+    AlpsEncoded* encoded = new AlpsEncoded(BLIS_PSEUDO);
     
     encoded->writeRep(weight_);
     encoded->writeRep(upCost_);

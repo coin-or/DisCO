@@ -1513,7 +1513,7 @@ BlisModel::encode() const
     AlpsReturnCode status = ALPS_OK;
 
     // NOTE: "ALPS_MODEL" is the type name.
-    AlpsEncoded* encoded = new AlpsEncoded("ALPS_MODEL");
+    AlpsEncoded* encoded = new AlpsEncoded(ALPS_MODEL);
 
     status = encodeAlps(encoded);
     status = encodeBcps(encoded);
@@ -1530,7 +1530,7 @@ BlisModel::encode() const
     AlpsReturnCode status = ALPS_OK;
 
     // NOTE: "ALPS_MODEL" is the type name.
-    AlpsEncoded* encoded = new AlpsEncoded("ALPS_MODEL");
+    AlpsEncoded* encoded = new AlpsEncoded(ALPS_MODEL);
 
     //------------------------------------------------------
     // Encode Alps part. 
@@ -1933,7 +1933,7 @@ BlisModel::encodeKnowlegeShared()
         BlisObjectInt *intObj = NULL;
         
         if (numShared > 0) {
-            encoded = new AlpsEncoded("ALPS_MODEL_GEN");
+            encoded = new AlpsEncoded(ALPS_MODEL_GEN);
             // Record how many can be shared.
             encoded->writeRep(numShared);
             for (k = 0; k < numIntObjects_; ++k) {
@@ -1999,27 +1999,27 @@ void
 BlisModel::registerKnowledge() {
     // Register model, solution, and tree node
     assert(broker_);
-    broker_->registerClass("ALPS_MODEL", new BlisModel);
+    broker_->registerClass(ALPS_MODEL, new BlisModel);
     if (broker_->getMsgLevel() > 5) {
 	std::cout << "BLIS: Register Alps model." << std::endl;
     }
     
-    broker_->registerClass("ALPS_NODE", new BlisTreeNode(this));
+    broker_->registerClass(ALPS_NODE, new BlisTreeNode(this));
     if (broker_->getMsgLevel() > 5) {
 	std::cout << "BLIS: Register Alps node." << std::endl;
     }
     
-    broker_->registerClass("ALPS_SOLUTION", new BlisSolution);
+    broker_->registerClass(ALPS_SOLUTION, new BlisSolution);
     if (broker_->getMsgLevel() > 5) {
 	std::cout << "BLIS: Register Alps solution." << std::endl;
     }
     
-    broker_->registerClass("BCPS_CONSTRAINT", new BlisConstraint);
+    broker_->registerClass(BCPS_CONSTRAINT, new BlisConstraint);
     if (broker_->getMsgLevel() > 5) {
 	std::cout << "BLIS: Register Bcps constraint." << std::endl;
     }
     
-    broker_->registerClass("BCPS_VARIABLE", new BlisVariable);
+    broker_->registerClass(BCPS_VARIABLE, new BlisVariable);
     if (broker_->getMsgLevel() > 5) {
 	std::cout << "BLIS: Register Bcps variable." << std::endl;
     }
