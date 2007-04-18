@@ -125,7 +125,7 @@ BlisConstraint::decodeBlis(AlpsEncoded &encoded)
 	assert(size_ > 0);
     }
     encoded.readRep(values_, size_);
-    if (size_ <= 0) {
+    if (size_ < 0) {
 	std::cout << "ERROR: decodeBlis: con2, size_=" << size_<<std::endl;
 	assert(size_ > 0);
     }

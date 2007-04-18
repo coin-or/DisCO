@@ -246,13 +246,27 @@ BlisModel::createObjects()
 	      << ", numRows_" << numRows_ 
 	      << std::endl;
 #endif
+
+    const double *elements = colMatrix_->getElements();
+    const int *indices = colMatrix_->getIndices();
+    const int *lengths = colMatrix_->getVectorLengths();
+    const CoinBigIndex *starts = colMatrix_->getVectorStarts();
+
+    int beg = 0;
     
     for (j = 0; j < numCols_; ++j) {
+        
+        beg = starts[j];
+
 	BlisVariable * var = new BlisVariable(varLB_[j],
 					      varUB_[j], 
 					      varLB_[j], 
-					      varUB_[j]);
-
+					      varUB_[j],
+                                              objCoef_[j], 
+                                              lengths[j],
+                                              indices + beg,
+                                              elements + beg);
+        
 	var->setObjectIndex(j);
 	var->setRepType(BCPS_CORE);
 	var->setStatus(BCPS_NONREMOVALBE);
@@ -353,6 +367,9 @@ BlisModel::loadProblem(double objSense,
             values[numElems_] = varValues[j];
         }
     }
+
+    // Last position.
+    start[numCols_] = numElems_;
     
     for (k = 0; k < numCols_; ++k) {
         length[k] = start[(k+1)] - start[k];
@@ -479,6 +496,11 @@ BlisModel::setupSelf()
     //------------------------------------------------------
     // Load data to LP solver.
     //------------------------------------------------------
+
+    if (!lpSolver_) {
+        // preprocessing causes this check.
+        lpSolver_ = origLpSolver_;
+    }
     
     lpSolver_->loadProblem(*colMatrix_,
 			   varLB_, varUB_, 
