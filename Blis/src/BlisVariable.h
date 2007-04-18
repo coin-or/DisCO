@@ -99,7 +99,7 @@ class BlisVariable : public BcpsVariable {
     AlpsReturnCode encodeBlis(AlpsEncoded *encoded) {
 	AlpsReturnCode status = ALPS_OK;
 
-        std::cout << "****** encodeBlis var: size_ = " << size_ << std::endl;
+        //std::cout << "****** encodeBlis var: size_ = " << size_ << std::endl;
 
 	encoded->writeRep(objCoef_);
 	encoded->writeRep(indices_, size_);
@@ -116,7 +116,7 @@ class BlisVariable : public BcpsVariable {
 	encoded.readRep(indices_, size_);
 	encoded.readRep(values_, size_);
         
-        std::cout << "****** decodeBlis var: size_ = " << size_ << std::endl;
+        //std::cout << "****** decodeBlis var: size_ = " << size_ << std::endl;
 
 	return status;
     }
