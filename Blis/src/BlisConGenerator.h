@@ -173,6 +173,10 @@ protected:
 	In addition to setting the client model, refreshModel also calls
 	the \c refreshSolver method of the CglCutGenerator object.
     */
+    /** Get a pointer to the model */
+    inline BlisModel *getModel() { return model_; }
+    
+    /** Refresh the model */
     void refreshModel(BlisModel * model);
     
     /** return name of generator. */
