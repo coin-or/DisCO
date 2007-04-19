@@ -22,13 +22,18 @@
 #include "BlisModel.h"
 #include "VrpVariable.h"
 #include "VrpCommonTypes.h"
+#include "VrpConstants.h"
+#include "VrpParams.h"
 
 //#############################################################################
 
 /** Model class for VRP. */
 class VrpModel : public BlisModel 
 {    
-private:
+
+   friend class VrpCutGenerator;
+   
+ private:
 
    char name_[100];
    int vertnum_;
@@ -43,7 +48,10 @@ private:
    double *coordx_;
    double *coordy_;
    double *coordz_;
+   double etol_;
 
+   VrpParams *vrpPar_;
+   
    // edges_ hold the same elements as variables_ does, do not free memory.
    std::vector<VrpVariable *> edges_;
 
@@ -61,52 +69,57 @@ protected:
 public:
 
     /** Default construtor. */
-    VrpModel() : vertnum_(0), edgenum_(0), numroutes_(0), depot_(0),
-       capacity_(0), wtype_(0){
-       demand_ = 0;
-       posx_ = 0;
-       posy_ = 0;
-       coordx_ = 0;
-       coordy_ = 0;
-       coordz_ = 0;
-    }
+   VrpModel() : vertnum_(0), edgenum_(0), numroutes_(0), depot_(0),
+      capacity_(0), wtype_(0), etol_(1e-5){
+      demand_ = 0;
+      posx_ = 0;
+      posy_ = 0;
+      coordx_ = 0;
+      coordy_ = 0;
+      coordz_ = 0;
+      vrpPar_ = new VrpParams;
+   }
+   
+   VrpModel(const char* dataFile) : etol_(1e-5){
+      vrpPar_ = new VrpParams;
+      readInstance(dataFile);
+   }
 
-    VrpModel(const char* dataFile){
-       readInstance(dataFile);
-    }
-    
-    /** Destructor. */
-    virtual ~VrpModel() {
-        delete [] demand_; demand_ = 0;
-        delete [] posx_; posx_ = 0;
-        delete [] posy_; posy_ = 0;
-        delete [] coordx_; coordx_ = 0;
-        delete [] coordy_; coordy_ = 0;
-        delete [] coordz_; coordz_ = 0;
-    }
+   /** Destructor. */
+   virtual ~VrpModel() {
+      delete [] demand_; demand_ = 0;
+      delete [] posx_; posx_ = 0;
+      delete [] posy_; posy_ = 0;
+      delete [] coordx_; coordx_ = 0;
+      delete [] coordy_; coordy_ = 0;
+      delete [] coordz_; coordz_ = 0;
+      delete [] vrpPar_; vrpPar_ = 0;
+   }
+   
+   /** For parallel code, only the master calls this function.
+    *  1) Read in the instance data
+    *  2) Set colMatrix_, varLB_, varUB_, conLB_, conUB
+    *     numCols_, numRows_
+    *  3) Set objCoef_ and objSense_
+    *  4) Set colType_ ('C', 'I', or 'B')
+    *  5) Create variables and constraints
+    *  6) Set numCoreVariables_ and numCoreConstraints_
+    */
+   virtual void readInstance(const char* dateFile);
+   
+   /** User's criteria for a feasible solution. Return true (feasible)
+    *	or false (infeasible) 
+    */
+   virtual bool userFeasibleSolution() { return true; }
+   
+   int index (int v0, int v1) {
+      return(v0 < v1 ? v1*(v1 - 1)/2 + v0 : v0*(v0 - 1)/2 + v1);
+   }
+   
+   int compute_cost(int v0, int v1); 
+   
+   std::vector<VrpVariable *> getEdgeList() { return edges_; }
 
-    /** For parallel code, only the master calls this function.
-     *  1) Read in the instance data
-     *  2) Set colMatrix_, varLB_, varUB_, conLB_, conUB
-     *     numCols_, numRows_
-     *  3) Set objCoef_ and objSense_
-     *  4) Set colType_ ('C', 'I', or 'B')
-     *  5) Create variables and constraints
-     *  6) Set numCoreVariables_ and numCoreConstraints_
-     */
-    virtual void readInstance(const char* dateFile);
-    
-    /** User's criteria for a feasible solution. Return true (feasible)
-     *	or false (infeasible) 
-     */
-    virtual bool userFeasibleSolution() { return true; }
-
-    int index (int v0, int v1) {
-       return(v0 < v1 ? v1*(v1 - 1)/2 + v0 : v0*(v0 - 1)/2 + v1);
-    }
-
-    int compute_cost(int v0, int v1); 
- 
 };
 
 //#############################################################################

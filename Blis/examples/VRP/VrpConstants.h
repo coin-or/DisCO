@@ -147,4 +147,11 @@
 #define FIRST_SET        1
 #define SECOND_SET       2
 
+/*---------  which_connected_routine choices --------------------------------*/
+#define CONNECTED    0
+#define BICONNECTED  1
+#define BOTH         2
+
+#define VRP_NOT_SET  -1
+
 #endif

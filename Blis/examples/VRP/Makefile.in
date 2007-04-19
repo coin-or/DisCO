@@ -28,7 +28,8 @@ EXE = vrp@EXEEXT@
 OBJS =  VrpMain.@OBJEXT@ \
 	VrpCutGenerator.@OBJEXT@ \
 	VrpParams.@OBJEXT@ \
-	VrpModel.@OBJEXT@
+	VrpModel.@OBJEXT@ \
+	VrpNetwork.@OBJEXT@
 
 # CHANGEME: Additional libraries
 ADDLIBS =

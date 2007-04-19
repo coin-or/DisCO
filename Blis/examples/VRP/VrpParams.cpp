@@ -13,6 +13,7 @@
  *===========================================================================*/
 
 #include "VrpParams.h"
+#include "VrpConstants.h"
 
 using std::make_pair;
 
@@ -26,7 +27,13 @@ VrpParams::createKeywordList() {
   //--------------------------------------------------------
   // CharPar
   //--------------------------------------------------------
+
+  keys_.push_back(make_pair(std::string("Vrp_doGreedy"),
+			    AlpsParameter(AlpsIntPar, doGreedy)));
     
+  keys_.push_back(make_pair(std::string("Vrp_doExtraInRoot"),
+			    AlpsParameter(AlpsIntPar, doExtraInRoot)));
+
   //--------------------------------------------------------
   // BoolArrayPar
   //--------------------------------------------------------
@@ -34,6 +41,21 @@ VrpParams::createKeywordList() {
   //--------------------------------------------------------
   // Int Parameters
   //--------------------------------------------------------
+
+  keys_.push_back(make_pair(std::string("Vrp_numRoutes"),
+			    AlpsParameter(AlpsIntPar, numRoutes)));
+
+  keys_.push_back(make_pair(std::string("Vrp_verbosity"),
+			    AlpsParameter(AlpsIntPar, verbosity)));
+
+  keys_.push_back(make_pair(std::string("Vrp_greedyNumTrials"),
+			    AlpsParameter(AlpsIntPar, greedyNumTrials)));
+
+  keys_.push_back(make_pair(std::string("Vrp_whichConnectedRoutine"),
+			    AlpsParameter(AlpsIntPar, whichConnectedRoutine)));
+
+  keys_.push_back(make_pair(std::string("Vrp_maxNumCutsInShrink"),
+			    AlpsParameter(AlpsIntPar, maxNumCutsInShrink)));
 
   //--------------------------------------------------------
   // String Parameters.
@@ -50,14 +72,27 @@ VrpParams::setDefaultEntries() {
   // Char Parameters.
   //-------------------------------------------------------------
 
+   setEntry(doGreedy, true);
+
+   setEntry(doExtraInRoot, false);
+
   //-------------------------------------------------------------
   // Int Parameters.
   //-------------------------------------------------------------
 
+   setEntry(numRoutes, VRP_NOT_SET);
+
+   setEntry(verbosity, 0);
+
+   setEntry(greedyNumTrials, 5);
+
+   setEntry(whichConnectedRoutine, BOTH);
+
+   setEntry(maxNumCutsInShrink, 200);
+
   //-------------------------------------------------------------
   // Double Parameters
   //-------------------------------------------------------------
-
 
   //-------------------------------------------------------------
   // String Parameters

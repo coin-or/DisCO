@@ -24,16 +24,21 @@
 class VrpParams : public AlpsParameterSet {
  public:
   /** Character parameters. All of these variable are used as booleans
-      (ture = 1, false = 0). */
+      (true = 1, false = 0). */
   enum chrParams{
-      ///
-      endOfChrParams
+     doGreedy,
+     doExtraInRoot,
+     endOfChrParams
   };
   
   /** Integer paramters. */
   enum intParams{
-      ///
-      endOfIntParams
+     numRoutes,
+     verbosity,
+     greedyNumTrials,
+     whichConnectedRoutine,
+     maxNumCutsInShrink,
+     endOfIntParams
   };
 
   /** Double parameters. */

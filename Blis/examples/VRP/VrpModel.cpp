@@ -135,6 +135,8 @@ VrpModel::readInstance(const char* dataFile)
    double x, y;
    int capacity_vol = false;
    int k;
+
+   numroutes_ = vrpPar_->entry(VrpParams::numRoutes);
    
    if (!strcmp(dataFile, "")){
       printf("\nVrp I/O: No problem data file specified\n\n");

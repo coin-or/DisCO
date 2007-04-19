@@ -24,7 +24,8 @@
 /** Variable class for VRP. */
 class VrpVariable : public BlisVariable 
 {    
-private:
+
+ private:
 
    /* The endpoints of the edge */
    int ends_[2];
@@ -57,6 +58,9 @@ public:
         //std::cout << "delete a vrp variable " << std::endl;
     }
 
+    inline int getIndex() { return uind_; }
+    inline int getv0() { return ends_[0]; }
+    inline int getv1() { return ends_[1]; }
 };
 
 //#############################################################################
