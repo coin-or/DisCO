@@ -22,6 +22,33 @@
 
 /*===========================================================================*/
 
+VrpCutGenerator::VrpCutGenerator()
+{
+   model_ = dynamic_cast<VrpModel *>(getModel());
+   n_ = 0;
+   ref_ = 0;
+   cutVal_ = 0;
+   cutList_ = 0;
+   inSet_ = 0;
+   SRANDOM(1);
+   setName("VRP");
+}
+
+/*===========================================================================*/
+
+VrpCutGenerator::VrpCutGenerator(int edgenum, int vertnum)
+{
+   n_ = new VrpNetwork(model_->edgenum_, model_->vertnum_);
+   ref_ = new int[model_->vertnum_];
+   cutVal_ = new double[model_->vertnum_];
+   cutList_ = new char[(model_->vertnum_ >> DELETE_POWER) + 1];
+   inSet_ = new char[model_->vertnum_];
+   SRANDOM(1);
+   setName("VRP");
+}
+
+/*===========================================================================*/
+
 CoinPackedVector * 
 VrpCutGenerator::getSolution()
 {
@@ -542,4 +569,12 @@ VrpCutGenerator::addCut(OsiCuts &cs, char *coef, int rhs, int type)
    cs.insert(cut);
  
    return true;
+}
+
+/*===========================================================================*/
+
+void VrpCutGenerator::createNet(CoinPackedVector *vec)
+{
+   n_->createNet(vec, model_->demand_, model_->getEdgeList(),
+		 model_->etol_, model_->vertnum_);
 }

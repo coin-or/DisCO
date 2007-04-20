@@ -24,6 +24,7 @@
 #include "VrpCommonTypes.h"
 #include "VrpConstants.h"
 #include "VrpParams.h"
+#include "VrpCutGenerator.h"
 
 //#############################################################################
 
@@ -78,11 +79,13 @@ public:
       coordy_ = 0;
       coordz_ = 0;
       vrpPar_ = new VrpParams;
+      addCutGenerator(new VrpCutGenerator);
    }
    
    VrpModel(const char* dataFile) : etol_(1e-5){
       vrpPar_ = new VrpParams;
       readInstance(dataFile);
+      addCutGenerator(new VrpCutGenerator);
    }
 
    /** Destructor. */
@@ -93,7 +96,7 @@ public:
       delete [] coordx_; coordx_ = 0;
       delete [] coordy_; coordy_ = 0;
       delete [] coordz_; coordz_ = 0;
-      delete [] vrpPar_; vrpPar_ = 0;
+      delete    vrpPar_; vrpPar_ = 0;
    }
    
    /** For parallel code, only the master calls this function.

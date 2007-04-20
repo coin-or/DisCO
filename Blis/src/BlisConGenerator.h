@@ -180,6 +180,9 @@ protected:
     void refreshModel(BlisModel * model);
     
     /** return name of generator. */
+    void setName(const char *str) { name_ = strdup(str); }
+    
+    /** return name of generator. */
     inline const char * name() const { return name_; }
     
     /** Set the con generation strategy. */
