@@ -300,6 +300,7 @@ EXTRA_DIST = examples/BlisMain.cpp examples/blis.par \
 	examples/VRP/VrpCutGenerator.cpp \
 	examples/VRP/VrpCutGenerator.h examples/VRP/VrpMain.cpp \
 	examples/VRP/VrpModel.cpp examples/VRP/VrpModel.h \
+	examples/VRP/VrpNetwork.cpp examples/VRP/VrpNetwork.h \
 	examples/VRP/VrpParams.cpp examples/VRP/VrpParams.h \
 	examples/VRP/VrpSolution.h examples/VRP/VrpVariable.h \
 	$(am__append_2)

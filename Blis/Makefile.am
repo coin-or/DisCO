@@ -62,6 +62,8 @@ EXTRA_DIST = \
 	examples/VRP/VrpMain.cpp \
 	examples/VRP/VrpModel.cpp \
 	examples/VRP/VrpModel.h \
+	examples/VRP/VrpNetwork.cpp \
+	examples/VRP/VrpNetwork.h \
 	examples/VRP/VrpParams.cpp \
 	examples/VRP/VrpParams.h \
 	examples/VRP/VrpSolution.h \
