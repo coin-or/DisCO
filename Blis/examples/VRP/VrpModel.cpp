@@ -559,11 +559,18 @@ VrpModel::userFeasibleSolution()
 
    if (!n_->isIntegral_){
       return false;
-   }else if (n_->connected() > 1){
-      return false;
    }else{
-      return true;
+      int rcnt = n_->connected();
+      int i;
+      for (i = 0; i < rcnt; i++){
+	 if (n_->compCuts_[i+1] < 2 - etol_){
+	    return false;
+	 }else if (n_->compDemands_[i+1] > capacity_){
+	    return false;
+	 }
+      }
    }
+   return true;
 }
 
 /*===========================================================================*/
