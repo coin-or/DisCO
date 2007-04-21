@@ -135,6 +135,9 @@ BlisParams::createKeywordList() {
   
   keys_.push_back(make_pair(std::string("Blis_scaleConFactor"),
 			    AlpsParameter(AlpsDoublePar, scaleConFactor)));
+
+  keys_.push_back(make_pair(std::string("Blis_tailOff"),
+                            AlpsParameter(AlpsDoublePar, tailOff)));
   
   //--------------------------------------------------------
   // String Parameters.
@@ -192,7 +195,8 @@ BlisParams::setDefaultEntries() {
   setEntry(optimalAbsGap, 1.0e-4);
   setEntry(pseudoWeight, 0.8);
   setEntry(scaleConFactor, 1000000.0);
-
+  setEntry(tailOff, 1e-7);
+  
   //-------------------------------------------------------------
   // String Parameters
   //-------------------------------------------------------------

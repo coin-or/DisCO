@@ -124,7 +124,6 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     double cutoff = getKnowledgeBroker()->getIncumbentValue();
     double parentObjValue = getQuality();
     double primalTolerance = 1.0e-6;
-    double tailOffTol = 1.0e-7;
     double preObjValue = -ALPS_OBJ_MAX;
     double improvement = 100.0;
 
@@ -153,9 +152,12 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     BlisModel* model = dynamic_cast<BlisModel*>(desc_->getModel());
 
     AlpsPhase phase = knowledgeBroker_->getPhase();
+
     int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
     int hubMsgLevel = model->AlpsPar()->entry(AlpsParams::hubMsgLevel);
     int workerMsgLevel = model->AlpsPar()->entry(AlpsParams::workerMsgLevel);
+
+    double tailOffTol = model->BlisPar()->entry(BlisParams::tailOff);
     
     BlisParams * BlisPar = model->BlisPar();
 
@@ -360,7 +362,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                         keepOn = true;
                     }
                     
-#ifdef BLIS_DEBUG_MORE
+#if 1
                     std::cout << "PROCESS: boundingPass_["
                               << model->boundingPass_ << "], improvement=" 
                               << improvement << ", tailOffTol=" << tailOffTol

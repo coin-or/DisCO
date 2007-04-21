@@ -229,8 +229,9 @@ BlisBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft)
         else if (pass == 0) {
             // The first pass and is IP feasible.
             
-#ifdef BLIS_DEBUG
+#if 1
             std::cout << "PSEUDO: given a feasible sol" << std::endl;
+            assert(0);
 #endif      
             
             roundAgain = false;

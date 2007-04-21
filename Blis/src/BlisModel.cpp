@@ -674,7 +674,13 @@ BlisModel::setupSelf()
     // NOTE: maxNumCons is valid only for automatic strategy.
     double cutFactor = BlisPar_->entry(BlisParams::cutFactor);
 
-    maxNumCons_ = (int)((cutFactor - 1.0) * numRows_);
+    if (cutFactor > 1.0e19) {
+        // FIXME: use vector
+        maxNumCons_ = 100000;
+    }
+    else {
+        maxNumCons_ = (int)((cutFactor - 1.0) * numRows_);
+    }
     
     constraintPool_ = new BcpsConstraintPool();
     oldConstraints_ = new BlisConstraint* [maxNumCons_];

@@ -130,6 +130,9 @@ class BlisParams : public AlpsParameterSet {
 
       /** Scaling indicator of a constraint.*/    
       scaleConFactor,
+
+      /** Tail off */
+      tailOff,
       ///
       endOfDblParams
   };
