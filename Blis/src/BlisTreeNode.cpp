@@ -112,7 +112,6 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     int maxNewCons = 0;
 
     int numAppliedCons = 0;
-    int maxPass = 20;
     int cutStrategy;
     
     // Only autmatic stategy has depth limit.
@@ -157,9 +156,10 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     int hubMsgLevel = model->AlpsPar()->entry(AlpsParams::hubMsgLevel);
     int workerMsgLevel = model->AlpsPar()->entry(AlpsParams::workerMsgLevel);
 
-    double tailOffTol = model->BlisPar()->entry(BlisParams::tailOff);
-    
     BlisParams * BlisPar = model->BlisPar();
+
+    int maxPass = BlisPar->entry(BlisParams::cutPass);
+    double tailOffTol = BlisPar->entry(BlisParams::tailOff);
 
     //------------------------------------------------------
     // Check if this can be fathomed by objective cutoff.
@@ -2874,7 +2874,7 @@ BlisTreeNode::applyConstraints(BlisModel *model,
 	    
 
 #if 1
-            printf("APPLYCUT: after selecting, num of new cuts = %d\n\n",
+            printf("APPLYCUT: after selecting, added %d new cuts to LP\n\n",
                    numAdded);
 #endif
             

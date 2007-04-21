@@ -96,6 +96,7 @@ public:
       
       // Cuts as formulation
       BlisPar()->setEntry(BlisParams::cutFactor, ALPS_DBL_MAX);
+      BlisPar()->setEntry(BlisParams::cutPass, 1);
       BlisPar()->setEntry(BlisParams::tailOff, -1000.0);
       BlisPar()->setEntry(BlisParams::denseConFactor, ALPS_DBL_MAX);
    }

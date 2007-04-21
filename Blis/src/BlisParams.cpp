@@ -74,6 +74,9 @@ BlisParams::createKeywordList() {
   
   keys_.push_back(make_pair(std::string("Blis_cutOddHole"),
 			    AlpsParameter(AlpsIntPar, cutOddHole)));
+
+  keys_.push_back(make_pair(std::string("Blis_cutPass"),
+			    AlpsParameter(AlpsIntPar, cutPass)));
   
   keys_.push_back(make_pair(std::string("Blis_cutProbing"),
 			    AlpsParameter(AlpsIntPar, cutProbing)));
@@ -171,6 +174,7 @@ BlisParams::setDefaultEntries() {
   setEntry(cutKnapsack, BLIS_NOT_SET);
   setEntry(cutMir, BLIS_NOT_SET);
   setEntry(cutOddHole, BLIS_NOT_SET);
+  setEntry(cutPass, 20);
   setEntry(cutProbing, BLIS_NOT_SET);
   setEntry(cutStrategy, BLIS_ROOT);
   setEntry(cutTwoMir, BLIS_NOT_SET);
