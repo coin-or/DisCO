@@ -50,7 +50,11 @@ public:
        setData(2, indices, values);
        setIntType('B');
        setLbHard(0.0);
-       setUbHard(1.0);
+       if (ends_[0]){ 
+	  setUbHard(1.0);
+       }else{
+	  setUbHard(2.0);
+       }
        setObjCoef((double) cost);
     }
 
