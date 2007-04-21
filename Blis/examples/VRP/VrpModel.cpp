@@ -134,9 +134,8 @@ VrpModel::readInstance(const char* dataFile)
    double deg, min, coord_x, coord_y, coord_z;
    double x, y;
    int capacity_vol = false;
-   int k;
-
-   numroutes_ = vrpPar_->entry(VrpParams::numRoutes);
+   int k; 
+   numroutes_ = VrpPar_->entry(VrpParams::numRoutes);
    
    if (!strcmp(dataFile, "")){
       printf("\nVrp I/O: No problem data file specified\n\n");
@@ -695,4 +694,16 @@ VrpModel::setModelData()
 
 /*===========================================================================*/
 
+/** Read in parameters. */
+void 
+VrpModel::readParameters(const int argnum, const char * const * arglist)
+{    //std::cout << "Reading in ALPS parameters ..." << std::endl;
+    AlpsPar_->readFromArglist(argnum, arglist);
+    //std::cout << "Reading in BLIS parameters ..." << std::endl;
+    BlisPar_->readFromArglist(argnum, arglist);
+    std::cout << "Reading in VRP parameters ..." << std::endl;
+    VrpPar_->readFromArglist(argnum, arglist);
+}
+
+/*===========================================================================*/
 

@@ -51,7 +51,7 @@ class VrpModel : public BlisModel
    double *coordz_;
    double etol_;
 
-   VrpParams *vrpPar_;
+   VrpParams *VrpPar_;
    VrpNetwork *n_;
    
    // edges_ hold the same elements as variables_ does, do not free memory.
@@ -80,7 +80,7 @@ public:
       coordy_ = 0;
       coordz_ = 0;
       n_ = 0;
-      vrpPar_ = new VrpParams;
+      VrpPar_ = new VrpParams;
       VrpCutGenerator *vrp = new VrpCutGenerator;
       vrp->setModel(this);
       addCutGenerator(vrp);
@@ -95,7 +95,7 @@ public:
    }
    
    VrpModel(const char* dataFile) : etol_(1e-5){
-      vrpPar_ = new VrpParams;
+      VrpPar_ = new VrpParams;
       readInstance(dataFile);
       VrpCutGenerator *vrp = new VrpCutGenerator;
       vrp->setModel(this);
@@ -110,7 +110,7 @@ public:
       delete [] coordx_; coordx_ = 0;
       delete [] coordy_; coordy_ = 0;
       delete [] coordz_; coordz_ = 0;
-      delete    vrpPar_; vrpPar_ = 0;
+      delete    VrpPar_; VrpPar_ = 0;
       delete    n_; n_ = 0;
    }
    
@@ -124,6 +124,9 @@ public:
     *  6) Set numCoreVariables_ and numCoreConstraints_
     */
    virtual void readInstance(const char* dateFile);
+   
+   /** Read in Alps, Blis, Vrp parameters. */
+   virtual void readParameters(const int argnum, const char * const *arglist);
    
    /** User's criteria for a feasible solution. Return true (feasible)
     *	or false (infeasible) 

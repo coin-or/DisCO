@@ -50,7 +50,7 @@ VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
    double cur_slack = 0.0, node_cut, max_node_cut;
    int cut_size = (vertnum >> DELETE_POWER) + 1, num_cuts = 0;
    elist *cur_edge = NULL;
-   VrpParams *par = model_->vrpPar_;
+   VrpParams *par = model_->VrpPar_;
    int which_connected_routine = par->entry(VrpParams::whichConnectedRoutine);
    bool do_greedy = par->entry(VrpParams::doGreedy);
    double etol = model_->etol_;
