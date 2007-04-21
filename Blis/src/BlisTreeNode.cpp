@@ -2773,7 +2773,7 @@ BlisTreeNode::applyConstraints(BlisModel *model,
                             minElem = fabs(elements[k]);
                         }
                         index = indices[k];
-                        activity += elements[k] * solution[k];
+                        activity += elements[k] * solution[index];
                     }
                     if(minElem != 0.0) {
                         scaleFactor = maxElem/minElem;
