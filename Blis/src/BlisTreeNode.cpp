@@ -158,7 +158,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 
     BlisParams * BlisPar = model->BlisPar();
 
-    int maxPass = BlisPar->entry(BlisParams::cutPass);
+    int maxPass = BlisPar->entry(BlisParams::cutPass) + 1;
     double tailOffTol = BlisPar->entry(BlisParams::tailOff);
 
     //------------------------------------------------------
@@ -366,6 +366,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                     std::cout << "PROCESS: boundingPass_["
                               << model->boundingPass_ << "], improvement=" 
                               << improvement << ", tailOffTol=" << tailOffTol
+                              << ", preObj=" << preObjValue 
+                              << ", newObj=" << quality_
                               << std::endl;
 #endif
                 }
@@ -664,7 +666,9 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                   << std::endl;
 #endif
 
-        if ( keepOn && genConsHere && (numAppliedCons < maxNumCons) ) {
+        if ( keepOn && genConsHere && 
+             (numAppliedCons < maxNumCons) && 
+             (model->boundingPass_ < maxPass) ) {
             
             OsiCuts newOsiCuts;
             
