@@ -74,9 +74,11 @@ class VrpNetwork{
  private:
 
    int             edgenum_;     /* the number of edges in the graph */
+   int             maxEdgenum_;  /* the number of edges allocated */
    int             vertnum_;     /* the number of vertices in the graph */
    bool            isIntegral_;  /* indicates whether the graph is integral or
 				    not */
+   int             numComps_;     /* number of components */
    struct EDGE    *edges_;       /* the list of edges in the graph */
    struct VERTEX  *verts_;       /* the list of vertices */
    double          mincut_;      /* the value of the current mincut */
@@ -102,11 +104,11 @@ class VrpNetwork{
       newDemand_ = 0;
    }
 
-   VrpNetwork(int edgenum, int vertnum) : edgenum_(edgenum), vertnum_(vertnum),
-      isIntegral_(false), mincut_(0){
-      edges_ = new edge[edgenum_];
+   VrpNetwork(int edgenum, int vertnum) : edgenum_(0), maxEdgenum_(edgenum),
+      vertnum_(vertnum), isIntegral_(false), mincut_(0){ 
+      edges_ = new edge[maxEdgenum_];
       verts_ = new vertex[vertnum_];
-      adjList_ = new elist[2*edgenum_];
+      adjList_ = new elist[2*maxEdgenum_];
       compNodes_ = new int[vertnum_ + 1];
       compDemands_ = new int[vertnum_ + 1];
       compCuts_ = new double[vertnum_ + 1];

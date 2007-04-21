@@ -22,56 +22,22 @@
 
 /*===========================================================================*/
 
-VrpCutGenerator::VrpCutGenerator()
+VrpCutGenerator::VrpCutGenerator(VrpModel *vrp, int vertnum)
 {
-   model_ = dynamic_cast<VrpModel *>(getModel());
-   n_ = 0;
-   ref_ = 0;
-   cutVal_ = 0;
-   cutList_ = 0;
-   inSet_ = 0;
-   SRANDOM(1);
-   setName("VRP");
-}
-
-/*===========================================================================*/
-
-VrpCutGenerator::VrpCutGenerator(int edgenum, int vertnum)
-{
-   n_ = new VrpNetwork(model_->edgenum_, model_->vertnum_);
-   ref_ = new int[model_->vertnum_];
-   cutVal_ = new double[model_->vertnum_];
-   cutList_ = new char[(model_->vertnum_ >> DELETE_POWER) + 1];
-   inSet_ = new char[model_->vertnum_];
-   SRANDOM(1);
-   setName("VRP");
-}
-
-/*===========================================================================*/
-
-CoinPackedVector * 
-VrpCutGenerator::getSolution()
-{
-   // Can get LP solution information from solver;
-   OsiSolverInterface* solver = model_->solver();
-   int varnum = solver->getNumCols();
-   const double *sol = solver->getColSolution();
-   std::vector<VrpVariable *>vars = model_->getEdgeList();
-   double etol = model_->etol_;
-   int *indices = new int[varnum];
-   double *values = new double[varnum]; /* n */
-   int i, cnt = 0;
-
-   assert(varnum != model_->edgenum_);
-
-   for (i = 0; i < varnum; i++){
-      if (sol[i] > etol || sol[i] < -etol){
-	 indices[cnt] = vars[i]->getIndex();
-	 values[cnt++] = sol[i];
-      }
+   model_ = vrp;
+   if (vertnum){
+      ref_ = new int[model_->vertnum_];
+      cutVal_ = new double[model_->vertnum_];
+      cutList_ = new char[(model_->vertnum_ >> DELETE_POWER) + 1];
+      inSet_ = new char[model_->vertnum_];
+   }else{
+      ref_ = 0;
+      cutVal_ = 0;
+      cutList_ = 0;
+      inSet_ = 0;
    }
-
-   return(new CoinPackedVector(varnum, cnt, indices, values, false));
+   SRANDOM(1);
+   setName("VRP");
 }
 
 /*===========================================================================*/
@@ -95,28 +61,25 @@ VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
    int total_demand = demand[0], num_trials = 0;
    int type, rhs, capacity = model_->capacity_;
    bool found_cut = false;
+   VrpNetwork *n = model_->n_;
 
-   CoinPackedVector *sol = getSolution();
-
-   createNet(sol);
-
-   if (n_->isIntegral_){
+   if (n->isIntegral_){
       /* if the network is integral, check for connectivity */
       return connectivityCuts(cs);
    }
 
-   vertex *verts = n_->verts_;
+   vertex *verts = n->verts_;
 
    if (which_connected_routine == BOTH) which_connected_routine = CONNECTED;
       
    int *compnodes_copy = new int[vertnum + 1];
-   int *compnodes = n_->compNodes_;
-   double *compcuts = n_->compCuts_;
-   int *compdemands = n_->compDemands_;
+   int *compnodes = n->compNodes_;
+   double *compcuts = n->compCuts_;
+   int *compdemands = n->compDemands_;
 
    do{
       memset(compnodes, 0, (vertnum + 1)*sizeof(int));
-      memset(compcuts, 0, (vertnum + 1)*sizeof(int));
+      memset(compcuts, 0, (vertnum + 1)*sizeof(double));
       memset(compdemands, 0, (vertnum + 1)*sizeof(int));
       
       /*------------------------------------------------------------------*\
@@ -124,7 +87,7 @@ VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
        * depot and see if the number of components is more than one
        \*------------------------------------------------------------------*/
       rcnt = which_connected_routine == BICONNECTED ?
-	     n_->biconnected() : n_->connected();
+	     n->biconnected() : n->connected();
 
       /* copy the arrays as they will be needed later */
       if (!which_connected_routine && do_greedy){
@@ -234,7 +197,7 @@ VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
    }while(!num_cuts && which_connected_routine == BOTH &&
 	  which_connected_routine < 2);
 
-   compnodes = n_->compNodes_;
+   compnodes = n->compNodes_;
    
    if (!do_greedy){
       return found_cut;
@@ -318,21 +281,23 @@ VrpCutGenerator::connectivityCuts(OsiCuts &cs)
    int i, reduced_cust_num, vert1, vert2, type, rhs;
    int cut_size = (vertnum >> DELETE_POWER) +1;
    int capacity = model_->capacity_;
-   vertex *verts = n_->verts_;
-   double *compcuts = n_->compCuts_;
-   int *compnodes = n_->compNodes_;
-   int *compdemands = n_->compDemands_;
+   VrpNetwork *n = model_->n_;
+   vertex *verts = n->verts_;
+   double *compcuts = n->compCuts_;
+   int *compnodes = n->compNodes_;
+   int *compdemands = n->compDemands_;
    double etol = model_->etol_;
    bool found_cut = false;
 
-   if (!n_->isIntegral_) return false;
+   if (!n->isIntegral_) return false;
    
    memset(compnodes, 0, (vertnum + 1)*sizeof(int));
-   memset(compcuts, 0, (vertnum + 1)*sizeof(int));
-   memset(compdemands, 0, (vertnum + 1)*sizeof(double));
+   memset(compcuts, 0, (vertnum + 1)*sizeof(double));
+   memset(compdemands, 0, (vertnum + 1)*sizeof(int));
    /*get the components of the solution graph without the depot to check if the
      graph is connected or not*/
-   rcnt = n_->connected();
+   /* rcnt = n->connected(); */ /* This was previously executed */
+   rcnt = n->numComps_;
    char **coef_list = new char *[rcnt];
    memset(coef_list, 0, rcnt*sizeof(char *));
    coef_list[0] = new char[rcnt * cut_size];
@@ -573,8 +538,4 @@ VrpCutGenerator::addCut(OsiCuts &cs, char *coef, int rhs, int type)
 
 /*===========================================================================*/
 
-void VrpCutGenerator::createNet(CoinPackedVector *vec)
-{
-   n_->createNet(vec, model_->demand_, model_->getEdgeList(),
-		 model_->etol_, model_->vertnum_);
-}
+

@@ -52,6 +52,7 @@ class VrpModel : public BlisModel
    double etol_;
 
    VrpParams *vrpPar_;
+   VrpNetwork *n_;
    
    // edges_ hold the same elements as variables_ does, do not free memory.
    std::vector<VrpVariable *> edges_;
@@ -78,14 +79,27 @@ public:
       coordx_ = 0;
       coordy_ = 0;
       coordz_ = 0;
+      n_ = 0;
       vrpPar_ = new VrpParams;
-      addCutGenerator(new VrpCutGenerator);
+      VrpCutGenerator *vrp = new VrpCutGenerator;
+      vrp->setModel(this);
+      addCutGenerator(vrp);
+      BlisPar()->setEntry(BlisParams::cutClique,BLIS_NONE);
+      BlisPar()->setEntry(BlisParams::cutFlowCover,BLIS_NONE);
+      BlisPar()->setEntry(BlisParams::cutGomory,BLIS_NONE);
+      BlisPar()->setEntry(BlisParams::cutKnapsack,BLIS_NONE);
+      BlisPar()->setEntry(BlisParams::cutMir,BLIS_NONE);
+      BlisPar()->setEntry(BlisParams::cutOddHole,BLIS_NONE);
+      BlisPar()->setEntry(BlisParams::cutProbing,BLIS_NONE);
+      BlisPar()->setEntry(BlisParams::cutTwoMir,BLIS_NONE);
    }
    
    VrpModel(const char* dataFile) : etol_(1e-5){
       vrpPar_ = new VrpParams;
       readInstance(dataFile);
-      addCutGenerator(new VrpCutGenerator);
+      VrpCutGenerator *vrp = new VrpCutGenerator;
+      vrp->setModel(this);
+      addCutGenerator(vrp);
    }
 
    /** Destructor. */
@@ -97,6 +111,7 @@ public:
       delete [] coordy_; coordy_ = 0;
       delete [] coordz_; coordz_ = 0;
       delete    vrpPar_; vrpPar_ = 0;
+      delete    n_; n_ = 0;
    }
    
    /** For parallel code, only the master calls this function.
@@ -113,16 +128,20 @@ public:
    /** User's criteria for a feasible solution. Return true (feasible)
     *	or false (infeasible) 
     */
-   virtual bool userFeasibleSolution() { return true; }
+   virtual bool userFeasibleSolution();
    
    int index (int v0, int v1) {
       return(v0 < v1 ? v1*(v1 - 1)/2 + v0 : v0*(v0 - 1)/2 + v1);
    }
    
-   int compute_cost(int v0, int v1); 
+   int computeCost(int v0, int v1); 
    
    std::vector<VrpVariable *> getEdgeList() { return edges_; }
 
+   CoinPackedVector *getSolution();
+
+   void createNet(CoinPackedVector *vec);
+   
 };
 
 //#############################################################################

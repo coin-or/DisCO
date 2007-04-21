@@ -13,6 +13,7 @@
  *===========================================================================*/
 
 #include <cmath>
+#include <iostream>
 
 #include "VrpNetwork.h"
 
@@ -23,18 +24,24 @@ VrpNetwork::createNet(CoinPackedVector *sol, int *demand,
 		      std::vector<VrpVariable *> edgeList, double etol,
 		      int vertnum)
 {   
+   edge *edges = edges_;
+   elist *adjlist = adjList_;
    int nv0, nv1, i;
    double *val_low, *val_high, val_aux;
    int *ind_low, *ind_high, ind_aux;
    
+   isIntegral_ = true;
    sol->sortIncrElement();
    int *indices = sol->getIndices();
    double *values = sol->getElements();
-   int edgenum = sol->getNumElements();
+   edgenum_ = sol->getNumElements();
+   memset(edges_, 0, edgenum_*sizeof(edge));
+   memset(verts_, 0, vertnum_*sizeof(vertex));
+   memset(adjList_, 0, 2*edgenum_*sizeof(elist));
 
-   for (i = 0, val_low = values, val_high = values + edgenum - 1, 
-	   ind_low = indices, ind_high = indices + edgenum - 1; 
-	i < (edgenum/2); i++){
+   for (i = 0, val_low = values, val_high = values + edgenum_ - 1, 
+	   ind_low = indices, ind_high = indices + edgenum_ - 1; 
+	i < (edgenum_/2); i++){
       val_aux = *val_low;
       *val_low++ = *val_high;
       *val_high-- = val_aux;
@@ -47,44 +54,44 @@ VrpNetwork::createNet(CoinPackedVector *sol, int *demand,
     * set up the adjacency list
    \*------------------------------------------------------------------------*/
    
-   for (i = 0; i < edgenum; i++, values++, indices++){
+   for (i = 0; i < edgenum_; i++, values++, indices++){
       if (*values < etol) continue;
       if (fabs(floor(*values+.5) - *values) > etol){
 	 isIntegral_ = false;
-	 edges_->weight = *values;
+	 edges->weight = *values;
       }else{
-	 edges_->weight = floor(*values+.5);
+	 edges->weight = floor(*values+.5);
       }
-      nv0 = edges_->v0 = edgeList[*indices]->getv0();
-      nv1 = edges_->v1 = edgeList[*indices]->getv1();
+      nv0 = edges->v0 = edgeList[*indices]->getv0();
+      nv1 = edges->v1 = edgeList[*indices]->getv1();
       if (!verts_[nv0].first){
-	 verts_[nv0].first = verts_[nv0].last = adjList_;
+	 verts_[nv0].first = verts_[nv0].last = adjlist;
 	 verts_[nv0].degree++;
       }
       else{
-	 verts_[nv0].last->next_edge = adjList_;
-	 verts_[nv0].last = adjList_;
+	 verts_[nv0].last->next_edge = adjlist;
+	 verts_[nv0].last = adjlist;
 	 verts_[nv0].degree++;
       }
-      adjList_->data = edges_;
-      adjList_->other_end = nv1;
-      adjList_->other = verts_ + nv1;
-      adjList_++;
+      adjlist->data = edges;
+      adjlist->other_end = nv1;
+      adjlist->other = verts_ + nv1;
+      adjlist++;
       if (!verts_[nv1].first){
-	 verts_[nv1].first = verts_[nv1].last = adjList_;
+	 verts_[nv1].first = verts_[nv1].last = adjlist;
 	 verts_[nv1].degree++;
       }
       else{
-	 verts_[nv1].last->next_edge = adjList_;
-	 verts_[nv1].last = adjList_;
+	 verts_[nv1].last->next_edge = adjlist;
+	 verts_[nv1].last = adjlist;
 	 verts_[nv1].degree++;
       }
-      adjList_->data = edges_;
-      adjList_->other_end = nv0;
-      adjList_->other = verts_ + nv0;
-      adjList_++;
+      adjlist->data = edges;
+      adjlist->other_end = nv0;
+      adjlist->other = verts_ + nv0;
+      adjlist++;
       
-      edges_++;
+      edges++;
    }
    
    /*set the demand for each node*/
@@ -295,6 +302,8 @@ VrpNetwork::connected()
    }
    
    delete[] nodes_to_scan;
+
+   numComps_ = cur_comp;
 
    return(cur_comp);
 }

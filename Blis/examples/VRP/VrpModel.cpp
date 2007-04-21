@@ -19,7 +19,7 @@
 #include "VrpModel.h"
 #include "VrpConstants.h"
 
-//#############################################################################
+/*===========================================================================*/
 
 /** For parallel code, only the master calls this function.
  *  1) Read in the instance data
@@ -465,7 +465,7 @@ VrpModel::readInstance(const char* dataFile)
    if (wtype_ != _EXPLICIT){
       for (i = 1, k = 0; i < vertnum_; i++){
 	 for (j = 0; j < i; j++){
-             VrpVariable *aVar = new VrpVariable(i, j, compute_cost(i, j));
+             VrpVariable *aVar = new VrpVariable(i, j, computeCost(i, j));
              edges_.push_back(aVar);
 	 }
       }
@@ -510,13 +510,67 @@ VrpModel::readInstance(const char* dataFile)
    // Set all objects as core
    numCoreVariables_ = numCols_;
    numCoreConstraints_ = numRows_;
-
+   
+   // Allocate space for network for later use
+   
+   n_ = new VrpNetwork(edgenum_, vertnum_);
 }
 
-//#############################################################################
+/*===========================================================================*/
+
+CoinPackedVector * 
+VrpModel::getSolution()
+{
+   // Can get LP solution information from solver;
+   int varnum = solver()->getNumCols();
+   const double *sol = solver()->getColSolution();
+   std::vector<VrpVariable *>vars = getEdgeList();
+   double etol = etol_;
+   int *indices = new int[varnum];
+   double *values = new double[varnum]; /* n */
+   int i, cnt = 0;
+
+   assert(varnum == edgenum_);
+
+   for (i = 0; i < varnum; i++){
+      if (sol[i] > etol || sol[i] < -etol){
+	 indices[cnt] = vars[i]->getIndex();
+	 values[cnt++] = sol[i];
+      }
+   }
+
+   return(new CoinPackedVector(varnum, cnt, indices, values, false));
+}
+
+/*===========================================================================*/
+
+void VrpModel::createNet(CoinPackedVector *vec)
+{
+   n_->createNet(vec, demand_, getEdgeList(), etol_, vertnum_);
+}
+
+/*===========================================================================*/
+
+bool
+VrpModel::userFeasibleSolution()
+{
+   CoinPackedVector *sol = getSolution();
+
+   createNet(sol);
+
+   if (!n_->isIntegral_){
+      return false;
+   }else if (n_->connected() > 1){
+      return false;
+   }else{
+      return true;
+   }
+}
+
+/*===========================================================================*/
 
 int 
-VrpModel::compute_cost(int v0, int v1){
+VrpModel::computeCost(int v0, int v1){
 
    if (wtype_ == _EXPLICIT){
       return((int)edges_[index(v0, v1)]->getObjCoef());
@@ -561,7 +615,7 @@ VrpModel::compute_cost(int v0, int v1){
    return(cost);
 }
 
-//#############################################################################
+/*===========================================================================*/
 
 void 
 VrpModel::setModelData()
@@ -582,7 +636,7 @@ VrpModel::setModelData()
       objCoef[i] = edges_[i]->getObjCoef();
    }
 
-   conLower[0] = conUpper[0] = numroutes_;
+   conLower[0] = conUpper[0] = 2*numroutes_;
    for (i = 1; i < vertnum_; i++){
       conUpper[i] = conLower[i] = 2.0;
    }
@@ -639,6 +693,6 @@ VrpModel::setModelData()
    delete [] values;
 }
 
-//#############################################################################
+/*===========================================================================*/
 
 

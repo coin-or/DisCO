@@ -36,14 +36,11 @@ private:
    double *cutVal_;
    char *cutList_;
    char *inSet_;
-   VrpNetwork *n_;
    
 public:
     
-    /** Default construtor. */
-   VrpCutGenerator();
-   
-   VrpCutGenerator(int edgenum, int vertnum); 
+    /** Construtors. */
+   VrpCutGenerator(VrpModel *vrp=0, int vertnum = 0);
    
    /** Destructor. */
    virtual ~VrpCutGenerator() {
@@ -51,7 +48,6 @@ public:
       delete [] cutVal_; cutVal_ = 0;
       delete [] cutList_; cutList_ = 0;
       delete [] inSet_; inSet_ = 0;
-      delete [] n_; n_ = 0;
    }
    
    /** Generate cons for the client model.
@@ -70,13 +66,11 @@ public:
 
    virtual bool generateCons(OsiCuts &cs, bool fullScan);
   
-   CoinPackedVector *getSolution();
-
-   void createNet(CoinPackedVector *vec);
-   
    bool connectivityCuts(OsiCuts &cs);
    
    bool addCut(OsiCuts &cs, char *coef, int rhs, int type);
+
+   void setModel(VrpModel *vrp){ model_ = vrp; }
 };
 
 //#############################################################################
