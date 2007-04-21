@@ -618,6 +618,11 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                     model->heuristics(k)->addCalls(1);
 
                     if (foundSolution) {
+                        foundSolution = model->feasibleSolution(numIntInfs,
+                                                               numObjInfs);
+                    }
+                    
+                    if (foundSolution) {
                         model->heuristics(k)->addNumSolutions(1);
                         int noSols = model->heuristics(k)->noSolCalls();
                         model->heuristics(k)->addNoSolCalls(-noSols);

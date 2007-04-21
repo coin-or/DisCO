@@ -42,6 +42,8 @@ VrpCutGenerator::VrpCutGenerator(VrpModel *vrp, int vertnum)
 
 /*===========================================================================*/
 
+// Return if need resolve LP immediately.
+// Newt cuts are stored in OsiCuts cs
 bool 
 VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
 {
@@ -420,7 +422,8 @@ VrpCutGenerator::connectivityCuts(OsiCuts &cs)
        cur_route_start = cur_route_start->next_edge)
      cur_route_start->data->scanned = false;
 
-  return found_cut;
+  // return if need resolve LP immediately.
+  return false;
 }
 
 /*===========================================================================*/
@@ -524,7 +527,7 @@ VrpCutGenerator::addCut(OsiCuts &cs, char *coef, int rhs, int type)
       matval[i] = 1;
    OsiRowCut *cut;
    if (sense == 'L'){
-      cut = new OsiRowCut(infinity, rhs, edgenum, nzcnt, matind, matval);
+      cut = new OsiRowCut(-infinity, rhs, edgenum, nzcnt, matind, matval);
    }else if (sense == 'G'){
       cut = new OsiRowCut(rhs, infinity, edgenum, nzcnt, matind, matval);
    }else{
