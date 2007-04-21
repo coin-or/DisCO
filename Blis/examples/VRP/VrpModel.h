@@ -83,6 +83,7 @@ public:
       VrpPar_ = new VrpParams;
       VrpCutGenerator *vrp = new VrpCutGenerator;
       vrp->setModel(this);
+      vrp->setStrategy(1);  // Generate cuts at every node
       addCutGenerator(vrp);
       BlisPar()->setEntry(BlisParams::cutClique,BLIS_NONE);
       BlisPar()->setEntry(BlisParams::cutFlowCover,BLIS_NONE);
@@ -99,6 +100,7 @@ public:
       readInstance(dataFile);
       VrpCutGenerator *vrp = new VrpCutGenerator;
       vrp->setModel(this);
+      vrp->setStrategy(1);
       addCutGenerator(vrp);
    }
 
