@@ -153,6 +153,10 @@ VrpNetwork::biconnected()
    int num_comps = 0;
    char is_art_point;
    
+   memset(compNodes_, 0, (vertnum_ + 1)*sizeof(int));
+   memset(compCuts_, 0, (vertnum_ + 1)*sizeof(double));
+   memset(compDemands_, 0, (vertnum_ + 1)*sizeof(int));
+      
    verts_[0].scanned = true;
    verts_[0].comp = 0;
    for (i=1; i<vertnum_; i++)
@@ -251,6 +255,10 @@ VrpNetwork::connected()
    int cur_node = 0, cur_comp = 0, cur_member = 0, num_nodes_to_scan = 0;
    elist *cur_edge;
 
+   memset(compNodes_, 0, (vertnum_ + 1)*sizeof(int));
+   memset(compCuts_, 0, (vertnum_ + 1)*sizeof(double));
+   memset(compDemands_, 0, (vertnum_ + 1)*sizeof(int));
+      
    int *nodes_to_scan = new int[vertnum_];
    
    while (true){

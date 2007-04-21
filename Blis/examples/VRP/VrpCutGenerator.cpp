@@ -80,10 +80,6 @@ VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
    int *compdemands = n->compDemands_;
 
    do{
-      memset(compnodes, 0, (vertnum + 1)*sizeof(int));
-      memset(compcuts, 0, (vertnum + 1)*sizeof(double));
-      memset(compdemands, 0, (vertnum + 1)*sizeof(int));
-      
       /*------------------------------------------------------------------*\
        * Get the connected components of the solution graph without the
        * depot and see if the number of components is more than one
@@ -293,9 +289,6 @@ VrpCutGenerator::connectivityCuts(OsiCuts &cs)
 
    if (!n->isIntegral_) return false;
    
-   memset(compnodes, 0, (vertnum + 1)*sizeof(int));
-   memset(compcuts, 0, (vertnum + 1)*sizeof(double));
-   memset(compdemands, 0, (vertnum + 1)*sizeof(int));
    /*get the components of the solution graph without the depot to check if the
      graph is connected or not*/
    /* rcnt = n->connected(); */ /* This was previously executed */
