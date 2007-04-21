@@ -96,6 +96,8 @@ public:
       
       // Cuts as formulation
       BlisPar()->setEntry(BlisParams::cutFactor, ALPS_DBL_MAX);
+      BlisPar()->setEntry(BlisParams::tailOff, -1000.0);
+      BlisPar()->setEntry(BlisParams::denseConFactor, ALPS_DBL_MAX);
    }
    
    VrpModel(const char* dataFile) : etol_(1e-5){

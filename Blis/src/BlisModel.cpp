@@ -661,9 +661,15 @@ BlisModel::setupSelf()
 	sumLen += diffLen;
     }
     stdLen = sqrt(sumLen/numRows_);
-    denseConCutoff_ = static_cast<int>(aveLen + denseConFactor*stdLen);    
-    denseConCutoff_ = ALPS_MIN(numCols_/2, denseConCutoff_);
-    denseConCutoff_ = ALPS_MAX(10, denseConCutoff_);
+    if (denseConFactor > 10e5) {
+        denseConCutoff_ = ALPS_INT_MAX;
+    }
+    else {
+        denseConCutoff_ = static_cast<int>(aveLen + denseConFactor*stdLen);    
+        denseConCutoff_ = ALPS_MIN(numCols_/2, denseConCutoff_);
+        denseConCutoff_ = ALPS_MAX(10, denseConCutoff_);
+    }
+    
     
 #ifdef BLIS_DEBUG
     std::cout << "aveLen=" << aveLen << ", minLen=" << minLen

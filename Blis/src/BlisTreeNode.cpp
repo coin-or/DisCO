@@ -2477,7 +2477,7 @@ int BlisTreeNode::installSubProblem(BcpsModel *m)
 
     model->setNumOldConstraints(numOldCons);
     
-#ifdef BLIS_DEBUG
+#if 1
     std::cout << "INSTALL: after collecting, numOldCons = " << numOldCons 
 	      << std::endl;
 #endif
@@ -2694,7 +2694,7 @@ BlisTreeNode::applyConstraints(BlisModel *model,
 	    
             OsiRowCut *rowCut = NULL;
 	    
-#ifdef BLIS_DEBUG
+#if 1
             printf("\nAPPLYCUT: before selecting, num of new cuts = %d\n",
                    numRowCuts);
 #endif
@@ -2731,7 +2731,7 @@ BlisTreeNode::applyConstraints(BlisModel *model,
                     if (length <= 0) {
                         keep = false;
 
-#ifdef BLIS_DEBUG_MORE
+#if 1
                         std::cout << "APPLYCUT: A empty cut." << std::endl;
 #endif
                         break;
@@ -2743,7 +2743,7 @@ BlisTreeNode::applyConstraints(BlisModel *model,
 
                     if(length > model->getDenseConCutoff()){
                         keep = false;
-#ifdef BLIS_DEBUG
+#if 1
                         std::cout << "APPLYCUT: A dense cut. length = " 
                                   << length << ", cutoff = " 
                                   << model->getDenseConCutoff() << std::endl;
@@ -2789,7 +2789,7 @@ BlisTreeNode::applyConstraints(BlisModel *model,
                               << ", minElem=" << minElem << std::endl;
 #endif
                     if (scaleFactor > scaleConFactor) {
-#ifdef BLIS_DEBUG
+#if 1
                         std::cout<< "APPLYCUT: remove a bad scaled cut"
                                  << std::endl;
 #endif
@@ -2829,11 +2829,11 @@ BlisTreeNode::applyConstraints(BlisModel *model,
                     
                     if (violation < 1.0e-6) {
                         // Found a weak cuts.
-#ifdef BLIS_DEBUG
-                        std::cout<< "APPLYCUT: remove a weak cut, violation="
+#if 1
+                        std::cout<< "WARNING: APPLYCUT: a weak cut, violation="
                                  << violation << std::endl;
 #endif
-                        keep = false;
+                        //keep = false;
                         break;
                     }
                     
@@ -2846,7 +2846,7 @@ BlisTreeNode::applyConstraints(BlisModel *model,
 					  i,
 					  rowCut);
 		    if (paral) {
-#ifdef BLIS_DEBUG
+#if 1
                         std::cout<< "APPLYCUT: remove a parallel"<< std::endl;
 #endif
 			keep = false;
@@ -2873,7 +2873,7 @@ BlisTreeNode::applyConstraints(BlisModel *model,
             }
 	    
 
-#ifdef BLIS_DEBUG
+#if 1
             printf("APPLYCUT: after selecting, num of new cuts = %d\n\n",
                    numAdded);
 #endif
