@@ -68,6 +68,9 @@ VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
    if (n->isIntegral_){
       /* if the network is integral, check for connectivity */
       return connectivityCuts(cs);
+   }else{
+      CoinPackedVector *sol = model_->getSolution();
+      model_->createNet(sol);
    }
 
    vertex *verts = n->verts_;
@@ -288,6 +291,10 @@ VrpCutGenerator::connectivityCuts(OsiCuts &cs)
    bool found_cut = false;
 
    if (!n->isIntegral_) return false;
+
+   /* This is a flag to tell the cut generator that the network has not been
+      constructed until the next call to userFeasibleSolution();*/
+   n->isIntegral_ = false;
    
    /*get the components of the solution graph without the depot to check if the
      graph is connected or not*/
@@ -416,7 +423,7 @@ VrpCutGenerator::connectivityCuts(OsiCuts &cs)
      cur_route_start->data->scanned = false;
 
   // return if need resolve LP immediately.
-  return false;
+  return found_cut;
 }
 
 /*===========================================================================*/

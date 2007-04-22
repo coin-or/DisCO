@@ -1987,6 +1987,11 @@ int BlisTreeNode::bound(BcpsModel *model)
     // Bounding
     m->solver()->resolve();
 
+#if 0
+    char name[50] = "";
+    sprintf(name, "matrix.%i.%i", index_, m->boundingPass_);
+    m->solver()->writeMps(name, "mps", 1.0);
+#endif
 
 #if 1
     int j;
