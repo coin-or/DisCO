@@ -819,17 +819,23 @@ BlisModel::setupSelf()
     }
 
     // Adjust cutstrategy
-    for (j = 0; j < numCutGenerators_; ++j) {
-        int strategy = cutGenerators(j)->strategy();
-        if (strategy != BLIS_NONE) {
-            // Doesn't matter what's the strategy, we just want to 
-            // Generate cuts.
-            cutStrategy_ =  BLIS_AUTO;
-            break;
-        }
+    if (numCutGenerators_ > 0) {
+	int strategy0 = cutGenerators(0)->strategy();
+	int strategy1;
+	for (j = 1; j < numCutGenerators_; ++j) {
+	    strategy1 = cutGenerators(j)->strategy();
+	    if (strategy1 != strategy0) {
+		cutStrategy_ =  1;// individual cut will control
+		break;
+	    }
+	}
+	if (j == numCutGenerators_) {
+	    // Cut has same strategy.
+	    cutStrategy_ = strategy0;
+	}
     }
      
-#ifdef BLIS_DEBUG_MORE
+#if 1
     std::cout << "AFTER: cutStrategy_ = " << cutStrategy_ << std::endl;
 #endif
 

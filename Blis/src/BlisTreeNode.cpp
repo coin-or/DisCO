@@ -720,6 +720,9 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                 }
                 numAppliedCons += tempNum;
             }
+	    else {
+		keepOn = false;
+	    }
         }
         else {
             keepOn = false;
