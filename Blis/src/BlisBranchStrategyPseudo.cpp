@@ -230,7 +230,7 @@ BlisBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft)
             // The first pass and is IP feasible.
             
 #if 1
-            std::cout << "PSEUDO: given a feasible sol" << std::endl;
+            std::cout << "ERROR: PSEUDO: given a integer feasible sol, no fraction variable" << std::endl;
             assert(0);
 #endif      
             
