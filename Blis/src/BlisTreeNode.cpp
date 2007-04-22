@@ -158,9 +158,13 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 
     BlisParams * BlisPar = model->BlisPar();
 
-    int maxPass = BlisPar->entry(BlisParams::cutPass) + 1;
+    int maxPass = BlisPar->entry(BlisParams::cutPass);
     double tailOffTol = BlisPar->entry(BlisParams::tailOff);
 
+    if (maxPass < ALPS_INT_MAX) {
+	++maxPass;
+    }
+    
     //------------------------------------------------------
     // Check if this can be fathomed by objective cutoff.
     //------------------------------------------------------
