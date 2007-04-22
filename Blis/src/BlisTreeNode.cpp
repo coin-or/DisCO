@@ -1980,19 +1980,23 @@ int BlisTreeNode::bound(BcpsModel *model)
 
     BlisModel *m = dynamic_cast<BlisModel *>(model);   
  
-#ifdef BLIS_DEBUG_MORE
+    // Bounding
+    m->solver()->resolve();
+
+
+#if 1
     int j;
     int numCols = m->solver()->getNumCols();
     const double * clb = m->solver()->getColLower();
     const double * cub = m->solver()->getColUpper();
+    const double * solution = m->solver()->getColSolution();
 
     for (j = 0; j < numCols; ++j) {
-	std::cout << "c"<< j <<"["<<clb[j]<<", "<< cub[j] << "]" << std::endl;
+	std::cout << "col"<< j <<": bounds ["<<clb[j]<<", "<< cub[j] << "]" 
+		  << ", x = " << solution[j]
+		  << std::endl;
     }
 #endif
-
-    // Bounding
-    m->solver()->resolve();
 
     if (m->solver()->isAbandoned()) {
 #ifdef BLIS_DEBUG
