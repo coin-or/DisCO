@@ -65,12 +65,13 @@ VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
    bool found_cut = false;
    VrpNetwork *n = model_->n_;
 
+   CoinPackedVector *sol = model_->getSolution();
+   model_->createNet(sol);
+   
    if (n->isIntegral_){
       /* if the network is integral, check for connectivity */
+      n->connected();
       return connectivityCuts(cs);
-   }else{
-      CoinPackedVector *sol = model_->getSolution();
-      model_->createNet(sol);
    }
 
    vertex *verts = n->verts_;
@@ -177,7 +178,7 @@ VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
 		  verts[max_node].comp = 0;
 		  coef_list[i][max_node >> DELETE_POWER] ^=
 		     (1 << (max_node & DELETE_AND));
-		  if (cur_slack < 0){/*if the cut is now violated, impose
+		  if (cur_slack < -etol){/*if the cut is now violated, impose
 				       it*/
 		     type = (compnodes[i+1] < vertnum/2 ?
 				      SUBTOUR_ELIM_SIDE:SUBTOUR_ELIM_ACROSS);
