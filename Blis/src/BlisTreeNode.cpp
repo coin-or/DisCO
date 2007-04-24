@@ -431,12 +431,22 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 
                         if (rowStatus == CoinWarmStartBasis::basic) {
                             delIndices.push_back(k);
-
+			    int count;
                             if (k < numStartRows) {
-                                oldDelMark[(k-numCoreRows)] = 1;
+				BlisConstraint *tmpCon = model->oldConstraints()[(k-numCoreRows)];
+				count = tmpCon->getNumInactive() + 1;
+				tmpCon->setNumInactive(count);
+				if (tmpCon->getNumInactive() > 3) {
+				    oldDelMark[(k-numCoreRows)] = 1;
+				}
                             }
                             else {
-				newDelMark[(k-numStartRows)] = 1;
+				BcpsObject* tmpCon = newConstraints[(k-numStartRows)];
+				count = tmpCon->getNumInactive() + 1;
+				tmpCon->setNumInactive(count);
+				if (tmpCon->getNumInactive() > 3) {
+				    newDelMark[(k-numStartRows)] = 1;
+				}
                             }
                         }
                     }
@@ -742,7 +752,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     if (needBranch) { 
 	
         // Find the best branching object
-        numPassesLeft = 10;      
+        numPassesLeft = 0;      
         bStatus = -1;
         
         while (bStatus == -1) { 
@@ -3410,7 +3420,7 @@ BlisTreeNode::parallel(BlisModel *model,
     //------------------------------------------------------
     // Compare with old cuts
     //------------------------------------------------------
-
+#if 0  // couse error for VRP
     int numOldCons = model->getNumOldConstraints();
     for (k = 0; k < numOldCons; ++k) {
 	BlisConstraint *aCon = model->oldConstraints()[k];
@@ -3420,7 +3430,7 @@ BlisTreeNode::parallel(BlisModel *model,
 				      threshold);
 	if (parallel) return parallel;
     }
-    
+#endif    
 
     //------------------------------------------------------
     // Compare with new cuts
