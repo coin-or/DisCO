@@ -55,7 +55,6 @@ BlisTreeNode::createNewTreeNode(AlpsNodeDesc *&desc) const
 {
     double estimate = solEstimate_;
 
-#if 1
     // Set solution estimate for this nodes.
     // double solEstimate = quality_ + sum_i{min{up_i, down_i}}
     int branchDir = dynamic_cast<BlisNodeDesc *>(desc)->getBranchedDir();
@@ -74,7 +73,6 @@ BlisTreeNode::createNewTreeNode(AlpsNodeDesc *&desc) const
     else {
 	estimate -= f * obj->pseudocost().getDownCost();
     }
-#endif
 
 #ifdef BLIS_DEBUG_MORE
     printf("BLIS:createNewTreeNode: quality=%g, solEstimate=%g\n",
@@ -117,7 +115,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     // Only autmatic stategy has depth limit.
     int maxConstraintDepth = 20;
 
-    int numPassesLeft = 20;      
+    int numPassesLeft = 0;      
     int bStatus = -1;
  
     double cutoff = getKnowledgeBroker()->getIncumbentValue();
@@ -366,7 +364,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                         keepOn = true;
                     }
                     
-#if 1
+#if 0
                     std::cout << "PROCESS: boundingPass_["
                               << model->boundingPass_ << "], improvement=" 
                               << improvement << ", tailOffTol=" << tailOffTol
@@ -751,7 +749,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     
     if (needBranch) { 
 	
-        // Find the best branching object
+        // Resolve() has trouble if user has feasibility check
         numPassesLeft = 0;      
         bStatus = -1;
         
@@ -2006,7 +2004,7 @@ int BlisTreeNode::bound(BcpsModel *model)
     m->solver()->writeMps(name, "mps", 1.0);
 #endif
 
-#if 1
+#if 0
     int j;
     int numCols = m->solver()->getNumCols();
     const double * clb = m->solver()->getColLower();
@@ -2507,7 +2505,7 @@ int BlisTreeNode::installSubProblem(BcpsModel *m)
 
     model->setNumOldConstraints(numOldCons);
     
-#if 1
+#if 0
     std::cout << "INSTALL: after collecting, numOldCons = " << numOldCons 
 	      << std::endl;
 #endif
@@ -2724,7 +2722,7 @@ BlisTreeNode::applyConstraints(BlisModel *model,
 	    
             OsiRowCut *rowCut = NULL;
 	    
-#if 1
+#if 0
             printf("\nAPPLYCUT: before selecting, num of new cuts = %d\n",
                    numRowCuts);
 #endif
@@ -2761,7 +2759,7 @@ BlisTreeNode::applyConstraints(BlisModel *model,
                     if (length <= 0) {
                         keep = false;
 
-#if 1
+#if 0
                         std::cout << "APPLYCUT: A empty cut." << std::endl;
 #endif
                         break;
@@ -2773,7 +2771,7 @@ BlisTreeNode::applyConstraints(BlisModel *model,
 
                     if(length > model->getDenseConCutoff()){
                         keep = false;
-#if 1
+#if 0
                         std::cout << "APPLYCUT: A dense cut. length = " 
                                   << length << ", cutoff = " 
                                   << model->getDenseConCutoff() << std::endl;
@@ -2819,7 +2817,7 @@ BlisTreeNode::applyConstraints(BlisModel *model,
                               << ", minElem=" << minElem << std::endl;
 #endif
                     if (scaleFactor > scaleConFactor) {
-#if 1
+#if 0
                         std::cout<< "APPLYCUT: remove a bad scaled cut"
                                  << std::endl;
 #endif
@@ -2859,7 +2857,7 @@ BlisTreeNode::applyConstraints(BlisModel *model,
                     
                     if (violation < 1.0e-6) {
                         // Found a weak cuts.
-#if 1
+#if 0
                         std::cout<< "WARNING: APPLYCUT: a weak cut, violation="
                                  << violation << std::endl;
 #endif
@@ -2876,7 +2874,7 @@ BlisTreeNode::applyConstraints(BlisModel *model,
 					  i,
 					  rowCut);
 		    if (paral) {
-#if 1
+#if 0
                         std::cout<< "APPLYCUT: remove a parallel"<< std::endl;
 #endif
 			keep = false;
@@ -2903,7 +2901,7 @@ BlisTreeNode::applyConstraints(BlisModel *model,
             }
 	    
 
-#if 1
+#if 0
             printf("APPLYCUT: after selecting, added %d new cuts to LP\n\n",
                    numAdded);
 #endif
