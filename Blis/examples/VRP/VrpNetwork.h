@@ -23,6 +23,14 @@
 #define OTHER_END(cur_edge, v) \
         (cur_edge->data->v0 == v) ? cur_edge->data->v1 : cur_edge->data->v0
 
+#ifndef MIN
+#define MIN(x, y) (x < y ? x : y)
+#endif
+
+#ifndef MAX
+#define MAX(x, y) (x > y ? x : y) 
+#endif
+
 /*-----------------------------------------------------------------------*\
 | These are data tructures used in constructing the solution graph used   |
 | by the cut generator to locate cuts. The graph is stored using          |
@@ -88,7 +96,7 @@ class VrpNetwork{
    int            *compDemands_; /* demand in each component */
    double         *compCuts_;    /* weight of cprresponding cut */
    int            *compMembers_; /* which component each vertex belongs to */
-   double         *newDemand_;   /* the amounts of demand for each node to add
+   int            *newDemand_;   /* the amounts of demand for each node to add
 				    when the network is contracted */
 
  public:
@@ -113,7 +121,7 @@ class VrpNetwork{
       compDemands_ = new int[vertnum_ + 1];
       compCuts_ = new double[vertnum_ + 1];
       compMembers_ = new int[vertnum_ + 1];
-      newDemand_ = 0;
+      newDemand_ = new int[vertnum_];
    }
 
    virtual ~VrpNetwork() {
@@ -132,6 +140,8 @@ class VrpNetwork{
    int connected();
    
    int biconnected();
+
+   void reduce_graph(double etol);
 
    void gutsOfDestructor();
    

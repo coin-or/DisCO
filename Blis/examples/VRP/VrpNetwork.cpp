@@ -144,6 +144,83 @@ VrpNetwork::depthFirstSearch(vertex *v, int *count1, int *count2)
 
 /*===========================================================================*/
 
+/*===========================================================================*\
+ * Calculates the connected components of the solution graph after removing
+ * the depot. Each node is assigned the number of the component in which it
+ * resides. The number of nodes in each component is put in "compnodes", the
+ * total demand of all customers in the component is put in "compdemands", and
+ * the value of the cut induced by the component is put in "compcuts".
+\*===========================================================================*/
+
+int 
+VrpNetwork::connected()
+{
+   int cur_node = 0, cur_comp = 0, cur_member = 0, num_nodes_to_scan = 0;
+   elist *cur_edge;
+
+   memset(compNodes_, 0, (vertnum_ + 1)*sizeof(int));
+   memset(compCuts_, 0, (vertnum_ + 1)*sizeof(double));
+   memset(compDemands_, 0, (vertnum_ + 1)*sizeof(int));
+      
+   int *nodes_to_scan = new int[vertnum_];
+   
+   while (true){
+      for (cur_node = 1; cur_node < vertnum_; cur_node++)
+	 if (!verts_[cur_node].comp){/*look for a node that hasn't been 
+				       assigned to a component yet*/
+	    break;
+	 }
+      
+      if (cur_node == vertnum_) break;/*this indicates that all nodes have been
+					assigned to components*/
+      
+      nodes_to_scan[num_nodes_to_scan++] = cur_node;/*add the first node to the
+						      list of nodes to be 
+						      scanned*/
+      
+      compMembers_[++cur_member] = cur_node;
+      
+      verts_[cur_node].comp = ++cur_comp;/*add the first node into the new
+					   component*/
+      compNodes_[cur_comp] = 1;
+      verts_[cur_node].comp = cur_comp;
+      compDemands_[cur_comp] = verts_[cur_node].demand;
+      while(true){/*continue to execute this loop until there are no more
+		    nodes to scan if there is a node to scan, then add all of
+		    its neighbors in to the current component and take it off
+		    the list*/
+	 for (cur_node = nodes_to_scan[--num_nodes_to_scan],
+		 verts_[cur_node].scanned = true,
+		 cur_edge = verts_[cur_node].first, 
+		 cur_comp = verts_[cur_node].comp;
+	      cur_edge; cur_edge = cur_edge->next_edge){
+	    if (cur_edge->other_end){
+	       if (!verts_[cur_edge->other_end].comp){
+		  verts_[cur_edge->other_end].comp = cur_comp;
+		  compNodes_[cur_comp]++;
+		  compMembers_[++cur_member] = cur_edge->other_end;
+		  compDemands_[cur_comp] += verts_[cur_edge->other_end].demand;
+		  nodes_to_scan[num_nodes_to_scan++] = cur_edge->other_end;
+	       }
+	    }
+	    else{/*if this node is connected to the depot, then
+		   update the value of the cut*/
+	       compCuts_[cur_comp] += cur_edge->data->weight;
+	    }
+	 }
+	 if (!num_nodes_to_scan) break;
+      }
+   }
+   
+   delete[] nodes_to_scan;
+
+   numComps_ = cur_comp;
+
+   return(cur_comp);
+}
+
+/*===========================================================================*/
+
 int 
 VrpNetwork::biconnected()
 {
@@ -242,78 +319,110 @@ VrpNetwork::computeCompNums(vertex *v, int parent_comp, int *num_comps,
 /*===========================================================================*/
 
 /*===========================================================================*\
- * Calculates the connected components of the solution graph after removing
- * the depot. Each node is assigned the number of the component in which it
- * resides. The number of nodes in each component is put in "compnodes", the
- * total demand of all customers in the component is put in "compdemands", and
- * the value of the cut induced by the component is put in "compcuts".
+ * This file implements the greedy shrinking algorithm of Augerat, et al.
+ * The implementation was done by Leonid Kopman.
 \*===========================================================================*/
 
-int 
-VrpNetwork::connected()
+void 
+VrpNetwork::reduce_graph(double etol)
 {
-   int cur_node = 0, cur_comp = 0, cur_member = 0, num_nodes_to_scan = 0;
-   elist *cur_edge;
+   elist *e1, *e2, *e3;
+   edge *cur_edge;
+   int v1, v2, deg, count, i, k;
+   int edges_deleted = 0;
+   vertex *v2_pt, *third_node;
+   int *demand = newDemand_;
 
-   memset(compNodes_, 0, (vertnum_ + 1)*sizeof(int));
-   memset(compCuts_, 0, (vertnum_ + 1)*sizeof(double));
-   memset(compDemands_, 0, (vertnum_ + 1)*sizeof(int));
-      
-   int *nodes_to_scan = new int[vertnum_];
-   
-   while (true){
-      for (cur_node = 1; cur_node < vertnum_; cur_node++)
-	 if (!verts_[cur_node].comp){/*look for a node that hasn't been 
-				       assigned to a component yet*/
-	    break;
-	 }
-      
-      if (cur_node == vertnum_) break;/*this indicates that all nodes have been
-					assigned to components*/
-      
-      nodes_to_scan[num_nodes_to_scan++] = cur_node;/*add the first node to the
-						      list of nodes to be 
-						      scanned*/
-      
-      compMembers_[++cur_member] = cur_node;
-      
-      verts_[cur_node].comp = ++cur_comp;/*add the first node into the new
-					   component*/
-      compNodes_[cur_comp] = 1;
-      verts_[cur_node].comp = cur_comp;
-      compDemands_[cur_comp] = verts_[cur_node].demand;
-      while(true){/*continue to execute this loop until there are no more
-		    nodes to scan if there is a node to scan, then add all of
-		    its neighbors in to the current component and take it off
-		    the list*/
-	 for (cur_node = nodes_to_scan[--num_nodes_to_scan],
-		 verts_[cur_node].scanned = true,
-		 cur_edge = verts_[cur_node].first, 
-		 cur_comp = verts_[cur_node].comp;
-	      cur_edge; cur_edge = cur_edge->next_edge){
-	    if (cur_edge->other_end){
-	       if (!verts_[cur_edge->other_end].comp){
-		  verts_[cur_edge->other_end].comp = cur_comp;
-		  compNodes_[cur_comp]++;
-		  compMembers_[++cur_member] = cur_edge->other_end;
-		  compDemands_[cur_comp] += verts_[cur_edge->other_end].demand;
-		  nodes_to_scan[num_nodes_to_scan++] = cur_edge->other_end;
+   while(true){
+      edges_deleted = 0;
+      for (i = 0; i < edgenum_; i++){
+	 cur_edge = edges_ + i;
+	 if (cur_edge->weight >= 1 - etol && cur_edge->v0 &&
+	     cur_edge->v1 && !(cur_edge->deleted)){
+	    cur_edge->deleted = true;
+	    edgenum_--;
+	    edges_deleted++;
+	    v1 = (verts_[cur_edge->v0].degree ==
+		  MIN(verts_[cur_edge->v0].degree, 
+		      verts_[cur_edge->v1].degree))?
+	          cur_edge->v0 : cur_edge->v1;
+	    v2 = (v1 == cur_edge->v0) ? cur_edge->v1 : cur_edge->v0;
+	    verts_[v1].deleted = true;
+	    demand[v2] += demand[v1];
+	    demand[v1] = 0;
+	    v2_pt = verts_ + v2;
+	    v2_pt->degree--;
+	    if (v2_pt->first->other_end == v1){
+	       v2_pt->first = v2_pt->first->next_edge;
+	    }else{
+	       for (e3 = v2_pt->first; e3 && e3->next_edge; e3 = e3->next_edge)
+		  if (e3->next_edge->other_end == v1){
+		     e3->next_edge = e3->next_edge->next_edge;
+		     if (e3->next_edge == NULL) v2_pt->last = e3;
+		     break;
+		  }
+	    }
+	    
+	    if (!(v2_pt->orig_node_list_size))
+	       v2_pt->orig_node_list = new int[vertnum_];
+	    (v2_pt->orig_node_list)[(v2_pt->orig_node_list_size)++] = v1;
+	    
+	    for (k = 0; k < verts_[v1].orig_node_list_size; k++){
+	       (v2_pt->orig_node_list)[(v2_pt->orig_node_list_size)++] =
+		  (verts_[v1].orig_node_list)[k];
+	    }
+	    deg = verts_[v1].degree;
+	    
+	    for (e1=verts_[v1].first, count=0; e1 && (count < deg); count++ ){
+	       third_node = e1->other;
+	       if (third_node->orignodenum == v2){
+		  e1 = e1->next_edge;
+		  continue;
 	       }
-	    }
-	    else{/*if this node is connected to the depot, then
-		   update the value of the cut*/
-	       compCuts_[cur_comp] += cur_edge->data->weight;
+	       for (e2 = v2_pt->first; e2; e2 = e2->next_edge){
+		  if (e2->other_end == e1->other_end ){
+		     e2->data->weight += e1->data->weight;
+		     e1->data->deleted = true;
+		     edges_deleted++;
+		     (third_node->degree)--;
+		     if (third_node->first->other_end == v1){
+			third_node->first=third_node->first->next_edge;
+		     }else{
+			for (e3 = third_node->first; e3 && e3->next_edge;
+			     e3 = e3->next_edge)
+			   if (e3->next_edge->other_end == v1){
+			      e3->next_edge = e3->next_edge->next_edge;
+			      if (e3->next_edge == NULL) third_node->last = e3;
+			      break;
+			   }
+		     }
+		     break;
+		  }
+	       }
+	       if (e2){
+		  e1 = e1->next_edge;
+		  continue;
+	       }
+	       /* ok, so e1->other_node is not incident to v2 */
+	       for (e3 = third_node->first; e3 ; e3 = e3->next_edge){
+		  if (e3->other_end == v1){
+		     e3->other = v2_pt;
+		     e3->other_end = v2;
+		     e3->data->v0 = MIN(v2, third_node->orignodenum);
+		     e3->data->v1 = MAX(v2, third_node->orignodenum);
+		     break;
+		  }
+	       }
+	       v2_pt->last->next_edge = e1;
+	       v2_pt->last = e1;
+	       v2_pt->degree++;
+	       e1=e1->next_edge;
+	       v2_pt->last->next_edge = NULL;
 	    }
 	 }
-	 if (!num_nodes_to_scan) break;
       }
+      if (!edges_deleted) break;
    }
-   
-   delete[] nodes_to_scan;
-
-   numComps_ = cur_comp;
-
-   return(cur_comp);
 }
 
 /*===========================================================================*/

@@ -513,6 +513,9 @@ VrpModel::readInstance(const char* dataFile)
    // Allocate space for network for later use
    
    n_ = new VrpNetwork(edgenum_, vertnum_);
+   VrpCutGenerator *cg = new VrpCutGenerator(this, vertnum_);
+   cg->setStrategy(1);  // Generate cuts at every node
+   addCutGenerator(cg);
 }
 
 /*===========================================================================*/

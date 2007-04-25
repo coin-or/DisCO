@@ -66,11 +66,24 @@ public:
 
    virtual bool generateCons(OsiCuts &cs, bool fullScan);
   
-   bool connectivityCuts(OsiCuts &cs);
+   int connectivityCuts(OsiCuts &cs);
    
-   bool addCut(OsiCuts &cs, char *coef, int rhs, int type);
+   int addCut(OsiCuts &cs, char *coef, int rhs, int type);
 
    void setModel(VrpModel *vrp){ model_ = vrp; }
+   
+   int greedyShrinking1(VrpModel *m, int max_shrink_cuts, OsiCuts &cs);
+
+   int greedyShrinking1One(VrpModel *m, int max_shrink_cuts, OsiCuts &cs);
+
+   int greedyShrinking6(VrpModel *m, int max_shrink_cuts, int trial_num,
+			 double prob, OsiCuts &cs);
+
+   int greedyShrinking6One(VrpModel *m, int max_shrink_cuts, int trial_num,
+			    double prob, OsiCuts &cs);
+
+   int greedyShrinking2One(VrpModel *m, int max_shrink_cuts, OsiCuts &cs);
+
 };
 
 //#############################################################################

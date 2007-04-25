@@ -28,7 +28,8 @@ VrpCutGenerator::VrpCutGenerator(VrpModel *vrp, int vertnum)
    if (vertnum){
       ref_ = new int[model_->vertnum_];
       cutVal_ = new double[model_->vertnum_];
-      cutList_ = new char[(model_->vertnum_ >> DELETE_POWER) + 1];
+      cutList_ = new char[((model_->vertnum_ >> DELETE_POWER) + 1)*
+		 model_->VrpPar_->entry(VrpParams::maxNumCutsInShrink)];
       inSet_ = new char[model_->vertnum_];
    }else{
       ref_ = 0;
@@ -43,12 +44,12 @@ VrpCutGenerator::VrpCutGenerator(VrpModel *vrp, int vertnum)
 /*===========================================================================*/
 
 // Return if need resolve LP immediately.
-// Newt cuts are stored in OsiCuts cs
+// New cuts are stored in OsiCuts cs
 bool 
 VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
 {
    int vertnum = model_->vertnum_;
-   int comp_num = 0, rcnt, cur_bins = 0, i, k, max_node;
+   int rcnt, cur_bins = 0, i, k, max_node;
    double cur_slack = 0.0, node_cut, max_node_cut;
    int cut_size = (vertnum >> DELETE_POWER) + 1, num_cuts = 0;
    elist *cur_edge = NULL;
@@ -62,7 +63,6 @@ VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
    int node1 = 0, node2 = 0;
    int total_demand = demand[0], num_trials = 0;
    int type, rhs, capacity = model_->capacity_;
-   bool found_cut = false;
    VrpNetwork *n = model_->n_;
 
    CoinPackedVector *sol = model_->getSolution();
@@ -71,7 +71,7 @@ VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
    if (n->isIntegral_){
       /* if the network is integral, check for connectivity */
       n->connected();
-      return connectivityCuts(cs);
+      return connectivityCuts(cs) ? true: false;
    }
 
    vertex *verts = n->verts_;
@@ -97,7 +97,6 @@ VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
 					 (char*)compnodes,
 					 (vertnum + 1)*sizeof(int));
 	 compnodes = compnodes_copy;
-	 comp_num = rcnt;
       }
       if (rcnt > 1){
 	 /*---------------------------------------------------------------*\
@@ -129,8 +128,7 @@ VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
 	       rhs = (type == SUBTOUR_ELIM_SIDE ?
 		      RHS(compnodes[i+1],compdemands[i+1],
 			  capacity): 2*BINS(compdemands[i+1],capacity));
-	       found_cut = addCut(cs, coef_list[i], rhs, type);
-	       num_cuts++;
+	       num_cuts += addCut(cs, coef_list[i], rhs, type);
 	    }
 	    else{/*if the constraint is not violated, then try generating a
 		   violated constraint by deleting customers that don't
@@ -185,8 +183,7 @@ VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
 		     rhs = (type == SUBTOUR_ELIM_SIDE ?
 			    RHS(compnodes[i+1], compdemands[i+1],
 				capacity): 2*cur_bins);
-		     found_cut = addCut(cs, coef_list[i], rhs, type);
-		     num_cuts++;
+		     num_cuts += addCut(cs, coef_list[i], rhs, type);
 		     break;
 		  }
 	       }
@@ -202,7 +199,7 @@ VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
    compnodes = n->compNodes_;
    
    if (!do_greedy){
-      return found_cut;
+      return num_cuts ? true : false;
    }
 
    if (num_cuts < 10 && do_greedy){
@@ -229,7 +226,7 @@ VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
 		     for (i = 1; i <vertnum ; i++)
 			if ((i != node1) && (i != node2))
 			   (coef[i >> DELETE_POWER]) |= (1 << (i&DELETE_AND));
-		     found_cut = addCut(cs, coef, rhs, type);
+		     num_cuts += addCut(cs, coef, rhs, type);
 		  }
 		  break; 
 	       }
@@ -239,40 +236,51 @@ VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
       delete [] coef;
    }
 
-#if 0
-   if (*num_cuts < 10 && do_greedy){
-      memcpy((char *)newDemand, (char *)demand, vertnum*ISIZE);
-      reduce_graph();
-      if (comp_num > 1){
-	 greedy_shrinking1(compnodes_copy, comp_num);
+   n->compNodes_ = compnodes_copy;
+
+   if (num_cuts < 10 && do_greedy){
+      
+      memcpy((char *)n->newDemand_, (char *)demand, vertnum*sizeof(int));
+   
+      n->reduce_graph(model_->etol_);
+      if (n->numComps_ > 1){
+	 num_cuts += greedyShrinking1(
+                     model_, par->entry(VrpParams::maxNumCutsInShrink), cs);
       }else{
-	 greedy_shrinking1_one();
+	 num_cuts += greedyShrinking1One(
+                     model_, par->entry(VrpParams::maxNumCutsInShrink), cs);
       }
    }
 
-   if (*num_cuts < 10 && do_greedy){
-      if (par->entry(VrpParams::doExtraInRoot))
-	 num_trials = level ? par->entry(VrpParams::greedyNumTrials):
+   if (num_cuts < 10 && do_greedy){
+      if (par->entry(VrpParams::doExtraInRoot)){
+	 num_trials = 
+	    //level ? par->entry(VrpParams::greedyNumTrials):
 	    2*par->entry(VrpParams::greedyNumTrials);
-      else
-	 num_trials = par->entry(VrpParams::greedyNumTrials);
-      if (comp_num){
-	 greedy_shrinking6(compnodes_copy, comp_num, num_cuts ? num_trials :
-			   2 * num_trials, 10.5);
       }else{
-	 greedy_shrinking6_one(num_cuts ? num_trials : 2 * num_trials, 10.5); 
+	 num_trials = par->entry(VrpParams::greedyNumTrials);
+      }
+      if (n->numComps_){
+	 num_cuts += greedyShrinking6(
+                          model_,par->entry(VrpParams::maxNumCutsInShrink),
+			  num_cuts ? num_trials : 2 * num_trials, 10.5, cs);
+      }else{
+	 num_cuts += greedyShrinking6One(
+                             model_, par->entry(VrpParams::maxNumCutsInShrink),
+			     num_cuts ? num_trials : 2 * num_trials, 10.5, cs);
       }
    }
-#endif
+
+   n->compNodes_ = compnodes;
 
    delete[] compnodes_copy;
 
-   return found_cut;
+   return num_cuts ? true : false;
 }
 
 /*===========================================================================*/
 
-bool 
+int
 VrpCutGenerator::connectivityCuts(OsiCuts &cs)
 {
    int vertnum = model_->vertnum_;
@@ -289,9 +297,9 @@ VrpCutGenerator::connectivityCuts(OsiCuts &cs)
    int *compnodes = n->compNodes_;
    int *compdemands = n->compDemands_;
    double etol = model_->etol_;
-   bool found_cut = false;
+   int num_cuts = 0;
 
-   if (!n->isIntegral_) return false;
+   if (!n->isIntegral_) return 0;
 
    /* This is a flag to tell the cut generator that the network has not been
       constructed until the next call to userFeasibleSolution();*/
@@ -327,7 +335,7 @@ VrpCutGenerator::connectivityCuts(OsiCuts &cs)
 	rhs = (type == SUBTOUR_ELIM_SIDE ? 
 	       RHS(compnodes[i+1], compdemands[i+1], capacity) :
 	       2*BINS(compdemands[i+1], capacity));
-	found_cut = addCut(cs, coef_list[i], rhs, type);
+	num_cuts += addCut(cs, coef_list[i], rhs, type);
      }
   }
 
@@ -341,6 +349,7 @@ VrpCutGenerator::connectivityCuts(OsiCuts &cs)
 
   int numroutes = model_->numroutes_;
   route = new int[vertnum];
+  char *coef = new char[cut_size];
   for (cur_route_start = verts[0].first, cur_route = 0,
 	  edge_data = cur_route_start->data; cur_route < numroutes;
        cur_route++){
@@ -349,7 +358,6 @@ VrpCutGenerator::connectivityCuts(OsiCuts &cs)
      cur_vert = edge_data->v1;
      prev_vert = weight = cust_num = 0;
      
-     char *coef = new char[cut_size];
      memset(coef, 0, cut_size*sizeof(char));
 
      route[0] = cur_vert;
@@ -365,7 +373,7 @@ VrpCutGenerator::connectivityCuts(OsiCuts &cs)
 		   SUBTOUR_ELIM_SIDE:SUBTOUR_ELIM_ACROSS);
 	   rhs = (type ==SUBTOUR_ELIM_SIDE ? RHS(cust_num, weight, capacity):
 		  2*BINS(weight, capacity));
-	   found_cut = addCut(cs, coef, rhs, type);
+	   num_cuts += addCut(cs, coef, rhs, type);
 	   vert1 = route[0];
 	   reduced_weight = weight;
 	   reduced_cust_num = cust_num;
@@ -379,7 +387,7 @@ VrpCutGenerator::connectivityCuts(OsiCuts &cs)
 		 rhs = (type ==SUBTOUR_ELIM_SIDE ?
 			RHS(reduced_cust_num, reduced_weight, capacity):
 			2*BINS(reduced_weight, capacity));
-		 found_cut = addCut(cs, coef, rhs, type);
+		 num_cuts += addCut(cs, coef, rhs, type);
 		 vert1 = route[vert1];
 	      }else{
 		 break;
@@ -407,8 +415,6 @@ VrpCutGenerator::connectivityCuts(OsiCuts &cs)
      }
      edge_data->scanned = true;
      
-     delete [] coef;
-     
      while (cur_route_start->data->scanned){/*find the next edge leading out of
 					      the depot which has not yet been
 					      traversed to start the next
@@ -418,18 +424,758 @@ VrpCutGenerator::connectivityCuts(OsiCuts &cs)
   }
   
   delete [] route;
+  delete [] coef;
   
   for (cur_route_start = verts[0].first; cur_route_start;
        cur_route_start = cur_route_start->next_edge)
      cur_route_start->data->scanned = false;
 
   // return if need resolve LP immediately.
-  return found_cut;
+  return num_cuts;
 }
 
 /*===========================================================================*/
 
-bool
+int
+VrpCutGenerator::greedyShrinking1(VrpModel *m, int max_shrink_cuts, 
+				  OsiCuts &cs)
+{
+   VrpNetwork *n = m->n_;
+   double set_cut_val, set_demand;
+   vertex *verts = n->verts_;
+   elist *e;
+   int shrink_cuts = 0, i, j, k;
+   char *pt, *cutpt;
+   int *ipt; 
+   double  *dpt;
+   int vertnum = n->vertnum_;
+   int truck_cap = m->capacity_, type;
+   
+   int max_vert = 0, set_size, begin = 1, cur_comp, end = 1, other_end;
+   double maxval, weight;
+   vertex *cur_nodept;
+   int *compmembers = n->compMembers_;
+   int *compnodes = n->compNodes_;
+   int *demand = n->newDemand_;
+   double etol = m->etol_;
+
+   int rhs;
+   int size = (vertnum >> DELETE_POWER) + 1;
+   char *coef = new char[size];
+   memset(coef, 0, size);
+   memset(cutList_, 0, size * (max_shrink_cuts + 1));
+   
+   *inSet_ = 0;
+   
+   for (i = 1; i < vertnum;  i++){
+      if (verts[compmembers[i]].deleted) compmembers[i] = 0;
+      ref_[compmembers[i]] = i;
+   }
+   *ref_ = 0;
+   /* ref_ is a reference array for compmembers: gives a place
+      in which a vertex is listed in  compmembers */
+   
+   for (cur_comp = 1; cur_comp <= n->numComps_;
+	begin += compnodes[cur_comp], cur_comp++){  /* for every component */
+      for (i = begin, end = begin + compnodes[cur_comp]; i < end; i++){
+	 if (compmembers[i] == 0) continue;
+	 /* for every node as a starting one */
+	 /*initialize the data structures */
+	 memset(inSet_  + begin, 0, compnodes[cur_comp] * sizeof(char));
+	 memset(cutVal_ + begin, 0, compnodes[cur_comp] * sizeof(double));
+	 inSet_[i] = 1;
+	 set_size = 1 + verts[compmembers[i]].orig_node_list_size; 
+	 set_cut_val = 0;     
+	 for (e = verts[compmembers[i]].first; e; e = e->next_edge){
+	    if (e->other_end)
+	       cutVal_[ref_[e->other_end]] = e->data->weight;
+	    set_cut_val += e->data->weight;
+	 }
+	 set_demand = demand[compmembers[i]];  
+	 
+	 while(true){ 
+	    if (set_cut_val < 2*(ceil(set_demand/truck_cap)) - etol &&
+		set_size > 2){
+	       memset(coef, 0, size*sizeof(char));
+	       for (j = begin, ipt = compmembers + begin; j < end; j++, ipt++){
+		  if (inSet_[j]){
+		     cur_nodept = verts + (*ipt);
+		     if (cur_nodept->orig_node_list_size)
+			for (k = 0; k < cur_nodept->orig_node_list_size; k++)
+			   (coef[(cur_nodept->orig_node_list)[k] >>
+				 DELETE_POWER]) |=
+			      (1 << ((cur_nodept->orig_node_list)[k] &
+				     DELETE_AND));
+		     (coef[(*ipt) >> DELETE_POWER]) |=
+			(1 << ((*ipt) & DELETE_AND));
+		  }  
+	       }
+	       type = (set_size < vertnum/2 ?
+		       SUBTOUR_ELIM_SIDE:SUBTOUR_ELIM_ACROSS);
+	       rhs =  (type == SUBTOUR_ELIM_SIDE ?
+		       RHS((int)set_size,(int)set_demand,
+			   (int)truck_cap):
+		       2*BINS((int)set_demand, (int)truck_cap));
+	       for (k = 0, cutpt = cutList_; k < shrink_cuts; k++,
+		       cutpt += size)
+		  if (!memcmp(coef, cutpt, size*sizeof(char)))
+		     break;/* same cuts */ 
+	       if (k >= shrink_cuts){ 
+		  shrink_cuts += addCut(cs, coef, rhs, type);
+		  memcpy(cutpt, coef, size);
+	       }
+	       if (shrink_cuts > max_shrink_cuts){
+		  delete [] coef;
+		  return(shrink_cuts);
+	       }
+	    } 
+	    for (maxval = -1, pt = inSet_ + begin, dpt = cutVal_ + begin,
+		    j = begin; j < end; pt++, dpt++, j++){
+	       if (!(*pt) && *dpt > maxval){
+		  maxval = cutVal_[j];
+		  max_vert = j; 
+	       }
+	    }
+	    if (maxval > 0){    /* add the vertex to the set */
+	       inSet_[max_vert]=1;
+	       set_size += 1+ verts[compmembers[max_vert]].orig_node_list_size;
+	       set_demand += demand[compmembers[max_vert]];
+	       cutVal_[max_vert] = 0;
+	       for (e=verts[compmembers[max_vert]].first; e; e = e->next_edge){
+		  other_end = ref_[e->other_end];
+		  weight = e->data->weight;
+		  set_cut_val += (inSet_[other_end]) ? (-weight):weight;
+		  cutVal_[other_end] += (inSet_[other_end]) ? 0 : weight;
+		  
+	       }
+	    }
+	    else{ /* can't add anything to the set */
+	       break;
+	    }
+	 }   
+      }
+   }
+   
+   delete [] coef;
+
+   return(shrink_cuts);
+}
+
+/*===========================================================================*/
+
+int
+VrpCutGenerator::greedyShrinking6(VrpModel *m, int max_shrink_cuts, 
+				  int trial_num, double prob, OsiCuts &cs)
+{
+   VrpNetwork *n = m->n_;
+   double set_cut_val, set_demand;
+   vertex  *verts = n->verts_;
+   elist *e;
+   int i, j, k, shrink_cuts = 0;
+   char *pt, *cutpt;
+   double *dpt;
+   int vertnum = n->vertnum_, type;
+   int truck_cap = m->capacity_; 
+  
+   int max_vert = 0, set_size, begin = 1, cur_comp, end = 1, num_trials;
+   double maxval;
+   double denominator=pow(2.0,31.0)-1.0;
+   double r, q;
+   
+   int other_end;
+   double weight;
+   int *ipt; 
+   vertex *cur_nodept;
+   int *compmembers = n->compMembers_;
+   int *compnodes = n->compNodes_;
+   int *demand = n->newDemand_;
+   double etol = m->etol_;
+
+   int rhs;
+   int size = (vertnum >> DELETE_POWER) + 1;
+   char *coef = new char[size];
+   memset(coef, 0, size);
+   memset(cutList_, 0, size * (max_shrink_cuts +1));
+   
+   
+   *inSet_=0;
+   
+   for(i = 1; i < vertnum; i++){
+      if (verts[compmembers[i]].deleted) compmembers[i] = 0;
+      ref_[compmembers[i]] = i;
+   }
+   *ref_ = 0;  
+   
+   /* ref_ is a reference array for compmembers: gives a place
+      in which a vertex is listed in  compmembers */
+   
+   for (cur_comp = 1; cur_comp <= n->numComps_; begin += compnodes[cur_comp],
+	   cur_comp++){
+      /* for every component */
+      if (compnodes[cur_comp] <= 7) continue;
+      
+      for (num_trials = 0; num_trials < trial_num * compnodes[cur_comp];
+	num_trials++){
+	 end = begin + compnodes[cur_comp];
+	 /*initialize the data structures */
+	 memset(inSet_ + begin, 0, compnodes[cur_comp] * sizeof(char));
+	 memset(cutVal_+ begin, 0, compnodes[cur_comp] * sizeof(double));
+	 
+	 set_cut_val = 0;
+	 set_size = 0;
+	 set_demand = 0;
+         for (i = begin; i < end; i++ ){
+	    if (compmembers[i] == 0) continue;
+	    r = (RANDOM()/denominator);
+	    q = (prob/compnodes[cur_comp]);
+	    if (r < q){
+	       inSet_[i] = 1;
+	       set_size += 1 + verts[compmembers[i]].orig_node_list_size;
+	       set_demand += demand[compmembers[i]];
+	       for (e = verts[compmembers[i]].first; e; e = e-> next_edge){
+		  other_end = ref_[e->other_end];
+		  weight = e->data->weight;
+		  set_cut_val += (inSet_[other_end]) ? (-weight) : weight;
+		  cutVal_[other_end] += (inSet_[other_end]) ? 0 : weight;
+	       }
+	    }
+	 }
+	 while(set_size){ 
+	    if (set_cut_val < 2*(ceil(set_demand/truck_cap)) - etol &&
+		set_size > 2){
+	       memset(coef, 0, size*sizeof(char));
+	       for (j = begin, ipt = compmembers + begin; j < end; j++, ipt++)
+		  if (inSet_[j]){
+		     cur_nodept = verts + (*ipt);
+		     if (cur_nodept->orig_node_list_size)
+			for (k = 0; k < cur_nodept->orig_node_list_size; k++)
+			   (coef[(cur_nodept->orig_node_list)[k] >>
+				DELETE_POWER]) |=
+			      (1 << ((cur_nodept->orig_node_list)[k] &
+				     DELETE_AND));
+		     (coef[(*ipt) >> DELETE_POWER]) |= (1 << ((*ipt) &
+							      DELETE_AND));
+		  }  
+	       type = (set_size < vertnum/2 ?
+				SUBTOUR_ELIM_SIDE:SUBTOUR_ELIM_ACROSS);
+	       rhs =  (type == SUBTOUR_ELIM_SIDE ?
+		       RHS((int)set_size,(int)set_demand, (int)truck_cap):
+		       2*BINS((int)set_demand, (int)truck_cap));
+	       for (k = 0, cutpt = cutList_; k < shrink_cuts; k++,
+		       cutpt += size)
+		  if (!memcmp(coef, cutpt, size*sizeof(char))) break; 
+	       if ( k >= shrink_cuts){
+		  shrink_cuts += addCut(cs, coef, rhs, type);
+		  memcpy(cutpt, coef, size);
+	       }
+	 
+	       if ( shrink_cuts > max_shrink_cuts){
+		  delete [] coef;
+		  return(shrink_cuts);
+	       }
+	    } 
+	    for (maxval = -1, pt = inSet_+begin, dpt = cutVal_+begin,
+		    j = begin; j < end; pt++, dpt++, j++){
+	       if (!(*pt) && *dpt > maxval){
+		  maxval = cutVal_[j];
+		  max_vert = j; 
+	       }
+	    }
+	    if (maxval > 0){    /* add the vertex to the set */
+	       inSet_[max_vert]=1;
+	       set_size+=1+ verts[compmembers[max_vert]].orig_node_list_size;
+	       set_demand+=demand[compmembers[max_vert]];
+	       cutVal_[max_vert]=0;
+	       for (e = verts[compmembers[max_vert]].first; e;
+		    e = e->next_edge){
+		  other_end = ref_[e->other_end];
+		  weight = e->data->weight;
+		  set_cut_val += (inSet_[other_end]) ? (-weight) : weight;
+		  cutVal_[other_end]+=(inSet_[other_end]) ? 0 : weight;
+	       }
+	    }
+	    else{ /* can't add anything to the set */
+	       break;
+	    }
+	 }   
+      }
+   }
+   
+   delete [] coef;
+   return shrink_cuts ? true : false;
+}
+
+/*===========================================================================*/
+
+int
+VrpCutGenerator::greedyShrinking1One(VrpModel *m, int max_shrink_cuts, 
+				     OsiCuts &cs)
+{
+   VrpNetwork *n = m->n_; 
+   double set_cut_val, set_demand;
+   vertex  *verts = n->verts_;
+   elist *e;
+   int i, j, k, shrink_cuts = 0;
+   char *pt, *cutpt;
+   double  *dpt;
+   int vertnum = n->vertnum_, type;
+   int truck_cap = m->capacity_; 
+   int max_vert = 0;
+   int set_size;
+   /* int flag=0; */
+
+   double complement_demand, total_demand = verts[0].demand; 
+   double complement_cut_val; 
+   int complement_size; 
+   double maxval;
+   int other_end;
+   double weight; 
+   vertex *cur_nodept;
+   int *demand = n->newDemand_;
+   double etol = m->etol_;
+
+   int rhs;
+   int size = (vertnum >> DELETE_POWER) + 1;
+   char *coef = new char[size];
+   memset(coef, 0, size);
+   memset(cutList_, 0, size * (max_shrink_cuts + 1));
+   
+   for (i = 1; i < vertnum; i++ ){
+      if (verts[i].deleted) continue;/* for every node as a starting one */
+      /*initialize the data structures */
+      memset(inSet_, 0, vertnum*sizeof(char));
+      memset(cutVal_, 0,vertnum* sizeof(double)); 
+      inSet_[i] = 1;
+      set_size = 1 + verts[i].orig_node_list_size; 
+      set_cut_val = 0;     
+      for (e= verts[i].first; e; e = e-> next_edge){
+	 weight = e->data->weight;
+	 cutVal_[e->other_end] = weight;
+	 set_cut_val += weight;
+      }
+      set_demand = demand[i];  
+      
+      while(true){ 
+	 if (set_cut_val < 2*(ceil(set_demand/truck_cap)) - etol &&
+	     set_size > 2){
+	    memset(coef, 0, size*sizeof(char));
+	    /* printf("%d :", i); */
+	    /*  printf("%d ", j); */
+	    for (j = 1; j < vertnum; j++)
+	       if (inSet_[j]){
+		  cur_nodept = verts + j;
+		  if (cur_nodept->orig_node_list_size)
+		     for (k = 0; k < cur_nodept->orig_node_list_size; k++)
+			(coef[(cur_nodept->orig_node_list)[k] >>
+			     DELETE_POWER]) |=
+			   (1 << ((cur_nodept->orig_node_list)[k] &
+				  DELETE_AND));
+		  (coef[j>> DELETE_POWER]) |= (1 << ( j & DELETE_AND));
+	       }
+	    /*  printf("%f ", set_demand);
+	    printf("%f \n",set_cut_val);*/ 
+	    type = (set_size < vertnum/2 ?
+			     SUBTOUR_ELIM_SIDE:SUBTOUR_ELIM_ACROSS);
+	    rhs =  (type == SUBTOUR_ELIM_SIDE ?
+			     RHS((int)set_size,(int)set_demand,(int)truck_cap):
+			     2*BINS((int)set_demand,(int)truck_cap));
+	    for (k = 0, cutpt = cutList_; k < shrink_cuts; k++,
+		    cutpt += size)
+		  if (!memcmp(coef, cutpt, size*sizeof(char)))
+		     break; /* same cuts */
+	    if ( k >= shrink_cuts){
+	       shrink_cuts += addCut(cs, coef, rhs, type);
+	       memcpy(cutpt, coef, size);
+	    }
+	    
+	    if ( shrink_cuts > max_shrink_cuts){
+	       delete [] coef;
+	       return(shrink_cuts);
+	    }
+	 }
+	 /* check the complement */
+	  
+	 complement_demand = total_demand - set_demand;
+	 complement_cut_val =set_cut_val- 2*(*cutVal_) + 2*m->numroutes_; 
+	 complement_size = vertnum - 1 - set_size;   
+	 if (complement_cut_val< 2*(ceil(complement_demand/truck_cap))-etol &&
+	     complement_size > 2){
+	    memset(coef, 0, size*sizeof(char));
+	    for (j = 1; j < vertnum; j++)
+	       if (!(inSet_[j]) && !(verts[j].deleted)){ 
+		  cur_nodept = verts + j;
+		  if (cur_nodept->orig_node_list_size)
+		     for (k = 0; k < cur_nodept->orig_node_list_size; k++)
+			(coef[(cur_nodept->orig_node_list)[k] >>
+			     DELETE_POWER]) |=
+			   (1 << ((cur_nodept->orig_node_list)[k] &
+				  DELETE_AND));
+		  (coef[j>> DELETE_POWER]) |= (1 << ( j & DELETE_AND));
+	       }
+	    type = (complement_size < vertnum/2 ?
+			     SUBTOUR_ELIM_SIDE : SUBTOUR_ELIM_ACROSS);
+	    rhs =  (type == SUBTOUR_ELIM_SIDE ?
+			     RHS((int)complement_size,(int)complement_demand,
+				 (int)truck_cap):
+			     2*BINS((int)complement_demand,(int)truck_cap));
+	    for (k=0, cutpt = cutList_; k < shrink_cuts; k++,
+		    cutpt += size)
+		  if (!memcmp(coef, cutpt, size*sizeof(char))) break; 
+	    if ( k >= shrink_cuts){
+	       shrink_cuts += addCut(cs, coef, rhs, type);
+	       memcpy(cutpt, coef, size);
+	    }
+	 
+	    if (shrink_cuts > max_shrink_cuts){
+	       delete [] coef;
+	       return(shrink_cuts);
+	    }
+	 }
+
+	 for (maxval = -1, pt = inSet_, dpt = cutVal_,pt++, dpt++,
+		 j = 1; j < vertnum; pt++, dpt++, j++){
+	    if (!(*pt) && *dpt > maxval){
+	       maxval = cutVal_[j];
+	       max_vert = j; 
+	    }
+	 }
+	 if (maxval > 0){    /* add the vertex to the set */
+	    inSet_[max_vert] = 1;
+	    set_size += 1 + verts[max_vert].orig_node_list_size ;
+	    set_demand += demand[max_vert];
+	    cutVal_[max_vert] = 0;
+	    for (e = verts[max_vert].first; e; e = e-> next_edge){
+	       other_end = e->other_end;
+	       weight = e->data->weight;
+	       set_cut_val += (inSet_[other_end]) ? (-weight): weight;
+	       cutVal_[other_end] += weight;
+	       
+	    }
+	 }
+	 else{ /* can't add anything to the set */
+	    break;
+	 }
+      }   
+   }
+
+   delete [] coef;
+   return(shrink_cuts);
+}
+
+/*===========================================================================*/
+
+int
+VrpCutGenerator::greedyShrinking6One(VrpModel *m, int max_shrink_cuts, 
+				     int trial_num, double prob, OsiCuts &cs)
+{
+   VrpNetwork *n = m->n_;  
+   double set_cut_val, set_demand;
+   vertex  *verts=n->verts_;
+   elist *e;
+   int i, j, k, shrink_cuts = 0;
+   char *pt, *cutpt;
+   double  *dpt;
+   int vertnum = n->vertnum_, type;
+   int truck_cap = m->capacity_; 
+   
+   int max_vert = 0, set_size, begin = 1, end = 1, num_trials;
+   double maxval, r, q;
+   double denominator = pow(2.0, 31.0) - 1.0;
+   
+   int other_end;
+   double weight;
+
+   double complement_demand, total_demand = verts[0].demand;
+   double complement_cut_val; 
+   int complement_size;
+   vertex *cur_nodept; 
+   /* int flag=0;*/
+   int *demand = n->newDemand_;
+   double etol = m->etol_;
+
+   int rhs;
+   int size = (vertnum >> DELETE_POWER) + 1;
+   char *coef = new char[size];
+   memset(coef, 0, size);
+   memset(cutList_, 0, size * (max_shrink_cuts +1));
+  
+   *inSet_ = 0;
+ 
+   for (num_trials = 0; num_trials < trial_num*vertnum ; num_trials++){
+      
+      /*initialize the data structures */
+      memset(inSet_, 0, vertnum*sizeof(char));
+      memset(cutVal_, 0,vertnum* sizeof(double)); 
+      
+      set_cut_val = 0;
+      set_size = 0;
+      set_demand = 0;
+      for (i = 1 ; i < vertnum; i++ ){
+	 if (verts[i].deleted) continue;
+	 r = (RANDOM()/denominator);
+	 q = (prob/vertnum);
+	 if (r < q){
+	    inSet_[i] = 1;
+	    set_size += 1 + verts[i].orig_node_list_size;
+	    set_demand += demand[i];
+	    for (e = verts[i].first; e; e = e-> next_edge){
+		other_end = e->other_end;
+		weight  = e->data->weight;
+		set_cut_val += (inSet_[other_end]) ? (-weight) : weight;
+		cutVal_[other_end] += (inSet_[other_end]) ? 0 : weight;
+	    }
+	 }
+      }
+      while(set_size){ 
+	 if (set_cut_val < 2*(ceil(set_demand/truck_cap)) - etol &&
+	     set_size > 2){
+	    memset(coef, 0, size*sizeof(char));
+	    for (j = 1; j < vertnum; j++ )
+	       if (inSet_[j]){
+		  cur_nodept = verts + j;
+		  if (cur_nodept->orig_node_list_size)
+		     for (k = 0; k < cur_nodept->orig_node_list_size; k++)
+			(coef[(cur_nodept->orig_node_list)[k] >>
+			     DELETE_POWER]) |=
+			   (1 << ((cur_nodept->orig_node_list)[k] &
+				  DELETE_AND));
+		  (coef[j>> DELETE_POWER]) |= (1 << ( j & DELETE_AND));
+	       }
+	    type = (set_size < vertnum/2 ?
+			     SUBTOUR_ELIM_SIDE:SUBTOUR_ELIM_ACROSS);
+	    rhs =  (type == SUBTOUR_ELIM_SIDE ?
+			     RHS((int)set_size, (int)set_demand, (int)truck_cap):
+			     2*BINS((int)set_demand, (int)truck_cap));
+	    for (k = 0, cutpt = cutList_; k < shrink_cuts; k++,
+		    cutpt += size)
+	       if (!memcmp(coef, cutpt, size*sizeof(char))) break; 
+	    if ( k >= shrink_cuts){
+	       shrink_cuts += addCut(cs, coef, rhs, type);
+	       memcpy(cutpt, coef, size);
+	    }
+	    if (shrink_cuts > max_shrink_cuts){
+	       delete [] coef;
+	       return(shrink_cuts);
+	    }
+	 }
+	 
+	 /* check the complement */
+	 
+	 complement_demand = total_demand - set_demand;
+	 complement_cut_val = set_cut_val - 2*(*cutVal_) + 2*m->numroutes_; 
+	 complement_size = vertnum - 1 - set_size;   
+	 if (complement_cut_val< 2*(ceil(complement_demand/truck_cap))-etol &&
+	     complement_size > 2){
+	    memset(coef, 0, size*sizeof(char));
+	    for (j = 1; j < vertnum; j++)
+	       if (!(inSet_[j])&& !(verts[j].deleted)){
+		  cur_nodept = verts + j;
+		  if (cur_nodept->orig_node_list_size)
+		     for (k = 0; k < cur_nodept->orig_node_list_size; k++)
+			(coef[(cur_nodept->orig_node_list)[k] >>
+			     DELETE_POWER]) |=
+			   (1 << ((cur_nodept->orig_node_list)[k] &
+				  DELETE_AND));
+		  (coef[j>> DELETE_POWER]) |= (1 << ( j & DELETE_AND));
+	       }
+	    type = (complement_size  < vertnum/2 ?
+			     SUBTOUR_ELIM_SIDE:SUBTOUR_ELIM_ACROSS);
+	    rhs =  (type == SUBTOUR_ELIM_SIDE ?
+			     RHS((int)complement_size,(int)complement_demand,
+				 (int)truck_cap):
+			     2*BINS((int)complement_demand,(int)truck_cap));
+	    for (k = 0, cutpt = cutList_; k < shrink_cuts; k++,
+		    cutpt += size)
+	       if (!memcmp(coef, cutpt, size*sizeof(char))) break; 
+	    if ( k >= shrink_cuts){
+	       shrink_cuts += addCut(cs, coef, rhs, type);
+	       memcpy(cutpt, coef, size);
+	    }
+	    
+	    if (shrink_cuts > max_shrink_cuts){
+	       delete [] coef;
+	       return(shrink_cuts);
+	    }
+	 }
+	 
+	 for (maxval = -1, pt = inSet_ + begin, dpt = cutVal_ + begin,
+		 j = begin; j < end; pt++, dpt++, j++){
+	    if (!(*pt) && *dpt > maxval){
+	       maxval = cutVal_[j];
+		  max_vert = j; 
+	    }
+	 }
+	 if (maxval > 0){    /* add the vertex to the set */
+	    inSet_[max_vert] = 1;
+	    set_size += 1 + verts[max_vert].orig_node_list_size ;
+	    set_demand += demand[max_vert];
+	    cutVal_[max_vert] = 0;
+	    for (e = verts[max_vert].first; e; e = e-> next_edge){
+	       other_end = e->other_end;
+	       weight  = e->data->weight;
+	       set_cut_val += (inSet_[other_end]) ? (-weight) : weight;
+	       cutVal_[other_end] += weight;
+	    }
+	 }
+	 else{ /* can't add anything to the set */
+	    break;
+	 }
+      }   
+   }
+
+   delete [] coef;
+
+   return(shrink_cuts);
+}
+
+/*===========================================================================*/
+
+int
+VrpCutGenerator::greedyShrinking2One(VrpModel *m, int max_shrink_cuts, 
+				     OsiCuts &cs)
+{
+   VrpNetwork *n = m->n_;  
+   double set_cut_val, set_demand;
+   vertex *verts = n->verts_;
+   elist *e, *cur_edge1, *cur_edge2;
+   int j, k, shrink_cuts = 0;
+   char *pt;
+   double  *dpt;
+   int vertnum = n->vertnum_, type;
+   int truck_cap = m->capacity_; 
+   
+   int max_vert = 0, set_size, begin = 1, end = 1;
+   double maxval;
+   
+   int other_end;
+   double weight;
+
+   double complement_demand, total_demand = verts[0].demand; 
+   double complement_cut_val; 
+   int complement_size;
+   vertex *cur_nodept;
+   int *demand = n->newDemand_;
+   double etol = m->etol_;
+
+   int rhs;
+   int size = (vertnum >> DELETE_POWER) + 1;
+   char *coef = new char[size];
+   memset(coef, 0, size);
+  
+   *inSet_=0;
+   
+   for (cur_edge1 = verts[0].first; cur_edge1;
+	cur_edge1 = cur_edge1->next_edge){
+      for (cur_edge2 = cur_edge1->next_edge; cur_edge2;
+	   cur_edge2 = cur_edge2->next_edge){
+	 
+	 /*initialize the data structures */
+	 memset(inSet_, 0, vertnum*sizeof(char));
+	 memset(cutVal_, 0,vertnum* sizeof(double)); 
+	 
+	 set_cut_val = 2;
+	 set_size = 2 + cur_edge1->other->orig_node_list_size +
+	    cur_edge2->other->orig_node_list_size;
+	 set_demand = demand[cur_edge1->other_end] +
+	    demand[cur_edge2->other_end];
+	 inSet_[cur_edge1->other_end] = 1;
+	 
+	 for (e = verts[cur_edge1->other_end].first; e; e = e-> next_edge){
+	    cutVal_[e->other_end] += e->data->weight;
+	 }
+	 
+	 inSet_[cur_edge2->other_end] = 1;
+	 for (e = verts[cur_edge2->other_end].first; e; e = e-> next_edge){
+	    other_end = e->other_end;
+	    weight = e->data->weight;
+	    set_cut_val += (inSet_[other_end]) ? (-weight) : weight;
+	    cutVal_[other_end] += (inSet_[other_end]) ? 0 : weight;
+	 }
+	 while(set_size){ 
+	    if (set_cut_val < 2*(ceil(set_demand/truck_cap)) - etol &&
+		set_size > 2){
+	       memset(coef, 0, size*sizeof(char));
+	       for (j = 1; j < vertnum; j++ )
+		  if (inSet_[j]){
+		     cur_nodept = verts + j;
+		     if (cur_nodept->orig_node_list_size)
+			for (k = 0; k < cur_nodept->orig_node_list_size; k++)
+			   (coef[(cur_nodept->orig_node_list)[k] >>
+				 DELETE_POWER]) |=
+			      (1 << ((cur_nodept->orig_node_list)[k] &
+				     DELETE_AND));
+		     (coef[j >> DELETE_POWER]) |= (1 << (j & DELETE_AND));
+		  }
+	       type = (set_size < vertnum/2 ?
+		       SUBTOUR_ELIM_SIDE:SUBTOUR_ELIM_ACROSS);
+	       rhs =  (type == SUBTOUR_ELIM_SIDE ?
+		       RHS((int)set_size, (int)set_demand, (int)truck_cap):
+		       2*BINS((int)set_demand, (int)truck_cap));
+	       shrink_cuts += addCut(cs, coef, rhs, type);
+	    }
+	    
+	    /* check the complement */
+	    
+	    complement_demand = total_demand - set_demand;
+	    complement_cut_val = set_cut_val - 2*(*cutVal_) + 2*m->numroutes_; 
+	    complement_size = vertnum - 1 - set_size;   
+	    if (complement_cut_val<2*(ceil(complement_demand/truck_cap))-etol&&
+		complement_size > 2){
+	       memset(coef, 0, size*sizeof(char));
+	       for (j = 1; j < vertnum; j++)
+		  if (!inSet_[j]){
+		     cur_nodept=verts + j;
+		     if (cur_nodept->orig_node_list_size)
+			for (k = 0; k < cur_nodept->orig_node_list_size; k++)
+			   (coef[(cur_nodept->orig_node_list)[k] >>
+				 DELETE_POWER]) |=
+			      (1 << ((cur_nodept->orig_node_list)[k] &
+				     DELETE_AND));
+		     (coef[j>> DELETE_POWER]) |= (1 << ( j & DELETE_AND));
+		  }
+	       type = (complement_size  < vertnum/2 ?
+		       SUBTOUR_ELIM_SIDE:SUBTOUR_ELIM_ACROSS);
+	       rhs =  (type == SUBTOUR_ELIM_SIDE ?
+		       RHS((int)complement_size,(int)complement_demand,
+			   (int)truck_cap):
+		       2*BINS((int)complement_demand,(int)truck_cap));
+	       shrink_cuts += addCut(cs, coef, rhs, type);
+	    }
+	    
+	    for (maxval = -1, pt = inSet_+begin, dpt = cutVal_+begin,
+		    j = begin; j < end; pt++, dpt++, j++){
+	       if (!(*pt) && *dpt > maxval){
+		  maxval = cutVal_[j];
+		  max_vert = j; 
+	       }
+	    }
+	    if (maxval > 0){    /* add the vertex to the set */
+	       inSet_[max_vert] = 1;
+	       set_size += 1 + verts[max_vert].orig_node_list_size ;
+	       set_demand += demand[max_vert];
+	       cutVal_[max_vert] = 0;
+	       for (e = verts[max_vert].first; e; e = e-> next_edge){
+		  other_end = e->other_end;
+		  weight  = e->data->weight;
+		  set_cut_val += (inSet_[other_end]) ? (-weight) : weight;
+		  cutVal_[other_end] += weight;
+	       }
+	    }
+	    else{ /* can't add anything to the set */
+	       break;
+	    }
+	 }   
+      }
+   }
+
+   delete [] coef;
+   
+   return(shrink_cuts);
+}
+
+/*===========================================================================*/
+
+int
 VrpCutGenerator::addCut(OsiCuts &cs, char *coef, int rhs, int type)
 {
    int i, nzcnt = 0, nzcnt_side = 0, nzcnt_across = 0;
@@ -532,14 +1278,13 @@ VrpCutGenerator::addCut(OsiCuts &cs, char *coef, int rhs, int type)
    }else if (sense == 'G'){
       cut = new OsiRowCut(rhs, infinity, edgenum, nzcnt, matind, matval);
    }else{
-      return false;
+      return 0;
    }
       
    cs.insert(cut);
  
-   return true;
+   return 1;
 }
 
 /*===========================================================================*/
-
 

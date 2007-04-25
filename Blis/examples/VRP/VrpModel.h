@@ -81,10 +81,6 @@ public:
       coordz_ = 0;
       n_ = 0;
       VrpPar_ = new VrpParams;
-      VrpCutGenerator *vrp = new VrpCutGenerator;
-      vrp->setModel(this);
-      vrp->setStrategy(1);  // Generate cuts at every node
-      addCutGenerator(vrp);
       BlisPar()->setEntry(BlisParams::cutClique,BLIS_NONE);
       BlisPar()->setEntry(BlisParams::cutFlowCover,BLIS_NONE);
       BlisPar()->setEntry(BlisParams::cutGomory,BLIS_NONE);
@@ -104,12 +100,11 @@ public:
    VrpModel(const char* dataFile) : etol_(1e-5){
       VrpPar_ = new VrpParams;
       readInstance(dataFile);
-      VrpCutGenerator *vrp = new VrpCutGenerator;
-      vrp->setModel(this);
-      vrp->setStrategy(1);
-      addCutGenerator(vrp);
+      VrpCutGenerator *cg = new VrpCutGenerator(this, vertnum_);
+      cg->setStrategy(1);
+      addCutGenerator(cg);
    }
-
+   
    /** Destructor. */
    virtual ~VrpModel() {
       delete [] demand_; demand_ = 0;
