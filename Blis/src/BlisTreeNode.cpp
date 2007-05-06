@@ -334,8 +334,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                     getKnowledgeBroker()->getNodeSelection()->setWeight(0.0);
                     BlisSolution* ksol = 
                         new BlisSolution(numCols, 
-                                           model->getLpSolution(), 
-                                           quality_);
+                                         model->getLpSolution(), 
+                                         quality_);
                     getKnowledgeBroker()->addKnowledge(ALPS_SOLUTION, 
                                                        ksol, 
                                                        quality_); 

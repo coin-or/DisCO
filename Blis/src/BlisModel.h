@@ -797,10 +797,10 @@ protected:
     /** Register knowledge. */
     virtual void registerKnowledge();  
 
-    /** Pack Blis portion of node into an encoded object. */
+    /** Pack Blis portion of the model into an encoded object. */
     AlpsReturnCode encodeBlis(AlpsEncoded *encoded) const;
 
-    /** Unpack Blis portion of node from an encoded object. */
+    /** Unpack Blis portion of the model from an encoded object. */
     AlpsReturnCode decodeBlis(AlpsEncoded &encoded);  
     
     /** The method that encodes the model into an encoded object. */

@@ -15,11 +15,14 @@
 #include <vector>
 
 #include "BlisConstraint.h"
+#include "BlisTreeNode.h"
+#include "BlisVariable.h"
 
-#include "VrpModel.h"
 #include "VrpConstants.h"
+#include "VrpModel.h"
+#include "VrpSolution.h"
 
-/*===========================================================================*/
+//#############################################################################
 
 /** For parallel code, only the master calls this function.
  *  1) Read in the instance data
@@ -511,14 +514,15 @@ VrpModel::readInstance(const char* dataFile)
    numCoreConstraints_ = numRows_;
    
    // Allocate space for network for later use
-   
    n_ = new VrpNetwork(edgenum_, vertnum_);
+
    VrpCutGenerator *cg = new VrpCutGenerator(this, vertnum_);
+
    cg->setStrategy(1);  // Generate cuts at every node
    addCutGenerator(cg);
 }
 
-/*===========================================================================*/
+//#############################################################################
 
 CoinPackedVector * 
 VrpModel::getSolution()
@@ -544,14 +548,14 @@ VrpModel::getSolution()
    return(new CoinPackedVector(varnum, cnt, indices, values, false));
 }
 
-/*===========================================================================*/
+//#############################################################################
 
 void VrpModel::createNet(CoinPackedVector *vec)
 {
    n_->createNet(vec, demand_, getEdgeList(), etol_, vertnum_);
 }
 
-/*===========================================================================*/
+//#############################################################################
 
 bool
 VrpModel::userFeasibleSolution()
@@ -576,7 +580,7 @@ VrpModel::userFeasibleSolution()
    return true;
 }
 
-/*===========================================================================*/
+//#############################################################################
 
 int 
 VrpModel::computeCost(int v0, int v1){
@@ -624,7 +628,7 @@ VrpModel::computeCost(int v0, int v1){
    return(cost);
 }
 
-/*===========================================================================*/
+//#############################################################################
 
 void 
 VrpModel::setModelData()
@@ -702,7 +706,7 @@ VrpModel::setModelData()
    delete [] values;
 }
 
-/*===========================================================================*/
+//#############################################################################
 
 /** Read in parameters. */
 void 
@@ -715,5 +719,151 @@ VrpModel::readParameters(const int argnum, const char * const * arglist)
     VrpPar_->readFromArglist(argnum, arglist);
 }
 
-/*===========================================================================*/
+//#############################################################################
+
+/** Register knowledge. */
+void 
+VrpModel::registerKnowledge() {
+    // Register model, solution, and tree node
+    assert(broker_);
+    broker_->registerClass(ALPS_MODEL, new VrpModel);
+    if (broker_->getMsgLevel() > 5) {
+	std::cout << "BLIS: Register Alps model." << std::endl;
+    }
+    
+    broker_->registerClass(ALPS_NODE, new BlisTreeNode(this));
+    if (broker_->getMsgLevel() > 5) {
+	std::cout << "BLIS: Register Alps node." << std::endl;
+    }
+    
+    broker_->registerClass(ALPS_SOLUTION, new VrpSolution);
+    if (broker_->getMsgLevel() > 5) {
+	std::cout << "BLIS: Register Alps solution." << std::endl;
+    }
+    
+    broker_->registerClass(BCPS_CONSTRAINT, new BlisConstraint);
+    if (broker_->getMsgLevel() > 5) {
+	std::cout << "BLIS: Register Bcps constraint." << std::endl;
+    }
+    
+    broker_->registerClass(BCPS_VARIABLE, new BlisVariable);
+    if (broker_->getMsgLevel() > 5) {
+	std::cout << "BLIS: Register Bcps variable." << std::endl;
+    }
+}
+
+//#############################################################################
+
+AlpsReturnCode 
+VrpModel::encodeVrp(AlpsEncoded *encoded) const
+{
+    AlpsReturnCode status = ALPS_OK;
+
+    //encoded->writeRep(name_, 100); // No funtion
+    encoded->writeRep(vertnum_);
+    encoded->writeRep(edgenum_);
+    encoded->writeRep(numroutes_);
+    encoded->writeRep(depot_);
+    encoded->writeRep(capacity_);
+    encoded->writeRep(wtype_);
+
+    encoded->writeRep(demand_, vertnum_);
+
+    encoded->writeRep(posx_, vertnum_);
+    encoded->writeRep(posy_, vertnum_);
+
+    encoded->writeRep(coordx_, vertnum_);
+    encoded->writeRep(coordy_, vertnum_);
+    if (coordz_) {
+        encoded->writeRep(coordz_, vertnum_);
+    }
+    else {
+        encoded->writeRep(coordz_, 0);
+    }
+
+    encoded->writeRep(etol_);
+
+    VrpPar_->pack(*encoded);
+    
+    return status;
+}
+
+//#############################################################################
+
+AlpsReturnCode 
+VrpModel::decodeVrp(AlpsEncoded &encoded)
+{
+    AlpsReturnCode status = ALPS_OK;
+    int tempInt = 0;
+    
+    //encoded.readRep(name_, 100);
+    encoded.readRep(vertnum_);
+    encoded.readRep(edgenum_);
+    encoded.readRep(numroutes_);
+    encoded.readRep(depot_);
+    encoded.readRep(capacity_);
+    encoded.readRep(wtype_);
+
+    encoded.readRep(demand_, tempInt);
+    assert(tempInt == vertnum_);
+    
+    encoded.readRep(posx_, tempInt);
+    assert(tempInt == vertnum_);
+    encoded.readRep(posy_, tempInt);
+    assert(tempInt == vertnum_);
+
+    encoded.readRep(coordx_, tempInt);
+    assert(tempInt == vertnum_);
+    encoded.readRep(coordy_, tempInt);
+    assert(tempInt == vertnum_);
+    encoded.readRep(coordz_, tempInt);
+    assert(tempInt == vertnum_ || tempInt == 0);
+
+    encoded.readRep(etol_);
+
+    VrpPar_->unpack(encoded);
+    
+    // Allocate space for network for later use
+    n_ = new VrpNetwork(edgenum_, vertnum_);
+    
+    VrpCutGenerator *cg = new VrpCutGenerator(this, vertnum_);
+    
+    cg->setStrategy(1);  // Generate cuts at every node
+    addCutGenerator(cg);
+
+    return status;
+}
+
+//#############################################################################
+
+AlpsEncoded* 
+VrpModel::encode() const 
+{ 
+    AlpsReturnCode status = ALPS_OK;
+
+    // NOTE: "ALPS_MODEL" is the type name.
+    AlpsEncoded* encoded = new AlpsEncoded(ALPS_MODEL);
+
+    status = encodeAlps(encoded);
+    status = encodeBcps(encoded);
+    status = encodeBlis(encoded);
+    status = encodeVrp(encoded);
+
+    return encoded;
+}
+
+//#############################################################################
+
+void
+VrpModel::decodeToSelf(AlpsEncoded& encoded) 
+{
+    AlpsReturnCode status = ALPS_OK;
+
+    status = decodeAlps(encoded);
+    status = decodeBcps(encoded);
+    status = decodeBlis(encoded);
+    status = decodeVrp(encoded);
+}
+
+//#############################################################################
 

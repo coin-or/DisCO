@@ -43,18 +43,19 @@ class VrpModel : public BlisModel
    int depot_;
    int capacity_;
    int wtype_;
-   int *demand_;
-   int *posx_;
-   int *posy_;
-   double *coordx_;
-   double *coordy_;
-   double *coordz_;
+   int *demand_;    /*vertnum_*/
+   int *posx_;      /*vertnum_*/
+   int *posy_;      /*vertnum_*/
+   double *coordx_; /*vertnum_*/
+   double *coordy_; /*vertnum_*/
+   double *coordz_; /*vertnum_*/
    double etol_;
 
    VrpParams *VrpPar_;
-   VrpNetwork *n_;
+   VrpNetwork *n_;  /* Allocate when readInstance */
    
    // edges_ hold the same elements as variables_ does, do not free memory.
+   // For parallel, reinsert elements in variables_ to edges_
    std::vector<VrpVariable *> edges_;
 
    // Do we need this? Solution?
@@ -147,6 +148,21 @@ public:
    CoinPackedVector *getSolution();
 
    void createNet(CoinPackedVector *vec);
+
+    /** Register knowledge. */
+    virtual void registerKnowledge();  
+
+    /** Pack Vrp portion of the model into an encoded object. */
+    AlpsReturnCode encodeVrp(AlpsEncoded *encoded) const;
+
+    /** Unpack Vrp portion of the model from an encoded object. */
+    AlpsReturnCode decodeVrp(AlpsEncoded &encoded);  
+    
+    /** The method that encodes the model into an encoded object. */
+    virtual AlpsEncoded* encode() const;
+    
+    /** The method that decodes the model from an encoded object. */
+    virtual void decodeToSelf(AlpsEncoded&);
    
 };
 

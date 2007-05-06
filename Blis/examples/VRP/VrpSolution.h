@@ -48,7 +48,7 @@ public:
     
     /** The method that encodes the solution into a encoded object. */
     virtual AlpsEncoded* encode() const {
-	//AlpsEncoded* encoded = new AlpsEncoded("ALPS_SOLUTION");
+	AlpsEncoded* encoded = NULL;//new AlpsEncoded("ALPS_SOLUTION");
 	//encodeBcps(encoded);
 	// Nothing to do for Vrp part.
 	return encoded;
@@ -56,7 +56,7 @@ public:
   
     /** The method that decodes the solution from a encoded object. */
     virtual AlpsKnowledge* decode(AlpsEncoded& encoded) const {
-	//VrpSolution * sol = new VrpSolution();
+	VrpSolution * sol = NULL;//new VrpSolution();
 	//sol->decodeBcps(encoded);
 	return sol;
     }
