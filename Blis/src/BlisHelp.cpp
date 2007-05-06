@@ -356,9 +356,13 @@ bool BlisParallelCutCut(OsiRowCut * rowCut1,
     int size1 = rowCut1->row().getNumElements();
     int size2 = rowCut2->row().getNumElements();
     assert(size1 > 0 && size2 > 0);
-
     int i, j, k;
-    
+    bool para = false;   
+
+    if (size1 != size2) {
+        return para;
+    }
+
     //------------------------------------------------------
     // Assume no duplicate indices.
     // rowCut->setRow() tests duplicate indices.
@@ -422,11 +426,16 @@ bool BlisParallelCutCut(OsiRowCut * rowCut1,
     assert(angle >= 0.0 && angle <= 1.000001);
     
     if (angle >= threshold) {
-	return true;
+	para = true;
+#if 0
+        for (j = 0; j < size1; ++j) {
+            std::cout << indices1[j] << ", " << indices2[j] << "; ";
+        }
+        std::cout << std::endl;
+#endif
     }
-    else {
-	return false;
-    }
+
+    return para;
 }
 
 //#############################################################################
