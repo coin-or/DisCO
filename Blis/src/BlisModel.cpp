@@ -2172,9 +2172,9 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
 	    std::cout << "\n";
             std::cout << "    Node";         /*8 spaces*/
             std::cout << "      ObjValue";   /*14 spaces*/
-            std::cout << "     Row";    /*8 Spaces*/
-            std::cout << "  Column";    /*8 Spaces*/
             if (msgLevel > 2) {
+                std::cout << "     Row";    /*8 Spaces*/
+                std::cout << "  Column";    /*8 Spaces*/
                 std::cout << "   Index";     /*8 spaces*/
                 std::cout << "  Parent";     /*8 spaces*/
                 std::cout << "   Depth";     /*8 spaces*/
@@ -2203,20 +2203,19 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
 	    printf(" %13g", node->getQuality());
 	}
 
-        if (numRows < 10000000) {
-            printf("%8d", numRows);
-        }
-        else {
-            printf("%7dK", numRows/1000);
-        }
-        if (numCols < 10000000) {
-            printf("%8d", numCols);
-        }
-        else {
-            printf("%7dK", numCols/1000);
-        }
-
         if (msgLevel > 2) {
+            if (numRows < 10000000) {
+                printf("%8d", numRows);
+            }
+            else {
+                printf("%7dK", numRows/1000);
+            }
+            if (numCols < 10000000) {
+                printf("%8d", numCols);
+            }
+            else {
+                printf("%7dK", numCols/1000);
+            }
             /* This index */
             printf("%8d", node->getIndex());
             /* Paraent index */
