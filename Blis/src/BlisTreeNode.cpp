@@ -453,7 +453,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 #endif
                     numDelRows = delIndices.size();
 		    
-#ifdef BLIS_DEBUG
+#if 1
                     std::cout << "PROCESS: new cuts=" << numNewCons 
                               << ", slack cuts=" << numDelRows 
                               << ", numRows=" << numRows 
@@ -2711,7 +2711,8 @@ BlisTreeNode::applyConstraints(BlisModel *model,
     int status = BLIS_OK;
     int i, k;
     
-    //int numColumnCuts = osiCutSet.sizeColCuts() ;
+    int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
+
     int numRowCuts = osiCutSet.sizeRowCuts();
     int numToAdd = numRowCuts;
     int numAdded = 0;
@@ -2724,10 +2725,11 @@ BlisTreeNode::applyConstraints(BlisModel *model,
 	    
             OsiRowCut *rowCut = NULL;
 	    
-#if 0
-            printf("\nAPPLYCUT: before selecting, num of new cuts = %d\n",
-                   numRowCuts);
-#endif
+            if (msgLevel > 100) {
+                printf("\nAPPLYCUT: Select cuts to be added in LP from %d candiates\n",
+                       numRowCuts);
+            }
+            
             int numRowsNow = model->solver()->getNumRows();
             int numCols = model->solver()->getNumCols();
             CoinWarmStartBasis *ws = dynamic_cast<CoinWarmStartBasis*>
@@ -2773,11 +2775,11 @@ BlisTreeNode::applyConstraints(BlisModel *model,
 
                     if(length > model->getDenseConCutoff()){
                         keep = false;
-#if 0
-                        std::cout << "APPLYCUT: A dense cut. length = " 
-                                  << length << ", cutoff = " 
-                                  << model->getDenseConCutoff() << std::endl;
-#endif  
+                        if (msgLevel > 100) {
+                            std::cout << "APPLYCUT: Discard a dense cut. length = " 
+                                      << length << ", cutoff = " 
+                                      << model->getDenseConCutoff() << std::endl;
+                        }
                         break;
                     }
 
@@ -2819,10 +2821,10 @@ BlisTreeNode::applyConstraints(BlisModel *model,
                               << ", minElem=" << minElem << std::endl;
 #endif
                     if (scaleFactor > scaleConFactor) {
-#if 0
-                        std::cout<< "APPLYCUT: remove a bad scaled cut"
-                                 << std::endl;
-#endif
+                        if (msgLevel > 100) {
+                            std::cout<< "APPLYCUT: Discard a bad scaled cut"
+                                     << std::endl;
+                        }
                         keep = false;
                         break;
                     }
@@ -2859,10 +2861,10 @@ BlisTreeNode::applyConstraints(BlisModel *model,
                     
                     if (violation < 1.0e-6) {
                         // Found a weak cuts.
-#if 0
-                        std::cout<< "WARNING: APPLYCUT: a weak cut, violation="
-                                 << violation << std::endl;
-#endif
+                        if (msgLevel > 100) {
+                            std::cout<< "WARNING: APPLYCUT: applied a weak cut, violation="
+                                     << violation << std::endl;
+                        }
                         //keep = false;
                         break;
                     }
@@ -2876,9 +2878,10 @@ BlisTreeNode::applyConstraints(BlisModel *model,
 					  i,
 					  rowCut);
 		    if (paral) {
-#if 0
-                        std::cout<< "APPLYCUT: remove a parallel"<< std::endl;
-#endif
+                        if (msgLevel > 100) {
+                            std::cout<< "APPLYCUT: Discard a parallel cut"
+                                     << std::endl;
+                        }
 			keep = false;
 			break;
 		    }
@@ -2902,11 +2905,10 @@ BlisTreeNode::applyConstraints(BlisModel *model,
 
             }
 	    
-
-#if 0
-            printf("APPLYCUT: after selecting, added %d new cuts to LP\n\n",
-                   numAdded);
-#endif
+            if (msgLevel > 100) {
+                printf("APPLYCUT: After selecting, added %d cuts to LP and discared %d cuts\n",
+                       numAdded, numRowCuts - numAdded);
+            }
             
             //----------------------------------------------
             // Add cuts to lp and adjust basis.
