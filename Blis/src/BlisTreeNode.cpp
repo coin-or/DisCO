@@ -2726,7 +2726,7 @@ BlisTreeNode::applyConstraints(BlisModel *model,
             OsiRowCut *rowCut = NULL;
 	    
             if (msgLevel > 100) {
-                printf("\nAPPLYCUT: Select cuts to be added in LP from %d candiates\n",
+                printf("\nAPPLYCUT: Select cuts to be added in LP from %d candidates\n",
                        numRowCuts);
             }
             
