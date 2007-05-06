@@ -16,7 +16,10 @@
 #define VrpSolution_h_
 
 #include "Alps.h"
+
 #include "BlisSolution.h"
+
+#include "VrpCommonTypes.h"
 
 //#############################################################################
 /** This class contains a vrp solution */
@@ -26,6 +29,8 @@ class VrpSolution : public BlisSolution {
 
 protected:
 
+    best_tours tour;
+    
 public:
     
     /** Default constructor. */
