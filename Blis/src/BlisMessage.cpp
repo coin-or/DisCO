@@ -33,7 +33,7 @@ static Blis_message us_english[]=
     {BLIS_CUT_STAT_NODE, 55, 1, "Node %d, called %s cut generator %d times, generated %d cuts, CPU time %.4f seconds, current strategy %d"},
     {BLIS_HEUR_STAT_FINAL, 63, 1, "Called %s heuristic %d times, found %d solutions, CPU time %.4f seconds, current strategy %d"},
     {BLIS_HEUR_STAT_NODE, 65, 1, "Node %d, called %s heuristic %d times, found %d solutions, CPU time %.4f seconds, current strategy %d"},
-    {BLIS_ROOT_PROCESS, 30, 1, "Processing the root node ..."},
+    {BLIS_ROOT_PROCESS, 30, 1, "Processing the root node (%d rows, %d columns)"},
     {BLIS_ROOT_TIME, 35, 1, "Processing the first root relaxation took CPU time %.4f seconds"},
     {BLIS_S_VERSION, 1, 1, "BLIS version 0.7.0"},
     {BLIS_W_LP, 20, 1, "WARNING: The Problem does not have integer variables"},

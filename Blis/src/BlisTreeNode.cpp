@@ -289,6 +289,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
             if (msgLevel > 0) {
                 model->blisMessageHandler()->message(BLIS_ROOT_PROCESS, 
                                                      model->blisMessages())
+                    << model->getNumRows()
+                    << model->getNumCols()
                     << CoinMessageEol;
                 model->solver()->messageHandler()->setLogLevel(1);
             }
