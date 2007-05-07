@@ -236,7 +236,7 @@ VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
       delete [] coef;
    }
 
-   n->compNodes_ = compnodes_copy;
+   //n->compNodes_ = compnodes_copy;
 
    if (num_cuts < 10 && do_greedy){
       
