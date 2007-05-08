@@ -560,24 +560,31 @@ void VrpModel::createNet(CoinPackedVector *vec)
 bool
 VrpModel::userFeasibleSolution()
 {
-   CoinPackedVector *sol = getSolution();
+    CoinPackedVector *sol = getSolution();
 
-   createNet(sol);
+    createNet(sol);
 
-   if (!n_->isIntegral_){
-      return false;
-   }else{
-      int rcnt = n_->connected();
-      int i;
-      for (i = 0; i < rcnt; i++){
-	 if (n_->compCuts_[i+1] < 2 - etol_){
-	    return false;
-	 }else if (n_->compDemands_[i+1] > capacity_){
-	    return false;
-	 }
-      }
-   }
-   return true;
+    if (!n_->isIntegral_){
+        delete sol;
+        return false;
+    }
+    else {
+        int rcnt = n_->connected();
+        int i;
+        for (i = 0; i < rcnt; i++){
+            if (n_->compCuts_[i+1] < 2 - etol_){
+                delete sol;
+                return false;
+            }
+            else if (n_->compDemands_[i+1] > capacity_){
+                delete sol;
+                return false;
+            }
+        }
+    }
+    
+    delete sol;
+    return true;
 }
 
 //#############################################################################

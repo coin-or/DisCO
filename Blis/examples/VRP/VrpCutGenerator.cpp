@@ -71,6 +71,7 @@ VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
    if (n->isIntegral_){
       /* if the network is integral, check for connectivity */
       n->connected();
+      delete sol;
       return connectivityCuts(cs) ? true: false;
    }
 
@@ -199,6 +200,7 @@ VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
    compnodes = n->compNodes_;
    
    if (!do_greedy){
+      delete sol;
       return num_cuts ? true : false;
    }
 
@@ -274,7 +276,8 @@ VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
    n->compNodes_ = compnodes;
 
    delete[] compnodes_copy;
-
+   delete sol;
+      
    return num_cuts ? true : false;
 }
 
