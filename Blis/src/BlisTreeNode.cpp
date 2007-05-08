@@ -454,7 +454,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 #endif
                     numDelRows = delIndices.size();
 		    
-#if 1
+#if 0
                     std::cout << "PROCESS: new cuts=" << numNewCons 
                               << ", slack cuts=" << numDelRows 
                               << ", numRows=" << numRows 
