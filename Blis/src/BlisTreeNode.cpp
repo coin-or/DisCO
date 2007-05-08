@@ -47,6 +47,7 @@
 //#include "BlisVariable.h"
 
 #define REMOVE_SLACK 1
+#define BLIS_SLACK_MAX 3
 
 //#############################################################################
 
@@ -436,7 +437,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 				BlisConstraint *tmpCon = model->oldConstraints()[(k-numCoreRows)];
 				count = tmpCon->getNumInactive() + 1;
 				tmpCon->setNumInactive(count);
-				if (tmpCon->getNumInactive() > 3) {
+				if (tmpCon->getNumInactive() > BLIS_SLACK_MAX){
 				    oldDelMark[(k-numCoreRows)] = 1;
 				}
                             }
@@ -444,7 +445,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 				BcpsObject* tmpCon = newConstraints[(k-numStartRows)];
 				count = tmpCon->getNumInactive() + 1;
 				tmpCon->setNumInactive(count);
-				if (tmpCon->getNumInactive() > 3) {
+				if (tmpCon->getNumInactive() > BLIS_SLACK_MAX){
 				    newDelMark[(k-numStartRows)] = 1;
 				}
                             }

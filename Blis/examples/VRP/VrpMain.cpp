@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 	broker.search(&model);
 	
 	// Report the best solution found and its ojective value
-	// broker.printBestSolutiont();
+	broker.printBestSolution();
     }
     catch(CoinError& er) {
 	std::cerr << "\nBLIS ERROR: \"" << er.message() 

@@ -46,6 +46,15 @@ class BlisSolution : public BcpsSolution {
 
     /** Destructor. */
     virtual ~BlisSolution() { }
+
+    /** Print out the solution.*/
+    virtual void print(std::ostream& os) const {
+	for (int j = 0; j < size_; ++j) {
+	    if (values_[j] > 1.0e-15 || values_[j] < -1.0e-15) {
+		os << "x[" << j << "] = " << values_[j] << std::endl;
+	    }
+	}
+    }
     
     /** Check if IP feasible. If yes, return a IP solution; othersize, 
 	return NULL. */

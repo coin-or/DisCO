@@ -49,7 +49,13 @@ public:
     virtual ~VrpSolution() { }
     
     /** Print the solution.*/
-    virtual void print(std::ostream& os) const {};
+    virtual void print(std::ostream& os) const {
+	for (int j = 0; j < size_; ++j) {
+	    if (values_[j] > 1.0e-15 || values_[j] < -1.0e-15) {
+		os << "x[" << j << "] = " << values_[j] << std::endl;
+	    }
+	}
+    }
     
     /** The method that encodes the solution into a encoded object. */
     virtual AlpsEncoded* encode() const {
