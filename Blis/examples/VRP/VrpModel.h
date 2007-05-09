@@ -82,6 +82,9 @@ public:
       coordz_ = 0;
       n_ = 0;
       VrpPar_ = new VrpParams;
+
+      AlpsPar()->setEntry(AlpsParams::searchStrategy, ALPS_SEARCH_BEST);
+
       BlisPar()->setEntry(BlisParams::cutClique,BLIS_NONE);
       BlisPar()->setEntry(BlisParams::cutFlowCover,BLIS_NONE);
       BlisPar()->setEntry(BlisParams::cutGomory,BLIS_NONE);
