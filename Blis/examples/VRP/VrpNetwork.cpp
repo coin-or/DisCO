@@ -472,8 +472,9 @@ VrpNetwork::gutsOfDestructor()
      delete[] verts_;
   }
   if (edges_) delete[] edges_;
-  if (compNodes_) delete[] compNodes_; 
+  if (compNodes_) delete[] compNodes_;
+  if (compDemands_) delete [] compDemands_;
   if (compCuts_) delete[] compCuts_; 
   if (compMembers_) delete[] compMembers_; 
-  if (newDemand_) delete[] newDemand_; 
+  if (newDemand_) delete[] newDemand_;
 }
