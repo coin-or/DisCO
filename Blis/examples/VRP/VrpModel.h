@@ -90,7 +90,8 @@ public:
       BlisPar()->setEntry(BlisParams::cutOddHole,BLIS_NONE);
       BlisPar()->setEntry(BlisParams::cutProbing,BLIS_NONE);
       BlisPar()->setEntry(BlisParams::cutTwoMir,BLIS_NONE);
-      
+      BlisPar()->setEntry(BlisParams::heurRound,BLIS_NONE);
+
       // Cuts as formulation
       BlisPar()->setEntry(BlisParams::cutFactor, ALPS_DBL_MAX);
       BlisPar()->setEntry(BlisParams::cutPass, ALPS_INT_MAX);
