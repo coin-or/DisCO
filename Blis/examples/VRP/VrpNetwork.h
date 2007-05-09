@@ -112,17 +112,7 @@ class VrpNetwork{
       newDemand_ = 0;
    }
 
-   VrpNetwork(int edgenum, int vertnum) : edgenum_(0), maxEdgenum_(edgenum),
-      vertnum_(vertnum), isIntegral_(false), mincut_(0){ 
-      edges_ = new edge[maxEdgenum_];
-      verts_ = new vertex[vertnum_];
-      adjList_ = new elist[2*maxEdgenum_];
-      compNodes_ = new int[vertnum_ + 1];
-      compDemands_ = new int[vertnum_ + 1];
-      compCuts_ = new double[vertnum_ + 1];
-      compMembers_ = new int[vertnum_ + 1];
-      newDemand_ = new int[vertnum_];
-   }
+   VrpNetwork(int edgenum, int vertnum);
 
    virtual ~VrpNetwork() {
       gutsOfDestructor();

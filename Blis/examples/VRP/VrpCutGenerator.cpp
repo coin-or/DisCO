@@ -29,7 +29,7 @@ VrpCutGenerator::VrpCutGenerator(VrpModel *vrp, int vertnum)
       ref_ = new int[model_->vertnum_];
       cutVal_ = new double[model_->vertnum_];
       cutList_ = new char[((model_->vertnum_ >> DELETE_POWER) + 1)*
-		 model_->VrpPar_->entry(VrpParams::maxNumCutsInShrink)];
+		 (model_->VrpPar_->entry(VrpParams::maxNumCutsInShrink) + 1)];
       inSet_ = new char[model_->vertnum_];
    }else{
       ref_ = 0;

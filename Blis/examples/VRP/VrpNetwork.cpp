@@ -19,6 +19,26 @@
 
 /*===========================================================================*/
 
+VrpNetwork::VrpNetwork(int edgenum, int vertnum) : edgenum_(0), 
+maxEdgenum_(edgenum), vertnum_(vertnum), isIntegral_(false), mincut_(0){ 
+
+   int i;
+
+   edges_ = new edge[maxEdgenum_];
+   verts_ = new vertex[vertnum_];
+   for (i = 0; i < vertnum_; i++){
+      verts_[i].orig_node_list = new int[vertnum_];
+   }
+   adjList_ = new elist[2*maxEdgenum_];
+   compNodes_ = new int[vertnum_ + 1];
+   compDemands_ = new int[vertnum_ + 1];
+   compCuts_ = new double[vertnum_ + 1];
+   compMembers_ = new int[vertnum_ + 1];
+   newDemand_ = new int[vertnum_];
+}
+
+/*===========================================================================*/
+
 void 
 VrpNetwork::createNet(CoinPackedVector *sol, int *demand,
 		      std::vector<VrpVariable *> edgeList, double etol,
@@ -35,9 +55,15 @@ VrpNetwork::createNet(CoinPackedVector *sol, int *demand,
    int *indices = sol->getIndices();
    double *values = sol->getElements();
    edgenum_ = sol->getNumElements();
+   for (i = 0; i < vertnum_; i++){
+      delete[] verts_[i].orig_node_list;
+   }
    memset(edges_, 0, edgenum_*sizeof(edge));
    memset(verts_, 0, vertnum_*sizeof(vertex));
    memset(adjList_, 0, 2*edgenum_*sizeof(elist));
+   for (i = 0; i < vertnum_; i++){
+      verts_[i].orig_node_list = new int[vertnum_];
+   }
 
    for (i = 0, val_low = values, val_high = values + edgenum_ - 1, 
 	   ind_low = indices, ind_high = indices + edgenum_ - 1; 
@@ -333,6 +359,10 @@ VrpNetwork::reduce_graph(double etol)
    vertex *v2_pt, *third_node;
    int *demand = newDemand_;
 
+   for (i = 0; i < vertnum_; i++){
+      verts_[i].orig_node_list_size = 0;
+   }
+
    while(true){
       edges_deleted = 0;
       for (i = 0; i < edgenum_; i++){
@@ -363,8 +393,6 @@ VrpNetwork::reduce_graph(double etol)
 		  }
 	    }
 	    
-	    if (!(v2_pt->orig_node_list_size))
-	       v2_pt->orig_node_list = new int[vertnum_];
 	    (v2_pt->orig_node_list)[(v2_pt->orig_node_list_size)++] = v1;
 	    
 	    for (k = 0; k < verts_[v1].orig_node_list_size; k++){
@@ -444,4 +472,8 @@ VrpNetwork::gutsOfDestructor()
      delete[] verts_;
   }
   if (edges_) delete[] edges_;
+  if (compNodes_) delete[] compNodes_; 
+  if (compCuts_) delete[] compCuts_; 
+  if (compMembers_) delete[] compMembers_; 
+  if (newDemand_) delete[] newDemand_; 
 }
