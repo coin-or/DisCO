@@ -47,6 +47,38 @@
 #include "BlisVariable.h"
 
 //#############################################################################
+//-------------------------------------------------------------------
+// Returns the greatest common denominator of two 
+// positive integers, a and b, found using Euclid's algorithm 
+//-------------------------------------------------------------------
+static int gcd(int a, int b) 
+{
+    int remainder = -1;
+    // make sure a<=b (will always remain so)
+    if(a > b) {
+	// Swap a and b
+	int temp = a;
+	a = b;
+	b = temp;
+    }
+    // if zero then gcd is nonzero (zero may occur in rhs of packed)
+    if (!a) {
+	if (b) {
+	    return b;
+	} else {
+	    printf("**** gcd given two zeros!!\n");
+	    abort();
+	}
+    }
+    while (remainder) {
+	remainder = b % a;
+	b = a;
+	a = remainder;
+    }
+    return b;
+}
+
+//#############################################################################
 
 void 
 BlisModel::init() 
@@ -511,11 +543,14 @@ BlisModel::setupSelf()
     lpSolver_->setInteger(intColIndices_, numIntObjects_);
 
     //------------------------------------------------------
-    // Create integer objects.
+    // Create integer objects and analyze objective coef.
     //------------------------------------------------------
     
     createIntgerObjects(true);   
 
+    // Do this after loading LP.
+    analyzeObjective();
+    
     //------------------------------------------------------
     // Allocate memory.
     //------------------------------------------------------
@@ -2079,5 +2114,97 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
 
 //#############################################################################
 
+// Borrow from CBC
+void 
+BlisModel::analyzeObjective()
+{ 
+    const double *objective = getObjCoef();
+    const double *lower = getColLower();
+    const double *upper = getColUpper();
+    
+    /*------------------------------------------------------
+     * Take a first scan to see if there are unfixed continuous
+     * variables in the objective.  If so, the minimum objective change 
+     * could be arbitrarily small. Also pick off the maximum 
+     * coefficient of an unfixed integer variable.
+     * If the objective is found to contain only integer variables, 
+     * set the fathoming discipline to strict.
+     *------------------------------------------------------*/
+    
+    double maximumCost = 0.0;
+    bool possibleMultiple = true;
+    int iColumn;
+    int numberColumns = getNumCols();
+    for (iColumn = 0; iColumn < numberColumns; iColumn++) { 
+	if (upper[iColumn] > lower[iColumn]+1.0e-8) {
+	    if (colType_[iColumn] == 'I' || colType_[iColumn] == 'B') {
+		maximumCost = CoinMax(maximumCost,
+				      fabs(objective[iColumn]));
+	    }
+	    else if (objective[iColumn]) {
+		possibleMultiple = false;
+	    } 
+	}
+    }
+    
+    //setIntParam(CbcModel::CbcFathomDiscipline,possibleMultiple);
+    
+    /*------------------------------------------------------
+     * If a nontrivial increment is possible, try and figure 
+     * it out. We're looking for gcd(c<j>) for all c<j> that 
+     * are coefficients of unfixed integer variables. Since 
+     * the c<j> might not be integers, try and inflate them
+     * sufficiently that they look like integers (and we'll 
+     * deflate the gcd later).
+     * 2520.0 is used as it is a nice multiple of 2,3,5,7
+     *-----------------------------------------------------*/
+
+    if (possibleMultiple && maximumCost) { 
+	int increment = 0;
+	double multiplier = 2520.0;
+	while (10.0*multiplier * maximumCost < 1.0e8) {
+	    multiplier *= 10.0;
+	}
+	for (iColumn = 0; iColumn < numberColumns; iColumn++) { 
+	    if (upper[iColumn] > lower[iColumn]+1.0e-8) { 
+		if ( (colType_[iColumn] == 'I' || colType_[iColumn] == 'B') 
+		     && objective[iColumn] ) {
+		    double value = fabs(objective[iColumn])*multiplier;
+		    int nearest = (int) floor(value+0.5);
+		    if (fabs(value-floor(value+0.5)) > 1.0e-8) {
+			increment = 0;
+			break; 
+		    }
+		    else if (!increment) { 
+			increment = nearest;
+		    }
+		    else { 
+			increment = gcd(increment,nearest);
+		    }
+		} 
+	    } 
+	}
+
+	/*--------------------------------------------------
+	 * If the increment beats the current value for objective 
+	 * change, install it.
+	 *--------------------------------------------------*/
+
+	if (increment) { 
+	    double value = increment;
+	    double cutoffInc = BlisPar_->entry(BlisParams::cutoffInc);
+
+	    value /= multiplier;
+	    if (value * 0.999 > cutoffInc) { 
+		blisMessageHandler()->message(BLIS_CUTOFF_INC,
+                                              blisMessages())
+		    << value << CoinMessageEol;
+		BlisPar_->setEntry(BlisParams::cutoffInc, -value*0.999);
+	    } 
+	} 
+    }
+}
+
+//#############################################################################
 
 

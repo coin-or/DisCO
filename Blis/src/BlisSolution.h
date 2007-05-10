@@ -48,10 +48,18 @@ class BlisSolution : public BcpsSolution {
     virtual ~BlisSolution() { }
 
     /** Print out the solution.*/
+    /** Print the solution.*/
     virtual void print(std::ostream& os) const {
+        double nearInt = 0.0;
 	for (int j = 0; j < size_; ++j) {
 	    if (values_[j] > 1.0e-15 || values_[j] < -1.0e-15) {
-		os << "x[" << j << "] = " << values_[j] << std::endl;
+                nearInt = floor(values_[j] + 0.5);
+                if (ALPS_FABS(nearInt - values_[j]) < 1.0e-6) {
+                    os << "x[" << j << "] = " << nearInt << std::endl;
+                }
+                else {
+                    os << "x[" << j << "] = " << values_[j] << std::endl;
+                }   
 	    }
 	}
     }

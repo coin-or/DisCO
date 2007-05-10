@@ -47,7 +47,7 @@
 //#include "BlisVariable.h"
 
 #define REMOVE_SLACK 1
-#define BLIS_SLACK_MAX 3
+#define BLIS_SLACK_MAX 10
 
 //#############################################################################
 
@@ -163,13 +163,16 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     if (maxPass < ALPS_INT_MAX) {
 	++maxPass;
     }
+    if (cutoff < ALPS_INC_MAX) {
+	cutoff += BlisPar->entry(BlisParams::cutoffInc);
+    }
     
     //------------------------------------------------------
     // Check if this can be fathomed by objective cutoff.
     //------------------------------------------------------
     
     //std::cout << "parentObjValue = " << parentObjValue << std::endl;
-    if (parentObjValue - primalTolerance > cutoff) {
+    if (parentObjValue > cutoff) {
 	setStatus(AlpsNodeStatusFathomed);
         //std::cout << "fathom!" <<std::endl;
 	goto TERM_PROCESS;
@@ -342,12 +345,14 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                                                        quality_); 
                     // Update cutoff
                     cutoff = getKnowledgeBroker()->getIncumbentValue();
+		    cutoff += BlisPar->entry(BlisParams::cutoffInc);
                 }
                 setStatus(AlpsNodeStatusFathomed);
 		goto TERM_PROCESS;
             }
             else {
                 cutoff = getKnowledgeBroker()->getIncumbentValue();
+		cutoff += BlisPar->entry(BlisParams::cutoffInc);
                 if (quality_ > cutoff) {
                     setStatus(AlpsNodeStatusFathomed);
                     goto TERM_PROCESS;
@@ -431,7 +436,6 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                         rowStatus = ws->getArtifStatus(k);
 
                         if (rowStatus == CoinWarmStartBasis::basic) {
-                            delIndices.push_back(k);
 			    int count;
                             if (k < numStartRows) {
 				BlisConstraint *tmpCon = model->oldConstraints()[(k-numCoreRows)];
@@ -439,6 +443,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 				tmpCon->setNumInactive(count);
 				if (tmpCon->getNumInactive() > BLIS_SLACK_MAX){
 				    oldDelMark[(k-numCoreRows)] = 1;
+				    delIndices.push_back(k);
 				}
                             }
                             else {
@@ -447,6 +452,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 				tmpCon->setNumInactive(count);
 				if (tmpCon->getNumInactive() > BLIS_SLACK_MAX){
 				    newDelMark[(k-numStartRows)] = 1;
+				    delIndices.push_back(k);
 				}
                             }
                         }
@@ -454,12 +460,13 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 #endif
                     numDelRows = delIndices.size();
 		    
-#if 0
-                    std::cout << "PROCESS: new cuts=" << numNewCons 
-                              << ", slack cuts=" << numDelRows 
-                              << ", numRows=" << numRows 
-                              << ", numStartRows=" <<numStartRows << std::endl;
-#endif
+		    if (msgLevel > 100) {
+			std::cout << "PROCESS: new cuts=" << numNewCons 
+				  << ", slack cuts=" << numDelRows 
+				  << ", numRows=" << numRows 
+				  << ", numStartRows=" <<numStartRows << std::endl;
+		    }
+    
                     
                     if (numDelRows > 0) {
                         delRow = new int [numDelRows];
@@ -656,6 +663,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                                                            heurObjValue);
                         // Update cutoff
                         cutoff = getKnowledgeBroker()->getIncumbentValue();
+			cutoff += BlisPar->entry(BlisParams::cutoffInc);
                         if (quality_ > cutoff) {
                             setStatus(AlpsNodeStatusFathomed);
                             goto TERM_PROCESS;
@@ -775,13 +783,13 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                 printf("Resolve since some col fixed, Obj value %g, numRows %d, cutoff %g\n",
                        model->solver()->getObjValue(),
                        model->solver()->getNumRows(),
-                       model->getCutoff());
+                       cutoff;
 #endif
                 if (lpFeasible) {
 		    // Update new quality.
                     setQuality(model->solver()->getObjValue() *
 			       model->solver()->getObjSense());
-                    if (getQuality() > model->getCutoff()) {
+                    if (getQuality() > cutoff) {
                         bStatus = -2;
                     }
                     feasibleIP = model->feasibleSolution(numIntInfs, 
