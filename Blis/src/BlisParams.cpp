@@ -118,6 +118,9 @@ BlisParams::createKeywordList() {
   keys_.push_back(make_pair(std::string("Blis_cutFactor"),
 			    AlpsParameter(AlpsDoublePar, cutFactor)));
   
+  keys_.push_back(make_pair(std::string("Blis_cutoff"),
+			    AlpsParameter(AlpsDoublePar, cutoff)));
+
   keys_.push_back(make_pair(std::string("Blis_cutoffInc"),
 			    AlpsParameter(AlpsDoublePar, cutoffInc)));
   
@@ -126,6 +129,9 @@ BlisParams::createKeywordList() {
 
   keys_.push_back(make_pair(std::string("Blis_integerTol"),
 			    AlpsParameter(AlpsDoublePar, integerTol)));
+
+  keys_.push_back(make_pair(std::string("Blis_objSense"),
+			    AlpsParameter(AlpsDoublePar, objSense)));
   
   keys_.push_back(make_pair(std::string("Blis_optimalRelGap"),
 			    AlpsParameter(AlpsDoublePar, optimalRelGap)));
@@ -192,9 +198,11 @@ BlisParams::setDefaultEntries() {
   //-------------------------------------------------------------
 
   setEntry(cutFactor, 4.0);
+  setEntry(cutoff, ALPS_INC_MAX);
   setEntry(cutoffInc, 1.0e-6);
   setEntry(denseConFactor, 5.0);
   setEntry(integerTol, 1.0e-5);
+  setEntry(objSense, 1.0);
   setEntry(optimalRelGap, 1.0e-6);
   setEntry(optimalAbsGap, 1.0e-4);
   setEntry(pseudoWeight, 0.8);

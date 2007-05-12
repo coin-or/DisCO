@@ -51,6 +51,9 @@ public:
     /** Print the solution.*/
     virtual void print(std::ostream& os) const {
         double nearInt = 0.0;
+
+        os << "TODO: Change to VRP tour" << std::endl;
+
 	for (int j = 0; j < size_; ++j) {
 	    if (values_[j] > 1.0e-15 || values_[j] < -1.0e-15) {
                 nearInt = floor(values_[j] + 0.5);

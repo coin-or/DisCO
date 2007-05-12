@@ -47,7 +47,7 @@
 //#include "BlisVariable.h"
 
 #define REMOVE_SLACK 1
-#define BLIS_SLACK_MAX 10
+#define BLIS_SLACK_MAX 6
 
 //#############################################################################
 
@@ -119,9 +119,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     int numPassesLeft = 0;      
     int bStatus = -1;
  
-    double cutoff = getKnowledgeBroker()->getIncumbentValue();
+    double cutoff = ALPS_INC_MAX;
     double parentObjValue = getQuality();
-    double primalTolerance = 1.0e-6;
     double preObjValue = -ALPS_OBJ_MAX;
     double improvement = 100.0;
 
@@ -130,9 +129,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     double *currLpSolution = NULL;
 
     bool keepOn = true;
-    bool feasibleIP = false;
     bool needBranch = false;
-    bool betterSolution = false;
     bool lpFeasible = false;
     bool foundSolution = false;
     bool genConsHere = false;
@@ -141,6 +138,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     BlisConstraint *aCon = NULL;
     BcpsObject **newConstraints = NULL;
 
+    BlisSolution *ipSol = NULL;
+    
     int numDelRows = 0;
     int *delRow = NULL;
     int *oldConsPos = NULL;
@@ -163,15 +162,18 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     if (maxPass < ALPS_INT_MAX) {
 	++maxPass;
     }
-    if (cutoff < ALPS_INC_MAX) {
-	cutoff += BlisPar->entry(BlisParams::cutoffInc);
-    }
+    
+    cutoff = model->getCutoff();
     
     //------------------------------------------------------
     // Check if this can be fathomed by objective cutoff.
     //------------------------------------------------------
     
-    //std::cout << "parentObjValue = " << parentObjValue << std::endl;
+#if 0
+    std::cout << "parentObjValue = " << parentObjValue 
+              << "cutoff = " << cutoff << std::endl;
+#endif
+
     if (parentObjValue > cutoff) {
 	setStatus(AlpsNodeStatusFathomed);
         //std::cout << "fathom!" <<std::endl;
@@ -324,35 +326,17 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         switch(status) {
         case BLIS_LP_OPTIMAL:
             // Check if IP feasible 
-            feasibleIP = model->feasibleSolution(numIntInfs, numObjInfs);
+            ipSol = model->feasibleSolution(numIntInfs, numObjInfs);
             
-            if (feasibleIP) {         
-                // IP feasible 
-		
-		if (quality_ < cutoff) {  
-                    // Better than incumbent
-                    betterSolution = true;
-                    model->setBestSolution(BLIS_SOL_BOUNDING,
-                                           quality_, 
-                                           model->getLpSolution());
-                    getKnowledgeBroker()->getNodeSelection()->setWeight(0.0);
-                    BlisSolution* ksol = 
-                        new BlisSolution(numCols, 
-                                         model->getLpSolution(), 
-                                         quality_);
-                    getKnowledgeBroker()->addKnowledge(ALPS_SOLUTION, 
-                                                       ksol, 
-                                                       quality_); 
-                    // Update cutoff
-                    cutoff = getKnowledgeBroker()->getIncumbentValue();
-		    cutoff += BlisPar->entry(BlisParams::cutoffInc);
-                }
+            if (ipSol) {         
+                // IP feasible
+                model->storeSolution(BLIS_SOL_BOUNDING, ipSol);
+                // Update cutoff
+                cutoff = model->getCutoff();
                 setStatus(AlpsNodeStatusFathomed);
 		goto TERM_PROCESS;
             }
             else {
-                cutoff = getKnowledgeBroker()->getIncumbentValue();
-		cutoff += BlisPar->entry(BlisParams::cutoffInc);
                 if (quality_ > cutoff) {
                     setStatus(AlpsNodeStatusFathomed);
                     goto TERM_PROCESS;
@@ -583,9 +567,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
             
             break;
         case BLIS_LP_ABANDONED:
-#ifdef BLIS_DEBUG
             assert(0);
-#endif
             status = BLIS_ERR_LP;
             goto TERM_PROCESS;
         case BLIS_LP_DUAL_INF:
@@ -644,26 +626,16 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                     model->heuristics(k)->addCalls(1);
 
                     if (foundSolution) {
-                        foundSolution = model->feasibleSolution(numIntInfs,
-                                                               numObjInfs);
+                        ipSol = model->feasibleSolution(numIntInfs, numObjInfs);
                     }
                     
-                    if (foundSolution) {
+                    if (ipSol) {
                         model->heuristics(k)->addNumSolutions(1);
                         int noSols = model->heuristics(k)->noSolCalls();
                         model->heuristics(k)->addNoSolCalls(-noSols);
-                        model->setBestSolution(BLIS_SOL_ROUNDING,
-                                               heurObjValue,
-                                               heurSolution);
-                        BlisSolution* ksol = new BlisSolution(numCols, 
-                                                              heurSolution, 
-                                                              heurObjValue);
-                        getKnowledgeBroker()->addKnowledge(ALPS_SOLUTION,
-                                                           ksol,
-                                                           heurObjValue);
-                        // Update cutoff
-                        cutoff = getKnowledgeBroker()->getIncumbentValue();
-			cutoff += BlisPar->entry(BlisParams::cutoffInc);
+
+                        model->storeSolution(BLIS_SOL_ROUNDING, ipSol);
+                        cutoff = model->getCutoff();
                         if (quality_ > cutoff) {
                             setStatus(AlpsNodeStatusFathomed);
                             goto TERM_PROCESS;
@@ -792,17 +764,15 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                     if (getQuality() > cutoff) {
                         bStatus = -2;
                     }
-                    feasibleIP = model->feasibleSolution(numIntInfs, 
-                                                         numObjInfs);
-                    if (feasibleIP) {
-                        bStatus = -2;
+                    // Check if feasible at the other branch due to random LP 
+                    ipSol = model->feasibleSolution(numIntInfs, numObjInfs);
+                    if (ipSol) {         
+                        // IP feasible
+                        model->storeSolution(BLIS_SOL_BOUNDING, ipSol);
+                        // Update cutoff
+                        cutoff = model->getCutoff();
                         setStatus(AlpsNodeStatusFathomed);
-                        //FIXME: is it true? I think this must be true
-                        // - 11/16/05, Probably not really. It's possible
-                        //   some lp solution are integral, some are not.
-                        //   If lp solver has some randomness of producing
-                        //   optimal solution, then assertion fails. (p0033)
-                        // assert(!feasibleIP);
+                        goto TERM_PROCESS;
                     }
                 }
                 else {
@@ -835,12 +805,6 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         if (bStatus >= 0) {
             
 #ifdef BLIS_DEBUG_MORE
-            //FIXME: Can we do this check? I think so.
-            //bool fea = false;
-            //int numInfObj;
-            //fea = model->feasibleSolution(numUnsatisfied_, numInfObj);
-            //assert(!fea);
-            
             BlisBranchObjectInt *branchObject =
                 dynamic_cast<BlisIntegerBranchObject *>(branchObject_);
             std::cout << "SetPregnant: branchedOn = " 
@@ -1363,7 +1327,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         }
         else if (bStatus == -2) {
             
-#ifdef BLIS_DEBUG_MORE
+#if 1
             std::cout << "bStatus = -2" << std::endl;
 #endif
             //branchObject->getDown()[0], branchObject->getDown()[1]);

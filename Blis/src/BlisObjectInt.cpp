@@ -174,32 +174,6 @@ BlisObjectInt::createBranchObject(BcpsModel *m, int direction) const
     value = CoinMax(value, lower[columnIndex_]);
     value = CoinMin(value, upper[columnIndex_]);
     
-    double nearest = floor(value + 0.5);
-    
-    assert (upper[columnIndex_] > lower[columnIndex_]);
-    
-    int hotstartStrategy = model->getHotstartStrategy();
-    
-    if (hotstartStrategy <= 0) {
-        if (fabs(value - nearest) < integerTolerance) {
-            // Already integeral.
-            std::cout << "ERROR: COL" << columnIndex_ << ": x=" << value 
-                      << ", nearest=" << nearest 
-                      << ", intTol=" << integerTolerance << std::endl;
-            assert(0);
-        }
-    } 
-    else {
-	const double * incumbent = model->incumbent();
-	double targetValue = incumbent[columnIndex_];
-	if (direction > 0) {
-	    value = targetValue - 0.1;
-	}
-	else {
-	    value = targetValue + 0.1;
-	}
-    }
-    
     return new BlisBranchObjectInt(model, objectIndex_, direction, value);
 }
 

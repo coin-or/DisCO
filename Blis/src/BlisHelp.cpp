@@ -98,9 +98,10 @@ int BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
     const double * lower = solver->getColLower();
     const double * upper = solver->getColUpper();
 
-
     // restore bounds
     int numDiff = 0;
+
+    BlisSolution* ksol = NULL;
 
 #ifdef BLIS_DEBUG_MORE
     for (j = 0; j < numCols; ++j) {
@@ -131,26 +132,16 @@ int BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
 #ifdef BLIS_DEBUG_MORE
         printf("STRONG: COL[%d]: downDeg=%g, x=%g\n", colInd, downDeg, x);
 #endif
-
-	if (model->feasibleSolution(numIntInfDown, numObjInfDown)) {
+        
+        ksol = model->feasibleSolution(numIntInfDown, numObjInfDown);
+        if (ksol) {
 #ifdef BLIS_DEBUG_MORE
-	    printf("STRONG:down:found a feasible solution\n");
+            printf("STRONG:Down:found a feasible solution\n");
 #endif
-	    
-	    model->setBestSolution(BLIS_SOL_STRONG,
-				   newObjValue,
-				   solver->getColSolution());
-
-	    BlisSolution* ksol = new BlisSolution(solver->getNumCols(), 
-						      solver->getColSolution(),
-						      newObjValue);
-
-	    model->getKnowledgeBroker()->addKnowledge(ALPS_SOLUTION, 
-						      ksol, 
-						      newObjValue);	    
-
+            
+            model->storeSolution(BLIS_SOL_STRONG, ksol);
 	    downKeep = false;
-	}
+        }
 	else {
 	    downKeep = true;
 	}
@@ -205,26 +196,16 @@ int BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
 #ifdef BLIS_DEBUG_MORE
         printf("STRONG: COL[%d]: upDeg=%g, x=%g\n", colInd, upDeg, x);
 #endif
-
-	if (model->feasibleSolution(numIntInfDown, numObjInfDown)) {
+        
+        ksol = model->feasibleSolution(numIntInfDown, numObjInfDown);
+        if (ksol) {
 #ifdef BLIS_DEBUG_MORE
-	    printf("STRONG: up:found a feasible solution\n");
+            printf("STRONG:Up:found a feasible solution\n");
 #endif
-	    
-	    model->setBestSolution(BLIS_SOL_STRONG,
-				   newObjValue,
-				   solver->getColSolution());
-
-	    BlisSolution* ksol = new BlisSolution(solver->getNumCols(), 
-						  solver->getColSolution(),
-						  newObjValue);
-
-	    model->getKnowledgeBroker()->addKnowledge(ALPS_SOLUTION, 
-						      ksol, 
-						      newObjValue);	    
-	    // FIXME: should not keep this branch.
-	    upKeep = false;
-	}
+            
+            model->storeSolution(BLIS_SOL_STRONG, ksol);
+            upKeep = false;
+        }
 	else {
 	    upKeep = true;
 	}

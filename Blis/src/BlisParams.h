@@ -109,6 +109,8 @@ class BlisParams : public AlpsParameterSet {
           maxNumCons = (CutFactor - 1) * numCoreConstraints. */
       cutFactor,
       
+      /** Cutoff any nodes whose objective value is higher than it. */
+      cutoff,
       /** The value added to relaxation value when deciding fathom. 
           Default:1.0e-6 */
       cutoffInc,
@@ -118,7 +120,10 @@ class BlisParams : public AlpsParameterSet {
       
       /** Tolerance to treat as an integer. Default: 1.0e-5 */
       integerTol,
-      
+
+      /** Objective sense: min = 1.0, max = -1.0*/
+      objSense,
+
       /** If the relative gap between best feasible and best relaxed fall into
           this gap, search stops. Default: 1.0e-6 */
       optimalRelGap,

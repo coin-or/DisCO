@@ -140,7 +140,7 @@ public:
 
     /** Fix and tighten varaibles based optimality conditions. */
     int reducedCostFix(BlisModel *model);
-    
+
     /** Return constraint pool. */
     //BcpsConstraintPool * constraintPool() { return constraintPool_; }
 

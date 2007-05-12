@@ -51,6 +51,7 @@
 //#############################################################################
 
 class BlisConstraint;
+class BlisSolution;
 class BcpsVariable;
 class BlisVariable;
 
@@ -282,9 +283,6 @@ protected:
     /// Search starting time
     double startTime_;
 
-    /// Max solution time
-    double timeLimit_; 
-
     /// Integer tolerance
     double integerTol_;
 
@@ -357,8 +355,6 @@ protected:
     void setColType(char *colType){
         colType_ = colType;
     }
-    /** Set objective sense */
-    void setObjSense(double os){ objSense_ = os; }   
     
     /** Pass objective coefficients */
     void setObjCoef(double *obj){ objCoef_ = obj; }
@@ -375,17 +371,17 @@ protected:
     virtual void readInstance(const char* dataFile);
 
     /** For parallel code, only the master calls this function.
+     *  Import model from vars and cons.
      *  1) Set colMatrix_, varLB_, varUB_, conLB_, conUB
      *     numCols_, numRows_
-     *  2) Set objCoef_ and objSense_
+     *  2) Set objCoef_ (Assume minimization)
      *  3) Set colType_ ('C', 'I', or 'B')
      *  4) Set variables_ and constraints_
      *  5) Set numCoreVariables_ and numCoreConstraints_
      *  NOTE: Blis takes over the memory ownship of vars and cons, which 
      *        means users must NOT free vars or cons.
      */
-    virtual void loadProblem(double objSense,
-			     std::vector<BlisVariable *> vars,
+    virtual void importModel(std::vector<BlisVariable *> vars,
                              std::vector<BlisConstraint *> cons);
     
     /** Read in Alps, Blis parameters. */
@@ -505,37 +501,43 @@ protected:
     double * incumbent() { return incumbent_; }
     
     /** Record a new incumbent solution and update objectiveValue. */
-    bool setBestSolution(BLIS_SOL_TYPE how,
-			 double & objectiveValue, 
-			 const double *solution,
-			 bool fixVariables = false);
-
+    int storeSolution(BLIS_SOL_TYPE how, BlisSolution* sol);
+    
     /** Get cut off value. */
     inline double getCutoff() const { return cutoff_;  }
 
     /** Set cut off value. */
     inline void setCutoff(double co) { 
-        double direction = lpSolver_->getObjSense();
-        lpSolver_->setDblParam(OsiDualObjectiveLimit, co * direction);
-        cutoff_ = co;
+        double inc = BlisPar_->entry(BlisParams::cutoffInc);        
+#if 0
+        std::cout << "3. cutoff_ = "<< cutoff_ 
+                  << "; inc = " << inc << std::endl;
+#endif
+        cutoff_ = co + inc;
+        
+        lpSolver_->setDblParam(OsiDualObjectiveLimit, co);
     }
-
-    /** Test the current lp solution for feasiblility.	
-	Scan integer objects for indications of infeasibility.
-    */
-    bool feasibleSolution(int & numIntegerInfs);
 
     /** Test the current solution for feasiblility.
 	Scan all objects for indications of infeasibility. This is broken down
 	into simple integer infeasibility (\p numIntegerInfs)
-	and all other reports of infeasibility(\p numObjectInfs).
-    */
-    virtual bool feasibleSolution(int & numIntegerInfs, int & numObjectInfs);
+	and all other reports of infeasibility(\p numObjectInfs). */
+    virtual BlisSolution *feasibleSolution(int & numIntegerInfs, 
+                                           int & numObjectInfs);
     
-    /** User's criteria for a feasible solution. Return true (feasible)
-	or false (infeasible) 
+   /** User's criteria for a feasible solution. 
+    *  If user think the solution is feasible then need
+    *     1) set userFeasible to true, and
+    *     2) return a non-null solution.
+    *  If user think the solution is infeasible then need
+    *     1) set userFeasible to false, and
+    *     2) return a null.
     */
-    virtual bool userFeasibleSolution() { return true; }
+    virtual BlisSolution *userFeasibleSolution(bool &feasible) { 
+        BlisSolution *sol = NULL;
+        feasible = true; // Feasible by default
+        return sol; 
+    }
     
     //------------------------------------------------------
     // BRANCHING
@@ -781,10 +783,6 @@ protected:
     //@{
     BlisParams * BlisPar() { return BlisPar_; }
     //@}
-
-    /** Don't know what it is. */
-    int getHotstartStrategy() { return hotstartStrategy_; }
-    void setHotstartStrategy(int value) { hotstartStrategy_ = value; }
 
     /** Node log. */
     virtual void nodeLog(AlpsTreeNode *node, bool force);

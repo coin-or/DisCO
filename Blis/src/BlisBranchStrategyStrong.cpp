@@ -353,31 +353,21 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
                 model->setSharedObjectMark(intObject->getObjectIndex());
 
 		candStrongs[i].finishedDown = true ;
-		if (newObjValue >= model->getCutoff()) {
+		if (newObjValue > model->getCutoff()) {
 		    objChange = ALPS_DBL_MAX; // say infeasible
 		} 
                 else {    
 		    // See if integer solution
-		    if (model->feasibleSolution(candStrongs[i].numIntInfDown,
-						candStrongs[i].numObjInfDown)) {
+                    BlisSolution* ksol = 
+                        model->feasibleSolution(candStrongs[i].numIntInfDown,
+                                                candStrongs[i].numObjInfDown);
+                    
+		    if (ksol) {
 #ifdef BLIS_DEBUG_MORE
 			printf("STRONG:down:found a feasible solution\n");
 #endif
 			
-			model->setBestSolution(BLIS_SOL_STRONG,
-					       newObjValue,
-					       solver->getColSolution());
-			(model->getKnowledgeBroker())->
-                            getNodeSelection()->setWeight(0.0);
-			BlisSolution* ksol = 
-			    new BlisSolution(solver->getNumCols(), 
-					       solver->getColSolution(), 
-					       newObjValue);
-			model->getKnowledgeBroker()->
-                            addKnowledge(ALPS_SOLUTION, 
-                                         ksol, 
-                                         newObjValue);
-
+			model->storeSolution(BLIS_SOL_STRONG, ksol);
 			objChange = ALPS_DBL_MAX ;
 		    }
 		}
@@ -444,36 +434,22 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
                 model->setSharedObjectMark(intObject->getObjectIndex());
                 
 		candStrongs[i].finishedUp = true ;
-		if (newObjValue >= model->getCutoff()) {
+		if (newObjValue > model->getCutoff()) {
 		    objChange = ALPS_DBL_MAX; // Cutoff
 		} 
 		else {
 		    // See if integer solution
-		    if (model->feasibleSolution(candStrongs[i].numIntInfUp,
-						candStrongs[i].numObjInfUp)) {
-                        
+                    BlisSolution* ksol = 
+                        model->feasibleSolution(candStrongs[i].numIntInfDown,
+                                                candStrongs[i].numObjInfDown);
+                    
+		    if (ksol) {
 #ifdef BLIS_DEBUG_MORE
-			printf("STRONG:up:found a feasible solution\n");
+			printf("STRONG:Up:found a feasible solution\n");
 #endif
                         
-			model->setBestSolution(BLIS_SOL_STRONG,
-					       newObjValue,
-					       solver->getColSolution());
-                        
-			model->getKnowledgeBroker()->
-                            getNodeSelection()->setWeight(0.0);
-                        
-			BlisSolution* ksol =
-			    new BlisSolution(solver->getNumCols(), 
-					     solver->getColSolution(), 
-					     newObjValue);
-                        
-			model->getKnowledgeBroker()->
-                            addKnowledge(ALPS_SOLUTION, 
-                                         ksol, 
-                                         newObjValue);
-                        
-                        objChange = ALPS_DBL_MAX;
+			model->storeSolution(BLIS_SOL_STRONG, ksol);
+			objChange = ALPS_DBL_MAX ;
 		    }
 		}
 	    } 

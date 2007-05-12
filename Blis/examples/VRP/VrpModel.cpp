@@ -557,34 +557,46 @@ void VrpModel::createNet(CoinPackedVector *vec)
 
 //#############################################################################
 
-bool
-VrpModel::userFeasibleSolution()
+BlisSolution * 
+VrpModel::userFeasibleSolution(bool &userFeasible)
 {
     CoinPackedVector *sol = getSolution();
+    VrpSolution *vrpSol = NULL;
+
+    userFeasible = true;
 
     createNet(sol);
 
     if (!n_->isIntegral_){
-        delete sol;
-        return false;
+        userFeasible = false;
     }
     else {
         int rcnt = n_->connected();
         int i;
         for (i = 0; i < rcnt; i++){
             if (n_->compCuts_[i+1] < 2 - etol_){
-                delete sol;
-                return false;
+                userFeasible = false;
+                break;
             }
             else if (n_->compDemands_[i+1] > capacity_){
-                delete sol;
-                return false;
+                userFeasible = false;
+                break;
             }
         }
     }
     
-    delete sol;
-    return true;
+    if (userFeasible) {
+        // Create a VRP solution
+        vrpSol = new VrpSolution(getNumCols(),
+                                 getLpSolution(),
+                                 getLpObjValue() * objSense_);
+
+        // TODO: add tour
+    }
+
+    delete sol;    
+
+    return vrpSol;
 }
 
 //#############################################################################
@@ -703,7 +715,6 @@ VrpModel::setModelData()
    setVarLb(collb);
    setVarUb(colub);
 
-   setObjSense(1.0);
    setObjCoef(objCoef);
 
    setColType(colType);    

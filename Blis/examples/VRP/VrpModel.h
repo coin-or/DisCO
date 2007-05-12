@@ -85,6 +85,8 @@ public:
 
       AlpsPar()->setEntry(AlpsParams::searchStrategy, ALPS_SEARCH_BEST);
 
+      BlisPar()->setEntry(BlisParams::branchStrategy, BLIS_BS_STRONG);
+
       BlisPar()->setEntry(BlisParams::cutClique,BLIS_NONE);
       BlisPar()->setEntry(BlisParams::cutFlowCover,BLIS_NONE);
       BlisPar()->setEntry(BlisParams::cutGomory,BLIS_NONE);
@@ -136,10 +138,15 @@ public:
    /** Read in Alps, Blis, Vrp parameters. */
    virtual void readParameters(const int argnum, const char * const *arglist);
    
-   /** User's criteria for a feasible solution. Return true (feasible)
-    *	or false (infeasible) 
+   /** User's criteria for a feasible solution. 
+    *  If user think the solution is feasible then need
+    *     1) set userFeasible to true, and
+    *     2) return a non-null VRP solution.
+    *  If user think the solution is infeasible then need
+    *     1) set userFeasible to false, and
+    *     2) return a null.
     */
-   virtual bool userFeasibleSolution();
+   virtual BlisSolution * userFeasibleSolution(bool &userFeasible);
    
    int index (int v0, int v1) {
       return(v0 < v1 ? v1*(v1 - 1)/2 + v0 : v0*(v0 - 1)/2 + v1);

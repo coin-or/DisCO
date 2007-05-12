@@ -122,9 +122,7 @@ BlisModel::init()
     numSolutions_ = 0;
     numHeurSolutions_ = 0;
     
-    //savedLpSolution_ = NULL;
     incumbent_ = NULL;
-    hotstartStrategy_ = 0;
     
     activeNode_ = NULL;
     numStrong_ = 0;
@@ -152,8 +150,6 @@ BlisModel::init()
 
     /// Timing
     startTime_ = 0.0;
-    /// Max solution time allowed
-    timeLimit_ = 1.0e75;
 
     /// Tolerance 
     integerTol_ = 1.0e-5;
@@ -227,12 +223,19 @@ BlisModel::readInstance(const char* dataFile)
     memcpy(conLB_, mps->getRowLower(), sizeof(double) * numRows_);
     memcpy(conUB_, mps->getRowUpper(), sizeof(double) * numRows_);
     
-    // Default from MPS is minimization.
-    objSense_ = 1.0;
+    objSense_ = BlisPar_->entry(BlisParams::objSense);
     
     objCoef_ = new double [numCols_];
-    memcpy(objCoef_, mps->getObjCoefficients(), sizeof(double) * numCols_);
-    
+    if (objSense_ > 0.0) {
+        memcpy(objCoef_, mps->getObjCoefficients(), sizeof(double) * numCols_);
+    }
+    else {
+        const double *mpsObj =  mps->getObjCoefficients();
+        for (j = 0; j < numCols_; ++j) {
+            objCoef_[j] = - mpsObj[j];
+        }
+    }    
+
     //------------------------------------------------------
     // Set colType_
     //------------------------------------------------------
@@ -336,8 +339,7 @@ BlisModel::createObjects()
  *        means users must NOT free vars or cons.
  */
 void 
-BlisModel::loadProblem(double objSense,
-                       std::vector<BlisVariable *> vars,
+BlisModel::importModel(std::vector<BlisVariable *> vars,
                        std::vector<BlisConstraint *> cons)
 {
 
@@ -357,9 +359,6 @@ BlisModel::loadProblem(double objSense,
     conUB_ = new double [numRows_];
     
     objCoef_ = new double [numCols_];
-
-    objSense_ = objSense;
-    
     colType_ = new char [numCols_];
     
     // Get numElems_ and colType_
@@ -539,7 +538,7 @@ BlisModel::setupSelf()
 			   objCoef_,
 			   conLB_, conUB_);
     
-    lpSolver_->setObjSense(objSense_);
+    lpSolver_->setObjSense(1.0);
     lpSolver_->setInteger(intColIndices_, numIntObjects_);
 
     //------------------------------------------------------
@@ -571,14 +570,13 @@ BlisModel::setupSelf()
     // Get parameters.
     //------------------------------------------------------
     
-    timeLimit_ = AlpsPar_->entry(AlpsParams::timeLimit);
-    
     integerTol_ = BlisPar_->entry(BlisParams::integerTol);
     optimalRelGap_ = BlisPar_->entry(BlisParams::optimalRelGap);
     optimalAbsGap_ = BlisPar_->entry(BlisParams::optimalAbsGap);
-
-    int relibility = BlisPar_->entry(BlisParams::pseudoRelibility);
     
+    int relibility = BlisPar_->entry(BlisParams::pseudoRelibility);
+    cutoff_ =  BlisPar_->entry(BlisParams::cutoff);
+
     //------------------------------------------------------
     // Modify parameters.
     //------------------------------------------------------
@@ -914,124 +912,74 @@ BlisModel::postprocess()
     
 }
 
-//############################################################################ 
+//#############################################################################
 
-bool 
-BlisModel::feasibleSolution(int & numIntegerInfs)
+int 
+BlisModel::storeSolution(BLIS_SOL_TYPE how, BlisSolution* sol)
 {
-    bool feasible = true;
-    numIntegerInfs = 0;
-    int i = -1;
-    //const int numCols = lpSolver_->getNumCols();
-    const double *savedLpSolution = lpSolver_->getColSolution();
+    double quality = sol->getQuality();
 
-#if 0
-    if (savedLpSolution_ != 0) {
-      delete [] savedLpSolution_;
-      savedLpSolution_ = 0;
+    // Update cutoff and lp cutoff.
+    if (cutoff_ > quality) {
+        setCutoff(quality);
+    }
+
+    ++numSolutions_;
+
+    // Store in pool, assume minimization.
+    getKnowledgeBroker()->addKnowledge(ALPS_SOLUTION, 
+                                       sol,
+                                       objSense_ * sol->getQuality()); 
+
+    // Record how the solution was found
+    switch (how) {
+    case BLIS_SOL_BOUNDING:
+#ifdef BLIS_DEBUG
+        std::cout << "Rounding heuristics found a better solution" 
+                  <<", old cutoff = " << cutoff 
+                  << ", new cutoff = " << getCutoff()  << std::endl;
+#endif
+        break;
+    case BLIS_SOL_BRANCHING:
+#ifdef BLIS_DEBUG
+        std::cout << "Branching found a better solution" 
+                  <<", old cutoff = " << cutoff 
+                  << ", new cutoff = " << getCutoff()  << std::endl;
+#endif
+        break;
+    case BLIS_SOL_DIVING:
+        ++numHeurSolutions_;
+#ifdef BLIS_DEBUG
+        std::cout << "Branching found a better solution" 
+                  <<", old cutoff = " << cutoff 
+                  << ", new cutoff = " << getCutoff()  << std::endl;
+#endif
+        break;
+    case BLIS_SOL_ROUNDING:
+        ++numHeurSolutions_;
+#ifdef BLIS_DEBUG
+        std::cout << "Rounding heuristics found a better solution" 
+                  <<", old cutoff = " << cutoff 
+                  << ", new cutoff = " << getCutoff()  << std::endl;
+#endif
+        break;
+    case BLIS_SOL_STRONG:
+#ifdef BLIS_DEBUG
+        std::cout << "Strong branching found a better solution" 
+                  <<", old cutoff = " << cutoff 
+                  << ", new cutoff = " << getCutoff()  << std::endl;
+#endif
+        break;
+    default:
+#ifdef BLIS_DEBUG
+        std::cout << "Nowhere found a better solution" 
+                  <<", old cutoff = " << cutoff 
+                  << ", new cutoff = " << getCutoff()  << std::endl;
+#endif
+        break;
     }
     
-    savedLpSolution_ = new double [numCols];
-    memcpy(savedLpSolution_, 
-	   lpSolver_->getColSolution(), 
-	   sizeof(double) * numCols);
-#endif
-    
-    for (i = 0; i < numIntObjects_; ++i) {
-	if ( ! checkInteger(savedLpSolution[intColIndices_[i]]) ) {
-	    ++numIntegerInfs;
-	    feasible = false;
-	    break;
-	}
-    }
-
-    if (feasible) {
-	feasible = userFeasibleSolution();
-    }
-    
-    return feasible;
-}
-
-//############################################################################ 
-
-bool
-BlisModel::setBestSolution(BLIS_SOL_TYPE how,
-			   double & objectiveValue, 
-			   const double * solution, 
-			   bool fixVariables)
-{
-    double cutoff = getCutoff();
-    
-    // Double check the solution to catch pretenders.
-    if (objectiveValue >= cutoff) {  // Bad news
-        return false;
-    }
-    else {  // Better solution
-	incObjValue_ = objectiveValue;
-
-	int numColumns = lpSolver_->getNumCols();
-	if (incumbent_ == 0) {
-	    incumbent_ = new double[numColumns];
-	}
-	
-	memcpy(incumbent_, solution, numColumns*sizeof(double));
-
-        // Update cutoff value in lp solver.
-	setCutoff(incObjValue_);
-        ++numSolutions_;
-
-	switch (how) {
-	case BLIS_SOL_BOUNDING:
-#ifdef BLIS_DEBUG
-	  std::cout << "Rounding heuristics found a better solution" 
-		    <<", old cutoff = " << cutoff 
-		    << ", new cutoff = " << getCutoff()  << std::endl;
-#endif
-	  break;
-	case BLIS_SOL_BRANCHING:
-#ifdef BLIS_DEBUG
-	  std::cout << "Branching found a better solution" 
-		    <<", old cutoff = " << cutoff 
-		    << ", new cutoff = " << getCutoff()  << std::endl;
-#endif
-	  break;
-	case BLIS_SOL_DIVING:
-            ++numHeurSolutions_;
-#ifdef BLIS_DEBUG
-	  std::cout << "Branching found a better solution" 
-		    <<", old cutoff = " << cutoff 
-		    << ", new cutoff = " << getCutoff()  << std::endl;
-#endif
-	  break;
-	case BLIS_SOL_ROUNDING:
-            ++numHeurSolutions_;
-#ifdef BLIS_DEBUG
-	  std::cout << "Rounding heuristics found a better solution" 
-		    <<", old cutoff = " << cutoff 
-		    << ", new cutoff = " << getCutoff()  << std::endl;
-#endif
-	  break;
-	case BLIS_SOL_STRONG:
-#ifdef BLIS_DEBUG
-	  std::cout << "Strong branching found a better solution" 
-		    <<", old cutoff = " << cutoff 
-		    << ", new cutoff = " << getCutoff()  << std::endl;
-#endif
-	  break;
-	default:
-#ifdef BLIS_DEBUG
-	  std::cout << "Nowhere found a better solution" 
-		    <<", old cutoff = " << cutoff 
-		    << ", new cutoff = " << getCutoff()  << std::endl;
-#endif
-	  break;
-	}
-
-
-	//setMinimizationObjValue(objectiveValue * lpSolver_->getObjSense());
-	
-	return true;
-    }
+    return ALPS_OK;
 }
 
 //############################################################################ 
@@ -1259,27 +1207,16 @@ BlisModel::gutsOfDestructor()
 
 //#############################################################################
 
-bool 
+BlisSolution *
 BlisModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
 {
+    int preferredWay, j;
     int numUnsatisfied = 0;
+
+    bool userFeasible = true;
     double sumUnsatisfied = 0.0;
-    int preferredWay;
-    int j;
     
-#if 0
-    if (savedLpSolution_ != 0) {
-        delete [] savedLpSolution_;
-        savedLpSolution_ = 0;
-    }
-    
-    savedLpSolution_ = new double [lpSolver_->getNumCols()];
-    
-    // Put current solution in safe place
-    memcpy(savedLpSolution_, 
-           lpSolver_->getColSolution(),
-	   lpSolver_->getNumCols() * sizeof(double));
-#endif
+    BlisSolution* sol = NULL;
 
     for (j = 0; j < numIntObjects_; ++j) {
 	const BcpsObject * object = objects_[j];
@@ -1307,10 +1244,17 @@ BlisModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
     //printf("numUnsatisfied = %d\n",numUnsatisfied);
 
     if (!numUnsatisfied) {
-	return userFeasibleSolution();
+        sol = userFeasibleSolution(userFeasible);
     }
-
-    return (!numUnsatisfied);
+    
+    if (!numUnsatisfied && userFeasible && !sol) {
+        // User doesn't overload feasible solution function.
+        sol = new BlisSolution(getNumCols(), 
+                               getLpSolution(), 
+                               objSense_ * getLpObjValue());
+    }
+    
+    return sol;
 }
 
 //#############################################################################
@@ -1566,18 +1510,17 @@ BlisModel::decodeBlis(AlpsEncoded &encoded)
         cons.push_back(aCon);
     }
     
-    // LoadProblem will fill variables_ and constraints_
     variables_.clear();
     constraints_.clear();
-    loadProblem(objSense_, vars, cons);
+
+    // Import model from vars and cons.
+    importModel(vars, cons);
     
     return status;
 }
 
 //#############################################################################
 
-#if 1
-// Send variables and constraints.
 AlpsEncoded* 
 BlisModel::encode() const 
 { 
@@ -1592,137 +1535,6 @@ BlisModel::encode() const
 
     return encoded;
 }
-
-#else
-
-AlpsEncoded* 
-BlisModel::encode() const 
-{ 
-    AlpsReturnCode status = ALPS_OK;
-
-    // NOTE: "ALPS_MODEL" is the type name.
-    AlpsEncoded* encoded = new AlpsEncoded(ALPS_MODEL);
-
-    //------------------------------------------------------
-    // Encode Alps part. 
-    // NOTE: Nothing to do for Bcps part.
-    //------------------------------------------------------
-
-    status = encodeAlps(encoded);
-    
-    //------------------------------------------------------
-    // Encode Blis part. 
-    //------------------------------------------------------
-
-    //------------------------------------------------------
-    // Blis parameter.
-    //------------------------------------------------------
-
-    BlisPar_->pack(*encoded);
-
-    //------------------------------------------------------
-    // Get a column matrix.
-    //------------------------------------------------------
-    
-    const CoinPackedMatrix *matrixByCol = lpSolver_->getMatrixByCol();
-    
-    const int numRows = lpSolver_->getNumRows();
-    encoded->writeRep(numRows);
-    
-    const int numCols = lpSolver_->getNumCols();
-    encoded->writeRep(numCols);
-
-    // Core node decription
-    encoded->writeRep(numCoreConstraints_);
-    encoded->writeRep(numCoreVariables_);
-
-#ifdef BLIS_DEBUG
-    std::cout << "BlisModel::encode()-- numRows="<< numRows << "; numCols=" 
-	      << numCols << std::endl;
-#endif
-
-    //------------------------------------------------------
-    // Variable bounds.
-    //------------------------------------------------------
-
-    const double* collb = lpSolver_->getColLower();
-    // NOTE: when write a array to buffer, the length is written
-    //       before the actual array. So don't need send numCols or
-    //       numRows.
-    encoded->writeRep(collb, numCols);
-    const double* colub = lpSolver_->getColUpper();
-    encoded->writeRep(colub, numCols);
-
-    //------------------------------------------------------
-    // Objective.
-    //------------------------------------------------------
-
-    const double* obj = lpSolver_->getObjCoefficients();
-    encoded->writeRep(obj, numCols);
-    const double objSense = lpSolver_->getObjSense();
-    encoded->writeRep(objSense);
-
-    //------------------------------------------------------
-    // Constraint bounds.
-    //------------------------------------------------------
-
-    const double* rowlb = lpSolver_->getRowLower();
-    encoded->writeRep(rowlb, numRows);
-    const double* rowub = lpSolver_->getRowUpper();
-    encoded->writeRep(rowub, numRows);
-
-    //------------------------------------------------------
-    // Matrix.
-    //------------------------------------------------------
-
-    int numElements = lpSolver_->getNumElements();
-    encoded->writeRep(numElements);
-    const double* elementValue = matrixByCol->getElements();
-    encoded->writeRep(elementValue, numElements);
-
-    const CoinBigIndex* colStart = matrixByCol->getVectorStarts();
-
-    int numStart = numCols + 1;
-    encoded->writeRep(colStart, numStart);
-
-    const int* index = matrixByCol->getIndices();
-    encoded->writeRep(index, numElements);
-
-    //------------------------------------------------------
-    // Variable type.
-    //------------------------------------------------------
-
-    encoded->writeRep(numIntObjects_);
-    encoded->writeRep(intColIndices_, numIntObjects_);
-
-    //------------------------------------------------------
-    // Debug.
-    //------------------------------------------------------
-
-#if 0
-    std::cout << "BlisModel::encode()-- objSense="<< objSense
-	      << "; numElements="<< numElements 
-	      << "; numIntObjects_=" << numIntObjects_ 
-	      << "; numStart = " << numStart <<std::endl;
-#endif
-
-#if 0
-    std::cout << "rowub=";
-    for (int i = 0; i < numRows; ++i){
-	std::cout <<rowub[i]<<" ";
-    }
-    std::cout << std::endl;
-    std::cout << "elementValue=";
-    for (int j = 0; j < numElements; ++j) {
-	std::cout << elementValue[j] << " ";
-    }
-    std::cout << std::endl;    
-#endif
-
-    return encoded;
-}
-
-#endif
 
 //#############################################################################
 
