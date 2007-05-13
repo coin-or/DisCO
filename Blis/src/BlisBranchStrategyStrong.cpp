@@ -22,6 +22,7 @@
 #include "AlpsKnowledgeBroker.h"
 
 #include "BlisBranchStrategyStrong.h"
+#include "BlisHelp.h"
 #include "BlisSolution.h"
 #include "BlisObjectInt.h"
 
@@ -48,13 +49,20 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
 {
     int bStatus = 0;
     int i, j, pass;
-
-    int col, ind;
+    int col, ind, colInd, objInd;
     int numInfs = 0;
-    int numIntegerInfs = 0;  // For integer objects.
-    int numObjectInfs = 0;   // For non-integer objects.
-    double sumDeg = 0.0;     // For solution estimate.
-    double lpX;
+    int lastObj = -1;
+
+    bool roundAgain, downKeep, downGood, upKeep, upGood;
+    double lpX, score, infeasibility, downDeg, upDeg, sumDeg = 0.0;
+
+    int numLowerTightens = 0;
+    int numUpperTightens = 0;
+
+    int *lbInd = NULL;
+    int *ubInd = NULL;
+    double *newLB = NULL;
+    double *newUB = NULL;
     
     BlisObjectInt *intObject = NULL;
     
@@ -73,25 +81,28 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
     BlisStrong * candStrongs = new BlisStrong [maxStrongLen];
 
     //------------------------------------------------------
-    // Backup solver status
+    // Allocate memory and store current solution info.
     //------------------------------------------------------
 
     // Objective value. 
     double objValue = solver->getObjSense() * solver->getObjValue();
-
+    
     // Column bounds.
     const double * lower = solver->getColLower();
     const double * upper = solver->getColUpper();
     double * saveUpper = new double[numCols];
     double * saveLower = new double[numCols];
-    for (i = 0; i < numCols; ++i) {
-	saveLower[i] = lower[i];
-	saveUpper[i] = upper[i];
-    }
+    memcpy(saveLower, lower, numCols * sizeof(double));
+    memcpy(saveUpper, upper, numCols * sizeof(double));
     
     // Primal solution.
     double * saveSolution = new double[numCols];
     memcpy(saveSolution, solver->getColSolution(),numCols * sizeof(double));
+
+    lbInd = new int [numCols];
+    ubInd = new int [numCols];    
+    newLB = new double [numCols];
+    newUB = new double [numCols];
 
     //------------------------------------------------------
     // Select a set of objects based on feasibility. 
@@ -110,7 +121,6 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
 	int leastFrac = 0;
         double infeasibility;
         double minInf = ALPS_ZERO;
-        BlisObjectInt * object = NULL;
         
 	for (i = 0; i < maxStrongLen; ++i) {
 	    candStrongs[i].bObject = NULL;
@@ -121,14 +131,14 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
 	for (i = 0; i < numObjects; ++i) {
             
             // TODO: currently all integer object.
-	    object = dynamic_cast<BlisObjectInt *>(model->objects(i));
-	    infeasibility = object->infeasibility(model, preferDir);
+	    intObject = dynamic_cast<BlisObjectInt *>(model->objects(i));
+	    infeasibility = intObject->infeasibility(model, preferDir);
             
 	    if (infeasibility) {
 		++numInfs;
                 
 		// Increase estimated degradation to solution
-		sumDeg += object->pseudocost().getScore();
+		sumDeg += intObject->pseudocost().getScore();
 		
 		// Check for suitability based on infeasibility.
                 if (infeasibility > minInf) {
@@ -140,7 +150,7 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
                     
                     // Create new branching object.
 		    candStrongs[leastFrac].bObject = 
-			object->createBranchObject(model, preferDir);
+			intObject->createBranchObject(model, preferDir);
 
 		    candStrongs[leastFrac].bObject->setUpScore(infeasibility);
                     candStrongs[leastFrac].bObject->setObjectIndex(i);
@@ -184,15 +194,13 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
 	    std::cout << "STRONG: given a feasible sol" << std::endl;
 #endif
             
-	    bool roundAgain = false;
-            
 	    CoinWarmStartBasis * ws = 
 		dynamic_cast<CoinWarmStartBasis*>(solver->getWarmStart());
 	    if (!ws) break;
 
 	    // Force solution values within bounds
 	    for (i = 0; i < numCols; ++i) {
-		double lpX = saveSolution[i];
+		lpX = saveSolution[i];
 		if (lpX < lower[i]) {
 		    saveSolution[i] = lower[i];
 		    roundAgain = true;
@@ -232,25 +240,21 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
     }
 
     //------------------------------------------------------
-    // Now we have a set of candidate branching object, 
-    // evaluate them.
+    // Now we have a set of candidate branching object, evaluate them.
     //------------------------------------------------------
     
     int bestBO = 0;
     double bestScore = 0.0;
     
     for (i = 0; i < strongLen; ++i) {
-
 	candStrongs[i].numIntInfUp = numInfs;
 	candStrongs[i].numIntInfDown = numInfs;
-
 	if ( !model->objects(candStrongs[i].bObject->getObjectIndex())->
              boundBranch(model) ) {
             // Weild branching: not by modifying variable bounds.
             // Exit selection routine.
 	    strongLen = 0;
         }
-        
 	// Find the most fractional object in case of doing simple branch
 	if (candStrongs[i].bObject->getUpScore() > bestScore) {
 	    bestScore = candStrongs[i].bObject->getUpScore();
@@ -289,7 +293,7 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
     else {
         
         //--------------------------------------------------------
-        /* Strong branching */
+        // Strong branching
         //--------------------------------------------------------
         
         // set true to say look at all even if some fixed (experiment)
@@ -299,23 +303,60 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
 	CoinWarmStart * ws = solver->getWarmStart();
 	solver->getIntParam(OsiMaxNumIterationHotStart, saveLimit);
 	if (beforeSolution) {
-	    solver->setIntParam(OsiMaxNumIterationHotStart, 10000);
+	    solver->setIntParam(OsiMaxNumIterationHotStart, 100000);
+        }
+        else {
+            solver->setIntParam(OsiMaxNumIterationHotStart, 1000);
         }
         
         // Mark hot start
         solver->markHotStart();
         
-#ifdef BLIS_DEBUG_MORE
+#if 1
 	printf("BEFORE LOOP: strongLen = %d\n",strongLen);
 #endif
         
 	for (i = 0; i < strongLen; ++i) {
+
+#if 1
+            objInd = candStrongs[i].bObject->getObjectIndex();
+            colInd = model->getIntColIndices()[objInd];
+            lpX = saveSolution[colInd];
+            
+            BlisStrongBranch(model, objValue, colInd, lpX,
+                             saveLower, saveUpper,
+                             downKeep, downGood, downDeg,
+                             upKeep, upGood, upDeg);
+            
+            candStrongs[i].bObject->setDownScore(downDeg);
+            candStrongs[i].bObject->setUpScore(upDeg);
+
+            if(!downKeep && !upKeep) {
+                // This node can be fathomed
+                bStatus = -2;
+                break;
+            }
+            else if (!downKeep) {
+                // Down branch can be fathomed.
+                lbInd[numLowerTightens] = colInd;
+                newLB[numLowerTightens++] = ceil(lpX);
+                lastObj = i;
+                if (numPassesLeft == 0) break;
+            }
+            else if (!upKeep) {
+                // Up branch can be fathomed.
+                ubInd[numUpperTightens] = colInd;
+                newUB[numUpperTightens++] = floor(lpX);
+                lastObj = i;
+                if (numPassesLeft == 0) break;
+            }
+#else
 	    double objChange;
 	    double newObjValue = ALPS_DBL_MAX;
             
 	    // status is 0 finished, 1 infeasible and other
-	    int lpStatus;
-            
+	    int lpStatus;            
+
             //----------------------------------------------
 	    // Branching down.
             //----------------------------------------------
@@ -515,46 +556,83 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
 		    break;
 		}
 	    }
+#endif
+
 	}// EOF the loop for checking each candiate
         
+        //--------------------------------------------------
+        // Set new bounds in lp solver for resolving
+        //--------------------------------------------------
+        
+        if (bStatus != -2 && numPassesLeft > 0) {
+            if (numUpperTightens > 0) {
+                bStatus = -1;
+                for (i = 0; i < numUpperTightens; ++i) {
+                    solver->setColUpper(ubInd[i], newUB[i]);
+                }
+            }
+            if (numLowerTightens > 0) {
+                bStatus = -1;
+                for (i = 0; i < numLowerTightens; ++i) {
+                    solver->setColLower(lbInd[i], newLB[i]);
+                }
+            }
+        }
         
         //--------------------------------------------------
         // Unmark hotstart and reset lp solver.
         //--------------------------------------------------
         
         solver->unmarkHotStart();
+        solver->setColSolution(saveSolution);
         solver->setIntParam(OsiMaxNumIterationHotStart, saveLimit);
         solver->setWarmStart(ws);
         delete ws;
     }
-     
+
+    //------------------------------------------------------
+    // Record the list of candidates.
+    //------------------------------------------------------
 
     if (bStatus >= 0) {
-        // Store the set of candidate branching objects. 
-        numBranchObjects_ = strongLen;
-        
-        branchObjects_ = new BcpsBranchObject* [strongLen];        
-        for (i = 0; i < strongLen; ++i) {
-            branchObjects_[i] = candStrongs[i].bObject;
-            candStrongs[i].bObject = NULL;
+        if (numPassesLeft == 0 && lastObj > -1) {
+            numBranchObjects_ = 1;
+            branchObjects_ = new BcpsBranchObject* [1]; 
+            for (i = 0; i < strongLen; ++i) {
+                if (i == lastObj) {
+                    branchObjects_[0] = candStrongs[i].bObject;
+                }
+                candStrongs[i].bObject = NULL;
+            }
         }
-    }
+        else {
+            // Store the set of candidate branching objects. 
+            numBranchObjects_ = strongLen;
+            branchObjects_ = new BcpsBranchObject* [strongLen];        
+            for (i = 0; i < strongLen; ++i) {
+                branchObjects_[i] = candStrongs[i].bObject;
+                candStrongs[i].bObject = NULL;
+            }
+        }
+    }  
     
-    // Restore solution
-    solver->setColSolution(saveSolution);
-    
+    //------------------------------------------------------
     // Cleanup.
+    //------------------------------------------------------
+
+    delete [] lbInd;
+    delete [] ubInd;
+    delete [] newLB;
+    delete [] newUB;
     delete [] saveSolution;
     delete [] saveLower;
     delete [] saveUpper;
-
     for (i = 0; i < maxStrongLen; ++i) {
         if (candStrongs[i].bObject) {
             delete candStrongs[i].bObject;
         }
     }
     delete [] candStrongs;
-    
 
     return bStatus;
 }

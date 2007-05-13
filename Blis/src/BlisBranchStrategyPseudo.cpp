@@ -143,7 +143,6 @@ BlisBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft)
                maxTimeReached, numPassesLeft);
 #endif
     }
-
     
     // Store first time objects.
     std::vector<BlisObjectInt *> firstObjects;
@@ -337,16 +336,6 @@ BlisBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft)
                 ubInd[numUpperTightens] = colInd;
                 newUB[numUpperTightens++] = floor(lpX);
             }
-            
-            // Update pseudocost.
-            if(downGood) {
-                firstObjects[i]->pseudocost().update(-1, downDeg, lpX);
-                model->setSharedObjectMark(firstObjects[i]->getObjectIndex());
-            }
-            if(downGood) {
-                firstObjects[i]->pseudocost().update(1, upDeg, lpX);
-                model->setSharedObjectMark(firstObjects[i]->getObjectIndex());
-            }
         }
 
         //--------------------------------------------------
@@ -392,7 +381,7 @@ BlisBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft)
         sumDeg = 0.0;
 	
         for (i = 0; i < numInfs; ++i) {
-	    
+
             if (infObjects[i]->pseudocost().getUpCost() < 
                 infObjects[i]->pseudocost().getDownCost()) {
                 preferDir = 1;

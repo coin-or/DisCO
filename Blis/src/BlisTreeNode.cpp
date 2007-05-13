@@ -46,7 +46,7 @@
 #include "BlisSolution.h"
 //#include "BlisVariable.h"
 
-#define REMOVE_SLACK 1
+#define REMOVE_SLACK 0
 #define BLIS_SLACK_MAX 6
 
 //#############################################################################

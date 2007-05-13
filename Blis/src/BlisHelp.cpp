@@ -22,8 +22,9 @@
 
 #include "AlpsKnowledgeBroker.h"
 
-#include "BlisHelp.h"
+#include "BlisObjectInt.h"
 #include "BlisConstraint.h"
+#include "BlisHelp.h"
 #include "BlisModel.h"
 #include "BlisSolution.h"
 
@@ -103,6 +104,9 @@ int BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
 
     BlisSolution* ksol = NULL;
 
+    int ind = model->getIntObjIndices()[colInd];
+    BlisObjectInt *intObj = dynamic_cast<BlisObjectInt *>(model->objects(ind));
+    
 #ifdef BLIS_DEBUG_MORE
     for (j = 0; j < numCols; ++j) {
 	if (saveLower[j] != lower[j]) {
@@ -132,7 +136,11 @@ int BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
 #ifdef BLIS_DEBUG_MORE
         printf("STRONG: COL[%d]: downDeg=%g, x=%g\n", colInd, downDeg, x);
 #endif
-        
+        // Update pseudocost
+        intObj->pseudocost().update(-1, downDeg, x);
+        model->setSharedObjectMark(ind);        
+
+        // Check if ip feasible
         ksol = model->feasibleSolution(numIntInfDown, numObjInfDown);
         if (ksol) {
 #ifdef BLIS_DEBUG_MORE
@@ -154,6 +162,7 @@ int BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
 	downFinished = false;
     }
     else {
+        downDeg = 1.0e20;
 	lpStatus = 1; // infeasible
 	downKeep = false;
 	downFinished = false;
@@ -196,7 +205,12 @@ int BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
 #ifdef BLIS_DEBUG_MORE
         printf("STRONG: COL[%d]: upDeg=%g, x=%g\n", colInd, upDeg, x);
 #endif
-        
+
+        // Update pseudocost
+        intObj->pseudocost().update(1, upDeg, x);
+        model->setSharedObjectMark(ind);        
+
+        // Check if IP feasible
         ksol = model->feasibleSolution(numIntInfDown, numObjInfDown);
         if (ksol) {
 #ifdef BLIS_DEBUG_MORE
@@ -221,6 +235,7 @@ int BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
 	lpStatus = 1; // infeasible
 	upKeep = false;
 	upFinished = false;
+        upDeg = 1.0e20;
     }
     
 #ifdef BLIS_DEBUG_MORE
