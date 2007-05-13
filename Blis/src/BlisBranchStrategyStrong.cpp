@@ -312,7 +312,7 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
         // Mark hot start
         solver->markHotStart();
         
-#if 1
+#if 0
 	printf("BEFORE LOOP: strongLen = %d\n",strongLen);
 #endif
         
@@ -601,8 +601,9 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
             for (i = 0; i < strongLen; ++i) {
                 if (i == lastObj) {
                     branchObjects_[0] = candStrongs[i].bObject;
+                    candStrongs[i].bObject = NULL;
+                    //std::cout << "strong: one direction is good\n";
                 }
-                candStrongs[i].bObject = NULL;
             }
         }
         else {
