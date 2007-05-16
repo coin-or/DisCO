@@ -27,6 +27,7 @@ Blis/examples/VRP/VrpNetwork.cpp -text
 Blis/examples/VRP/VrpNetwork.h -text
 Blis/examples/VRP/VrpParams.cpp -text
 Blis/examples/VRP/VrpParams.h -text
+Blis/examples/VRP/VrpSolution.cpp -text
 Blis/examples/VRP/VrpSolution.h -text
 Blis/examples/VRP/VrpVariable.h -text
 Blis/examples/VRP/data/sample.vrp -text
