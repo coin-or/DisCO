@@ -589,7 +589,8 @@ VrpModel::userFeasibleSolution(bool &userFeasible)
         // Create a VRP solution
         vrpSol = new VrpSolution(getNumCols(),
                                  getLpSolution(),
-                                 getLpObjValue() * objSense_);
+                                 getLpObjValue() * objSense_,
+				 this);
 
         // TODO: add tour
     }

@@ -33,6 +33,7 @@ class VrpModel : public BlisModel
 {    
 
    friend class VrpCutGenerator;
+   friend class VrpSolution;
    
  private:
 
@@ -160,20 +161,20 @@ public:
 
    void createNet(CoinPackedVector *vec);
 
-    /** Register knowledge. */
-    virtual void registerKnowledge();  
-
-    /** Pack Vrp portion of the model into an encoded object. */
-    AlpsReturnCode encodeVrp(AlpsEncoded *encoded) const;
-
-    /** Unpack Vrp portion of the model from an encoded object. */
-    AlpsReturnCode decodeVrp(AlpsEncoded &encoded);  
-    
-    /** The method that encodes the model into an encoded object. */
-    virtual AlpsEncoded* encode() const;
-    
-    /** The method that decodes the model from an encoded object. */
-    virtual void decodeToSelf(AlpsEncoded&);
+   /** Register knowledge. */
+   virtual void registerKnowledge();  
+   
+   /** Pack Vrp portion of the model into an encoded object. */
+   AlpsReturnCode encodeVrp(AlpsEncoded *encoded) const;
+   
+   /** Unpack Vrp portion of the model from an encoded object. */
+   AlpsReturnCode decodeVrp(AlpsEncoded &encoded);  
+   
+   /** The method that encodes the model into an encoded object. */
+   virtual AlpsEncoded* encode() const;
+   
+   /** The method that decodes the model from an encoded object. */
+   virtual void decodeToSelf(AlpsEncoded&);
    
 };
 

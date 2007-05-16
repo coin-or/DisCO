@@ -12,6 +12,9 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
+#ifndef VrpNetwork_h_
+#define VrpNetwork_h_
+
 #include <vector>
 
 #include "CoinPackedVector.hpp"
@@ -78,6 +81,7 @@ class VrpNetwork{
 
    friend class VrpModel;
    friend class VrpCutGenerator;
+   friend class VrpSolution;
    
  private:
 
@@ -137,3 +141,4 @@ class VrpNetwork{
    
 };
 
+#endif

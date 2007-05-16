@@ -15,11 +15,13 @@
 #ifndef VrpSolution_h_
 #define VrpSolution_h_
 
+#include <cmath>
+
 #include "Alps.h"
 
 #include "BlisSolution.h"
 
-#include "VrpCommonTypes.h"
+#include "VrpModel.h"
 
 //#############################################################################
 /** This class contains a vrp solution */
@@ -29,59 +31,40 @@ class VrpSolution : public BlisSolution {
 
 protected:
 
-    best_tours tour;
+   _node *opt_;
     
 public:
     
     /** Default constructor. */
-    VrpSolution() 
-	: 
-	BlisSolution()
+   VrpSolution() : BlisSolution(), opt_(0)
 	{}
 
     /** Useful constructor. */
-    VrpSolution(int s, const double *values, double objValue)
-	:
-	BlisSolution(s, values, objValue)
-	{}
-
-    /** Destructor. */
-    virtual ~VrpSolution() { }
-    
-    /** Print the solution.*/
-    virtual void print(std::ostream& os) const {
-        double nearInt = 0.0;
-
-        os << "TODO: Change to VRP tour" << std::endl;
-
-	for (int j = 0; j < size_; ++j) {
-	    if (values_[j] > 1.0e-15 || values_[j] < -1.0e-15) {
-                nearInt = floor(values_[j] + 0.5);
-                if (ALPS_FABS(nearInt - values_[j]) < 1.0e-6) {
-                    os << "x[" << j << "] = " << nearInt << std::endl;
-                }
-                else {
-                    os << "x[" << j << "] = " << values_[j] << std::endl;
-                }   
-	    }
-	}
-    }
-    
-    /** The method that encodes the solution into a encoded object. */
-    virtual AlpsEncoded* encode() const {
-	AlpsEncoded* encoded = NULL;//new AlpsEncoded("ALPS_SOLUTION");
-	//encodeBcps(encoded);
-	// Nothing to do for Vrp part.
-	return encoded;
-    }
-  
-    /** The method that decodes the solution from a encoded object. */
-    virtual AlpsKnowledge* decode(AlpsEncoded& encoded) const {
-	VrpSolution * sol = NULL;//new VrpSolution();
-	//sol->decodeBcps(encoded);
-	return sol;
-    }
-    
+   VrpSolution(int s, const double *values, double objValue, VrpModel *vrp=0);
+   
+   /** Destructor. */
+   virtual ~VrpSolution(){
+      delete [] opt_;
+   }
+   
+   /** Print the solution.*/
+   virtual void print(std::ostream& os) const; 
+   
+   /** The method that encodes the solution into a encoded object. */
+   virtual AlpsEncoded* encode() const {
+      AlpsEncoded* encoded = NULL;//new AlpsEncoded("ALPS_SOLUTION");
+      //encodeBcps(encoded);
+      // Nothing to do for Vrp part.
+      return encoded;
+   }
+   
+   /** The method that decodes the solution from a encoded object. */
+   virtual AlpsKnowledge* decode(AlpsEncoded& encoded) const {
+      VrpSolution * sol = NULL;//new VrpSolution();
+      //sol->decodeBcps(encoded);
+      return sol;
+   }
+   
 };
 
 //#############################################################################
