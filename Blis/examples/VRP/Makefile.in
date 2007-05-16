@@ -29,7 +29,8 @@ OBJS =  VrpMain.@OBJEXT@ \
 	VrpCutGenerator.@OBJEXT@ \
 	VrpParams.@OBJEXT@ \
 	VrpModel.@OBJEXT@ \
-	VrpNetwork.@OBJEXT@
+	VrpNetwork.@OBJEXT@ \
+	VrpSolution.@OBJEXT@ 
 
 # CHANGEME: Additional libraries
 ADDLIBS =
