@@ -15,17 +15,19 @@ You can obtain the source code for the Alps package in two ways:
    your machine, and output of "svn --version" must contain 
    "handles 'https' scheme".
 
-   Assuming that you want to download stable vesion 0.6 into a subdirectory
-   "Blis-0.6", you type
+   Assuming that you want to download stable vesion 0.8 into a subdirectory
+   "Blis-0.8", you type
 
-   svn checkout https://projects.coin-or.org/svn/Cops/Blis/stable/0.6 Blis-0.6
+   svn checkout https://projects.coin-or.org/svn/Cops/Blis/stable/0.8 Blis-0.8
 
-2. Download the tarball from http://www.coin-or.org/Tarballs/Cops
+2. Download the tarball from http://www.coin-or.org/download/source/Cops and
+   extract it, for example, with
 
+   tar -xzvf Blis-0.8.0.tgz
 
    More detailed download instructions can be found at
 
-   https://projects.coin-or.org/BuildTools/wiki/user-download
+   https://projects.coin-or.org/Cops
 
 **********************************************************************
 ***      CONFIGURATION, COMPILE, INSTALLATION                      ***
@@ -34,7 +36,7 @@ You can obtain the source code for the Alps package in two ways:
 1. Serial Solver
 ----------------
 
-Go into the directory that you just downloaded or extracted (e.g. Blis-0.6),
+Go into the directory that you just downloaded or extracted (e.g. Blis-0.8),
 then you type following commands:
 
   1) ./configure
@@ -42,10 +44,10 @@ then you type following commands:
   3) make test
   4) make install 
 
-Then, go to Blis-0.6/Blis/example
+Then, go to Blis-0.8/Blis/example
   5) make
 
-Step 5) creates an excutable blis that you can run as
+Step 5) creates an executable blis that you can run as
 
   ./blis -par blis.par
 
@@ -53,26 +55,24 @@ Step 5) creates an excutable blis that you can run as
 2. Parallel Solver (MPI as message passing interface) 
 -----------------------------------------------------
 
-Configure and compile MPI parallel solver is system depend. User have to
-specify options --with-mpi-incdir, --with-mpi-lib, MPICC, and MPICXX.
-Following is an example.
+Configuration and and compilation of the MPI parallel solver is system
+dependent. The user has to specify options --with-mpi-incdir, --with-mpi-lib,
+MPICC, and MPICXX. The following is an example.
 
-Go into the directory that you just downloaded or extracted (e.g. Blis-0.6),
+Go into the directory that you just downloaded or extracted (e.g. Blis-0.8),
 type
 
-  1) ./configure --enable-debug --with-mpi-incdir=/home/yanxu1/src/mpich/include --with-mpi-lib='-L/home/yanxu1/src/mpich/lib  -lmpich -lpthread -lrt' MPICC=mpicc MPICXX=mpiCC
+  1) ./configure --enable-debug --with-mpi-incdir=/usr/local/mpich/include --with-mpi-lib='-L/usr/local/mpich/lib  -lmpich -lpthread -lrt' MPICC=mpicc MPICXX=mpiCC
   2) make 
   3) make install
 
-Then, go to Blis-0.6/Blis/example
+Then, go to Blis-0.8/Blis/example
   4) make
 
 Step 4) creates an executable blis that you can issue mpirun like 
 (assume MPICH)
 
   mpirun -np 8 -machinefile machines ./blis -par blis.par
-
-
 
 You might want to specify other options, in case you don't want to 
 use the default choices that configure makes (e.g., compilers). 
