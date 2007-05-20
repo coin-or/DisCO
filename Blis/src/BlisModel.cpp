@@ -920,9 +920,7 @@ BlisModel::storeSolution(BLIS_SOL_TYPE how, BlisSolution* sol)
     double quality = sol->getQuality();
 
     // Update cutoff and lp cutoff.
-    if (cutoff_ > quality) {
-        setCutoff(quality);
-    }
+    setCutoff(quality);
 
     ++numSolutions_;
 

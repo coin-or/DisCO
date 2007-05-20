@@ -288,7 +288,7 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
         branchObjects_ = new BcpsBranchObject * [1];
         branchObjects_[0] = candStrongs[bestBO].bObject;
         candStrongs[bestBO].bObject = NULL;
-        strongLen = 0;
+        strongLen = 0; // Stop here.
     }
     else {
         
@@ -594,7 +594,7 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
     // Record the list of candidates.
     //------------------------------------------------------
 
-    if (bStatus >= 0) {
+    if (bStatus >= 0 && strongLen > 0) {
         if (numPassesLeft == 0 && lastObj > -1) {
             numBranchObjects_ = 1;
             branchObjects_ = new BcpsBranchObject* [1]; 

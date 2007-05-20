@@ -513,9 +513,11 @@ protected:
         std::cout << "3. cutoff_ = "<< cutoff_ 
                   << "; inc = " << inc << std::endl;
 #endif
-        cutoff_ = co + inc;
-        
-        lpSolver_->setDblParam(OsiDualObjectiveLimit, co);
+        co += inc;
+        if (co < cutoff_) {
+            cutoff_ = co;
+            lpSolver_->setDblParam(OsiDualObjectiveLimit, co);
+        }
     }
 
     /** Test the current solution for feasiblility.

@@ -759,8 +759,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 #endif
                 if (lpFeasible) {
 		    // Update new quality.
-                    setQuality(model->solver()->getObjValue() *
-			       model->solver()->getObjSense());
+                    setQuality(model->solver()->getObjValue());
                     if (getQuality() > cutoff) {
                         bStatus = -2;
                     }
