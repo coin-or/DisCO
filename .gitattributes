@@ -130,6 +130,7 @@ Blis/test/Makefile.in -text
 /Makefile.am -text
 /Makefile.in -text
 /README -text
+Win32/v8/libBlis.vcproj -text
 /config.guess -text
 /config.sub -text
 /configure -text
