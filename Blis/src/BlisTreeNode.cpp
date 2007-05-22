@@ -171,6 +171,10 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     }
     
     cutoff = model->getCutoff();
+
+    numPassesLeft = model->getNumBranchResolve();
+    
+    std::cout << "numPassesLeft = " << numPassesLeft << std::endl;
     
     //------------------------------------------------------
     // Check if this can be fathomed by objective cutoff.
@@ -739,8 +743,6 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     
     if (needBranch) { 
 	
-        // Resolve() has trouble if user has feasibility check
-        numPassesLeft = 0;      
         bStatus = -1;
         
         while (bStatus == -1) { 

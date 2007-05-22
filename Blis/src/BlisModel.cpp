@@ -133,6 +133,7 @@ BlisModel::init()
     
     activeNode_ = NULL;
     numStrong_ = 0;
+    numBranchResolve_ = 0;
     
     cutoff_ = COIN_DBL_MAX;
     incObjValue_ = COIN_DBL_MAX;
@@ -1250,6 +1251,10 @@ BlisModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
 
     if (!numUnsatisfied) {
         sol = userFeasibleSolution(userFeasible);
+	if (!sol && userFeasible) {
+	    // User doesn't provide feasibility check.
+	    numBranchResolve_ = 10;
+	}
     }
     
     if (!numUnsatisfied && userFeasible && !sol) {

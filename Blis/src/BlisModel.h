@@ -193,6 +193,9 @@ protected:
     // Not used. 
     double nodeWeight_;
 
+    /** Maximum number of resolve during branching. */
+    int numBranchResolve_;
+    
     //------------------------------------------------------
     // HEURISTICS.
     //------------------------------------------------------
@@ -442,7 +445,13 @@ protected:
     
     /** Add num to number of strong branchings. */
     void addNumStrong(int num=1) { numStrong_ += num; }
+
+    /** Get the maximum number of resolve during branching. */
+    int getNumBranchResolve() { return numBranchResolve_; }
     
+    /** Set the maximum number of resolve during branching. */ 
+    void setNumBranchResolve(int num) { numBranchResolve_ = num; }
+
     //------------------------------------------------------
     // PROBLEM DATA
     //------------------------------------------------------
