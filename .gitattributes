@@ -30,8 +30,14 @@ Blis/examples/VRP/VrpParams.h -text
 Blis/examples/VRP/VrpSolution.cpp -text
 Blis/examples/VRP/VrpSolution.h -text
 Blis/examples/VRP/VrpVariable.h -text
+Blis/examples/VRP/Win32/v8/Vrp.sln -text
+Blis/examples/VRP/Win32/v8/Vrp.suo -text
+Blis/examples/VRP/Win32/v8/Vrp.vcproj -text
 Blis/examples/VRP/data/sample.vrp -text
 Blis/examples/VRP/vrp.par -text
+Blis/examples/Win32/v8/Blis.sln -text
+Blis/examples/Win32/v8/Blis.suo -text
+Blis/examples/Win32/v8/Blis.vcproj -text
 Blis/examples/blis.par -text
 Blis/examples/data/air05.mps.gz -text
 Blis/examples/data/batchRun -text
