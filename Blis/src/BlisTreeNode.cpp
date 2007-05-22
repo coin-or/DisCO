@@ -174,7 +174,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 
     numPassesLeft = model->getNumBranchResolve();
     
-    std::cout << "numPassesLeft = " << numPassesLeft << std::endl;
+    // std::cout << "numPassesLeft = " << numPassesLeft << std::endl;
     
     //------------------------------------------------------
     // Check if this can be fathomed by objective cutoff.
