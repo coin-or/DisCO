@@ -292,7 +292,7 @@ BlisBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft)
     // branch up and down to initialize pseudo-cost.
     //--------------------------------------------------
     
-    numFirsts = firstObjects.size();
+    numFirsts = static_cast<int> (firstObjects.size());
     //std::cout << "PSEUDO: numFirsts = " << numFirsts << std::endl;
     if (numFirsts > 0) {
         //std::cout << "PSEUDO: numFirsts = " << numFirsts << std::endl;

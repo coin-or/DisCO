@@ -56,12 +56,12 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
 {
     int bStatus = 0;
     int i, j, pass;
-    int col, ind, colInd, objInd;
+    int colInd, objInd;
     int numInfs = 0;
     int lastObj = -1;
 
     bool roundAgain, downKeep, downGood, upKeep, upGood;
-    double lpX, score, infeasibility, downDeg, upDeg, sumDeg = 0.0;
+    double lpX, downDeg, upDeg, sumDeg = 0.0;
 
     int numLowerTightens = 0;
     int numUpperTightens = 0;

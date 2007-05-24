@@ -357,8 +357,8 @@ BlisModel::importModel(std::vector<BlisVariable *> vars,
     int* varIndices = NULL;
     double *varValues = NULL;
 
-    numCols_ = vars.size();
-    numRows_ = cons.size();
+    numCols_ = static_cast<int> (vars.size());
+    numRows_ = static_cast<int> (cons.size());
 
     varLB_ = new double [numCols_];
     varUB_ = new double [numCols_];
@@ -1331,8 +1331,8 @@ BlisModel::createRoot() {
     std::vector<BcpsVariable *> vars = getVariables();
     std::vector<BcpsConstraint *> cons = getConstraints();
 
-    int numVars = vars.size();
-    int numCons = cons.size();
+    int numVars = static_cast<int> (vars.size());
+    int numCons = static_cast<int> (cons.size());
 
 #ifdef BLIS_DEBUG
     std::cout << "BLIS: createRoot(): numVars=" << numVars
@@ -1508,13 +1508,13 @@ BlisModel::decodeBlis(AlpsEncoded &encoded)
     std::vector<BlisConstraint *> cons;
 
     int k;
-    int size = variables_.size();
+    int size = static_cast<int> (variables_.size());
     for (k = 0; k < size; ++k) {
         BlisVariable * aVar = dynamic_cast<BlisVariable *>(variables_[k]);
         vars.push_back(aVar);
     }
     
-    size = constraints_.size(); 
+    size = static_cast<int> (constraints_.size()); 
     for (k = 0; k < size; ++k) {
         BlisConstraint * aCon = dynamic_cast<BlisConstraint *>(constraints_[k]);
         cons.push_back(aCon);
