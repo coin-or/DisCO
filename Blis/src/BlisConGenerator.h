@@ -69,12 +69,15 @@ protected:
     //------------------------------------------------------
 
     /** When to call CglCutGenerator::generateCuts routine. 
-        -2:                    disable
-        -1:                    just root
-         0:                    automatically decided by BLIS
-         any positive integer: the node interval between the call
+        BlisCutStrategyNone:                    disable
+        BlisCutStrategyRoot:                    just root
+        BlisCutStrategyAuto:                    automatically decided by BLIS
+	BlisCutStrategyPeriodic:                Generate every 't' nodes
     */
-    int strategy_;
+    BlisCutStrategy strategy_;
+
+    /** The frequency of calls to the cut generator. */
+    int cutGenerationFrequency_;
     
     /** Name of generator. */
     char * name_;
@@ -117,7 +120,8 @@ protected:
         :
         model_(NULL),
         generator_(NULL),
-        strategy_(-1),
+        strategy_(BlisCutStrategyAuto),
+        cutGenerationFrequency_(1),
         name_(NULL),
         normal_(true),
         atSolution_(false),
@@ -133,7 +137,8 @@ protected:
     BlisConGenerator(BlisModel * model,
 		     CglCutGenerator * generator,
 		     const char * name = NULL,
-		     int strategy = 0,
+		     BlisCutStrategy strategy = BlisCutStrategyAuto,
+		     int cutGenerationFrequency_ = 1,
 		     bool normal = true, 
 		     bool atSolution = false, 
 		     bool infeasible = false);
@@ -171,7 +176,7 @@ protected:
 	The routine returns true if reoptimisation is needed (because the 
 	state of the solver interface has been modified).
     */
-    virtual bool generateCons(OsiCuts &cs, bool fullScan); 
+    virtual bool generateCons(OsiCuts &cs); 
     //@}
 
     /**@name Gets and sets */
@@ -193,10 +198,16 @@ protected:
     inline const char * name() const { return name_; }
     
     /** Set the con generation strategy. */
-    void setStrategy(int value) { strategy_ = value; }
+    void setStrategy(BlisCutStrategy value) { strategy_ = value; }
     
     /** Get the con generation interval. */
-    inline int strategy() const { return strategy_; }
+    inline BlisCutStrategy strategy() const { return strategy_; }
+    
+    /** Set the con generation strategy. */
+    void setCutGenerationFreq(int freq) { cutGenerationFrequency_ = freq; }
+    
+    /** Get the con generation interval. */
+    inline int cutGenerationFreq() const { return cutGenerationFrequency_; }
     
     /** Get whether the con generator should be called in the normal place. */
     inline bool normal() const { return normal_; }

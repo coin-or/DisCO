@@ -88,12 +88,13 @@ OsiRowCut * BlisConstraintToOsiCut(const BlisConstraint * con)
 
 //#############################################################################
 
-int BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
-                     const double *saveLower, const double *saveUpper,
-		     bool &downKeep, bool &downFinished, double &downDeg,
-		     bool &upKeep, bool &upFinished, double &upDeg)
+BlisReturnStatus
+BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
+	             const double *saveLower, const double *saveUpper,
+	     	     bool &downKeep, bool &downFinished, double &downDeg,
+		         bool &upKeep, bool &upFinished, double &upDeg)
 {
-    int status = BLIS_OK;
+    BlisReturnStatus status = BlisReturnStatusOk;
     int lpStatus = 0;
 
     int j, numIntInfDown, numObjInfDown;
@@ -154,7 +155,7 @@ int BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
             printf("STRONG:Down:found a feasible solution\n");
 #endif
             
-            model->storeSolution(BLIS_SOL_STRONG, ksol);
+            model->storeSolution(BlisSolutionTypeStrong, ksol);
 	    downKeep = false;
         }
 	else {
@@ -224,7 +225,7 @@ int BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
             printf("STRONG:Up:found a feasible solution\n");
 #endif
             
-            model->storeSolution(BLIS_SOL_STRONG, ksol);
+            model->storeSolution(BlisSolutionTypeStrong, ksol);
             upKeep = false;
         }
 	else {
@@ -267,7 +268,7 @@ int BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
 int BlisEncodeWarmStart(AlpsEncoded *encoded, const CoinWarmStartBasis *ws)
 {
 
-    int status = BLIS_OK;
+    BlisReturnStatus status = BlisReturnStatusOk;
     int numCols = ws->getNumStructural();
     int numRows = ws->getNumArtificial();
 
@@ -288,7 +289,7 @@ int BlisEncodeWarmStart(AlpsEncoded *encoded, const CoinWarmStartBasis *ws)
 //#############################################################################
 
 CoinWarmStartBasis *BlisDecodeWarmStart(AlpsEncoded &encoded,
-					AlpsReturnCode *rc) 
+					AlpsReturnStatus *rc) 
 {
     int numCols;
     int numRows;

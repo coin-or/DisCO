@@ -103,7 +103,8 @@ BlisTreeNode::createNewTreeNode(AlpsNodeDesc *&desc) const
 int
 BlisTreeNode::process(bool isRoot, bool rampUp)
 {
-    int status = BLIS_OK;
+    BlisReturnStatus returnStatus = BlisReturnStatusUnknown;
+    BlisLpStatus lpStatus = BlisLpStatusUnknown;
     int j, k = -1;
     int numCols, numRows, numCoreCols, numCoreRows;
     int numStartRows, origNumStartRows;
@@ -221,16 +222,16 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 
     cutStrategy = model->getCutStrategy();
 
-    assert(cutStrategy > -3);
+    assert(cutStrategy != BlisCutStrategyNotSet);
     
-    if (cutStrategy == BLIS_NONE) {
+    if (cutStrategy == BlisCutStrategyNone) {
 	genConsHere = false;
     }
-    else if (cutStrategy == BLIS_ROOT) {
+    else if (cutStrategy == BlisCutStrategyRoot) {
 	// The original root only
 	if (isRoot && (index_ == 0)) genConsHere = true;
     }
-    else if (cutStrategy == BLIS_AUTO) {
+    else if (cutStrategy == BlisCutStrategyAuto) {
 	if (depth_ < maxConstraintDepth) {
             if (!diving_ || isRoot) genConsHere = true;
 	}
@@ -239,7 +240,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 	genConsHere = true;
     }
 
-    if (genConsHere && (phase == ALPS_PHASE_RAMPUP)) {
+    if (genConsHere && (phase == AlpsPhaseRampup)) {
 	if (!(BlisPar->entry(BlisParams::cutRampUp))) {
 	    genConsHere = false;
 	}
@@ -317,31 +318,32 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
             getKnowledgeBroker()->tempTimer().start();
         }
         
-        status = bound(model);
+        lpStatus = static_cast<BlisLpStatus> (bound(model));
 
 	if (model->boundingPass_ == 1) {
 	    int iter = model->solver()->getIterationCount();
 	    model->addNumIterations(iter);
             if (isRoot) {
                 getKnowledgeBroker()->tempTimer().stop();
-                if ((knowledgeBroker_->getProcType() == AlpsProcessTypeMaster)&& 
-                    (msgLevel > 0)) {
+                if ((knowledgeBroker_->getProcType() == AlpsProcessTypeMaster)
+		    && (msgLevel > 0)) {
                     model->solver()->messageHandler()->setLogLevel(0);
-                    model->blisMessageHandler()->message(BLIS_ROOT_TIME, model->blisMessages())
+                    model->blisMessageHandler()->message(BLIS_ROOT_TIME, 
+							 model->blisMessages())
                         << getKnowledgeBroker()->tempTimer().getCpuTime() 
                         << CoinMessageEol;
                 }
             }
 	}
         
-        switch(status) {
-        case BLIS_LP_OPTIMAL:
+        switch(lpStatus) {
+        case BlisLpStatusOptimal:
             // Check if IP feasible 
             ipSol = model->feasibleSolution(numIntInfs, numObjInfs);
             
             if (ipSol) {         
                 // IP feasible
-                model->storeSolution(BLIS_SOL_BOUNDING, ipSol);
+                model->storeSolution(BlisSolutionTypeBounding, ipSol);
                 // Update cutoff
                 cutoff = model->getCutoff();
                 setStatus(AlpsNodeStatusFathomed);
@@ -577,32 +579,35 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
             }
             
             break;
-        case BLIS_LP_ABANDONED:
+        case BlisLpStatusAbandoned:
             assert(0);
-            status = BLIS_ERR_LP;
+	    returnStatus = BlisReturnStatusErrLp;
             goto TERM_PROCESS;
-        case BLIS_LP_DUAL_INF:
+        case BlisLpStatusDualInfeasible:
             // FIXME: maybe also primal infeasible
 #ifdef BLIS_DEBUG
 	    assert(0);
 #endif
-            status = BLIS_UNBOUND;
+	    returnStatus = BlisReturnStatusUnbounded;
             goto TERM_PROCESS;
-        case BLIS_LP_PRIMAL_INF:
+        case BlisLpStatusPrimalInfeasible:
             setStatus(AlpsNodeStatusFathomed);
             quality_ = -ALPS_OBJ_MAX;       // Remove it as soon as possilbe
+	    returnStatus = BlisReturnStatusInfeasible;
             goto TERM_PROCESS;
-        case BLIS_LP_DUAL_LIM:
+        case BlisLpStatusDualObjLim:
             setStatus(AlpsNodeStatusFathomed);
             quality_ = -ALPS_OBJ_MAX;       // Remove it as soon as possilbe
+	    returnStatus = BlisReturnStatusOverObjLim;
             goto TERM_PROCESS;
-        case BLIS_LP_PRIMAL_LIM:
-        case BLIS_LP_ITER_LIM:
-            /* Can say much, need branch */
+        case BlisLpStatusPrimalObjLim:
+        case BlisLpStatusIterLim:
+            /* Can't say much, need branch */
             needBranch = true;
 #ifdef BLIS_DEBUG
             assert(0);
 #endif
+	    returnStatus = BlisReturnStatusBranch;
             goto TERM_BRANCH;
             break;
         default:
@@ -617,13 +622,13 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         // Call heuristics.
         //--------------------------------------------------
         
-        if (keepOn && (model->heurStrategy_ != BLIS_NONE)) {
+        if (keepOn && (model->heurStrategy_ != BlisHeurStrategyNone)) {
             heurObjValue = getKnowledgeBroker()->getIncumbentValue();
 
             for (k = 0; k < model->numHeuristics(); ++k) {
                 int heurStrategy = model->heuristics(k)->strategy();
                 
-                if (heurStrategy != BLIS_NONE) {
+                if (heurStrategy != BlisHeurStrategyNone) {
 
                     getKnowledgeBroker()->tempTimer().start();
                     foundSolution = false;
@@ -645,7 +650,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                         int noSols = model->heuristics(k)->noSolCalls();
                         model->heuristics(k)->addNoSolCalls(-noSols);
 
-                        model->storeSolution(BLIS_SOL_ROUNDING, ipSol);
+                        model->storeSolution(BlisSolutionTypeRounding, ipSol);
                         cutoff = model->getCutoff();
                         if (quality_ > cutoff) {
                             setStatus(AlpsNodeStatusFathomed);
@@ -682,9 +687,10 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                    model->getLpSolution(),
                    numCols * sizeof(double));
             
-            status = generateConstraints(model, newOsiCuts);
+            lpStatus = static_cast<BlisLpStatus> 
+	       (generateConstraints(model, newOsiCuts));
             
-            if (status != BLIS_LP_OPTIMAL) {
+            if (lpStatus != BlisLpStatusOptimal) {
                 setStatus(AlpsNodeStatusFathomed);
                 quality_ = -ALPS_OBJ_MAX; // Remove it as soon as possilbe
                 goto TERM_PROCESS;
@@ -776,7 +782,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                     ipSol = model->feasibleSolution(numIntInfs, numObjInfs);
                     if (ipSol) {         
                         // IP feasible
-                        model->storeSolution(BLIS_SOL_BOUNDING, ipSol);
+                        model->storeSolution(BlisSolutionTypeBounding, ipSol);
                         // Update cutoff
                         cutoff = model->getCutoff();
                         setStatus(AlpsNodeStatusFathomed);
@@ -882,7 +888,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
             int difference = BlisPar->entry(BlisParams::difference);
     
             if (difference == -1) {
-                if (depth_ % 30 == 0 || isRoot || (phase == ALPS_PHASE_RAMPUP)) {
+                if (depth_ % 30 == 0 || isRoot || (phase == AlpsPhaseRampup)) {
                     explicit_ = 1;
                     //std::cout << "SAVE: node "<< index_ <<" explicitly, "
                     //  << "depth=" << depth_ << std::endl;
@@ -902,7 +908,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 	    
 	    //explicit_ = 1;
 
-	    if (explicit_ || (phase == ALPS_PHASE_RAMPUP) ) {
+	    if (explicit_ || (phase == AlpsPhaseRampup) ) {
 		// NOTE: full hard bound has been stored. 
 		
 		int index;
@@ -940,7 +946,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 		model->leafToRootPath.push_back(this);
 		BlisNodeDesc* pathDesc = NULL;
 		
-		if (phase != ALPS_PHASE_RAMPUP) {
+		if (phase != AlpsPhaseRampup) {
 		    while(parent) {
 			model->leafToRootPath.push_back(parent);
 			if (parent->getExplicit()) {
@@ -1435,7 +1441,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     }
 #endif
     
-    return status;
+    return returnStatus;
 }
 
 //#############################################################################
@@ -1517,7 +1523,7 @@ BlisTreeNode::branch()
     
     childDesc = new BlisNodeDesc(model);
     
-    if (phase == ALPS_PHASE_RAMPUP) {
+    if (phase == AlpsPhaseRampup) {
 	
 	//--------------------------------------------------
 	// Store a full description since each node will be the root of
@@ -1717,7 +1723,7 @@ BlisTreeNode::branch()
     
     childDesc = new BlisNodeDesc(model);
 
-    if (phase == ALPS_PHASE_RAMPUP) {
+    if (phase == AlpsPhaseRampup) {
 
 	//--------------------------------------------------
 	// Store a full description since each node will be the root of
@@ -1919,7 +1925,7 @@ int BlisTreeNode::selectBranchObject(BlisModel *model,
     // Get branching strategy.
     //------------------------------------------------------
 
-    if (phase == ALPS_PHASE_RAMPUP) {
+    if (phase == AlpsPhaseRampup) {
       strategy = model->rampUpBranchStrategy();
     }
     else {
@@ -1972,9 +1978,10 @@ int BlisTreeNode::selectBranchObject(BlisModel *model,
 
 //#############################################################################
 
-int BlisTreeNode::bound(BcpsModel *model) 
+int 
+BlisTreeNode::bound(BcpsModel *model) 
 {
-    int status = BLIS_OK;
+    BlisLpStatus status = BlisLpStatusUnknown;
 
     BlisModel *m = dynamic_cast<BlisModel *>(model);   
  
@@ -2005,13 +2012,13 @@ int BlisTreeNode::bound(BcpsModel *model)
 #ifdef BLIS_DEBUG
 	std::cout << "BOUND: is abandoned" << std::endl;
 #endif
-	status = BLIS_LP_ABANDONED;
+	status = BlisLpStatusAbandoned;
     }
     else if (m->solver()->isProvenOptimal()) {
 #ifdef BLIS_DEBUG
 	std::cout << "BOUND: is lp optimal" << std::endl;
 #endif
-	status = BLIS_LP_OPTIMAL;
+	status = BlisLpStatusOptimal;
         BlisNodeDesc *desc = dynamic_cast<BlisNodeDesc*>(desc_);
 
         double objValue = m->solver()->getObjValue() *
@@ -2046,31 +2053,31 @@ int BlisTreeNode::bound(BcpsModel *model)
 #ifdef BLIS_DEBUG
 	std::cout << "BOUND: is primal inf" << std::endl;
 #endif
-	status = BLIS_LP_PRIMAL_INF;
+	status = BlisLpStatusPrimalInfeasible;
     }
     else if (m->solver()->isProvenDualInfeasible()) {
 #ifdef BLIS_DEBUG
 	std::cout << "BOUND: is dual inf" << std::endl;
 #endif
-	status = BLIS_LP_DUAL_INF;
+	status = BlisLpStatusDualInfeasible;
     }
     else if (m->solver()->isPrimalObjectiveLimitReached()) {
 #ifdef BLIS_DEBUG
 	std::cout << "BOUND: is primal limit" << std::endl;
 #endif
-	status = BLIS_LP_PRIMAL_LIM;
+	status = BlisLpStatusPrimalObjLim;
     }
     else if (m->solver()->isDualObjectiveLimitReached()) {
 #ifdef BLIS_DEBUG
 	std::cout << "BOUND: is dual limit" << std::endl;
 #endif
-	status = BLIS_LP_DUAL_LIM;
+	status = BlisLpStatusDualObjLim;
     }
     else if (m->solver()->isIterationLimitReached()) {
 #ifdef BLIS_DEBUG
 	std::cout << "BOUND: is iter limit" << std::endl;
 #endif
-	status = BLIS_LP_ITER_LIM;
+	status = BlisLpStatusIterLim;
     }
     else {
 	std::cout << "UNKNOWN LP STATUS" << std::endl;
@@ -2084,7 +2091,7 @@ int BlisTreeNode::bound(BcpsModel *model)
 
 int BlisTreeNode::installSubProblem(BcpsModel *m)
 {
-    AlpsReturnCode status = ALPS_OK;
+    AlpsReturnStatus status = AlpsReturnStatusOk;
 
     int i, k;
     int index;
@@ -2191,7 +2198,7 @@ int BlisTreeNode::installSubProblem(BcpsModel *m)
        NOTE: during rampup, this desc has full description when branch(). */
     model->leafToRootPath.push_back(this);
     
-    if (phase != ALPS_PHASE_RAMPUP) {
+    if (phase != AlpsPhaseRampup) {
 	while(parent) {
 #ifdef BLIS_DEBUG_MORE
 	    std::cout << "Parent id = " << parent->getIndex() << std::endl;
@@ -2551,21 +2558,20 @@ int BlisTreeNode::installSubProblem(BcpsModel *m)
 
 //#############################################################################
 
-int 
+int
 BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet) 
 {
     int i, j, numCGs;
-    int status = BLIS_LP_OPTIMAL;
+    BlisLpStatus status = BlisLpStatusOptimal;
     int preNumRowCons = 0;
     int preNumColCons = 0;
     int newCons = 0;
-    int strategy = -2;
+    BlisCutStrategy strategy = BlisCutStrategyRoot;
 
     // Only autmatic stategy has depth limit.
     int maxConstraintDepth = 20;
     
     bool mustResolve = false;
-    bool fullScan = true;
     
     double genCutTime;
     
@@ -2583,25 +2589,29 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet)
 	strategy =  model->cutGenerators(i)->strategy();
       
 	bool useThisCutGenerator = false;
-	if (strategy == BLIS_NONE) {
+	if (strategy == BlisCutStrategyNone) {
 	    useThisCutGenerator = false;
 	}
-	else if (strategy == BLIS_ROOT) {
+	else if (strategy == BlisCutStrategyRoot) {
 	    if (model->isRoot_ && (index_ == 0)) useThisCutGenerator = true;
 	}
-	else if (strategy == BLIS_AUTO) {
+	else if (strategy == BlisCutStrategyAuto) {
 	  if (depth_ < maxConstraintDepth) {
 	    if (!diving_ || model->isRoot_) useThisCutGenerator = true;
 	  }
 	}
-	else if (strategy > 0) {
+	else if (strategy == BlisCutStrategyPeriodic) {
 	    // Num of nodes is set at the beginning of process().
-	    int numNodes = model->getNumNodes();
-	    if ((numNodes-1) % strategy == 0) {
-		useThisCutGenerator = true;
+	    if ((model->getNumNodes()-1) %  
+		model->cutGenerators(i)->cutGenerationFreq() == 0) {
+	        useThisCutGenerator = true;
 	    }
 	}
-	
+	else {
+	   throw CoinError("Unknown cut generation strategy", 
+			   "generateConstraints", "BlisTreeNode");
+	}
+	   
 #if 0
 	std::cout<<"CUTGEN: " << model->cutGenerators(i)->name() 
 		 <<": useThisCutGenerator ="<<useThisCutGenerator
@@ -2622,7 +2632,7 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet)
           
 	    genCutTime = CoinCpuTime();
 	    mustResolve = 
-		model->cutGenerators(i)->generateCons(osiCutSet, fullScan);
+		model->cutGenerators(i)->generateCons(osiCutSet);
 	    genCutTime = CoinCpuTime() - genCutTime;
             
             // Statistics
@@ -2643,8 +2653,8 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet)
 
 	    if (mustResolve) {
 		// TODO: Only probing will return ture.
-		status = bound(model);
-		if (status == BLIS_LP_OPTIMAL) {
+		status = static_cast<BlisLpStatus> (bound(model));
+		if (status == BlisLpStatusOptimal) {
 #ifdef BLIS_DEBUG
 		    std::cout << "CUTGEN: after probing, this node survived."
 			      << std::endl;
@@ -2664,16 +2674,16 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet)
 	    // NOTE: only modify if user choose automatic.
 	    //------------------------------------------------
 	    
-	    if (model->getCutStrategy() == BLIS_NONE) {
+	    if (model->getCutStrategy() == BlisCutStrategyNone) {
                 for (j = 0; j < numCGs; ++j) {
                     strategy =  model->cutGenerators(j)->strategy();
-                    if (strategy != BLIS_NONE) {
+                    if (strategy != BlisCutStrategyNone) {
                         break;
                     }
                 }
                 
                 if (j == numCGs) {
-                    model->setCutStrategy(BLIS_NONE);
+                    model->setCutStrategy(BlisCutStrategyNone);
                 }
 	    }
 	}
@@ -2684,12 +2694,12 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet)
 
 //#############################################################################
 
-int 
+BlisReturnStatus 
 BlisTreeNode::applyConstraints(BlisModel *model, 
                                OsiCuts & osiCutSet,
                                const double *solution)
 {
-    int status = BLIS_OK;
+    BlisReturnStatus status = BlisReturnStatusOk;
     int i, k;
     
     int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
@@ -2916,11 +2926,11 @@ BlisTreeNode::applyConstraints(BlisModel *model,
 
 //#############################################################################
 
-int BlisTreeNode::
-reducedCostFix(BlisModel *model)
+BlisReturnStatus 
+BlisTreeNode::reducedCostFix(BlisModel *model)
 { 
     int i, var;
-    int status = BLIS_OK;
+    BlisReturnStatus status = BlisReturnStatusOk;
 
     int numFixedUp = 0;
     int numFixedDown = 0;
@@ -3023,10 +3033,10 @@ BlisTreeNode::encode() const
 	      << index_ << std::endl;
 #endif
 
-    AlpsReturnCode status = ALPS_OK;
+    AlpsReturnStatus status = AlpsReturnStatusOk;
     
-    // NOTE: "ALPS_NODE" is used as type name.
-    AlpsEncoded* encoded = new AlpsEncoded(ALPS_NODE);
+    // NOTE: "AlpsKnowledgeTypeNode" is used as type name.
+    AlpsEncoded* encoded = new AlpsEncoded(AlpsKnowledgeTypeNode);
     
     // Encode decription.
     status = desc_->encode(encoded);
@@ -3047,7 +3057,7 @@ BlisTreeNode::encode() const
 AlpsKnowledge* 
 BlisTreeNode::decode(AlpsEncoded& encoded) const 
 {
-    AlpsReturnCode status = ALPS_OK;
+    AlpsReturnStatus status = AlpsReturnStatusOk;
     BlisTreeNode* treeNode = NULL;
 
     BlisModel *model = dynamic_cast<BlisModel*>(desc_->getModel());
@@ -3072,7 +3082,7 @@ BlisTreeNode::decode(AlpsEncoded& encoded) const
     // Unpack Bcps portion.
     int type = 0;
     encoded.readRep(type);	
-    if (type == BLIS_BO_INT) {
+    if (type == BlisBranchingObjectTypeInt) {
 	// branchObject_ is simple integer.
 	BlisBranchObjectInt *bo = new BlisBranchObjectInt();
 	status = bo->decode(encoded);

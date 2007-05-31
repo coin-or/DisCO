@@ -71,7 +71,8 @@ class BlisParams : public AlpsParameterSet {
           any positive frequency
       */
       cutStrategy, /** All constraint generators */
-
+      cutGenerationFrequency,
+      
       cutPass,     /** The pass to generate cuts */
 
       cutClique,
@@ -87,13 +88,14 @@ class BlisParams : public AlpsParameterSet {
       difference,
       
       /** Heuristics control.
-          -2: root,
-          -1: auto,
-          0: disable, 
-          any positive frequency
+          BlisHeurStrategyRoot:     root,
+          BlisHeurStrategyAuto:     auto,
+          BlisHuerStrategyNone:     disable, 
+          BlisHeurStrategyPeriodic: every 't' nodes
       */
-      heurStrategy, /** All heuristics */      
-      heurRound,
+      heurStrategy, /** All heuristics */
+      heurCallFrequency,
+      heurRoundStrategy,
       
       /** The look ahead of pseudocost. */
       lookAhead,
@@ -214,7 +216,7 @@ class BlisParams : public AlpsParameterSet {
   */
   /*@{*/
   ///
-  inline char entry(const chrParams key) const { return cpar_[key]; }
+  inline bool entry(const chrParams key) const { return bpar_[key]; }
   ///
   inline int entry(const intParams key) const { return ipar_[key]; }
   ///
@@ -230,13 +232,13 @@ class BlisParams : public AlpsParameterSet {
   //---------------------------------------------------------------------------
   /// char* is true(1) or false(0), not used
   void setEntry(const chrParams key, const char * val) {
-    cpar_[key] = atoi(val); }
+	  bpar_[key] = atoi(val) ? true : false; }
   /// char is true(1) or false(0), not used
   void setEntry(const chrParams key, const char val) {
-    cpar_[key] = val; }
+	  bpar_[key] = val ? true : false; }
   /// This method is the one that ever been used.
   void setEntry(const chrParams key, const bool val) {
-    cpar_[key] = val; }
+    bpar_[key] = val; }
   ///
   void setEntry(const intParams key, const char * val) {
     ipar_[key] = atoi(val); }
@@ -263,7 +265,7 @@ class BlisParams : public AlpsParameterSet {
   /** Pack the parameter set into the buffer (AlpsEncoded is used 
       as buffer Here). */
   void pack(AlpsEncoded& buf) {
-    buf.writeRep(cpar_, endOfChrParams)
+    buf.writeRep(bpar_, endOfChrParams)
       .writeRep(ipar_, endOfIntParams)
       .writeRep(dpar_, endOfDblParams);
     for (int i = 0; i < endOfStrParams; ++i)
@@ -279,7 +281,7 @@ class BlisParams : public AlpsParameterSet {
     int dummy;
     // No need to allocate the arrays, they are of fixed length
     dummy = static_cast<int>(endOfChrParams);
-    buf.readRep(cpar_, dummy, false);
+    buf.readRep(bpar_, dummy, false);
     dummy = static_cast<int>(endOfIntParams);
     buf.readRep(ipar_, dummy, false);
     dummy = static_cast<int>(endOfDblParams);

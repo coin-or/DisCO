@@ -28,6 +28,8 @@
 
 #include "AlpsEncoded.h"
 
+#include "Blis.h"
+
 class CoinWarmStartBasis;
 class OsiRowCut;
 class BlisConstraint;
@@ -42,17 +44,17 @@ BlisConstraint * BlisOsiCutToConstraint(const OsiRowCut *rowCut);
 OsiRowCut * BlisConstraintToOsiCut(const BlisConstraint * con);
 
 /** Strong branching on a variable colInd. */
-int BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
-                     const double *saveLower, const double *saveUpper,
-		     bool &downKeep, bool &downFinished, double &downDeg,
-		     bool &upKeep, bool &upFinished, double &upDeg);
+BlisReturnStatus BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
+                                  const double *saveLower, const double *saveUpper,
+		                          bool &downKeep, bool &downFinished, double &downDeg,
+		                          bool &upKeep, bool &upFinished, double &upDeg);
 
 /** Pack coin warm start into an encoded object. */
 int BlisEncodeWarmStart(AlpsEncoded *encoded, const CoinWarmStartBasis *ws);
 
 /** Unpack coin warm start from an encoded object. */
 CoinWarmStartBasis *BlisDecodeWarmStart(AlpsEncoded &encoded,
-					AlpsReturnCode *rc);
+					AlpsReturnStatus *rc);
 
 /** Compute and return a hash value of an Osi row cut. */
 double BlisHashingOsiRowCut(const OsiRowCut *rowCut, 

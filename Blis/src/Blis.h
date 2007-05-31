@@ -28,66 +28,108 @@
 
 //#############################################################################
 
-#define BLIS_OK             0
-#define BLIS_LP_OPTIMAL     0
-#define BLIS_LP_ABANDONED   1
-#define BLIS_LP_PRIMAL_INF  2
-#define BLIS_LP_DUAL_INF    3
-#define BLIS_LP_PRIMAL_LIM  4
-#define BLIS_LP_DUAL_LIM    5
-#define BLIS_LP_ITER_LIM    6
+enum BlisLpStatus{
+   BlisLpStatusOptimal,
+   BlisLpStatusAbandoned,
+   BlisLpStatusPrimalInfeasible,
+   BlisLpStatusDualInfeasible,
+   BlisLpStatusPrimalObjLim,
+   BlisLpStatusDualObjLim,
+   BlisLpStatusIterLim,
+   BlisLpStatusUnknown
+};
 
+//#############################################################################
+
+enum BlisReturnStatus {
+   BlisReturnStatusOk = 0,
+   BlisReturnStatusErrLp,
+   BlisReturnStatusInfeasible,
+   BlisReturnStatusUnbounded,
+   BlisReturnStatusOverObjLim,
+   BlisReturnStatusFeasible,
+   BlisReturnStatusBranch,
+   BlisReturnStatusUnknown
+};
+
+#if 0
 #define BLIS_ERR_LP         100
 #define BLIS_INF            200
 #define BLIS_UNBOUND        201
 #define BLIS_OPTIMAL          0
 #define BLIS_UNKNOWN        202
+#endif
 
+//#############################################################################
+
+enum BlisCutStrategy{
+   BlisCutStrategyNotSet,
+   BlisCutStrategyRoot,
+   BlisCutStrategyAuto,
+   BlisCutStrategyMultiple,
+   BlisCutStrategyPeriodic,
+   BlisCutStrategyNone
+};
+
+enum BlisHeurStrategy{
+   BlisHeurStrategyNotSet,
+   BlisHeurStrategyRoot,
+   BlisHeurStrategyAuto,
+   BlisHeurStrategyMultiple,
+   BlisHeurStrategyPeriodic,
+   BlisHeurStrategyNone
+};
+
+#if 0
 #define BLIS_NOT_SET       -555
 #define BLIS_ROOT            -2
 #define BLIS_AUTO            -1
 #define BLIS_NONE             0
-
-#define BLIS_CUT_DISABLE     20
-
-#define BLIS_HEUR_ROUND_DISABLE     1000000
+#endif
 
 //#############################################################################
 
-const int BLIS_PSEUDO = 21;
+enum BlisHotStartStrategy{
+   BlisHotStartBranchIncorrect,
+   BlisHotStartBranchCorrect
+};
 
 //#############################################################################
 
-/** Branching strategy.
-    0: max infeasibilty, 
-    1: pseudocost, 
-    2: relibility, 
-    3: strong branching.
-*/
-#define BLIS_BS_MAXINFEAS     0
-#define BLIS_BS_PSEUDOCOST    1
-#define BLIS_BS_RELIBILITY    2   
-#define BLIS_BS_STRONG        3
+enum BlisBranchingStrategy{
+   BlisBranchingStrategyMaxInfeasibility,
+   BlisBranchingStrategyPseudoCost,
+   BlisBranchingStrategyReliability,   
+   BlisBranchingStrategyStrong
+};
 
 
 //#############################################################################
 
-enum BLIS_SOL_TYPE {
-    BLIS_SOL_BOUNDING,
-    BLIS_SOL_BRANCHING,
-    BLIS_SOL_DIVING,
-    BLIS_SOL_ROUNDING,
-    BLIS_SOL_STRONG
+enum BlisSolutionType {
+    BlisSolutionTypeBounding,
+    BlisSolutionTypeBranching,
+    BlisSolutionTypeDiving,
+    BlisSolutionTypeRounding,
+    BlisSolutionTypeStrong
 };
 
 //#############################################################################
 
 /** Branching object type. */
-enum BLIS_BO_TYPE {
-    BLIS_BO_NONE = 0,
-    BLIS_BO_INT,
-    BLIS_BO_SOS
+enum BlisBranchingObjectType {
+    BlisBranchingObjectTypeNone = 0,
+    BlisBranchingObjectTypeInt,
+    BlisBranchingObjectTypeSos
 };
+
+//#############################################################################
+
+#define BLIS_CUT_DISABLE            20
+
+#define BLIS_HEUR_ROUND_DISABLE     1000000
+
+#define BLIS_PSEUDO                 21
 
 //#############################################################################
 

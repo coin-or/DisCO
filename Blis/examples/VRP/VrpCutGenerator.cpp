@@ -46,7 +46,7 @@ VrpCutGenerator::VrpCutGenerator(VrpModel *vrp, int vertnum)
 // Return if need resolve LP immediately.
 // New cuts are stored in OsiCuts cs
 bool 
-VrpCutGenerator::generateCons(OsiCuts &cs, bool fullScan)
+VrpCutGenerator::generateCons(OsiCuts &cs)
 {
    int vertnum = model_->vertnum_;
    int rcnt, cur_bins = 0, i, k, max_node;

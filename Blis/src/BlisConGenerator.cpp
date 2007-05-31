@@ -46,7 +46,8 @@
 BlisConGenerator::BlisConGenerator(BlisModel * model,
 				   CglCutGenerator * generator,
 				   const char * name,
-				   int strategy,
+				   BlisCutStrategy strategy,
+				   int cutGenerationFrequency,
 				   bool normal, 
 				   bool atSolution, 
 				   bool infeasible)
@@ -63,6 +64,7 @@ BlisConGenerator::BlisConGenerator(BlisModel * model,
     }
     
     strategy_ = strategy;
+    cutGenerationFrequency_ = cutGenerationFrequency;
     normal_ = normal;
     atSolution_ = atSolution;
     whenInfeasible_ = infeasible;
@@ -82,6 +84,7 @@ BlisConGenerator::BlisConGenerator(const BlisConGenerator & rhs)
     generator_ = rhs.generator_;
     generator_->refreshSolver(model_->solver());
     strategy_ = rhs.strategy_;
+    cutGenerationFrequency_ = rhs.cutGenerationFrequency_;
     name_ = strdup(rhs.name_);
     normal_ = rhs.normal_;
     atSolution_ = rhs.atSolution_;
@@ -106,6 +109,7 @@ BlisConGenerator::operator=( const BlisConGenerator& rhs)
         generator_ = rhs.generator_;
         generator_->refreshSolver(model_->solver());
         strategy_ = rhs.strategy_;
+	cutGenerationFrequency_ = rhs.cutGenerationFrequency_;
         name_ = strdup(rhs.name_);
         normal_ = rhs.normal_;
         atSolution_ = rhs.atSolution_;
@@ -140,17 +144,10 @@ BlisConGenerator::refreshModel(BlisModel * model)
 // collection of cons cons.
 
 bool
-BlisConGenerator::generateCons(OsiCuts & coinCuts , bool fullScan)
+BlisConGenerator::generateCons(OsiCuts & coinCuts)
 {
     bool status = false;
     
-    assert(strategy_ > BLIS_ROOT - 1);
-    
-    if (strategy_ == BLIS_NONE) {
-        // This con generator has been disabled.
-        return false;
-    }
-
     OsiSolverInterface * solver = model_->solver();
     
 #if defined(BLIS_DEBUG_MORE)
@@ -158,96 +155,93 @@ BlisConGenerator::generateCons(OsiCuts & coinCuts , bool fullScan)
               << std::endl;
 #endif
     
-    if ( fullScan ||
-         ((strategy_ > 0) && (model_->getNumNodes() % strategy_) == 0) ) {
-
-        //--------------------------------------------------
-        // Start to generate cons ...
-        //--------------------------------------------------
-
-	int j;
-        //double start = CoinCpuTime();
-        int numConsBefore = coinCuts.sizeCuts();   
-        int numRowsBefore = coinCuts.sizeRowCuts();   
-
-        assert(generator_ != NULL);
-        
-        CglProbing* generator = dynamic_cast<CglProbing *>(generator_);
-        
-        if (!generator) {
-            generator_->generateCuts(*solver, coinCuts);
-        }
-        else {
-            // It is probing - return tight column bounds
-            generator->generateCutsAndModify(*solver, coinCuts);
-            const double * tightLower = generator->tightLower();
-            const double * lower = solver->getColLower();
-            const double * tightUpper = generator->tightUpper();
-            const double * upper = solver->getColUpper();
-            const double * solution = solver->getColSolution();
-
-            int numberColumns = solver->getNumCols();
-            double primalTolerance = 1.0e-8;
-            for (j = 0; j < numberColumns; ++j) {
-                if ( (tightUpper[j] == tightLower[j]) &&
-                     (upper[j] > lower[j]) ) {
-                    // fix column j
-                    solver->setColLower(j, tightLower[j]);
-                    solver->setColUpper(j, tightUpper[j]);
-                    if ( (tightLower[j] > solution[j] + primalTolerance) ||
-                         (tightUpper[j] < solution[j] - primalTolerance) ) {
-                        status = true;
-                    }
-                }
-            }
-        } // EOF probing.
-
-        //--------------------------------------------------
-        // Remove zero length row cuts.
-        //--------------------------------------------------
-
-	int numRowCons = coinCuts.sizeRowCuts();
-	for (j = numRowsBefore; j < numRowCons; ++j) {
-	    OsiRowCut & rCut = coinCuts.rowCut(j);
-	    int len = rCut.row().getNumElements();
+    //--------------------------------------------------
+    // Start to generate cons ...
+    //--------------------------------------------------
+    
+    int j;
+    //double start = CoinCpuTime();
+    int numConsBefore = coinCuts.sizeCuts();   
+    int numRowsBefore = coinCuts.sizeRowCuts();   
+    
+    assert(generator_ != NULL);
+    
+    CglProbing* generator = dynamic_cast<CglProbing *>(generator_);
+    
+    if (!generator) {
+       generator_->generateCuts(*solver, coinCuts);
+    }
+    else {
+       // It is probing - return tight column bounds
+       generator->generateCutsAndModify(*solver, coinCuts);
+       const double * tightLower = generator->tightLower();
+       const double * lower = solver->getColLower();
+       const double * tightUpper = generator->tightUpper();
+       const double * upper = solver->getColUpper();
+       const double * solution = solver->getColSolution();
+       
+       int numberColumns = solver->getNumCols();
+       double primalTolerance = 1.0e-8;
+       for (j = 0; j < numberColumns; ++j) {
+	  if ( (tightUpper[j] == tightLower[j]) &&
+	       (upper[j] > lower[j]) ) {
+	     // fix column j
+	     solver->setColLower(j, tightLower[j]);
+	     solver->setColUpper(j, tightUpper[j]);
+	     if ( (tightLower[j] > solution[j] + primalTolerance) ||
+		  (tightUpper[j] < solution[j] - primalTolerance) ) {
+		status = true;
+	     }
+	  }
+       }
+    } // EOF probing.
+    
+    //--------------------------------------------------
+    // Remove zero length row cuts.
+    //--------------------------------------------------
+    
+    int numRowCons = coinCuts.sizeRowCuts();
+    for (j = numRowsBefore; j < numRowCons; ++j) {
+       OsiRowCut & rCut = coinCuts.rowCut(j);
+       int len = rCut.row().getNumElements();
 #ifdef BLIS_DEBUG_MORE
-	    std::cout << "Cut " << j<<": length = " << len << std::endl;
+       std::cout << "Cut " << j<<": length = " << len << std::endl;
 #endif
-	    if (len == 0) {
-		// Empty cuts
-		coinCuts.eraseRowCut(j);
-		--j;
-		--numRowCons;
+       if (len == 0) {
+	  // Empty cuts
+	  coinCuts.eraseRowCut(j);
+	  --j;
+	  --numRowCons;
 #ifdef BLIS_DEBUG
-		std::cout << "WARNING: Empty cut from " << name_ << std::endl;
+	  std::cout << "WARNING: Empty cut from " << name_ << std::endl;
 #endif
-	    }
-	    else if (len < 0) {
+       }
+       else if (len < 0) {
 #ifdef BLIS_DEBUG
-		std::cout << "ERROR: Cut length = " << len << std::endl;
+	  std::cout << "ERROR: Cut length = " << len << std::endl;
 #endif
-		// Error
-		assert(0);
-	    }
-	}
-
+	  // Error
+	  assert(0);
+       }
+    }
+    
 #if 0
-        //--------------------------------------------------
-        // Update statistics. 
-        // Let Blis do this, 12/17/06
-        //--------------------------------------------------
-
-        ++calls_;
-        numConsGenerated_ += (coinCuts.sizeCuts() - numConsBefore);
-        time_ += (CoinCpuTime() - start);
-        if (numConsGenerated_ == 0) {
-            ++noConsCalls_;
-        }
+    //--------------------------------------------------
+    // Update statistics. 
+    // Let Blis do this, 12/17/06
+    //--------------------------------------------------
+    
+    ++calls_;
+    numConsGenerated_ += (coinCuts.sizeCuts() - numConsBefore);
+    time_ += (CoinCpuTime() - start);
+    if (numConsGenerated_ == 0) {
+       ++noConsCalls_;
+    }
 #endif
-        
-        if ( (strategy_ == BLIS_AUTO) && (noConsCalls_ > BLIS_CUT_DISABLE) ) {
-            strategy_ = BLIS_NONE;
-        }
+    
+    if ( (strategy_ == BlisCutStrategyAuto) && 
+	 (noConsCalls_ > BLIS_CUT_DISABLE) ) {
+       strategy_ = BlisCutStrategyNone;
     }
 
     return status;

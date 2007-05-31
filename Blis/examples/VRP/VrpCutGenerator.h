@@ -64,7 +64,7 @@ public:
    state of the solver interface has been modified).
    */
 
-   virtual bool generateCons(OsiCuts &cs, bool fullScan);
+   virtual bool generateCons(OsiCuts &cs);
   
    int connectivityCuts(OsiCuts &cs);
    

@@ -145,10 +145,10 @@ public:
     void setScore(double s) { score_ = s; }
 
     /** Pack pseudocost to the given object. */
-    AlpsReturnCode encodeTo(AlpsEncoded *encoded) const;
+    AlpsReturnStatus encodeTo(AlpsEncoded *encoded) const;
     
     /** Unpack pseudocost from the given encode object. */
-    AlpsReturnCode decodeFrom(AlpsEncoded &encoded);
+    AlpsReturnStatus decodeFrom(AlpsEncoded &encoded);
 
     /** Encode this node for message passing. */
     virtual AlpsEncoded* encode() const;

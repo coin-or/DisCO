@@ -61,9 +61,10 @@ class BlisHeurRound : public BlisHeuristic {
     BlisHeurRound() {}
     
     /** Constructor with model - assumed before cuts. */
-    BlisHeurRound(BlisModel * model, const char *name, int strategy)
+    BlisHeurRound(BlisModel * model, const char *name,
+		  BlisHeurStrategy strategy, int freq)
         :
-        BlisHeuristic(model, name, strategy)
+        BlisHeuristic(model, name, strategy, freq)
         {
             assert(model->solver());
         }
@@ -85,7 +86,7 @@ class BlisHeurRound : public BlisHeuristic {
         Sets solution values if good, sets objective value (only if good)
         This is called after cuts have been added - so can not add cuts
     */
-    virtual int searchSolution(double & objectiveValue,
+    virtual bool searchSolution(double & objectiveValue,
                                double * newSolution);
     
     /** Set seed */

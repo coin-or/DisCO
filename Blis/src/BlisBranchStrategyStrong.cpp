@@ -60,7 +60,7 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
     int numInfs = 0;
     int lastObj = -1;
 
-    bool roundAgain, downKeep, downGood, upKeep, upGood;
+    bool downKeep, downGood, upKeep, upGood, roundAgain(false);
     double lpX, downDeg, upDeg, sumDeg = 0.0;
 
     int numLowerTightens = 0;
@@ -415,7 +415,7 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
 			printf("STRONG:down:found a feasible solution\n");
 #endif
 			
-			model->storeSolution(BLIS_SOL_STRONG, ksol);
+			model->storeSolution(BlisSolutionTypeStrong, ksol);
 			objChange = ALPS_DBL_MAX ;
 		    }
 		}
@@ -496,7 +496,7 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
 			printf("STRONG:Up:found a feasible solution\n");
 #endif
                         
-			model->storeSolution(BLIS_SOL_STRONG, ksol);
+			model->storeSolution(BlisSolutionTypeStrong, ksol);
 			objChange = ALPS_DBL_MAX ;
 		    }
 		}

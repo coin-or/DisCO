@@ -71,12 +71,12 @@ void BlisHeurRound::setModel(BlisModel * model)
 // Fix values if asked for
 // Returns 1 if solution, 0 if not
 
-int
+bool
 BlisHeurRound::searchSolution(double & solutionValue, double * betterSolution)
 {
-    int foundBetter = false;
+    bool foundBetter = false;
     
-    if (strategy_ == BLIS_NONE) {
+    if (strategy_ == BlisHeurStrategyNone) {
         // This heuristic has been disabled.
         return foundBetter;
     }
@@ -402,8 +402,8 @@ BlisHeurRound::searchSolution(double & solutionValue, double * betterSolution)
     //time_ += (CoinCpuTime() - start);
     
     if (noSolsCalls_ > BLIS_HEUR_ROUND_DISABLE) {
-        if (strategy_ == BLIS_AUTO) {
-            strategy_ = BLIS_NONE;
+        if (strategy_ == BlisHeurStrategyAuto) {
+            strategy_ = BlisHeurStrategyNone;
         }
     }
 

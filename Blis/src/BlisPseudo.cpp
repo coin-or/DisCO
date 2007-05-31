@@ -132,10 +132,10 @@ BlisPseudocost::update(double upCost, int upCount,
 //#############################################################################
 
 /** Pack pseudocost to the given object. */
-AlpsReturnCode 
+AlpsReturnStatus 
 BlisPseudocost::encodeTo(AlpsEncoded *encoded) const 
 {
-    AlpsReturnCode status = ALPS_OK;
+    AlpsReturnStatus status = AlpsReturnStatusOk;
     
     encoded->writeRep(weight_);
     encoded->writeRep(upCost_);
@@ -160,10 +160,10 @@ BlisPseudocost::encodeTo(AlpsEncoded *encoded) const
 //#############################################################################
 
 /** Unpack pseudocost from the given encode object. */
-AlpsReturnCode 
+AlpsReturnStatus 
 BlisPseudocost::decodeFrom(AlpsEncoded &encoded)
 {
-    AlpsReturnCode status = ALPS_OK;
+    AlpsReturnStatus status = AlpsReturnStatusOk;
 
     double weight, upCost, downCost, score;
     int upCount, downCount;   

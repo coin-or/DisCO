@@ -59,13 +59,16 @@ class BlisHeuristic {
     char *name_;
     
     /** When to call findSolution() routine. 
-        -2:                    disable
-        -1:                    just root
-         0:                    automatically decided by BLIS
-         any positive integer: the node interval between the call
+        BlisHeurStrategyNone:     disable
+        BlisHeurStrategyRoot:     just root
+        BlisHeurStrategyAuto:     automatically decided by BLIS
+        BlisHeurStrategyPeriodic: every 't' nodes
     */
-    int strategy_;
+    BlisHeurStrategy strategy_;
 
+    /** The frequency with which to call the heuristic */
+    int heurCallFrequency_;
+    
     /** Number of solutions found. */
     int numSolutions_;
 
@@ -84,7 +87,8 @@ public:
     BlisHeuristic() {
         model_ = NULL;
         name_ = strdup("Unknown");
-        strategy_ = 0;
+        strategy_ = BlisHeurStrategyAuto;
+	heurCallFrequency_ = 1;
         numSolutions_ = 0;
         time_ = 0.0;
         calls_ = 0;
@@ -92,7 +96,8 @@ public:
     }
     
     /** Useful constructor. */
-    BlisHeuristic(BlisModel *model, const char *name, int strategy) {
+    BlisHeuristic(BlisModel *model, const char *name,
+		  BlisHeurStrategy strategy, int heurCallFrequency) {
         model_ = model;
         if (name) {
             name_ = strdup(name);
@@ -101,6 +106,7 @@ public:
             name_ = strdup("Unknown");
         }
         strategy_ = strategy;
+	heurCallFrequency_ = heurCallFrequency;
         numSolutions_ = 0;
         time_ = 0.0;
         calls_ = 0;
@@ -115,6 +121,7 @@ public:
         model_ = rhs.model_;
         name_ = strdup(rhs.name_);
         strategy_ = rhs.strategy_; // What if disabled?
+	heurCallFrequency_ = rhs.heurCallFrequency_;
         numSolutions_ = 0;
         time_ = 0.0;
         calls_ = 0;
@@ -126,8 +133,14 @@ public:
     
     /** Get/set strategy. */
     //@{
-    virtual void setStrategy(int strategy) { strategy_ = strategy; }
-    virtual int strategy() const { return strategy_; }
+    virtual void setStrategy(BlisHeurStrategy strategy) {strategy_ = strategy;}
+    virtual BlisHeurStrategy strategy() const { return strategy_; }
+    //@]
+
+    /** Get/set call frequency. */
+    //@{
+    virtual void setHeurCallFrequency(int freq) { heurCallFrequency_ = freq; }
+    virtual int heurCallFrequency() const { return heurCallFrequency_; }
     //@]
 
     /** Clone a heuristic. */
@@ -138,7 +151,7 @@ public:
         Sets solution values if good, sets objective value 
         This is called after cuts have been added - so can not add cuts
     */
-    virtual int searchSolution(double & objectiveValue, 
+    virtual bool searchSolution(double & objectiveValue, 
                                double * newSolution)=0;
     
     /** returns 0 if no solution, 1 if valid solution, -1 if just
@@ -149,7 +162,7 @@ public:
         This is called at same time as cut generators - so can add cuts
         Default is do nothing
     */
-    virtual int searchSolution(double & objectiveValue,
+    virtual bool searchSolution(double & objectiveValue,
                                double * newSolution,
                                OsiCuts & cs) { return 0; }
     

@@ -101,10 +101,10 @@ BlisConstraint::BlisConstraint(const BlisConstraint & rhs)
 //#############################################################################
    
 /** Pack Blis part into an encoded object. */
-AlpsReturnCode 
+AlpsReturnStatus 
 BlisConstraint::encodeBlis(AlpsEncoded *encoded) 
 {
-    AlpsReturnCode status = ALPS_OK;
+    AlpsReturnStatus status = AlpsReturnStatusOk;
     if (size_ < 0) {
 	std::cout << "ERROR: encodeBlis: size_=" << size_<<std::endl;
 	assert(size_ > 0);
@@ -122,10 +122,10 @@ BlisConstraint::encodeBlis(AlpsEncoded *encoded)
 //#############################################################################
 
 /** Unpack Blis part from a encode object. */
-AlpsReturnCode 
+AlpsReturnStatus 
 BlisConstraint::decodeBlis(AlpsEncoded &encoded) 
 {
-    AlpsReturnCode status = ALPS_OK;
+    AlpsReturnStatus status = AlpsReturnStatusOk;
     encoded.readRep(indices_, size_);
     if (size_ < 0) {
 	std::cout << "ERROR: decodeBlis: con1, size_=" << size_<<std::endl;
@@ -141,10 +141,10 @@ BlisConstraint::decodeBlis(AlpsEncoded &encoded)
 
 //#############################################################################
 
-AlpsReturnCode 
+AlpsReturnStatus 
 BlisConstraint::encode(AlpsEncoded *encoded) 
 {
-    AlpsReturnCode status = ALPS_OK;
+    AlpsReturnStatus status = AlpsReturnStatusOk;
     status = encodeBcpsObject(encoded);
     status = encodeBlis(encoded);
     return status;
@@ -156,7 +156,7 @@ BlisConstraint::encode(AlpsEncoded *encoded)
 AlpsKnowledge* 
 BlisConstraint::decode(AlpsEncoded& encoded) const 
 {
-    AlpsReturnCode status = ALPS_OK;
+    AlpsReturnStatus status = AlpsReturnStatusOk;
     BlisConstraint* con = new BlisConstraint();    
     
     // Unpack Bcps object part.

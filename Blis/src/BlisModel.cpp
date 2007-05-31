@@ -165,12 +165,14 @@ BlisModel::init()
     optimalAbsGap_ = 1.0e-6;
 
     /// Heuristic
-    heurStrategy_ = true;
+    heurStrategy_ = BlisHeurStrategyAuto;
+    heurCallFrequency_ = 1;
     numHeuristics_ = 0;
     heuristics_ = NULL;
 
     /// Cons related
-    cutStrategy_ = 0;
+    cutStrategy_ = BlisCutStrategyRoot;
+    cutGenerationFrequency_ = 1;
     numCutGenerators_ = 0;
     generators_ = NULL;
     constraintPool_ = NULL;
@@ -605,19 +607,19 @@ BlisModel::setupSelf()
 
     int brStrategy = BlisPar_->entry(BlisParams::branchStrategy);
 
-    if (brStrategy == BLIS_BS_MAXINFEAS) {
+    if (brStrategy == BlisBranchingStrategyMaxInfeasibility) {
         // Max inf
         branchStrategy_ = new BlisBranchStrategyMaxInf(this);
     }
-    else if (brStrategy == BLIS_BS_PSEUDOCOST) {
+    else if (brStrategy == BlisBranchingStrategyPseudoCost) {
         // Pseudocost
         branchStrategy_ = new BlisBranchStrategyPseudo(this, 1);
     }
-    else if (brStrategy == BLIS_BS_RELIBILITY) {
+    else if (brStrategy == BlisBranchingStrategyReliability) {
         // Relibility
         branchStrategy_ = new BlisBranchStrategyRel(this, relibility);
     }
-    else if (brStrategy == BLIS_BS_STRONG) {
+    else if (brStrategy == BlisBranchingStrategyStrong) {
         // Strong
         branchStrategy_ = new BlisBranchStrategyStrong(this);
     }
@@ -627,19 +629,19 @@ BlisModel::setupSelf()
 
     brStrategy = BlisPar_->entry(BlisParams::branchStrategyRampUp);
 
-    if (brStrategy == BLIS_BS_MAXINFEAS) {
+    if (brStrategy == BlisBranchingStrategyMaxInfeasibility) {
         // Max inf
       rampUpBranchStrategy_ = new BlisBranchStrategyMaxInf(this);
     }
-    else if (brStrategy == BLIS_BS_PSEUDOCOST) {
+    else if (brStrategy == BlisBranchingStrategyPseudoCost) {
         // Pseudocost
         rampUpBranchStrategy_ = new BlisBranchStrategyPseudo(this, 1);
     }
-    else if (brStrategy == BLIS_BS_RELIBILITY) {
+    else if (brStrategy == BlisBranchingStrategyReliability) {
         // Relibility
         rampUpBranchStrategy_ = new BlisBranchStrategyRel(this, relibility);
     }
-    else if (brStrategy == BLIS_BS_STRONG) {
+    else if (brStrategy == BlisBranchingStrategyStrong) {
         // Strong
         rampUpBranchStrategy_ = new BlisBranchStrategyStrong(this);
     }
@@ -651,26 +653,34 @@ BlisModel::setupSelf()
     // Add heuristics.
     //------------------------------------------------------
 
-    heurStrategy_ = BlisPar_->entry(BlisParams::heurStrategy);
-    int useRound = BlisPar_->entry(BlisParams::heurRound); 
+    heurStrategy_ = 
+       static_cast<BlisHeurStrategy> (BlisPar_->entry(BlisParams::heurStrategy));
+    heurCallFrequency_ = 
+       static_cast<BlisHeurStrategy> (BlisPar_->entry(BlisParams::heurCallFrequency));
+    BlisHeurStrategy heurRoundStrategy = 
+       static_cast<BlisHeurStrategy> (BlisPar_->entry(BlisParams::heurRoundStrategy)); 
+    int callFreq;
 
-    if (useRound == BLIS_NOT_SET) {
-        useRound = heurStrategy_;
+    if (heurRoundStrategy == BlisHeurStrategyNotSet) {
+        heurRoundStrategy = heurStrategy_;
+	callFreq = heurCallFrequency_;
     }
-    if (useRound) {
+    if (heurRoundStrategy != BlisHeurStrategyNone && 
+	heurRoundStrategy != BlisHeurStrategyNotSet) {
         // Add rounding heuristic
         BlisHeurRound *heurRound = new BlisHeurRound(this, 
                                                      "Rounding",
-                                                     useRound);
+                                                     heurRoundStrategy,
+						     callFreq);
         addHeuristic(heurRound);
     }
 
     // Adjust heurStrategy
     for (j = 0; j < numHeuristics_; ++j) {
-        if (heuristics_[j]->strategy() != BLIS_NONE) {
+        if (heuristics_[j]->strategy() != BlisHeurStrategyNone) {
             // Doesn't matter what's the strategy, we just want to 
             // call heuristics.
-            heurStrategy_ = 1;//BLIS_AUTO;
+            heurStrategy_ = BlisHeurStrategyAuto;
             break;
         }
     }
@@ -733,30 +743,30 @@ BlisModel::setupSelf()
     oldConstraints_ = new BlisConstraint* [maxNumCons_];
     oldConstraintsSize_ = maxNumCons_;
     
-    cutStrategy_ = BlisPar_->entry(BlisParams::cutStrategy); 
+    cutStrategy_ = static_cast<BlisCutStrategy> (BlisPar_->entry(BlisParams::cutStrategy)); 
 
 #ifdef BLIS_DEBUG
     std::cout << "cutStrategy_ = " << cutStrategy_ << std::endl;
 #endif
 
-    int clique = BlisPar_->entry(BlisParams::cutClique);
-    int fCover = BlisPar_->entry(BlisParams::cutFlowCover);
-    int gomory = BlisPar_->entry(BlisParams::cutGomory); 
-    int knap = BlisPar_->entry(BlisParams::cutKnapsack); 
-    int mir = BlisPar_->entry(BlisParams::cutMir); 
-    int oddHole = BlisPar_->entry(BlisParams::cutOddHole);
-    int probe = BlisPar_->entry(BlisParams::cutProbing);
-    int twoMir = BlisPar_->entry(BlisParams::cutTwoMir); 
+    BlisCutStrategy clique = static_cast<BlisCutStrategy> (BlisPar_->entry(BlisParams::cutClique));
+    BlisCutStrategy fCover = static_cast<BlisCutStrategy> (BlisPar_->entry(BlisParams::cutFlowCover));
+    BlisCutStrategy gomory = static_cast<BlisCutStrategy> (BlisPar_->entry(BlisParams::cutGomory)); 
+    BlisCutStrategy knap = static_cast<BlisCutStrategy> (BlisPar_->entry(BlisParams::cutKnapsack)); 
+    BlisCutStrategy mir = static_cast<BlisCutStrategy> (BlisPar_->entry(BlisParams::cutMir)); 
+    BlisCutStrategy oddHole = static_cast<BlisCutStrategy> (BlisPar_->entry(BlisParams::cutOddHole));
+    BlisCutStrategy probe = static_cast<BlisCutStrategy> (BlisPar_->entry(BlisParams::cutProbing));
+    BlisCutStrategy twoMir = static_cast<BlisCutStrategy> (BlisPar_->entry(BlisParams::cutTwoMir)); 
 
     //------------------------------------------------------
     // Add cut generators.
     //------------------------------------------------------
 
-    if (probe == BLIS_NOT_SET) {
+    if (probe == BlisCutStrategyNotSet) {
         // Disable by default
-        probe = BLIS_NONE;
+        probe = BlisCutStrategyNone;
     }
-    if (probe != BLIS_NONE) {
+    if (probe != BlisCutStrategyNone) {
         CglProbing *probing = new CglProbing;
         probing->setUsingObjective(true);
         probing->setMaxPass(1);
@@ -773,22 +783,22 @@ BlisModel::setupSelf()
         addCutGenerator(probing, "Probing", probe);
     }
 
-    if (clique == BLIS_NOT_SET) {
+    if (clique == BlisCutStrategyNotSet) {
         // Only at root by default
-        clique = BLIS_ROOT;
+        clique = BlisCutStrategyRoot;
     }
-    if (clique != BLIS_NONE) {
+    if (clique != BlisCutStrategyNone) {
         CglClique *cliqueCut = new CglClique ;
         cliqueCut->setStarCliqueReport(false);
         cliqueCut->setRowCliqueReport(false);
         addCutGenerator(cliqueCut, "Clique", clique);
     }
 
-    if (oddHole == BLIS_NOT_SET) {
+    if (oddHole == BlisCutStrategyNotSet) {
         // Disable by default
-        oddHole = BLIS_NONE;
+        oddHole = BlisCutStrategyNone;
     }
-    if (oddHole != BLIS_NONE) {
+    if (oddHole != BlisCutStrategyNone) {
         CglOddHole *oldHoleCut = new CglOddHole;
         oldHoleCut->setMinimumViolation(0.005);
         oldHoleCut->setMinimumViolationPer(0.00002);
@@ -797,48 +807,48 @@ BlisModel::setupSelf()
         addCutGenerator(oldHoleCut, "OddHole", oddHole);
     }
 
-    if (fCover == BLIS_NOT_SET) {
+    if (fCover == BlisCutStrategyNotSet) {
          fCover = cutStrategy_;
     }
-    if (fCover != BLIS_NONE) {
+    if (fCover != BlisCutStrategyNone) {
         CglFlowCover *flowGen = new CglFlowCover;
         addCutGenerator(flowGen, "Flow Cover", fCover);
     }
 
-    if (knap == BLIS_NOT_SET) {
+    if (knap == BlisCutStrategyNotSet) {
         // Only at root by default
-        knap = BLIS_ROOT;
+        knap = BlisCutStrategyRoot;
     }
-    if (knap != BLIS_NONE) {
+    if (knap != BlisCutStrategyNone) {
         CglKnapsackCover *knapCut = new CglKnapsackCover;
         addCutGenerator(knapCut, "Knapsack", knap);
     }
 
-    if (mir == BLIS_NOT_SET) {
+    if (mir == BlisCutStrategyNotSet) {
         // Disable by default
-        mir = BLIS_NONE;
+        mir = BlisCutStrategyNone;
     }
-    if (mir != BLIS_NONE) {
+    if (mir != BlisCutStrategyNone) {
         CglMixedIntegerRounding2 *mixedGen = new CglMixedIntegerRounding2;
         addCutGenerator(mixedGen, "MIR", mir);
     }
 
-    if (gomory == BLIS_NOT_SET) {
+    if (gomory == BlisCutStrategyNotSet) {
         // Only at root by default
-        gomory = BLIS_ROOT;
+        gomory = BlisCutStrategyRoot;
     }
-    if (gomory != BLIS_NONE) {
+    if (gomory != BlisCutStrategyNone) {
         CglGomory *gomoryCut = new CglGomory;
         // try larger limit
         gomoryCut->setLimit(300);
         addCutGenerator(gomoryCut, "Gomory", gomory);
     }
 
-    if (twoMir == BLIS_NOT_SET) {
+    if (twoMir == BlisCutStrategyNotSet) {
         // Disable by default
-        twoMir = BLIS_NONE;
+        twoMir = BlisCutStrategyNone;
     }
-    if (twoMir != BLIS_NONE) {
+    if (twoMir != BlisCutStrategyNone) {
         CglTwomir *twoMirCut =  new CglTwomir;
         addCutGenerator(twoMirCut, "Two MIR", twoMir);
     }
@@ -861,12 +871,12 @@ BlisModel::setupSelf()
 
     // Adjust cutstrategy
     if (numCutGenerators_ > 0) {
-	int strategy0 = cutGenerators(0)->strategy();
-	int strategy1;
+	BlisCutStrategy strategy0 = cutGenerators(0)->strategy();
+	BlisCutStrategy strategy1;
 	for (j = 1; j < numCutGenerators_; ++j) {
 	    strategy1 = cutGenerators(j)->strategy();
 	    if (strategy1 != strategy0) {
-		cutStrategy_ =  1;// individual cut will control
+		cutStrategy_ =  BlisCutStrategyMultiple;// Different for each cut
 		break;
 	    }
 	}
@@ -923,7 +933,7 @@ BlisModel::postprocess()
 //#############################################################################
 
 int 
-BlisModel::storeSolution(BLIS_SOL_TYPE how, BlisSolution* sol)
+BlisModel::storeSolution(BlisSolutionType how, BlisSolution* sol)
 {
     double quality = sol->getQuality();
 
@@ -933,27 +943,27 @@ BlisModel::storeSolution(BLIS_SOL_TYPE how, BlisSolution* sol)
     ++numSolutions_;
 
     // Store in pool, assume minimization.
-    getKnowledgeBroker()->addKnowledge(ALPS_SOLUTION, 
+    getKnowledgeBroker()->addKnowledge(AlpsKnowledgeTypeSolution, 
                                        sol,
                                        objSense_ * sol->getQuality()); 
 
     // Record how the solution was found
     switch (how) {
-    case BLIS_SOL_BOUNDING:
+    case BlisSolutionTypeBounding:
 #ifdef BLIS_DEBUG
         std::cout << "Rounding heuristics found a better solution" 
                   <<", old cutoff = " << cutoff 
                   << ", new cutoff = " << getCutoff()  << std::endl;
 #endif
         break;
-    case BLIS_SOL_BRANCHING:
+    case BlisSolutionTypeBranching:
 #ifdef BLIS_DEBUG
         std::cout << "Branching found a better solution" 
                   <<", old cutoff = " << cutoff 
                   << ", new cutoff = " << getCutoff()  << std::endl;
 #endif
         break;
-    case BLIS_SOL_DIVING:
+    case BlisSolutionTypeDiving:
         ++numHeurSolutions_;
 #ifdef BLIS_DEBUG
         std::cout << "Branching found a better solution" 
@@ -961,7 +971,7 @@ BlisModel::storeSolution(BLIS_SOL_TYPE how, BlisSolution* sol)
                   << ", new cutoff = " << getCutoff()  << std::endl;
 #endif
         break;
-    case BLIS_SOL_ROUNDING:
+    case BlisSolutionTypeRounding:
         ++numHeurSolutions_;
 #ifdef BLIS_DEBUG
         std::cout << "Rounding heuristics found a better solution" 
@@ -969,7 +979,7 @@ BlisModel::storeSolution(BLIS_SOL_TYPE how, BlisSolution* sol)
                   << ", new cutoff = " << getCutoff()  << std::endl;
 #endif
         break;
-    case BLIS_SOL_STRONG:
+    case BlisSolutionTypeStrong:
 #ifdef BLIS_DEBUG
         std::cout << "Strong branching found a better solution" 
                   <<", old cutoff = " << cutoff 
@@ -985,7 +995,7 @@ BlisModel::storeSolution(BLIS_SOL_TYPE how, BlisSolution* sol)
         break;
     }
     
-    return ALPS_OK;
+    return AlpsReturnStatusOk;
 }
 
 //############################################################################ 
@@ -1430,7 +1440,8 @@ BlisModel::addHeuristic(BlisHeuristic * heuristic)
 void 
 BlisModel::addCutGenerator(CglCutGenerator * generator,
 			   const char * name,
-			   int strategy,
+			   BlisCutStrategy strategy,
+			   int freq,
 			   bool normal, 
 			   bool atSolution,
 			   bool whenInfeasible)
@@ -1451,7 +1462,7 @@ BlisModel::addCutGenerator(CglCutGenerator * generator,
     memcpy(generators_, temp, numCutGenerators_ * sizeof(BlisConGenerator *));
     
     generators_[numCutGenerators_++] = 
-        new BlisConGenerator(this, generator, name, strategy,
+        new BlisConGenerator(this, generator, name, strategy, freq,
                              normal, atSolution, whenInfeasible);
     delete [] temp;
     temp = NULL;
@@ -1477,10 +1488,10 @@ BlisModel::addCutGenerator(BlisConGenerator * generator)
 
 //#############################################################################
 
-AlpsReturnCode 
+AlpsReturnStatus 
 BlisModel::encodeBlis(AlpsEncoded *encoded) const
 {
-    AlpsReturnCode status = ALPS_OK;
+    AlpsReturnStatus status = AlpsReturnStatusOk;
     
     BlisPar_->pack(*encoded);
 
@@ -1491,10 +1502,10 @@ BlisModel::encodeBlis(AlpsEncoded *encoded) const
 
 //#############################################################################
 
-AlpsReturnCode 
+AlpsReturnStatus 
 BlisModel::decodeBlis(AlpsEncoded &encoded)
 {
-    AlpsReturnCode status = ALPS_OK;
+    AlpsReturnStatus status = AlpsReturnStatusOk;
     
     BlisPar_->unpack(encoded);
 
@@ -1534,10 +1545,10 @@ BlisModel::decodeBlis(AlpsEncoded &encoded)
 AlpsEncoded* 
 BlisModel::encode() const 
 { 
-    AlpsReturnCode status = ALPS_OK;
+    AlpsReturnStatus status = AlpsReturnStatusOk;
 
-    // NOTE: "ALPS_MODEL" is the type name.
-    AlpsEncoded* encoded = new AlpsEncoded(ALPS_MODEL);
+    // NOTE: "AlpsKnowledgeTypeModel" is the type name.
+    AlpsEncoded* encoded = new AlpsEncoded(AlpsKnowledgeTypeModel);
 
     status = encodeAlps(encoded);
     status = encodeBcps(encoded);
@@ -1551,7 +1562,7 @@ BlisModel::encode() const
 void
 BlisModel::decodeToSelf(AlpsEncoded& encoded) 
 {
-    AlpsReturnCode status = ALPS_OK;
+    AlpsReturnStatus status = AlpsReturnStatusOk;
 
     status = decodeAlps(encoded);
     status = decodeBcps(encoded);
@@ -1579,10 +1590,10 @@ BlisModel::encodeKnowlegeShared()
 
     int phase = broker_->getPhase();
     
-    if (phase == ALPS_PHASE_RAMPUP) {
+    if (phase == AlpsPhaseRampup) {
         sharePseudo = BlisPar_->entry(BlisParams::sharePseudocostRampUp);
     }
-    else if (phase == ALPS_PHASE_SEARCH) {
+    else if (phase == AlpsPhaseSearch) {
         sharePseudo = BlisPar_->entry(BlisParams::sharePseudocostSearch);
         if (sharePseudo) {
             // Depth and frequency
@@ -1618,13 +1629,13 @@ BlisModel::encodeKnowlegeShared()
 #endif        
 
     if (share) {
-        // NOTE: "ALPS_MODEL_GEN" is the type name. We don't need to
-        //       register it since ALPS_MODEL is registered.
+        // NOTE: "AlpsKnowledgeTypeModelGen" is the type name. We don't need to
+        //       register it since AlpsKnowledgeTypeModel is registered.
         
         BlisObjectInt *intObj = NULL;
         
         if (numShared > 0) {
-            encoded = new AlpsEncoded(ALPS_MODEL_GEN);
+            encoded = new AlpsEncoded(AlpsKnowledgeTypeModelGen);
             // Record how many can be shared.
             encoded->writeRep(numShared);
             for (k = 0; k < numIntObjects_; ++k) {
@@ -1690,27 +1701,27 @@ void
 BlisModel::registerKnowledge() {
     // Register model, solution, and tree node
     assert(broker_);
-    broker_->registerClass(ALPS_MODEL, new BlisModel);
+    broker_->registerClass(AlpsKnowledgeTypeModel, new BlisModel);
     if (broker_->getMsgLevel() > 5) {
 	std::cout << "BLIS: Register Alps model." << std::endl;
     }
     
-    broker_->registerClass(ALPS_NODE, new BlisTreeNode(this));
+    broker_->registerClass(AlpsKnowledgeTypeNode, new BlisTreeNode(this));
     if (broker_->getMsgLevel() > 5) {
 	std::cout << "BLIS: Register Alps node." << std::endl;
     }
     
-    broker_->registerClass(ALPS_SOLUTION, new BlisSolution);
+    broker_->registerClass(AlpsKnowledgeTypeSolution, new BlisSolution);
     if (broker_->getMsgLevel() > 5) {
 	std::cout << "BLIS: Register Alps solution." << std::endl;
     }
     
-    broker_->registerClass(BCPS_CONSTRAINT, new BlisConstraint);
+    broker_->registerClass(BcpsKnowledgeTypeConstraint, new BlisConstraint);
     if (broker_->getMsgLevel() > 5) {
 	std::cout << "BLIS: Register Bcps constraint." << std::endl;
     }
     
-    broker_->registerClass(BCPS_VARIABLE, new BlisVariable);
+    broker_->registerClass(BcpsKnowledgeTypeVariable, new BlisVariable);
     if (broker_->getMsgLevel() > 5) {
 	std::cout << "BLIS: Register Bcps variable." << std::endl;
     }
@@ -1807,8 +1818,8 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
 	double gap = ALPS_OBJ_MAX;
 	double gapVal = ALPS_OBJ_MAX;
 	
-        if (broker_->getNumKnowledges(ALPS_SOLUTION) > 0) {
-            feasBound = (broker_->getBestKnowledge(ALPS_SOLUTION)).second;
+        if (broker_->getNumKnowledges(AlpsKnowledgeTypeSolution) > 0) {
+            feasBound = (broker_->getBestKnowledge(AlpsKnowledgeTypeSolution)).second;
         }
 	
         bestNode = broker_->getBestNode();

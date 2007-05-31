@@ -37,17 +37,17 @@ BlisParams::createKeywordList() {
   //--------------------------------------------------------
  
     keys_.push_back(make_pair(std::string("Blis_cutRampUp"),
-                              AlpsParameter(AlpsCharPar, cutRampUp)));
+                              AlpsParameter(AlpsBoolPar, cutRampUp)));
     
    keys_.push_back(make_pair(std::string("Blis_presolve"),
-			     AlpsParameter(AlpsCharPar, presolve)));
+			     AlpsParameter(AlpsBoolPar, presolve)));
     
    keys_.push_back(make_pair(std::string("Blis_sharePseudocostRampUp"),
-			     AlpsParameter(AlpsCharPar,
+			     AlpsParameter(AlpsBoolPar,
 					   sharePseudocostRampUp)));
     
    keys_.push_back(make_pair(std::string("Blis_sharePseudocostSearch"),
-			     AlpsParameter(AlpsCharPar,
+			     AlpsParameter(AlpsBoolPar,
 					   sharePseudocostSearch)));
     
   //--------------------------------------------------------
@@ -91,17 +91,24 @@ BlisParams::createKeywordList() {
   keys_.push_back(make_pair(std::string("Blis_cutStrategy"),
 			    AlpsParameter(AlpsIntPar, cutStrategy)));
 
+  keys_.push_back(make_pair(std::string("Blis_cutGenerationFrequency"),
+			    AlpsParameter(AlpsIntPar, 
+					  cutGenerationFrequency)));
+
   keys_.push_back(make_pair(std::string("Blis_cutTwoMir"),
 			    AlpsParameter(AlpsIntPar, cutTwoMir)));
 
   keys_.push_back(make_pair(std::string("Blis_difference"),
 			    AlpsParameter(AlpsIntPar, difference)));
   
-  keys_.push_back(make_pair(std::string("Blis_heurRound"),
-			    AlpsParameter(AlpsIntPar, heurRound)));
+  keys_.push_back(make_pair(std::string("Blis_heurRoundStrategy"),
+			    AlpsParameter(AlpsIntPar, heurRoundStrategy)));
   
   keys_.push_back(make_pair(std::string("Blis_heurStrategy"),
                             AlpsParameter(AlpsIntPar, heurStrategy)));
+  
+  keys_.push_back(make_pair(std::string("Blis_heurcallFrequencyy"),
+                            AlpsParameter(AlpsIntPar, heurCallFrequency)));
   
   keys_.push_back(make_pair(std::string("Blis_lookAhead"),
 			    AlpsParameter(AlpsIntPar, lookAhead)));
@@ -179,21 +186,22 @@ BlisParams::setDefaultEntries() {
   // Int Parameters.
   //-------------------------------------------------------------
 
-  setEntry(branchStrategy, BLIS_BS_PSEUDOCOST);
-  setEntry(branchStrategyRampUp, BLIS_BS_PSEUDOCOST);
-  setEntry(cutClique, BLIS_NOT_SET);
-  setEntry(cutGomory, BLIS_NOT_SET);
-  setEntry(cutFlowCover, BLIS_NOT_SET);
-  setEntry(cutKnapsack, BLIS_NOT_SET);
-  setEntry(cutMir, BLIS_NOT_SET);
-  setEntry(cutOddHole, BLIS_NOT_SET);
+  setEntry(branchStrategy, BlisBranchingStrategyPseudoCost);
+  setEntry(branchStrategyRampUp, BlisBranchingStrategyPseudoCost);
+  setEntry(cutClique, BlisCutStrategyNotSet);
+  setEntry(cutGomory, BlisCutStrategyNotSet);
+  setEntry(cutFlowCover, BlisCutStrategyNotSet);
+  setEntry(cutKnapsack, BlisCutStrategyNotSet);
+  setEntry(cutMir, BlisCutStrategyNotSet);
+  setEntry(cutOddHole, BlisCutStrategyNotSet);
   setEntry(cutPass, 20);
-  setEntry(cutProbing, BLIS_NOT_SET);
-  setEntry(cutStrategy, BLIS_ROOT);
-  setEntry(cutTwoMir, BLIS_NOT_SET);
+  setEntry(cutProbing, BlisCutStrategyNotSet);
+  setEntry(cutStrategy, BlisCutStrategyRoot);
+  setEntry(cutGenerationFrequency, 1);
+  setEntry(cutTwoMir, BlisCutStrategyNotSet);
   setEntry(difference, -1);
-  setEntry(heurRound, BLIS_NOT_SET);
-  setEntry(heurStrategy, -1);
+  setEntry(heurRoundStrategy, BlisHeurStrategyNotSet);
+  setEntry(heurStrategy, BlisHeurStrategyAuto);
   setEntry(lookAhead, 4);
   setEntry(pseudoRelibility, 8);
   setEntry(sharePcostDepth, 10);

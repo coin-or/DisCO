@@ -170,7 +170,7 @@ protected:
     // Hotstart strategy 0 = off, 
     // 1 = branch if incorrect,
     // 2 = branch even if correct, ....
-    int hotstartStrategy_;
+    BlisHotStartStrategy hotstartStrategy_;
     
     /** Number of objects. */
     int numObjects_;
@@ -211,8 +211,11 @@ protected:
     //------------------------------------------------------
 
     /** If use cut generators. */
-    int cutStrategy_; 
+    BlisCutStrategy cutStrategy_; 
     //int cutStrategyRampUp_;
+    
+    /** Frequency of cut generation */
+    int cutGenerationFrequency_; 
     
     /** Number of cut generators used. */
     int numCutGenerators_;
@@ -303,7 +306,10 @@ protected:
     double optimalAbsGap_;
 
     /// If use heuristics
-    bool heurStrategy_;
+    BlisHeurStrategy heurStrategy_;
+    
+    /// Frequency of using heuristics
+    int heurCallFrequency_;
     
     /// Store new cuts in each pass
     OsiCuts newCutPool_;
@@ -517,7 +523,7 @@ protected:
     double * incumbent() { return incumbent_; }
     
     /** Record a new incumbent solution and update objectiveValue. */
-    int storeSolution(BLIS_SOL_TYPE how, BlisSolution* sol);
+    int storeSolution(BlisSolutionType how, BlisSolution* sol);
     
     /** Get cut off value. */
     inline double getCutoff() const { return cutoff_;  }
@@ -666,7 +672,8 @@ protected:
     /** Add a Cgl cut generator. */
     void addCutGenerator(CglCutGenerator * generator,
 			 const char * name = NULL,
-			 int strategy = 0,
+			 BlisCutStrategy strategy = BlisCutStrategyAuto,
+			 int cutGenerationFrequency = 1,
 			 bool normal = true, 
 			 bool atSolution = false,
 			 bool whenInfeasible = false);
@@ -713,12 +720,18 @@ protected:
     //@}
     
     /** Query constraint generation strategy. */
-    int getCutStrategy() const {
+    BlisCutStrategy getCutStrategy() const {
         return cutStrategy_; 
     }
 
     /** Set constraint generation strategy. */
-    void setCutStrategy(int u) { cutStrategy_ = u; }
+    void setCutStrategy(BlisCutStrategy u) { cutStrategy_ = u; }
+
+    /** Query constraint generation frequency. */
+    int getCutGenerationFrequency() const { return cutGenerationFrequency_; }
+
+    /** Set constraint generation frequency. */
+    void setCutStrategy(int f) { cutGenerationFrequency_ = f; }
 
     /** Get the thresheld to be considered as a dense constraint. */
     int getDenseConCutoff() const { return denseConCutoff_; }
@@ -816,10 +829,10 @@ protected:
     virtual void registerKnowledge();  
 
     /** Pack Blis portion of the model into an encoded object. */
-    AlpsReturnCode encodeBlis(AlpsEncoded *encoded) const;
+    AlpsReturnStatus encodeBlis(AlpsEncoded *encoded) const;
 
     /** Unpack Blis portion of the model from an encoded object. */
-    AlpsReturnCode decodeBlis(AlpsEncoded &encoded);  
+    AlpsReturnStatus decodeBlis(AlpsEncoded &encoded);  
     
     /** The method that encodes the model into an encoded object. */
     virtual AlpsEncoded* encode() const;

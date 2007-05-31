@@ -84,19 +84,19 @@ public:
       n_ = 0;
       VrpPar_ = new VrpParams;
 
-      AlpsPar()->setEntry(AlpsParams::searchStrategy, ALPS_SEARCH_BEST);
+      AlpsPar()->setEntry(AlpsParams::searchStrategy, AlpsSearchTypeBestEstimate);
 
-      BlisPar()->setEntry(BlisParams::branchStrategy, BLIS_BS_STRONG);
+      BlisPar()->setEntry(BlisParams::branchStrategy, BlisBranchingStrategyStrong);
 
-      BlisPar()->setEntry(BlisParams::cutClique,BLIS_NONE);
-      BlisPar()->setEntry(BlisParams::cutFlowCover,BLIS_NONE);
-      BlisPar()->setEntry(BlisParams::cutGomory,BLIS_NONE);
-      BlisPar()->setEntry(BlisParams::cutKnapsack,BLIS_NONE);
-      BlisPar()->setEntry(BlisParams::cutMir,BLIS_NONE);
-      BlisPar()->setEntry(BlisParams::cutOddHole,BLIS_NONE);
-      BlisPar()->setEntry(BlisParams::cutProbing,BLIS_NONE);
-      BlisPar()->setEntry(BlisParams::cutTwoMir,BLIS_NONE);
-      BlisPar()->setEntry(BlisParams::heurRound,BLIS_NONE);
+      BlisPar()->setEntry(BlisParams::cutClique,BlisCutStrategyNone);
+      BlisPar()->setEntry(BlisParams::cutFlowCover,BlisCutStrategyNone);
+      BlisPar()->setEntry(BlisParams::cutGomory,BlisCutStrategyNone);
+      BlisPar()->setEntry(BlisParams::cutKnapsack,BlisCutStrategyNone);
+      BlisPar()->setEntry(BlisParams::cutMir,BlisCutStrategyNone);
+      BlisPar()->setEntry(BlisParams::cutOddHole,BlisCutStrategyNone);
+      BlisPar()->setEntry(BlisParams::cutProbing,BlisCutStrategyNone);
+      BlisPar()->setEntry(BlisParams::cutTwoMir,BlisCutStrategyNone);
+      BlisPar()->setEntry(BlisParams::heurRoundStrategy, BlisHeurStrategyNone);
 
       // Cuts as formulation
       BlisPar()->setEntry(BlisParams::cutFactor, ALPS_DBL_MAX);
@@ -109,7 +109,7 @@ public:
       VrpPar_ = new VrpParams;
       readInstance(dataFile);
       VrpCutGenerator *cg = new VrpCutGenerator(this, vertnum_);
-      cg->setStrategy(1);
+      cg->setStrategy(BlisCutStrategyMultiple);
       addCutGenerator(cg);
    }
    
@@ -165,10 +165,10 @@ public:
    virtual void registerKnowledge();  
    
    /** Pack Vrp portion of the model into an encoded object. */
-   AlpsReturnCode encodeVrp(AlpsEncoded *encoded) const;
+   AlpsReturnStatus encodeVrp(AlpsEncoded *encoded) const;
    
    /** Unpack Vrp portion of the model from an encoded object. */
-   AlpsReturnCode decodeVrp(AlpsEncoded &encoded);  
+   AlpsReturnStatus decodeVrp(AlpsEncoded &encoded);  
    
    /** The method that encodes the model into an encoded object. */
    virtual AlpsEncoded* encode() const;

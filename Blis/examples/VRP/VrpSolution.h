@@ -52,7 +52,7 @@ public:
    
    /** The method that encodes the solution into a encoded object. */
    virtual AlpsEncoded* encode() const {
-      AlpsEncoded* encoded = NULL;//new AlpsEncoded("ALPS_SOLUTION");
+      AlpsEncoded* encoded = NULL;//new AlpsEncoded("AslpKnowledgeTypeSolution");
       //encodeBcps(encoded);
       // Nothing to do for Vrp part.
       return encoded;

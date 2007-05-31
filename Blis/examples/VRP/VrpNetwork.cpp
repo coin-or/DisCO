@@ -254,7 +254,7 @@ VrpNetwork::biconnected()
    elist *e;
    int count1 = 0, count2 = 0;
    int num_comps = 0;
-   char is_art_point;
+   bool is_art_point;
    
    memset(compNodes_, 0, (vertnum_ + 1)*sizeof(int));
    memset(compCuts_, 0, (vertnum_ + 1)*sizeof(double));

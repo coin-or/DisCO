@@ -135,18 +135,18 @@ public:
                            int numPassesLeft);
 
     /** To be defined. */
-    virtual int chooseBranchingObject(BcpsModel*) { return ALPS_OK;};
+    virtual int chooseBranchingObject(BcpsModel*) { return AlpsReturnStatusOk;};
     
     /** Generate constraints. */
     int generateConstraints(BlisModel *model, OsiCuts & cutPool);
 
     /** Select and apply constraints. */
-    int applyConstraints(BlisModel *model,
-                         OsiCuts & cutPool,
-                         const double *solution); 
+    BlisReturnStatus applyConstraints(BlisModel *model,
+                                      OsiCuts & cutPool,
+                                      const double *solution); 
 
     /** Fix and tighten varaibles based optimality conditions. */
-    int reducedCostFix(BlisModel *model);
+    BlisReturnStatus reducedCostFix(BlisModel *model);
 
     /** Return constraint pool. */
     //BcpsConstraintPool * constraintPool() { return constraintPool_; }

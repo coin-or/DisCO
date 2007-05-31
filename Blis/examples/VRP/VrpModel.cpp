@@ -518,7 +518,9 @@ VrpModel::readInstance(const char* dataFile)
 
    VrpCutGenerator *cg = new VrpCutGenerator(this, vertnum_);
 
-   cg->setStrategy(1);  // Generate cuts at every node
+   cg->setStrategy(BlisCutStrategyPeriodic);
+   cg->setCutGenerationFreq(1);
+
    addCutGenerator(cg);
 }
 
@@ -745,27 +747,27 @@ void
 VrpModel::registerKnowledge() {
     // Register model, solution, and tree node
     assert(broker_);
-    broker_->registerClass(ALPS_MODEL, new VrpModel);
+    broker_->registerClass(AlpsKnowledgeTypeModel, new VrpModel);
     if (broker_->getMsgLevel() > 5) {
 	std::cout << "BLIS: Register Alps model." << std::endl;
     }
     
-    broker_->registerClass(ALPS_NODE, new BlisTreeNode(this));
+    broker_->registerClass(AlpsKnowledgeTypeNode, new BlisTreeNode(this));
     if (broker_->getMsgLevel() > 5) {
 	std::cout << "BLIS: Register Alps node." << std::endl;
     }
     
-    broker_->registerClass(ALPS_SOLUTION, new VrpSolution);
+    broker_->registerClass(AlpsKnowledgeTypeSolution, new VrpSolution);
     if (broker_->getMsgLevel() > 5) {
 	std::cout << "BLIS: Register Alps solution." << std::endl;
     }
     
-    broker_->registerClass(BCPS_CONSTRAINT, new BlisConstraint);
+    broker_->registerClass(BcpsKnowledgeTypeConstraint, new BlisConstraint);
     if (broker_->getMsgLevel() > 5) {
 	std::cout << "BLIS: Register Bcps constraint." << std::endl;
     }
     
-    broker_->registerClass(BCPS_VARIABLE, new BlisVariable);
+    broker_->registerClass(BcpsKnowledgeTypeVariable, new BlisVariable);
     if (broker_->getMsgLevel() > 5) {
 	std::cout << "BLIS: Register Bcps variable." << std::endl;
     }
@@ -773,10 +775,10 @@ VrpModel::registerKnowledge() {
 
 //#############################################################################
 
-AlpsReturnCode 
+AlpsReturnStatus 
 VrpModel::encodeVrp(AlpsEncoded *encoded) const
 {
-    AlpsReturnCode status = ALPS_OK;
+    AlpsReturnStatus status = AlpsReturnStatusOk;
 
     //encoded->writeRep(name_, 100); // No funtion
     encoded->writeRep(vertnum_);
@@ -809,10 +811,10 @@ VrpModel::encodeVrp(AlpsEncoded *encoded) const
 
 //#############################################################################
 
-AlpsReturnCode 
+AlpsReturnStatus 
 VrpModel::decodeVrp(AlpsEncoded &encoded)
 {
-    AlpsReturnCode status = ALPS_OK;
+    AlpsReturnStatus status = AlpsReturnStatusOk;
     int tempInt = 0;
     
     //encoded.readRep(name_, 100);
@@ -847,7 +849,9 @@ VrpModel::decodeVrp(AlpsEncoded &encoded)
     
     VrpCutGenerator *cg = new VrpCutGenerator(this, vertnum_);
     
-    cg->setStrategy(1);  // Generate cuts at every node
+    cg->setStrategy(BlisCutStrategyPeriodic);
+	cg->setCutGenerationFreq(1); // Generate cuts at every node
+
     addCutGenerator(cg);
 
     return status;
@@ -858,10 +862,10 @@ VrpModel::decodeVrp(AlpsEncoded &encoded)
 AlpsEncoded* 
 VrpModel::encode() const 
 { 
-    AlpsReturnCode status = ALPS_OK;
+    AlpsReturnStatus status = AlpsReturnStatusOk;
 
-    // NOTE: "ALPS_MODEL" is the type name.
-    AlpsEncoded* encoded = new AlpsEncoded(ALPS_MODEL);
+    // NOTE: "AlpsKnowledgeTypeModel" is the type name.
+    AlpsEncoded* encoded = new AlpsEncoded(AlpsKnowledgeTypeModel);
 
     status = encodeAlps(encoded);
     status = encodeBcps(encoded);
@@ -876,7 +880,7 @@ VrpModel::encode() const
 void
 VrpModel::decodeToSelf(AlpsEncoded& encoded) 
 {
-    AlpsReturnCode status = ALPS_OK;
+    AlpsReturnStatus status = AlpsReturnStatusOk;
 
     status = decodeAlps(encoded);
     status = decodeBcps(encoded);
