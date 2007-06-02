@@ -2600,7 +2600,7 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet)
 	    if (!diving_ || model->isRoot_) useThisCutGenerator = true;
 	  }
 	}
-	else if (strategy == BlisCutStrategyPeriodic) {
+	else if (strategy > BlisCutStrategyNone) {
 	    // Num of nodes is set at the beginning of process().
 	    if ((model->getNumNodes()-1) %  
 		model->cutGenerators(i)->cutGenerationFreq() == 0) {

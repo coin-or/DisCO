@@ -780,7 +780,12 @@ BlisModel::setupSelf()
         // Only look at rows with fewer than this number of elements
         probing->setMaxElements(200);
         probing->setRowCuts(3);
-        addCutGenerator(probing, "Probing", probe);
+        if (probe > BlisCutStrategyNone) {
+            addCutGenerator(probing, "Probing", probe, probe); // User freq
+        }
+        else {
+            addCutGenerator(probing, "Probing", probe);
+        }
     }
 
     if (clique == BlisCutStrategyNotSet) {
@@ -791,7 +796,12 @@ BlisModel::setupSelf()
         CglClique *cliqueCut = new CglClique ;
         cliqueCut->setStarCliqueReport(false);
         cliqueCut->setRowCliqueReport(false);
-        addCutGenerator(cliqueCut, "Clique", clique);
+        if (clique > BlisCutStrategyNone) {
+            addCutGenerator(cliqueCut, "Clique", clique, clique);
+        }
+        else {
+            addCutGenerator(cliqueCut, "Clique", clique);
+        }
     }
 
     if (oddHole == BlisCutStrategyNotSet) {
@@ -804,7 +814,12 @@ BlisModel::setupSelf()
         oldHoleCut->setMinimumViolationPer(0.00002);
         // try larger limit
         oldHoleCut->setMaximumEntries(200);
-        addCutGenerator(oldHoleCut, "OddHole", oddHole);
+        if (oddHole > BlisCutStrategyNone) {
+            addCutGenerator(oldHoleCut, "OddHole", oddHole, oddHole);
+        }
+        else {
+             addCutGenerator(oldHoleCut, "OddHole", oddHole);
+        }
     }
 
     if (fCover == BlisCutStrategyNotSet) {
@@ -812,7 +827,12 @@ BlisModel::setupSelf()
     }
     if (fCover != BlisCutStrategyNone) {
         CglFlowCover *flowGen = new CglFlowCover;
-        addCutGenerator(flowGen, "Flow Cover", fCover);
+        if (fCover > BlisCutStrategyNone) {
+            addCutGenerator(flowGen, "Flow Cover", fCover, fCover);
+        }
+        else {
+            addCutGenerator(flowGen, "Flow Cover", fCover);
+        }
     }
 
     if (knap == BlisCutStrategyNotSet) {
@@ -821,7 +841,12 @@ BlisModel::setupSelf()
     }
     if (knap != BlisCutStrategyNone) {
         CglKnapsackCover *knapCut = new CglKnapsackCover;
-        addCutGenerator(knapCut, "Knapsack", knap);
+        if (knap > BlisCutStrategyNone) {
+            addCutGenerator(knapCut, "Knapsack", knap, knap);
+        }
+        else {
+             addCutGenerator(knapCut, "Knapsack", knap);
+        }
     }
 
     if (mir == BlisCutStrategyNotSet) {
@@ -830,7 +855,12 @@ BlisModel::setupSelf()
     }
     if (mir != BlisCutStrategyNone) {
         CglMixedIntegerRounding2 *mixedGen = new CglMixedIntegerRounding2;
-        addCutGenerator(mixedGen, "MIR", mir);
+        if (mir > BlisCutStrategyNone) {
+            addCutGenerator(mixedGen, "MIR", mir, mir);
+        }
+        else {
+            addCutGenerator(mixedGen, "MIR", mir);
+        }
     }
 
     if (gomory == BlisCutStrategyNotSet) {
@@ -841,7 +871,12 @@ BlisModel::setupSelf()
         CglGomory *gomoryCut = new CglGomory;
         // try larger limit
         gomoryCut->setLimit(300);
-        addCutGenerator(gomoryCut, "Gomory", gomory);
+        if (gomory >  BlisCutStrategyNone) {
+            addCutGenerator(gomoryCut, "Gomory", gomory, gomory);
+        }
+        else {
+            addCutGenerator(gomoryCut, "Gomory", gomory);
+        }
     }
 
     if (twoMir == BlisCutStrategyNotSet) {
@@ -850,7 +885,12 @@ BlisModel::setupSelf()
     }
     if (twoMir != BlisCutStrategyNone) {
         CglTwomir *twoMirCut =  new CglTwomir;
-        addCutGenerator(twoMirCut, "Two MIR", twoMir);
+        if (twoMir > BlisCutStrategyNone) {
+            addCutGenerator(twoMirCut, "Two MIR", twoMir, twoMir);
+        }
+        else  {
+            addCutGenerator(twoMirCut, "Two MIR", twoMir);
+        }
     }
     
     // Random vector
@@ -884,6 +924,10 @@ BlisModel::setupSelf()
 	    // Cut has same strategy.
 	    cutStrategy_ = strategy0;
 	}
+        else {
+            // Assume to generate cons at each node.
+            cutStrategy_ = static_cast<BlisCutStrategy>(1); 
+        }
     }
      
 #if 0
@@ -1446,16 +1490,6 @@ BlisModel::addCutGenerator(CglCutGenerator * generator,
 			   bool atSolution,
 			   bool whenInfeasible)
 {
-
-#if 0
-    if (!generators_) {        
-        generators_ = new BlisCutGenerator* [50];
-    }
-    generators_[numCutGenerators_++] = new BlisConGenerator(this, generator, 
-                                                            strategy, name,
-                                                            normal, atSolution,
-                                                            whenInfeasible);
-#else
     BlisConGenerator ** temp = generators_;
 
     generators_ = new BlisConGenerator * [(numCutGenerators_ + 1)];
@@ -1466,8 +1500,6 @@ BlisModel::addCutGenerator(CglCutGenerator * generator,
                              normal, atSolution, whenInfeasible);
     delete [] temp;
     temp = NULL;
-#endif
-
 }
 
 //#############################################################################
