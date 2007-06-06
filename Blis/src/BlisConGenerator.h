@@ -122,7 +122,6 @@ protected:
         generator_(NULL),
         strategy_(BlisCutStrategyAuto),
         cutGenerationFrequency_(1),
-        name_(NULL),
         normal_(true),
         atSolution_(false),
         whenInfeasible_(false),
@@ -131,7 +130,7 @@ protected:
         time_(0),
         calls_(0),
         noConsCalls_(0)
-        {}
+        { name_ = strdup("Unknown"); }
     
     /** Useful constructor. */
     BlisConGenerator(BlisModel * model,
@@ -153,7 +152,7 @@ protected:
     virtual ~BlisConGenerator()
         {
             free(name_);
-            name_= NULL;
+            name_ = NULL;
             if (generator_) {
                 delete generator_;
                 generator_ = NULL;
