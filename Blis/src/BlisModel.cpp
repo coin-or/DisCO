@@ -743,30 +743,48 @@ BlisModel::setupSelf()
     oldConstraints_ = new BlisConstraint* [maxNumCons_];
     oldConstraintsSize_ = maxNumCons_;
     
-    cutStrategy_ = static_cast<BlisCutStrategy> (BlisPar_->entry(BlisParams::cutStrategy)); 
+    cutStrategy_ = static_cast<BlisCutStrategy> 
+       (BlisPar_->entry(BlisParams::cutStrategy)); 
 
 #ifdef BLIS_DEBUG
     std::cout << "cutStrategy_ = " << cutStrategy_ << std::endl;
 #endif
 
-    BlisCutStrategy clique = static_cast<BlisCutStrategy> (BlisPar_->entry(BlisParams::cutClique));
-    BlisCutStrategy fCover = static_cast<BlisCutStrategy> (BlisPar_->entry(BlisParams::cutFlowCover));
-    BlisCutStrategy gomory = static_cast<BlisCutStrategy> (BlisPar_->entry(BlisParams::cutGomory)); 
-    BlisCutStrategy knap = static_cast<BlisCutStrategy> (BlisPar_->entry(BlisParams::cutKnapsack)); 
-    BlisCutStrategy mir = static_cast<BlisCutStrategy> (BlisPar_->entry(BlisParams::cutMir)); 
-    BlisCutStrategy oddHole = static_cast<BlisCutStrategy> (BlisPar_->entry(BlisParams::cutOddHole));
-    BlisCutStrategy probe = static_cast<BlisCutStrategy> (BlisPar_->entry(BlisParams::cutProbing));
-    BlisCutStrategy twoMir = static_cast<BlisCutStrategy> (BlisPar_->entry(BlisParams::cutTwoMir)); 
+    BlisCutStrategy cliqueStrategy = static_cast<BlisCutStrategy> 
+       (BlisPar_->entry(BlisParams::cutCliqueStrategy));
+    BlisCutStrategy fCoverStrategy = static_cast<BlisCutStrategy>
+       (BlisPar_->entry(BlisParams::cutFlowCoverStrategy));
+    BlisCutStrategy gomoryStrategy = static_cast<BlisCutStrategy> 
+       (BlisPar_->entry(BlisParams::cutGomoryStrategy)); 
+    BlisCutStrategy knapStrategy = static_cast<BlisCutStrategy>
+       (BlisPar_->entry(BlisParams::cutKnapsackStrategy)); 
+    BlisCutStrategy mirStrategy = static_cast<BlisCutStrategy> 
+       (BlisPar_->entry(BlisParams::cutMirStrategy)); 
+    BlisCutStrategy oddHoleStrategy = static_cast<BlisCutStrategy> 
+       (BlisPar_->entry(BlisParams::cutOddHoleStrategy));
+    BlisCutStrategy probeStrategy = static_cast<BlisCutStrategy> 
+       (BlisPar_->entry(BlisParams::cutProbingStrategy));
+    BlisCutStrategy twoMirStrategy = static_cast<BlisCutStrategy> 
+       (BlisPar_->entry(BlisParams::cutTwoMirStrategy)); 
+
+    int cliqueFreq = BlisPar_->entry(BlisParams::cutCliqueFreq;
+    int fCoverFreq = BlisPar_->entry(BlisParams::cutFlowCoverFreq;
+    int gomoryFreq = BlisPar_->entry(BlisParams::cutGomoryFreq; 
+    int knapFreq = BlisPar_->entry(BlisParams::cutKnapsackFreq; 
+    int mirFreq = BlisPar_->entry(BlisParams::cutMirFreq; 
+    int oddHoleFreq = BlisPar_->entry(BlisParams::cutOddHoleFreq;
+    int probeFreq = BlisPar_->entry(BlisParams::cutProbingFreq;
+    int twoMirFreq = BlisPar_->entry(BlisParams::cutTwoMirFreq; 
 
     //------------------------------------------------------
     // Add cut generators.
     //------------------------------------------------------
 
-    if (probe == BlisCutStrategyNotSet) {
+    if (probeStrategy == BlisCutStrategyNotSet) {
         // Disable by default
-        probe = BlisCutStrategyNone;
+        probeStrategy = BlisCutStrategyNone;
     }
-    if (probe != BlisCutStrategyNone) {
+    if (probeStrategy != BlisCutStrategyNone) {
         CglProbing *probing = new CglProbing;
         probing->setUsingObjective(true);
         probing->setMaxPass(1);
@@ -780,116 +798,117 @@ BlisModel::setupSelf()
         // Only look at rows with fewer than this number of elements
         probing->setMaxElements(200);
         probing->setRowCuts(3);
-        if (probe > BlisCutStrategyNone) {
-            addCutGenerator(probing, "Probing", probe, probe); // User freq
+        if (probeStrategy == BlisCutStrategyPeriodic) {
+	    // User freq
+            addCutGenerator(probing, "Probing", probeStrategy, probeFreq); 
         }
         else {
-            addCutGenerator(probing, "Probing", probe);
+            addCutGenerator(probing, "Probing", probeStrategy);
         }
     }
 
-    if (clique == BlisCutStrategyNotSet) {
+    if (cliqueStrategy == BlisCutStrategyNotSet) {
         // Only at root by default
-        clique = BlisCutStrategyRoot;
+        cliqueStrategy = BlisCutStrategyRoot;
     }
-    if (clique != BlisCutStrategyNone) {
+    if (cliqueStrategy != BlisCutStrategyNone) {
         CglClique *cliqueCut = new CglClique ;
         cliqueCut->setStarCliqueReport(false);
         cliqueCut->setRowCliqueReport(false);
-        if (clique > BlisCutStrategyNone) {
-            addCutGenerator(cliqueCut, "Clique", clique, clique);
+        if (cliqueStrategy == BlisCutStrategyPeriodic) {
+            addCutGenerator(cliqueCut, "Clique", cliqueStrategy, cliqueFreq);
         }
         else {
-            addCutGenerator(cliqueCut, "Clique", clique);
+            addCutGenerator(cliqueCut, "Clique", cliqueStrategy);
         }
     }
 
-    if (oddHole == BlisCutStrategyNotSet) {
+    if (oddHoleStrategy == BlisCutStrategyNotSet) {
         // Disable by default
-        oddHole = BlisCutStrategyNone;
+        oddHoleStrategy = BlisCutStrategyNone;
     }
-    if (oddHole != BlisCutStrategyNone) {
+    if (oddHoleStrategy != BlisCutStrategyNone) {
         CglOddHole *oldHoleCut = new CglOddHole;
         oldHoleCut->setMinimumViolation(0.005);
         oldHoleCut->setMinimumViolationPer(0.00002);
         // try larger limit
         oldHoleCut->setMaximumEntries(200);
-        if (oddHole > BlisCutStrategyNone) {
-            addCutGenerator(oldHoleCut, "OddHole", oddHole, oddHole);
+        if (oddHoleStrategy == BlisCutStrategyPeriodic) {
+            addCutGenerator(oldHoleCut, "OddHole",oddHoleStrategy,oddHoleFreq);
         }
         else {
-             addCutGenerator(oldHoleCut, "OddHole", oddHole);
+             addCutGenerator(oldHoleCut, "OddHole", oddHoleStrategy);
         }
     }
 
-    if (fCover == BlisCutStrategyNotSet) {
-         fCover = cutStrategy_;
+    if (fCoverStrategy == BlisCutStrategyNotSet) {
+         fCoveStrategyr = cutStrategy_;
     }
-    if (fCover != BlisCutStrategyNone) {
+    if (fCoverStrategy != BlisCutStrategyNone) {
         CglFlowCover *flowGen = new CglFlowCover;
-        if (fCover > BlisCutStrategyNone) {
-            addCutGenerator(flowGen, "Flow Cover", fCover, fCover);
+        if (fCoverStrategy == BlisCutStrategyPeriodic) {
+            addCutGenerator(flowGen, "Flow Cover", fCoverStrategy, fCoverFreq);
         }
         else {
-            addCutGenerator(flowGen, "Flow Cover", fCover);
+            addCutGenerator(flowGen, "Flow Cover", fCoverStrategy);
         }
     }
 
-    if (knap == BlisCutStrategyNotSet) {
+    if (knapStrategy == BlisCutStrategyNotSet) {
         // Only at root by default
-        knap = BlisCutStrategyRoot;
+        knapStrategy = BlisCutStrategyRoot;
     }
-    if (knap != BlisCutStrategyNone) {
+    if (knapStrategy != BlisCutStrategyNone) {
         CglKnapsackCover *knapCut = new CglKnapsackCover;
-        if (knap > BlisCutStrategyNone) {
-            addCutGenerator(knapCut, "Knapsack", knap, knap);
+        if (knapStrategy == BlisCutStrategyPeriodic) {
+            addCutGenerator(knapCut, "Knapsack", knapStrategy, knapFreq);
         }
         else {
-             addCutGenerator(knapCut, "Knapsack", knap);
+             addCutGenerator(knapCut, "Knapsack", knapStrategy);
         }
     }
 
-    if (mir == BlisCutStrategyNotSet) {
+    if (mirStrategy == BlisCutStrategyNotSet) {
         // Disable by default
-        mir = BlisCutStrategyNone;
+        mirStrategy = BlisCutStrategyNone;
     }
-    if (mir != BlisCutStrategyNone) {
+    if (mirStrategy != BlisCutStrategyNone) {
         CglMixedIntegerRounding2 *mixedGen = new CglMixedIntegerRounding2;
-        if (mir > BlisCutStrategyNone) {
-            addCutGenerator(mixedGen, "MIR", mir, mir);
+        if (mirStrategy == BlisCutStrategyPeriodic) {
+            addCutGenerator(mixedGen, "MIR", mirStrategy, mirFreq);
         }
         else {
-            addCutGenerator(mixedGen, "MIR", mir);
+            addCutGenerator(mixedGen, "MIR", mirStrategy);
         }
     }
 
-    if (gomory == BlisCutStrategyNotSet) {
+    if (gomoryStrategy == BlisCutStrategyNotSet) {
         // Only at root by default
-        gomory = BlisCutStrategyRoot;
+        gomoryStrategy = BlisCutStrategyRoot;
     }
-    if (gomory != BlisCutStrategyNone) {
+    if (gomoryStrategy != BlisCutStrategyNone) {
         CglGomory *gomoryCut = new CglGomory;
         // try larger limit
         gomoryCut->setLimit(300);
-        if (gomory >  BlisCutStrategyNone) {
-            addCutGenerator(gomoryCut, "Gomory", gomory, gomory);
+        if (gomoryStrategy == BlisCutStrategyPeriodic) {
+            addCutGenerator(gomoryCut, "Gomory", gomoryStrategy, gomoryFreq);
         }
         else {
-            addCutGenerator(gomoryCut, "Gomory", gomory);
+            addCutGenerator(gomoryCut, "Gomory", gomoryStrategy);
         }
     }
 
-    if (twoMir == BlisCutStrategyNotSet) {
+    if (twoMiStrategyr == BlisCutStrategyNotSet) {
         // Disable by default
-        twoMir = BlisCutStrategyNone;
+        twoMiStrategyr = BlisCutStrategyNone;
     }
-    if (twoMir != BlisCutStrategyNone) {
+    if (twoMirStrategy != BlisCutStrategyNone) {
         CglTwomir *twoMirCut =  new CglTwomir;
-        if (twoMir > BlisCutStrategyNone) {
-            addCutGenerator(twoMirCut, "Two MIR", twoMir, twoMir);
+        if (twoMirStrategy == BlisCutStrategyPeriodic) {
+            addCutGenerator(twoMirCut, "Two MIR", twoMirStrategy, twoMirFreq);
         }
         else  {
-            addCutGenerator(twoMirCut, "Two MIR", twoMir);
+            addCutGenerator(twoMirCut, "Two MIR", twoMirStrategy);
         }
     }
     
@@ -916,8 +935,9 @@ BlisModel::setupSelf()
 	for (j = 1; j < numCutGenerators_; ++j) {
 	    strategy1 = cutGenerators(j)->strategy();
 	    if (strategy1 != strategy0) {
-		cutStrategy_ =  BlisCutStrategyMultiple;// Different for each cut
-		break;
+	       // Different for each cut
+	       cutStrategy_ =  BlisCutStrategyMultiple;
+	       break;
 	    }
 	}
 	if (j == numCutGenerators_) {
@@ -926,7 +946,8 @@ BlisModel::setupSelf()
 	}
         else {
             // Assume to generate cons at each node.
-            cutStrategy_ = static_cast<BlisCutStrategy>(1); 
+            cutStrategy_ = BlisCutStrategyPeriodic;
+	    cutGenerationFrequency_ = 1;
         }
     }
      

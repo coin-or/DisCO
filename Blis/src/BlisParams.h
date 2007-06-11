@@ -75,14 +75,22 @@ class BlisParams : public AlpsParameterSet {
       
       cutPass,     /** The pass to generate cuts */
 
-      cutClique,
-      cutGomory,
-      cutFlowCover,
-      cutKnapsack,
-      cutMir,
-      cutOddHole,
-      cutProbing,
-      cutTwoMir,
+      cutCliqueStrategy,
+      cutGomoryStrategy,
+      cutFlowCoverStrategy,
+      cutKnapsackStrategy,
+      cutMirStrategy,
+      cutOddHoleStrategy,
+      cutProbingStrategy,
+      cutTwoMirStrategy,
+      cutCliqueFreq,
+      cutGomoryFreq,
+      cutFlowCoverFreq,
+      cutKnapsackFreq,
+      cutMirFreq,
+      cutOddHoleFreq,
+      cutProbingFreq,
+      cutTwoMirFreq,
       
       /** -1 auto, 0, no, any integer frequency */
       difference,
@@ -96,6 +104,7 @@ class BlisParams : public AlpsParameterSet {
       heurStrategy, /** All heuristics */
       heurCallFrequency,
       heurRoundStrategy,
+      heurRoundFreq,
       
       /** The look ahead of pseudocost. */
       lookAhead,

@@ -64,30 +64,9 @@ BlisParams::createKeywordList() {
   keys_.push_back(make_pair(std::string("Blis_branchStrategyRampUp"),
 			    AlpsParameter(AlpsIntPar, branchStrategyRampUp)));
 
-  keys_.push_back(make_pair(std::string("Blis_cutClique"),
-			    AlpsParameter(AlpsIntPar, cutClique)));
-
-  keys_.push_back(make_pair(std::string("Blis_cutGomory"),
-			    AlpsParameter(AlpsIntPar, cutGomory)));
-
-  keys_.push_back(make_pair(std::string("Blis_cutFlowCover"),
-			    AlpsParameter(AlpsIntPar, cutFlowCover)));
-
-  keys_.push_back(make_pair(std::string("Blis_cutKnapsack"),
-			    AlpsParameter(AlpsIntPar, cutKnapsack)));
-  
-  keys_.push_back(make_pair(std::string("Blis_cutMir"),
-			    AlpsParameter(AlpsIntPar, cutMir)));
-  
-  keys_.push_back(make_pair(std::string("Blis_cutOddHole"),
-			    AlpsParameter(AlpsIntPar, cutOddHole)));
-
   keys_.push_back(make_pair(std::string("Blis_cutPass"),
 			    AlpsParameter(AlpsIntPar, cutPass)));
   
-  keys_.push_back(make_pair(std::string("Blis_cutProbing"),
-			    AlpsParameter(AlpsIntPar, cutProbing)));
-
   keys_.push_back(make_pair(std::string("Blis_cutStrategy"),
 			    AlpsParameter(AlpsIntPar, cutStrategy)));
 
@@ -95,20 +74,68 @@ BlisParams::createKeywordList() {
 			    AlpsParameter(AlpsIntPar, 
 					  cutGenerationFrequency)));
 
-  keys_.push_back(make_pair(std::string("Blis_cutTwoMir"),
-			    AlpsParameter(AlpsIntPar, cutTwoMir)));
+  keys_.push_back(make_pair(std::string("Blis_cutCliqueStrategy"),
+			    AlpsParameter(AlpsIntPar, cutCliqueStrategy)));
+
+  keys_.push_back(make_pair(std::string("Blis_cutGomoryStrategy"),
+			    AlpsParameter(AlpsIntPar, cutGomoryStrategy)));
+
+  keys_.push_back(make_pair(std::string("Blis_cutFlowCoverStrategy"),
+			    AlpsParameter(AlpsIntPar, cutFlowCoverStrategy)));
+
+  keys_.push_back(make_pair(std::string("Blis_cutKnapsackStrategy"),
+			    AlpsParameter(AlpsIntPar, cutKnapsackStrategy)));
+  
+  keys_.push_back(make_pair(std::string("Blis_cutMirStrategy"),
+			    AlpsParameter(AlpsIntPar, cutMirStrategy)));
+  
+  keys_.push_back(make_pair(std::string("Blis_cutOddHoleStrategy"),
+			    AlpsParameter(AlpsIntPar, cutOddHoleStrategy)));
+
+  keys_.push_back(make_pair(std::string("Blis_cutProbingStrategy"),
+			    AlpsParameter(AlpsIntPar, cutProbing)));
+
+  keys_.push_back(make_pair(std::string("Blis_cutTwoMirStrategy"),
+			    AlpsParameter(AlpsIntPar, cutTwoMirStrategy)));
+
+  keys_.push_back(make_pair(std::string("Blis_cutCliqueFreq"),
+			    AlpsParameter(AlpsIntPar, cutCliqueFreq)));
+
+  keys_.push_back(make_pair(std::string("Blis_cutGomoryFreq"),
+			    AlpsParameter(AlpsIntPar, cutGomoryFreq)));
+
+  keys_.push_back(make_pair(std::string("Blis_cutFlowCoverFreq"),
+			    AlpsParameter(AlpsIntPar, cutFlowCoverFreq)));
+
+  keys_.push_back(make_pair(std::string("Blis_cutKnapsackFreq"),
+			    AlpsParameter(AlpsIntPar, cutKnapsackFreq)));
+  
+  keys_.push_back(make_pair(std::string("Blis_cutMirFreq"),
+			    AlpsParameter(AlpsIntPar, cutMirFreq)));
+  
+  keys_.push_back(make_pair(std::string("Blis_cutOddHoleFreq"),
+			    AlpsParameter(AlpsIntPar, cutOddHoleFreq)));
+
+  keys_.push_back(make_pair(std::string("Blis_cutProbingFreq"),
+			    AlpsParameter(AlpsIntPar, cutProbing)));
+
+  keys_.push_back(make_pair(std::string("Blis_cutTwoMirFreq"),
+			    AlpsParameter(AlpsIntPar, cutTwoMirFreq)));
 
   keys_.push_back(make_pair(std::string("Blis_difference"),
 			    AlpsParameter(AlpsIntPar, difference)));
   
-  keys_.push_back(make_pair(std::string("Blis_heurRoundStrategy"),
-			    AlpsParameter(AlpsIntPar, heurRoundStrategy)));
-  
   keys_.push_back(make_pair(std::string("Blis_heurStrategy"),
                             AlpsParameter(AlpsIntPar, heurStrategy)));
   
-  keys_.push_back(make_pair(std::string("Blis_heurcallFrequencyy"),
+  keys_.push_back(make_pair(std::string("Blis_heurCallFrequencyy"),
                             AlpsParameter(AlpsIntPar, heurCallFrequency)));
+  
+  keys_.push_back(make_pair(std::string("Blis_heurRoundStrategy"),
+			    AlpsParameter(AlpsIntPar, heurRoundStrategy)));
+  
+  keys_.push_back(make_pair(std::string("Blis_heurRoundFreq"),
+			    AlpsParameter(AlpsIntPar, heurRoundFreq)));
   
   keys_.push_back(make_pair(std::string("Blis_lookAhead"),
 			    AlpsParameter(AlpsIntPar, lookAhead)));
@@ -188,20 +215,29 @@ BlisParams::setDefaultEntries() {
 
   setEntry(branchStrategy, BlisBranchingStrategyPseudoCost);
   setEntry(branchStrategyRampUp, BlisBranchingStrategyPseudoCost);
-  setEntry(cutClique, BlisCutStrategyNotSet);
-  setEntry(cutGomory, BlisCutStrategyNotSet);
-  setEntry(cutFlowCover, BlisCutStrategyNotSet);
-  setEntry(cutKnapsack, BlisCutStrategyNotSet);
-  setEntry(cutMir, BlisCutStrategyNotSet);
-  setEntry(cutOddHole, BlisCutStrategyNotSet);
-  setEntry(cutPass, 20);
-  setEntry(cutProbing, BlisCutStrategyNotSet);
   setEntry(cutStrategy, BlisCutStrategyRoot);
   setEntry(cutGenerationFrequency, 1);
+  setEntry(cutPass, 20);
+  setEntry(cutCliqueStrategy, BlisCutStrategyNotSet);
+  setEntry(cutGomoryStrategy, BlisCutStrategyNotSet);
+  setEntry(cutFlowCoverStrategy, BlisCutStrategyNotSet);
+  setEntry(cutKnapsackStrategy, BlisCutStrategyNotSet);
+  setEntry(cutMirStrategy, BlisCutStrategyNotSet);
+  setEntry(cutOddHoleStrategy, BlisCutStrategyNotSet);
+  setEntry(cutProbingStrategy, BlisCutStrategyNotSet);
   setEntry(cutTwoMir, BlisCutStrategyNotSet);
+  setEntry(cutCliqueFreq, 1);
+  setEntry(cutGomoryFreq, 1);
+  setEntry(cutFlowCoverFreq, 1);
+  setEntry(cutKnapsackFreq, 1);
+  setEntry(cutMirFreq, 1);
+  setEntry(cutOddHoleFreq, 1);
+  setEntry(cutProbingFreq, 1);
+  setEntry(cutTwoMirFreq, 1);
   setEntry(difference, -1);
-  setEntry(heurRoundStrategy, BlisHeurStrategyNotSet);
   setEntry(heurStrategy, BlisHeurStrategyAuto);
+  setEntry(heurRoundStrategy, BlisHeurStrategyNotSet);
+  setEntry(heurRoundFreq, 1);
   setEntry(lookAhead, 4);
   setEntry(pseudoRelibility, 8);
   setEntry(sharePcostDepth, 10);
