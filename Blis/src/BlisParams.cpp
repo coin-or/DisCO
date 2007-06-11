@@ -93,7 +93,7 @@ BlisParams::createKeywordList() {
 			    AlpsParameter(AlpsIntPar, cutOddHoleStrategy)));
 
   keys_.push_back(make_pair(std::string("Blis_cutProbingStrategy"),
-			    AlpsParameter(AlpsIntPar, cutProbing)));
+			    AlpsParameter(AlpsIntPar, cutProbingStrategy)));
 
   keys_.push_back(make_pair(std::string("Blis_cutTwoMirStrategy"),
 			    AlpsParameter(AlpsIntPar, cutTwoMirStrategy)));
@@ -117,7 +117,7 @@ BlisParams::createKeywordList() {
 			    AlpsParameter(AlpsIntPar, cutOddHoleFreq)));
 
   keys_.push_back(make_pair(std::string("Blis_cutProbingFreq"),
-			    AlpsParameter(AlpsIntPar, cutProbing)));
+			    AlpsParameter(AlpsIntPar, cutProbingFreq)));
 
   keys_.push_back(make_pair(std::string("Blis_cutTwoMirFreq"),
 			    AlpsParameter(AlpsIntPar, cutTwoMirFreq)));
@@ -225,7 +225,7 @@ BlisParams::setDefaultEntries() {
   setEntry(cutMirStrategy, BlisCutStrategyNotSet);
   setEntry(cutOddHoleStrategy, BlisCutStrategyNotSet);
   setEntry(cutProbingStrategy, BlisCutStrategyNotSet);
-  setEntry(cutTwoMir, BlisCutStrategyNotSet);
+  setEntry(cutTwoMirStrategy, BlisCutStrategyNotSet);
   setEntry(cutCliqueFreq, 1);
   setEntry(cutGomoryFreq, 1);
   setEntry(cutFlowCoverFreq, 1);

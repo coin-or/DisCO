@@ -767,14 +767,14 @@ BlisModel::setupSelf()
     BlisCutStrategy twoMirStrategy = static_cast<BlisCutStrategy> 
        (BlisPar_->entry(BlisParams::cutTwoMirStrategy)); 
 
-    int cliqueFreq = BlisPar_->entry(BlisParams::cutCliqueFreq;
-    int fCoverFreq = BlisPar_->entry(BlisParams::cutFlowCoverFreq;
-    int gomoryFreq = BlisPar_->entry(BlisParams::cutGomoryFreq; 
-    int knapFreq = BlisPar_->entry(BlisParams::cutKnapsackFreq; 
-    int mirFreq = BlisPar_->entry(BlisParams::cutMirFreq; 
-    int oddHoleFreq = BlisPar_->entry(BlisParams::cutOddHoleFreq;
-    int probeFreq = BlisPar_->entry(BlisParams::cutProbingFreq;
-    int twoMirFreq = BlisPar_->entry(BlisParams::cutTwoMirFreq; 
+    int cliqueFreq = BlisPar_->entry(BlisParams::cutCliqueFreq);
+    int fCoverFreq = BlisPar_->entry(BlisParams::cutFlowCoverFreq);
+    int gomoryFreq = BlisPar_->entry(BlisParams::cutGomoryFreq); 
+    int knapFreq = BlisPar_->entry(BlisParams::cutKnapsackFreq); 
+    int mirFreq = BlisPar_->entry(BlisParams::cutMirFreq); 
+    int oddHoleFreq = BlisPar_->entry(BlisParams::cutOddHoleFreq);
+    int probeFreq = BlisPar_->entry(BlisParams::cutProbingFreq);
+    int twoMirFreq = BlisPar_->entry(BlisParams::cutTwoMirFreq); 
 
     //------------------------------------------------------
     // Add cut generators.
@@ -842,7 +842,7 @@ BlisModel::setupSelf()
     }
 
     if (fCoverStrategy == BlisCutStrategyNotSet) {
-         fCoveStrategyr = cutStrategy_;
+         fCoverStrategy = cutStrategy_;
     }
     if (fCoverStrategy != BlisCutStrategyNone) {
         CglFlowCover *flowGen = new CglFlowCover;
@@ -898,9 +898,9 @@ BlisModel::setupSelf()
         }
     }
 
-    if (twoMiStrategyr == BlisCutStrategyNotSet) {
+    if (twoMirStrategy == BlisCutStrategyNotSet) {
         // Disable by default
-        twoMiStrategyr = BlisCutStrategyNone;
+        twoMirStrategy = BlisCutStrategyNone;
     }
     if (twoMirStrategy != BlisCutStrategyNone) {
         CglTwomir *twoMirCut =  new CglTwomir;

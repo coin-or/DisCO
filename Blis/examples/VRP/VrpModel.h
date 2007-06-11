@@ -84,18 +84,21 @@ public:
       n_ = 0;
       VrpPar_ = new VrpParams;
 
-      AlpsPar()->setEntry(AlpsParams::searchStrategy, AlpsSearchTypeBestEstimate);
+      AlpsPar()->setEntry(AlpsParams::searchStrategy,
+			  AlpsSearchTypeBestEstimate);
 
-      BlisPar()->setEntry(BlisParams::branchStrategy, BlisBranchingStrategyStrong);
+      BlisPar()->setEntry(BlisParams::branchStrategy,
+			  BlisBranchingStrategyStrong);
 
-      BlisPar()->setEntry(BlisParams::cutClique,BlisCutStrategyNone);
-      BlisPar()->setEntry(BlisParams::cutFlowCover,BlisCutStrategyNone);
-      BlisPar()->setEntry(BlisParams::cutGomory,BlisCutStrategyNone);
-      BlisPar()->setEntry(BlisParams::cutKnapsack,BlisCutStrategyNone);
-      BlisPar()->setEntry(BlisParams::cutMir,BlisCutStrategyNone);
-      BlisPar()->setEntry(BlisParams::cutOddHole,BlisCutStrategyNone);
-      BlisPar()->setEntry(BlisParams::cutProbing,BlisCutStrategyNone);
-      BlisPar()->setEntry(BlisParams::cutTwoMir,BlisCutStrategyNone);
+      BlisPar()->setEntry(BlisParams::cutCliqueStrategy,BlisCutStrategyNone);
+      BlisPar()->setEntry(BlisParams::cutFlowCoverStrategy,
+			  BlisCutStrategyNone);
+      BlisPar()->setEntry(BlisParams::cutGomoryStrategy,BlisCutStrategyNone);
+      BlisPar()->setEntry(BlisParams::cutKnapsackStrategy,BlisCutStrategyNone);
+      BlisPar()->setEntry(BlisParams::cutMirStrategy,BlisCutStrategyNone);
+      BlisPar()->setEntry(BlisParams::cutOddHoleStrategy,BlisCutStrategyNone);
+      BlisPar()->setEntry(BlisParams::cutProbingStrategy,BlisCutStrategyNone);
+      BlisPar()->setEntry(BlisParams::cutTwoMirStrategy,BlisCutStrategyNone);
       BlisPar()->setEntry(BlisParams::heurRoundStrategy, BlisHeurStrategyNone);
 
       // Cuts as formulation
