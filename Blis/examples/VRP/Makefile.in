@@ -67,6 +67,7 @@ COINLIBDIR = @abs_lib_dir@
 # Libraries necessary to link with Clp
 LIBS = -L$(COINLIBDIR) -lBlis -lBcps -lAlps -lCgl -lOsiClp -lOsi -lClp -lCoinUtils \
 	@ADDLIBS@ \
+	`cat $(COINLIBDIR)/blis_addlibs.txt` \
 	`cat $(COINLIBDIR)/bcps_addlibs.txt` \
 	`cat $(COINLIBDIR)/alps_addlibs.txt` \
 	`cat $(COINLIBDIR)/cgl_addlibs.txt` \
