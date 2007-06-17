@@ -15,10 +15,6 @@
 #ifndef VrpSolution_h_
 #define VrpSolution_h_
 
-#include <cmath>
-
-#include "Alps.h"
-
 #include "BlisSolution.h"
 
 #include "VrpModel.h"
@@ -52,16 +48,23 @@ public:
    
    /** The method that encodes the solution into a encoded object. */
    virtual AlpsEncoded* encode() const {
-      AlpsEncoded* encoded = NULL;//new AlpsEncoded("AslpKnowledgeTypeSolution");
-      //encodeBcps(encoded);
-      // Nothing to do for Vrp part.
+      AlpsEncoded* encoded = new AlpsEncoded(AlpsKnowledgeTypeSolution);
+      encodeBcps(encoded);
+      //Vrp part.
+      encoded->writeRep(opt_->next);
+      encoded->writeRep(opt_->route);
+
       return encoded;
    }
    
    /** The method that decodes the solution from a encoded object. */
    virtual AlpsKnowledge* decode(AlpsEncoded& encoded) const {
-      VrpSolution * sol = NULL;//new VrpSolution();
-      //sol->decodeBcps(encoded);
+      VrpSolution * sol = new VrpSolution();
+      sol->decodeBcps(encoded);
+      // Vrp part.
+      encoded.readRep(opt_->next);
+      encoded.readRep(opt_->route);
+
       return sol;
    }
    

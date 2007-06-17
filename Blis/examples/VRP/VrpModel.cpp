@@ -815,7 +815,7 @@ AlpsReturnStatus
 VrpModel::decodeVrp(AlpsEncoded &encoded)
 {
     AlpsReturnStatus status = AlpsReturnStatusOk;
-    int tempInt = 0;
+    int k, tempInt = 0;
     
     //encoded.readRep(name_, 100);
     encoded.readRep(vertnum_);
@@ -843,15 +843,19 @@ VrpModel::decodeVrp(AlpsEncoded &encoded)
     encoded.readRep(etol_);
 
     VrpPar_->unpack(encoded);
-    
+
     // Allocate space for network for later use
     n_ = new VrpNetwork(edgenum_, vertnum_);
-    
-    VrpCutGenerator *cg = new VrpCutGenerator(this, vertnum_);
-    
-    cg->setStrategy(BlisCutStrategyPeriodic);
-	cg->setCutGenerationFreq(1); // Generate cuts at every node
 
+    // Insert variables to edges_.
+    for (k = 0; k < edgenum_; ++k) {
+        edges_.push_back(dynamic_cast<VrpVariable *>(variables_[k]));
+    }
+    
+    // Add a cut generator    
+    VrpCutGenerator *cg = new VrpCutGenerator(this, vertnum_);
+    cg->setStrategy(BlisCutStrategyPeriodic);
+    cg->setCutGenerationFreq(1); // Generate cuts at every node
     addCutGenerator(cg);
 
     return status;

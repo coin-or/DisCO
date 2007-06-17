@@ -53,14 +53,11 @@ class VrpModel : public BlisModel
    double etol_;
 
    VrpParams *VrpPar_;
-   VrpNetwork *n_;  /* Allocate when readInstance */
+   VrpNetwork *n_;  /* Allocate when readInstance (no data filled in). */
    
    // edges_ hold the same elements as variables_ does, do not free memory.
    // For parallel, reinsert elements in variables_ to edges_
    std::vector<VrpVariable *> edges_;
-
-   // Do we need this? Solution?
-   std::vector<best_tours> curTour_;
 
 protected:
 
