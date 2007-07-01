@@ -87,6 +87,9 @@ public:
       BlisPar()->setEntry(BlisParams::branchStrategy,
 			  BlisBranchingStrategyStrong);
 
+      BlisPar()->setEntry(BlisParams::branchStrategyRampUp,
+			  BlisBranchingStrategyStrong);
+
       BlisPar()->setEntry(BlisParams::cutCliqueStrategy,BlisCutStrategyNone);
       BlisPar()->setEntry(BlisParams::cutFlowCoverStrategy,
 			  BlisCutStrategyNone);

@@ -16,11 +16,11 @@
 
 #include "BlisConstraint.h"
 #include "BlisTreeNode.h"
-#include "BlisVariable.h"
 
 #include "VrpConstants.h"
 #include "VrpModel.h"
 #include "VrpSolution.h"
+#include "VrpVariable.h"
 
 //#############################################################################
 
@@ -767,7 +767,7 @@ VrpModel::registerKnowledge() {
 	std::cout << "BLIS: Register Bcps constraint." << std::endl;
     }
     
-    broker_->registerClass(BcpsKnowledgeTypeVariable, new BlisVariable);
+    broker_->registerClass(BcpsKnowledgeTypeVariable, new VrpVariable);
     if (broker_->getMsgLevel() > 5) {
 	std::cout << "BLIS: Register Bcps variable." << std::endl;
     }

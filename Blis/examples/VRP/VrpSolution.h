@@ -42,6 +42,12 @@ public:
    virtual ~VrpSolution(){
       delete [] opt_;
    }
+
+   /** Set opt */
+   void setOpt(_node *opt) { 
+       if (opt_) delete opt_;
+       opt_ = opt; 
+   }
    
    /** Print the solution.*/
    virtual void print(std::ostream& os) const; 
@@ -50,9 +56,18 @@ public:
    virtual AlpsEncoded* encode() const {
       AlpsEncoded* encoded = new AlpsEncoded(AlpsKnowledgeTypeSolution);
       encodeBcps(encoded);
+
       //Vrp part.
-      encoded->writeRep(opt_->next);
-      encoded->writeRep(opt_->route);
+      int cur_vert = opt_[0].next, count = 1;  
+      while (cur_vert != 0){
+          cur_vert = opt_[cur_vert].next;
+          ++count;
+      }
+      encoded->writeRep(count);
+      for (int j = 0; j < count; ++j) {
+          encoded->writeRep(opt_[j].next);
+          encoded->writeRep(opt_[j].route);
+      }
 
       return encoded;
    }
@@ -61,10 +76,17 @@ public:
    virtual AlpsKnowledge* decode(AlpsEncoded& encoded) const {
       VrpSolution * sol = new VrpSolution();
       sol->decodeBcps(encoded);
-      // Vrp part.
-      encoded.readRep(opt_->next);
-      encoded.readRep(opt_->route);
 
+      // Vrp part.
+      int count;
+      encoded.readRep(count);
+      _node *opt = new _node [count];
+      for (int j = 0; j < count; ++j) {
+          encoded.readRep(opt[j].next);
+          encoded.readRep(opt[j].route);
+      }
+      sol->setOpt(opt);
+      
       return sol;
    }
    
