@@ -49,7 +49,7 @@ class BlisConstraint : public BcpsConstraint {
     
     /** Useful constructor. */
     BlisConstraint(double lbh, double ubh, double lbs, double ubs,
-                   int s, const int *ind, const double *val);
+                   int size, const int *ind, const double *val);
     /** Destructor. */
     virtual ~BlisConstraint();
 

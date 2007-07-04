@@ -90,7 +90,6 @@ static int gcd(int a, int b)
 void 
 BlisModel::init() 
 {
-    processType_ = AlpsProcessTypeMaster;
     origLpSolver_ = NULL;
     presolvedLpSolver_ = NULL;
     lpSolver_ = NULL;
@@ -156,21 +155,18 @@ BlisModel::init()
     boundingPass_ = 0;
     BlisPar_ = new BlisParams;
 
-    /// Timing
-    startTime_ = 0.0;
-
-    /// Tolerance 
+    // Tolerance 
     integerTol_ = 1.0e-5;
     optimalRelGap_ = 1.0e-4;
     optimalAbsGap_ = 1.0e-6;
 
-    /// Heuristic
+    // Heuristic
     heurStrategy_ = BlisHeurStrategyAuto;
     heurCallFrequency_ = 1;
     numHeuristics_ = 0;
     heuristics_ = NULL;
 
-    /// Cons related
+    // Cons related
     cutStrategy_ = BlisCutStrategyRoot;
     cutGenerationFrequency_ = 1;
     numCutGenerators_ = 0;
@@ -494,7 +490,7 @@ BlisModel::setupSelf()
     if (broker_->getMsgLevel() > 0) {
 
         //std::cout << "**** getProcType = " << broker_->getProcType() << std::endl;
-        //if (broker_->getProcType() == AlpsProcessTypeMaster) {
+
         if (broker_->getProcRank() == broker_->getMasterRank()) {
             bcpsMessageHandler_->message(BCPS_S_VERSION, bcpsMessages())
                 << CoinMessageEol;
@@ -503,14 +499,6 @@ BlisModel::setupSelf()
         }
     }
     
-    //------------------------------------------------------
-    // Starting time.
-    //------------------------------------------------------
-    
-    startTime_ = CoinCpuTime();
-
-    processType_ = broker_->getProcType();
-
     //------------------------------------------------------
     // Set numIntObjects_, intColIndices_, intObjectIndices_ 
     //------------------------------------------------------
@@ -731,17 +719,18 @@ BlisModel::setupSelf()
     // NOTE: maxNumCons is valid only for automatic strategy.
     double cutFactor = BlisPar_->entry(BlisParams::cutFactor);
 
-    if (cutFactor > 1.0e19) {
-        // FIXME: use vector
-        maxNumCons_ = 100000;
+    if (cutFactor > 1.0e5) {
+        maxNumCons_ = ALPS_INT_MAX;
+	// old constraint size will automatically double if no space.
+	oldConstraintsSize_ = 10000;
     }
     else {
         maxNumCons_ = (int)((cutFactor - 1.0) * numRows_);
+	oldConstraintsSize_ = maxNumCons_;
     }
     
     constraintPool_ = new BcpsConstraintPool();
-    oldConstraints_ = new BlisConstraint* [maxNumCons_];
-    oldConstraintsSize_ = maxNumCons_;
+    oldConstraints_ = new BlisConstraint* [oldConstraintsSize_];
     
     cutStrategy_ = static_cast<BlisCutStrategy> 
        (BlisPar_->entry(BlisParams::cutStrategy)); 
@@ -1786,7 +1775,7 @@ BlisModel::registerKnowledge() {
 void 
 BlisModel::modelLog() 
 {
-    if (processType_ != AlpsProcessTypeMaster) return;
+    if (broker_->getProcType() != AlpsProcessTypeMaster) return;
     
     int logFileLevel = AlpsPar_->entry(AlpsParams::logFileLevel);
     int msgLevel = AlpsPar_->entry(AlpsParams::msgLevel);

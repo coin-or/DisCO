@@ -68,9 +68,6 @@ class BlisModel : public BcpsModel {
 
 protected:
     
-    // process type (master, hub or worker)
-    AlpsProcessType processType_;
-
     //------------------------------------------------------
     // LP SOLVER.
     //------------------------------------------------------
@@ -212,7 +209,6 @@ protected:
 
     /** If use cut generators. */
     BlisCutStrategy cutStrategy_; 
-    //int cutStrategyRampUp_;
     
     /** Frequency of cut generation */
     int cutGenerationFrequency_; 
@@ -287,31 +283,28 @@ protected:
 
  public:
 
-    /// If root node
+    /** If root node. */
     bool isRoot_;
 
     /** The number of passes during bounding procedure.*/
     int boundingPass_;
 
-    /// Search starting time
-    double startTime_;
-
-    /// Integer tolerance
+    /** Integer tolerance. */
     double integerTol_;
 
-    /// Relative optimal gap
+    /** Relative optimal gap. */
     double optimalRelGap_;
 
-    /// Absolute optimal gap
+    /** Absolute optimal gap. */
     double optimalAbsGap_;
 
-    /// If use heuristics
+    /** If use heuristics. */
     BlisHeurStrategy heurStrategy_;
     
-    /// Frequency of using heuristics
+    /** Frequency of using heuristics. */
     int heurCallFrequency_;
     
-    /// Store new cuts in each pass
+    /** Store new cuts in each pass. */
     OsiCuts newCutPool_;
     
     /** Record the path from leaf to root. */
@@ -822,9 +815,6 @@ protected:
     // PARALLEL
     //------------------------------------------------------
     
-    /** Get process type */
-    AlpsProcessType getProcessType() const { return processType_; }
-
     /** Register knowledge. */
     virtual void registerKnowledge();  
 

@@ -128,7 +128,8 @@ BlisBranchStrategyRel::createCandBranchObjects(int numPassesLeft)
     //------------------------------------------------------
     
     double timeLimit = model->AlpsPar()->entry(AlpsParams::timeLimit);
-    bool maxTimeReached = (CoinCpuTime() - model->startTime_  > timeLimit);
+    AlpsKnowledgeBroker *broker = model->getKnowledgeBroker();
+    bool maxTimeReached = (broker->timer().getTime() > timeLimit);
     bool selectNow = false;
     
     if (maxTimeReached || !numPassesLeft) {

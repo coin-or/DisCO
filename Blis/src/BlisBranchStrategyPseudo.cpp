@@ -120,13 +120,12 @@ BlisBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft)
     double *newLB = NULL;
     double *newUB = NULL;
 
-    double * saveUpper = NULL;
-    double * saveLower = NULL;
-    double * saveSolution = NULL;
+    double *saveUpper = NULL;
+    double *saveLower = NULL;
+    double *saveSolution = NULL;
 
-    
     BlisModel *model = dynamic_cast<BlisModel *>(model_);
-    OsiSolverInterface * solver = model->solver();
+    OsiSolverInterface *solver = model->solver();
     
     int numCols = model->getNumCols();
     int numObjects = model->numObjects();
@@ -140,7 +139,8 @@ BlisBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft)
     //------------------------------------------------------
     
     double timeLimit = model->AlpsPar()->entry(AlpsParams::timeLimit);
-    bool maxTimeReached = (CoinCpuTime() - model->startTime_  > timeLimit);
+    AlpsKnowledgeBroker *broker = model->getKnowledgeBroker();
+    bool maxTimeReached = (broker->timer().getTime() > timeLimit);
     bool selectNow = false;
     
     if (maxTimeReached || !numPassesLeft) {

@@ -167,11 +167,7 @@ protected:
 	Evaluate the state of the client model and decide whether to 
 	generate cons. The generated cons are inserted into and returned 
 	in the collection of cons \p cs.
-	
-	If \p fullScan is true, the generator is obliged to call the CGL
-	\c generateCuts routine.  Otherwise, it is free to make a local 
-	decision. The current implementation uses \c strategy_ to decide.
-        
+
 	The routine returns true if reoptimisation is needed (because the 
 	state of the solver interface has been modified).
     */

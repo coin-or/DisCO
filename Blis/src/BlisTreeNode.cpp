@@ -70,18 +70,18 @@ BlisTreeNode::createNewTreeNode(AlpsNodeDesc *&desc) const
     double lpX = dynamic_cast<BlisNodeDesc *>(desc)->getBranchedVal();
     double f = lpX - floor(lpX);
     assert(f > 0.0);
-
+    
     BlisModel* model = dynamic_cast<BlisModel*>(desc_->getModel());
     int objInd = model->getIntObjIndices()[branchInd];
     BlisObjectInt *obj = dynamic_cast<BlisObjectInt *>(model->objects(objInd));
-
+    
     if (branchDir == -1) {
         estimate -= (1.0-f) * obj->pseudocost().getUpCost();
     }
     else {
 	estimate -= f * obj->pseudocost().getDownCost();
     }
-
+    
 #ifdef BLIS_DEBUG_MORE
     printf("BLIS:createNewTreeNode: quality=%g, solEstimate=%g\n",
            quality_, solEstimate_);
@@ -90,7 +90,7 @@ BlisTreeNode::createNewTreeNode(AlpsNodeDesc *&desc) const
     // Create a new tree node
     BlisTreeNode *node = new BlisTreeNode(desc);    
     desc = NULL;
-
+    
     return node;
 }
 
@@ -289,7 +289,12 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     }
 
     if (genConsHere) {
-        maxNewCons = maxNumCons;
+	if (maxNumCons > ALPS_INT_MAX - 100) {
+	    maxNewCons = 10000;
+	}
+	else {
+	    maxNewCons = maxNumCons;
+	}
         newConstraints = new BcpsObject* [maxNewCons];    
     }
 
@@ -397,7 +402,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                  
 #ifdef BLIS_DEBUG                  
                     if ( (numStartRows + numNewCons != numRows) ||
-                         (numCoreRows + currNumOldCons + numNewCons != numRows) ) {
+                         (numCoreRows+currNumOldCons +numNewCons != numRows) ){
                         
                         std::cout << "ERROR: numRows=" << numRows
                                   << "; numCoreRows=" << numCoreRows
@@ -435,7 +440,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                         if (rowStatus == CoinWarmStartBasis::basic) {
 			    int count;
                             if (k < numStartRows) {
-				BlisConstraint *tmpCon = model->oldConstraints()[(k-numCoreRows)];
+				BlisConstraint *tmpCon = 
+				    model->oldConstraints()[(k-numCoreRows)];
 				count = tmpCon->getNumInactive() + 1;
 				tmpCon->setNumInactive(count);
 				if (tmpCon->getNumInactive() > BLIS_SLACK_MAX){
@@ -444,7 +450,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 				}
                             }
                             else {
-				BcpsObject* tmpCon = newConstraints[(k-numStartRows)];
+				BcpsObject* tmpCon = 
+				    newConstraints[(k-numStartRows)];
 				count = tmpCon->getNumInactive() + 1;
 				tmpCon->setNumInactive(count);
 				if (tmpCon->getNumInactive() > BLIS_SLACK_MAX){
@@ -461,7 +468,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 			std::cout << "PROCESS: new cuts=" << numNewCons 
 				  << ", slack cuts=" << numDelRows 
 				  << ", numRows=" << numRows 
-				  << ", numStartRows=" <<numStartRows << std::endl;
+				  << ", numStartRows=" <<numStartRows 
+				  << std::endl;
 		    }
     
                     
@@ -642,7 +650,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                     model->heuristics(k)->addCalls(1);
 
                     if (foundSolution) {
-                        ipSol = model->feasibleSolution(numIntInfs, numObjInfs);
+                        ipSol = model->feasibleSolution(numIntInfs,numObjInfs);
                     }
                     
                     if (ipSol) {
@@ -1366,12 +1374,12 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
              (msgLevel > 0) ) {
             printCutStat = true;
         }
-        else if ( (getKnowledgeBroker()->getProcType() == AlpsProcessTypeHub) &&
+        else if ( (getKnowledgeBroker()->getProcType()==AlpsProcessTypeHub) &&
                   (hubMsgLevel > 0) ) {
             printCutStat = true;
         }
-        else if ( (getKnowledgeBroker()->getProcType() == AlpsProcessTypeWorker) &&
-                  (workerMsgLevel > 0) ) {
+        else if ((getKnowledgeBroker()->getProcType()==AlpsProcessTypeWorker)&&
+		 (workerMsgLevel > 0)) {
             printCutStat = true;
         }
     }

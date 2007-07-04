@@ -271,7 +271,8 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
     
     // If we have hit max time don't do strong branching
     double timeLimit = model->AlpsPar()->entry(AlpsParams::timeLimit);
-    bool maxTimeReached = (CoinCpuTime() - model->startTime_  > timeLimit);
+    AlpsKnowledgeBroker *broker = model->getKnowledgeBroker();
+    bool maxTimeReached = (broker->timer().getTime() > timeLimit);
     
 #ifdef BLIS_DEBUG_MORE
     printf("1. strongLen = %d, maxTimeReached %d, numPassesLeft %d\n", 
