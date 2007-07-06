@@ -2070,9 +2070,11 @@ BlisModel::analyzeObjective()
 
 	    value /= multiplier;
 	    if (value * 0.999 > cutoffInc) { 
-		blisMessageHandler()->message(BLIS_CUTOFF_INC,
-                                              blisMessages())
-		    << value << CoinMessageEol;
+		if (broker_->getProcRank() == broker_->getMasterRank()) {
+		    blisMessageHandler()->message(BLIS_CUTOFF_INC,
+						  blisMessages())
+			<< value << CoinMessageEol;
+		}
 		BlisPar_->setEntry(BlisParams::cutoffInc, -value*0.999);
 	    } 
 	} 

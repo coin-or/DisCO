@@ -790,11 +790,31 @@ VrpModel::encodeVrp(AlpsEncoded *encoded) const
 
     encoded->writeRep(demand_, vertnum_);
 
-    encoded->writeRep(posx_, vertnum_);
-    encoded->writeRep(posy_, vertnum_);
+    if (posx_) {
+	encoded->writeRep(posx_, vertnum_);
+    }
+    else {
+	encoded->writeRep(posx_, 0);
+    }
+    if (posy_) {
+	encoded->writeRep(posy_, vertnum_);
+    }
+    else {
+	encoded->writeRep(posy_, 0);
+    }
 
-    encoded->writeRep(coordx_, vertnum_);
-    encoded->writeRep(coordy_, vertnum_);
+    if (coordx_) {
+	encoded->writeRep(coordx_, vertnum_);
+    }
+    else {
+	encoded->writeRep(coordx_, 0);
+    }
+    if (coordy_) {
+	encoded->writeRep(coordy_, vertnum_);
+    }
+    else {
+	encoded->writeRep(coordy_, 0);
+    }
     if (coordz_) {
         encoded->writeRep(coordz_, vertnum_);
     }
@@ -829,14 +849,14 @@ VrpModel::decodeVrp(AlpsEncoded &encoded)
     assert(tempInt == vertnum_);
     
     encoded.readRep(posx_, tempInt);
-    assert(tempInt == vertnum_);
+    assert(tempInt == vertnum_ || tempInt == 0);
     encoded.readRep(posy_, tempInt);
-    assert(tempInt == vertnum_);
+    assert(tempInt == vertnum_ || tempInt == 0);
 
     encoded.readRep(coordx_, tempInt);
-    assert(tempInt == vertnum_);
+    assert(tempInt == vertnum_ || tempInt == 0);
     encoded.readRep(coordy_, tempInt);
-    assert(tempInt == vertnum_);
+    assert(tempInt == vertnum_ || tempInt == 0);
     encoded.readRep(coordz_, tempInt);
     assert(tempInt == vertnum_ || tempInt == 0);
 
