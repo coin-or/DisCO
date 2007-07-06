@@ -108,15 +108,15 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     int j, k = -1;
     int numCols, numRows, numCoreCols, numCoreRows;
     int numStartRows, origNumStartRows;
-    int maxNumCons, tempNum;
+    int maxNumCons, tempNumCons = 0;
 
     int numIntInfs = 0;
     int numObjInfs = 0;
 
     int origNumOldCons = 0;
     int currNumOldCons = 0;
-    int numNewCons = 0;
-    int maxNewCons = 0;
+    int newNumCons = 0;
+    int maxNewNumCons = 0;
 
     int numAppliedCons = 0;
     int cutStrategy;
@@ -290,12 +290,12 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 
     if (genConsHere) {
 	if (maxNumCons > ALPS_INT_MAX - 100) {
-	    maxNewCons = 10000;
+	    maxNewNumCons = 10000;
 	}
 	else {
-	    maxNewCons = maxNumCons;
+	    maxNewNumCons = maxNumCons;
 	}
-        newConstraints = new BcpsObject* [maxNewCons];    
+        newConstraints = new BcpsObject* [maxNewNumCons];    
     }
 
     model->boundingPass_ = 0;
@@ -400,18 +400,18 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                      //(numRows > numStartRows) ) {
                      (numRows > numCoreRows) ) {   
                  
-#ifdef BLIS_DEBUG                  
-                    if ( (numStartRows + numNewCons != numRows) ||
-                         (numCoreRows+currNumOldCons +numNewCons != numRows) ){
+#if 1                  
+                    if ( (numStartRows + newNumCons != numRows) ||
+                         (numCoreRows+currNumOldCons +newNumCons != numRows) ){
                         
                         std::cout << "ERROR: numRows=" << numRows
                                   << "; numCoreRows=" << numCoreRows
                                   << "; numStartRows=" << numStartRows
-                                  << "; numNewCons=" << numNewCons
+                                  << "; newNumCons=" << newNumCons
                                   << "; currNumOldCons=" << currNumOldCons
                                   << std::endl;
                         
-                        assert(numRows - numStartRows == numNewCons);
+                        assert(numRows - numStartRows == newNumCons);
                     }
 #endif
                     
@@ -421,9 +421,9 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                         CoinZeroN(oldDelMark, currNumOldCons);
                     }
                     int *newDelMark = NULL;
-                    if (numNewCons > 0) {
-                        newDelMark = new int [numNewCons];
-                        CoinZeroN(newDelMark, numNewCons);
+                    if (newNumCons > 0) {
+                        newDelMark = new int [newNumCons];
+                        CoinZeroN(newDelMark, newNumCons);
                     }
                     
                     const CoinWarmStartBasis* ws= 
@@ -444,6 +444,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 				    model->oldConstraints()[(k-numCoreRows)];
 				count = tmpCon->getNumInactive() + 1;
 				tmpCon->setNumInactive(count);
+				//std::cout << "old: k " << k << ", count " << count << std::endl;
 				if (tmpCon->getNumInactive() > BLIS_SLACK_MAX){
 				    oldDelMark[(k-numCoreRows)] = 1;
 				    delIndices.push_back(k);
@@ -454,6 +455,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 				    newConstraints[(k-numStartRows)];
 				count = tmpCon->getNumInactive() + 1;
 				tmpCon->setNumInactive(count);
+				//std::cout << "new k " << k << ", count " << count << std::endl;
 				if (tmpCon->getNumInactive() > BLIS_SLACK_MAX){
 				    newDelMark[(k-numStartRows)] = 1;
 				    delIndices.push_back(k);
@@ -465,8 +467,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                     numDelRows = static_cast<int> (delIndices.size());
 		    
 		    if (msgLevel > 100) {
-			std::cout << "PROCESS: new cuts=" << numNewCons 
-				  << ", slack cuts=" << numDelRows 
+			std::cout << "PROCESS: new cuts=" << newNumCons 
+				  << ", delete slack cuts=" << numDelRows 
 				  << ", numRows=" << numRows 
 				  << ", numStartRows=" <<numStartRows 
 				  << std::endl;
@@ -497,14 +499,14 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                         // Delete from the old cut position array.
                         //----------------------------------
 
-                        tempNum = 0;
+                        tempNumCons = 0;
                         for (k = 0; k < currNumOldCons; ++k) {
                             if (oldDelMark[k] != 1) {
                                 // Survived
-                                oldConsPos[tempNum++] = oldConsPos[k];    
+                                oldConsPos[tempNumCons++] = oldConsPos[k];    
                             }
                         }
-                        currNumOldCons = tempNum;
+                        currNumOldCons = tempNumCons;
                         numStartRows = numCoreRows + currNumOldCons;
                         
                         //----------------------------------
@@ -512,8 +514,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                         //----------------------------------
 
                         //std::cout << std::endl;
-                        tempNum = 0;
-                        for (k = 0; k < numNewCons; ++k) {
+                        tempNumCons = 0;
+                        for (k = 0; k < newNumCons; ++k) {
                             if (newDelMark[k] == 1) {
                                 // Deleted
 #ifdef BLIS_DEBUG_MORE
@@ -528,13 +530,13 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                             }
                             else {
                                 // Survived
-                                newConstraints[tempNum++] = newConstraints[k];
+                                newConstraints[tempNumCons++] = newConstraints[k];
                             }
                         }
-                        //assert(tempNum + numDelRows == numNewCons);
-                        numAppliedCons -= numNewCons;
-                        numAppliedCons += tempNum;
-                        numNewCons = tempNum;                        
+                        //assert(tempNumCons + numDelRows == newNumCons);
+                        numAppliedCons -= newNumCons;
+                        numAppliedCons += tempNumCons;
+                        newNumCons = tempNumCons;                        
                         
                         //----------------------------------
                         // Resolve to update solution info in lp solver.
@@ -689,14 +691,16 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
              (numAppliedCons < maxNumCons) && 
              (model->boundingPass_ < maxPass) ) {
             
-            OsiCuts newOsiCuts;
-            
+            //OsiCuts newOsiCuts;
+            BcpsConstraintPool newConPool;
+
             memcpy(currLpSolution, 
                    model->getLpSolution(),
                    numCols * sizeof(double));
             
+	    // Generate constraints.
             lpStatus = static_cast<BlisLpStatus> 
-	       (generateConstraints(model, newOsiCuts));
+		(generateConstraints(model, newConPool));
             
             if (lpStatus != BlisLpStatusOptimal) {
                 setStatus(AlpsNodeStatusFathomed);
@@ -704,39 +708,49 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                 goto TERM_PROCESS;
             }
             
-            // TODO: column cuts, which are already installed by probing.
-            tempNum = newOsiCuts.sizeRowCuts();
+            //tempNumCons = newOsiCuts.sizeRowCuts();
+	    tempNumCons = newConPool.getNumConstraints();
             
-            if (tempNum > 0) {
-                applyConstraints(model, newOsiCuts, currLpSolution);
-                keepOn = true;
-                tempNum = newOsiCuts.sizeRowCuts();
+            if (tempNumCons > 0) {
 
-                // Move cuts from OsiCuts to vector newConstraints.
-                for (k = 0; k < tempNum; ++k) {
-                    aCon = BlisOsiCutToConstraint(&(newOsiCuts.rowCut(k)));
+		// Select and install new constraints
+		applyConstraints(model, newConPool, currLpSolution);
+		
+		// Some weak/parallel/dense constraints might be discarded.
+		tempNumCons = newConPool.getNumConstraints();
+		if (tempNumCons > 0) {
+		    keepOn = true;
+		}
+		else {
+		    keepOn = false;
+		}
 
-		    //aCon->hashing(model);
+                // Move cuts from pool to array newConstraints.
+                for (k = 0; k < tempNumCons; ++k) {
+                    aCon = dynamic_cast<BlisConstraint *>
+			(newConPool.getConstraint(k));
 
-                    newConstraints[numNewCons++] = aCon;
-                    if (numNewCons >= maxNewCons) {
+                    newConstraints[newNumCons++] = aCon;
+                    if (newNumCons >= maxNewNumCons) {
                         // No space, need resize
 #ifdef BLIS_DEBUG
-                        std::cout << "NEWCUT: resize, maxNewCons = " 
-                                  << maxNewCons << std::endl;
+                        std::cout << "NEWCUT: resize, maxNewNumCons = " 
+                                  << maxNewNumCons << std::endl;
 #endif
-                        maxNewCons *= 2;
-                        BcpsObject **tempNews = new BcpsObject* [maxNewCons];
+                        maxNewNumCons *= 2;
+                        BcpsObject **tempNews = new BcpsObject* [maxNewNumCons];
                         memcpy(tempNews, 
                                newConstraints,
-                               numNewCons * sizeof(BcpsObject *));
+                               newNumCons * sizeof(BcpsObject *));
                         delete [] newConstraints;
                         newConstraints = tempNews;
                     }
                 }
-                numAppliedCons += tempNum;
+		
+		newConPool.clear();
+                numAppliedCons += tempNumCons;
             }
-	    else {
+	    else { // Can't generate any new cuts
 		keepOn = false;
 	    }
         }
@@ -1153,10 +1167,10 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                 // Full set of active non-core constraints.
                 //------------------------------------------
                 // old constraint: model->oldConstraints_, currNumOldCons.
-                // new constraint: newConstraints, numNewCons.
+                // new constraint: newConstraints, newNumCons.
 
                 BcpsObject **toAddCons = new BcpsObject * [currNumOldCons + 
-                                                           numNewCons];
+                                                           newNumCons];
                 if (currNumOldCons > 0) {
                     // Hard copy of the survived old constraints.
                     for (k = 0; k < currNumOldCons; ++k) {
@@ -1174,11 +1188,11 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                     }
                 }
                 
-		if (numNewCons > 0) {
+		if (newNumCons > 0) {
 		    // Include new constraints.
 		    memcpy(toAddCons + currNumOldCons, 
 			   newConstraints,
-			   numNewCons * sizeof(BcpsObject *));
+			   newNumCons * sizeof(BcpsObject *));
 		}
 
 		//------------------------------------------
@@ -1199,12 +1213,12 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 		// also means that slack ones might been removed.
 		//------------------------------------------
 
-		int numTotal = currNumOldCons + numNewCons;
+		int numTotal = currNumOldCons + newNumCons;
                 desc->setAddedConstraints(numTotal, toAddCons);
                 
 #ifdef BLIS_DEBUG
 		std::cout << "SAVE: EXP: currNumOldCons=" << currNumOldCons
-			  << ", numNewCons=" << numNewCons
+			  << ", newNumCons=" << newNumCons
 			  << std::endl;
 #endif	
 		
@@ -1306,8 +1320,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 		    // Apend will copy old, then add new. 
 		    // If this node has a list of cuts before pointers in 
 		    // model->oldConstraints() will be kept. Safe!
-		    if (numNewCons > 0) {
-			desc->appendAddedConstraints(numNewCons,
+		    if (newNumCons > 0) {
+			desc->appendAddedConstraints(newNumCons,
                                                      newConstraints);
                     }
 		    
@@ -1337,7 +1351,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 		    desc->delConstraints(leftCon, oldLeft);
 		    
 #ifdef BLIS_DEBUG
-		    std::cout << "PROCESS: ADD: new cuts=" << numNewCons 
+		    std::cout << "PROCESS: ADD: new cuts=" << newNumCons 
 			      << ", numRows=" << model->solver()->getNumRows() 
 			      << ", numStartRows="<< numStartRows 
                               << ", origNumStartRows="<< origNumStartRows 
@@ -1428,7 +1442,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 
     if (status_ == AlpsNodeStatusFathomed) {
 	// Delete new cuts since no use anymore.
-        for (k = 0; k < numNewCons; ++k) {
+        for (k = 0; k < newNumCons; ++k) {
             delete newConstraints[k];
         }
     }
@@ -2511,8 +2525,7 @@ int BlisTreeNode::installSubProblem(BcpsModel *m)
     if (numOldCons > 0) {
 	const OsiRowCut ** oldOsiCuts = new const OsiRowCut * [numOldCons];
 	for (k = 0; k < numOldCons; ++k) {
-	    OsiRowCut * acut = 
-		BlisConstraintToOsiCut(model->oldConstraints()[k]);
+	    OsiRowCut * acut = (model->oldConstraints()[k])->createOsiRowCut();
 	    oldOsiCuts[k] = acut;
 	}
 	model->solver()->applyRowCuts(numOldCons, oldOsiCuts);
@@ -2567,13 +2580,12 @@ int BlisTreeNode::installSubProblem(BcpsModel *m)
 //#############################################################################
 
 int
-BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet) 
+BlisTreeNode::generateConstraints(BlisModel *model,BcpsConstraintPool &conPool) 
 {
     int i, j, numCGs;
     BlisLpStatus status = BlisLpStatusOptimal;
-    int preNumRowCons = 0;
-    int preNumColCons = 0;
-    int newCons = 0;
+    int preNumCons = 0;
+    int newNumCons = 0;
     BlisCutStrategy strategy = BlisCutStrategyRoot;
 
     // Only autmatic stategy has depth limit.
@@ -2585,9 +2597,6 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet)
     
     numCGs = model->numCutGenerators();
 
-    //std::cout << "**** numCGs = "<< numCGs << std::endl;
-    
-    
     for (i = 0 ; i < numCGs; ++i) {
 	
 	//----------------------------------------------------
@@ -2634,29 +2643,28 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet)
 	//----------------------------------------------------
 
 	if (useThisCutGenerator) {
-	    newCons = 0;
-	    preNumRowCons = osiCutSet.sizeRowCuts();
-	    preNumColCons = osiCutSet.sizeColCuts();
+
+	    preNumCons = conPool.getNumConstraints();
           
 	    genCutTime = CoinCpuTime();
-	    mustResolve = 
-		model->cutGenerators(i)->generateCons(osiCutSet);
+
+	    // Call constraint generator
+	    mustResolve = model->cutGenerators(i)->generateConstraints(conPool);
+
 	    genCutTime = CoinCpuTime() - genCutTime;
             
             // Statistics
             model->cutGenerators(i)->addTime(genCutTime);
             model->cutGenerators(i)->addCalls(1);
-            preNumRowCons = osiCutSet.sizeRowCuts() - preNumRowCons;
-            preNumColCons = osiCutSet.sizeColCuts() - preNumColCons;
-            if (preNumRowCons + preNumColCons == 0) {
+
+            if (newNumCons == 0) {
                 model->cutGenerators(i)->addNoConsCalls(1);
             }
             else {
                 // Reset to 0
                 int noCuts = model->cutGenerators(i)->noConsCalls();
                 model->cutGenerators(i)->addNoConsCalls(-noCuts);
-                model->cutGenerators(i)->addNumConsGenerated(preNumRowCons + 
-                                                             preNumColCons);
+                model->cutGenerators(i)->addNumConsGenerated(newNumCons);
             }
 
 	    if (mustResolve) {
@@ -2704,7 +2712,7 @@ BlisTreeNode::generateConstraints(BlisModel *model, OsiCuts & osiCutSet)
 
 BlisReturnStatus 
 BlisTreeNode::applyConstraints(BlisModel *model, 
-                               OsiCuts & osiCutSet,
+                               BcpsConstraintPool & conPool,
                                const double *solution)
 {
     BlisReturnStatus status = BlisReturnStatusOk;
@@ -2712,7 +2720,8 @@ BlisTreeNode::applyConstraints(BlisModel *model,
     
     int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
 
-    int numRowCuts = osiCutSet.sizeRowCuts();
+    int numRowCuts = conPool.getNumConstraints();
+
     int numToAdd = numRowCuts;
     int numAdded = 0;
     
@@ -2722,7 +2731,7 @@ BlisTreeNode::applyConstraints(BlisModel *model,
         
         if (numToAdd > 0) { 
 	    
-            OsiRowCut *rowCut = NULL;
+            BlisConstraint *blisCon = NULL;
 	    
             if (msgLevel > 100) {
                 printf("\nAPPLYCUT: Select cuts to be added in LP from %d candidates\n",
@@ -2734,12 +2743,12 @@ BlisTreeNode::applyConstraints(BlisModel *model,
             CoinWarmStartBasis *ws = dynamic_cast<CoinWarmStartBasis*>
                 (model->solver()->getWarmStart());
             
-            const OsiRowCut ** addCuts = new const OsiRowCut * [numToAdd];
-
-            for (i = 0 ; i < numToAdd ; i++) {
+	    // Tranform constraints to Osi cut so that easily add them to LP.
+            const OsiRowCut ** addedCuts = new const OsiRowCut * [numToAdd];
+	    
+            for (i = 0 ; i < numToAdd ; ++i) {
 		bool keep = true;
-		
-                rowCut = &(osiCutSet.rowCut(i));
+		blisCon = dynamic_cast<BlisConstraint *>(conPool.getConstraint(i));
                 
 		//------------------------------------------
 		// Remove:
@@ -2750,11 +2759,12 @@ BlisTreeNode::applyConstraints(BlisModel *model,
 		//  - parallel cuts
 		//------------------------------------------
 
-		const CoinPackedVector & rowVector = rowCut->row();
-		int length = rowVector.getNumElements();
-                bool check = true;
-                
-                while (check) {
+		int length = blisCon->getSize();
+		const double *elements = blisCon->getValues();
+		const int *indices = blisCon->getIndices();
+		
+		bool check = true;
+                while (check) { // while is used to turn off checking.
                     //--------------------------------------                   
                     // Empty.
                     //--------------------------------------
@@ -2786,9 +2796,6 @@ BlisTreeNode::applyConstraints(BlisModel *model,
                     // Compuate scale factor.
                     //--------------------------------------
 
-                    const double *elements = rowVector.getElements();
-                    const int *indices = rowVector.getIndices();
-                    
                     int index;
                     double activity = 0.0;
                     
@@ -2832,31 +2839,18 @@ BlisTreeNode::applyConstraints(BlisModel *model,
                     // Weak.
                     //--------------------------------------
 
-                    char cutSense = rowCut->sense();
-                    double cutRhs = rowCut->rhs();
-                    double violation = -1.0;
-                    double range;
-                    
-                    switch(cutSense) {
-                    case 'E':
-                        violation = fabs(activity - cutRhs);
-                        break;
-                    case 'G':
-                        violation = cutRhs - activity;
-                        break;
-                    case 'L':
-                        violation = activity - cutRhs;
-                    case 'R':
-                        range = rowCut->range();
-                        violation = ALPS_MAX(violation, activity - cutRhs);
-                        violation = ALPS_MAX(violation, cutRhs-range-activity);
-                        break;
-                    case 'N':
-                    default:
-                        throw CoinError("Unknown cut sense", 
-                                        "applyConstraint", "BlisTreeNode");
-                        break;
-                    }
+                    double rowLower = CoinMax(blisCon->getLbHard(),
+					      blisCon->getLbSoft());
+                    double rowUpper = CoinMin(blisCon->getUbHard(),
+					      blisCon->getUbSoft());
+                    double violation = -9.87; // Any negative number is OK
+
+		    if (rowLower > -ALPS_INFINITY) {
+			violation = rowLower - activity;
+		    }
+		    if (rowUpper < ALPS_INFINITY) {
+			violation = CoinMax(violation, activity-rowUpper);
+		    }
                     
                     if (violation < 1.0e-6) {
                         // Found a weak cuts.
@@ -2873,9 +2867,9 @@ BlisTreeNode::applyConstraints(BlisModel *model,
                     //--------------------------------------
                     
 		    bool paral = parallel(model, 
-					  &osiCutSet,
+					  conPool,
 					  i,
-					  rowCut);
+					  blisCon);
 		    if (paral) {
                         if (msgLevel > 100) {
                             std::cout<< "APPLYCUT: Discard a parallel cut"
@@ -2893,16 +2887,16 @@ BlisTreeNode::applyConstraints(BlisModel *model,
                 }//while
                 
 		if (keep) {
-                    addCuts[numAdded++] = &(osiCutSet.rowCut(i));
+                    addedCuts[numAdded++] = blisCon->createOsiRowCut();
                 }
                 else {
-                    osiCutSet.eraseRowCut(i);
+                    conPool.deleteConstraint(i);
                     --i;
                     --numToAdd;
                 }
-
-
             }
+	    
+	    assert(numToAdd == numAdded);
 	    
             if (msgLevel > 100) {
                 printf("APPLYCUT: After selecting, added %d cuts to LP and discared %d cuts\n",
@@ -2913,18 +2907,24 @@ BlisTreeNode::applyConstraints(BlisModel *model,
             // Add cuts to lp and adjust basis.
             //----------------------------------------------
 
-            model->solver()->applyRowCuts(numAdded, addCuts);
-            delete [] addCuts;
-            
-            ws->resize(numRowsNow + numToAdd, numCols);
-            for (i = 0 ; i < numToAdd; ++i) { 
-                ws->setArtifStatus(numRowsNow + i,
-                                   CoinWarmStartBasis::basic); 
-            }
-            if (model->solver()->setWarmStart(ws) == false) { 
-                throw CoinError("Fail setWarmStart() after cut installation.",
-                                "applyConstraints","BlisTreeNode"); 
-            }
+	    if (numAdded > 0) {
+		model->solver()->applyRowCuts(numAdded, addedCuts);
+		ws->resize(numRowsNow + numToAdd, numCols);
+		for (i = 0 ; i < numToAdd; ++i) { 
+		    ws->setArtifStatus(numRowsNow + i,
+				       CoinWarmStartBasis::basic); 
+		}
+		if (model->solver()->setWarmStart(ws) == false) { 
+		    throw CoinError("Fail setWarmStart() after cut installation.",
+				    "applyConstraints","BlisTreeNode"); 
+		}
+
+		for (k = 0; k < numAdded; ++k) {
+		    delete addedCuts[k];
+		}
+	    }
+
+	    delete [] addedCuts;
             delete ws;
         }   
     }
@@ -3410,9 +3410,9 @@ BlisTreeNode::convertToRelative()
 
 bool 
 BlisTreeNode::parallel(BlisModel *model, 
-		       OsiCuts *newCutSet,
+		       BcpsConstraintPool &conPool,
 		       int lastNew,
-		       OsiRowCut *rowCut)
+		       BlisConstraint *aCon)
 {
     bool parallel = false;
     int k;
@@ -3438,9 +3438,10 @@ BlisTreeNode::parallel(BlisModel *model,
     //------------------------------------------------------
 
     for (k = 0; k < lastNew; ++k) {
-	OsiRowCut *rowCut2 = &(newCutSet->rowCut(k));
-	parallel = BlisParallelCutCut(rowCut,
-				      rowCut2,
+	BlisConstraint *thisCon = 
+	    dynamic_cast<BlisConstraint *>(conPool.getConstraint(k));
+	parallel = BlisParallelConCon(aCon,
+				      thisCon,
 				      threshold);
 	if (parallel) return parallel;
     }

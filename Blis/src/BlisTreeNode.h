@@ -62,10 +62,11 @@ private:
     /** Save an explicit node description. */
     //void saveExplicit();
     
-    bool parallel(BlisModel *model, 
-		  OsiCuts *newCutSet,
+    /** Check and remove parallel constraints. */
+    bool parallel(BlisModel *model,
+		  BcpsConstraintPool &conPool,
 		  int lastNew,
-		  OsiRowCut *rowCut);
+		  BlisConstraint *aCon);
 
     /** Estimate quality of a feasible solution. */
     double estimateSolution(BlisModel *model,
@@ -138,11 +139,11 @@ public:
     virtual int chooseBranchingObject(BcpsModel*) { return AlpsReturnStatusOk;};
     
     /** Generate constraints. */
-    int generateConstraints(BlisModel *model, OsiCuts & cutPool);
+    int generateConstraints(BlisModel *model, BcpsConstraintPool &conPool);
 
     /** Select and apply constraints. */
     BlisReturnStatus applyConstraints(BlisModel *model,
-                                      OsiCuts & cutPool,
+                                      BcpsConstraintPool & conPool,
                                       const double *solution); 
 
     /** Fix and tighten varaibles based optimality conditions. */

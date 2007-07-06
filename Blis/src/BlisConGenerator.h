@@ -160,7 +160,7 @@ protected:
         }
     //@}
     
-    /** \name Generate Cons */
+    /** \name Generate Constraints */
     //@{
     /** Generate cons for the client model.
 
@@ -171,7 +171,7 @@ protected:
 	The routine returns true if reoptimisation is needed (because the 
 	state of the solver interface has been modified).
     */
-    virtual bool generateCons(OsiCuts &cs); 
+    virtual bool generateConstraints(BcpsConstraintPool &conPool); 
     //@}
 
     /**@name Gets and sets */

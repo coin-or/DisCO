@@ -12,6 +12,10 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
+#include "BcpsObjectPool.h"
+#include "BlisConstraint.h"
+#include "BlisHelp.h"
+
 #include "VrpModel.h"
 #include "VrpCutGenerator.h"
 #include "VrpMacros.h"
@@ -46,7 +50,7 @@ VrpCutGenerator::VrpCutGenerator(VrpModel *vrp, int vertnum)
 // Return if need resolve LP immediately.
 // New cuts are stored in OsiCuts cs
 bool 
-VrpCutGenerator::generateCons(OsiCuts &cs)
+VrpCutGenerator::generateOsiRowCuts(OsiCuts &cs)
 {
    int vertnum = model_->vertnum_;
    int rcnt, cur_bins = 0, i, k, max_node;
@@ -1291,3 +1295,23 @@ VrpCutGenerator::addCut(OsiCuts &cs, char *coef, int rhs, int type)
 
 /*===========================================================================*/
 
+bool 
+VrpCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
+{
+    OsiCuts cs;
+    
+    // Generate Osi Cuts
+    bool resolve = generateOsiRowCuts(cs);
+    
+    // Create BlisConstraint from Osi Cuts
+    int numCuts = cs.sizeRowCuts();   
+    for (int j = 0; j < numCuts; ++j) {
+	OsiRowCut & rCut = cs.rowCut(j);
+	BlisConstraint *blisCon = BlisOsiCutToConstraint(&rCut);
+	conPool.addConstraint(blisCon);
+    }   
+    
+    return resolve;
+}
+
+/*===========================================================================*/

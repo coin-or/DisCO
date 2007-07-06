@@ -40,9 +40,6 @@ class BlisModel;
 /** Convert a OsiRowCut to a Blis Contraint. */
 BlisConstraint * BlisOsiCutToConstraint(const OsiRowCut *rowCut);
 
-/** Convert a Blis constraint to a OsiRowCut. */
-OsiRowCut * BlisConstraintToOsiCut(const BlisConstraint * con);
-
 /** Strong branching on a variable colInd. */
 BlisReturnStatus BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
                                   const double *saveLower, const double *saveUpper,
@@ -68,6 +65,11 @@ bool BlisParallelCutCut(OsiRowCut * rowCut1,
 /** Check if a row cut parallel with a constraint. */
 bool BlisParallelCutCon(OsiRowCut * rowCut,
 			BlisConstraint * con,
+			double threshold = 1.0);
+
+/** Check if a row cut parallel with a constraint. */
+bool BlisParallelConCon(BlisConstraint * con1,
+			BlisConstraint * con2,
 			double threshold = 1.0);
 
 

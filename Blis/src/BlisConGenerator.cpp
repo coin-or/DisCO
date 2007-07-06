@@ -34,13 +34,15 @@
 #include "OsiSolverInterface.hpp"
 #include "CglProbing.hpp"
 
+#include "BcpsObjectPool.h"
+
+#include "BlisHelp.h"
 #include "BlisModel.h"
 #include "BlisMessage.h"
 #include "BlisConGenerator.h"
-
+#include "BlisConstraint.h"
 
 //#############################################################################
-
 
 // Normal constructor
 BlisConGenerator::BlisConGenerator(BlisModel * model,
@@ -139,12 +141,12 @@ BlisConGenerator::refreshModel(BlisModel * model)
 
 //#############################################################################
 
-// Generate cons for the model data contained in si.
-// The generated cons are inserted into and returned in the
-// collection of cons cons.
-
+// Generate constraints for the model data contained in si.
+// The generated constraints are inserted into and returned in the 
+// constraint pool.
+// Default implementation use Cgl cut generators.
 bool
-BlisConGenerator::generateCons(OsiCuts & coinCuts)
+BlisConGenerator::generateConstraints(BcpsConstraintPool &conPool)
 {
     bool status = false;
     
@@ -156,92 +158,80 @@ BlisConGenerator::generateCons(OsiCuts & coinCuts)
 #endif
     
     //--------------------------------------------------
-    // Start to generate cons ...
+    // Start to generate constraints...
     //--------------------------------------------------
-    
-    int j;
-    //double start = CoinCpuTime();
-    int numConsBefore = coinCuts.sizeCuts();   
-    int numRowsBefore = coinCuts.sizeRowCuts();   
-    
+
     assert(generator_ != NULL);
     
+    int j;
+    OsiCuts newOsiCuts;
     CglProbing* generator = dynamic_cast<CglProbing *>(generator_);
     
-    if (!generator) {
-       generator_->generateCuts(*solver, coinCuts);
+    if (generator) {
+	// It is CglProbing - return tight column bounds
+	generator->generateCutsAndModify(*solver, newOsiCuts);
+	const double * tightLower = generator->tightLower();
+	const double * lower = solver->getColLower();
+	const double * tightUpper = generator->tightUpper();
+	const double * upper = solver->getColUpper();
+	const double * solution = solver->getColSolution();
+	
+	int numberColumns = solver->getNumCols();
+	double primalTolerance = 1.0e-8;
+	for (j = 0; j < numberColumns; ++j) {
+	    if ( (tightUpper[j] == tightLower[j]) &&
+		 (upper[j] > lower[j]) ) {
+		// Fix column j
+		solver->setColLower(j, tightLower[j]);
+		solver->setColUpper(j, tightUpper[j]);
+		if ( (tightLower[j] > solution[j] + primalTolerance) ||
+		     (tightUpper[j] < solution[j] - primalTolerance) ) {
+		    status = true;
+		}
+	    }
+	}
     }
     else {
-       // It is probing - return tight column bounds
-       generator->generateCutsAndModify(*solver, coinCuts);
-       const double * tightLower = generator->tightLower();
-       const double * lower = solver->getColLower();
-       const double * tightUpper = generator->tightUpper();
-       const double * upper = solver->getColUpper();
-       const double * solution = solver->getColSolution();
-       
-       int numberColumns = solver->getNumCols();
-       double primalTolerance = 1.0e-8;
-       for (j = 0; j < numberColumns; ++j) {
-	  if ( (tightUpper[j] == tightLower[j]) &&
-	       (upper[j] > lower[j]) ) {
-	     // fix column j
-	     solver->setColLower(j, tightLower[j]);
-	     solver->setColUpper(j, tightUpper[j]);
-	     if ( (tightLower[j] > solution[j] + primalTolerance) ||
-		  (tightUpper[j] < solution[j] - primalTolerance) ) {
-		status = true;
-	     }
-	  }
-       }
-    } // EOF probing.
+	// Other Cgl cut generators
+	generator_->generateCuts(*solver, newOsiCuts);
+    }
     
     //--------------------------------------------------
-    // Remove zero length row cuts.
+    // Create blis constraints and remove zero length row cuts.
     //--------------------------------------------------
     
-    int numRowCons = coinCuts.sizeRowCuts();
-    for (j = numRowsBefore; j < numRowCons; ++j) {
-       OsiRowCut & rCut = coinCuts.rowCut(j);
-       int len = rCut.row().getNumElements();
+    int numNewConstraints = newOsiCuts.sizeRowCuts();
+    for (j = 0; j < numNewConstraints; ++j) {
+	OsiRowCut & rCut = newOsiCuts.rowCut(j);
+	int len = rCut.row().getNumElements();
+
 #ifdef BLIS_DEBUG_MORE
-       std::cout << "Cut " << j<<": length = " << len << std::endl;
+	std::cout << "Cut " << j<<": length = " << len << std::endl;
 #endif
-       if (len == 0) {
-	  // Empty cuts
-	  coinCuts.eraseRowCut(j);
-	  --j;
-	  --numRowCons;
+	if (len > 0) {
+	    // Create BlisConstraints from OsiCuts.
+	    BlisConstraint *blisCon = BlisOsiCutToConstraint(&rCut);
+	    conPool.addConstraint(blisCon);
+	}
+	else if (len == 0) {
+	    // Empty cuts
 #ifdef BLIS_DEBUG
-	  std::cout << "WARNING: Empty cut from " << name_ << std::endl;
+	    std::cout << "WARNING: Empty cut from " << name_ << std::endl;
 #endif
-       }
-       else if (len < 0) {
+	}
+	else {
 #ifdef BLIS_DEBUG
-	  std::cout << "ERROR: Cut length = " << len << std::endl;
+	    std::cout << "ERROR: Cut length = " << len << std::endl;
 #endif
-	  // Error
-	  assert(0);
-       }
+	    // Error
+	    assert(0);
+	}
     }
-    
-#if 0
-    //--------------------------------------------------
-    // Update statistics. 
-    // Let Blis do this, 12/17/06
-    //--------------------------------------------------
-    
-    ++calls_;
-    numConsGenerated_ += (coinCuts.sizeCuts() - numConsBefore);
-    time_ += (CoinCpuTime() - start);
-    if (numConsGenerated_ == 0) {
-       ++noConsCalls_;
-    }
-#endif
-    
-    if ( (strategy_ == BlisCutStrategyAuto) && 
+
+    // Adjust cut strategy.
+    if ( (strategy_ == BlisCutStrategyAuto) &&
 	 (noConsCalls_ > BLIS_CUT_DISABLE) ) {
-       strategy_ = BlisCutStrategyNone;
+	strategy_ = BlisCutStrategyNone;
     }
 
     return status;

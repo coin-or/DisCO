@@ -26,11 +26,13 @@
 
 #include "BcpsObject.h"
 
+class OsiRowCut;
+
 //#############################################################################
 
 class BlisConstraint : public BcpsConstraint {
     
- private:
+ protected:
 
     int size_;
     int *indices_;
@@ -87,6 +89,9 @@ class BlisConstraint : public BcpsConstraint {
     AlpsReturnStatus decodeBlis(AlpsEncoded &encoded);
 	    
  public:
+
+    /** Create a OsiRowCut based on this constraint. */
+    OsiRowCut *createOsiRowCut();
 
     /** Pack into a encode object. */
     virtual AlpsReturnStatus encode(AlpsEncoded *encoded);

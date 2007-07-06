@@ -21,6 +21,8 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
+#include "OsiRowCut.hpp"
+
 #include "BlisConstraint.h"
 #include "BlisModel.h"
 
@@ -201,4 +203,26 @@ BlisConstraint::hashing(BcpsModel *model)
 }
 
 //#############################################################################
+
+OsiRowCut *
+BlisConstraint::createOsiRowCut()
+{
+    double lower = CoinMax(getLbHard(), getLbSoft());
+    double upper = CoinMin(getUbHard(), getUbSoft());
+    
+    OsiRowCut * cut = new OsiRowCut;
+    if (!cut) {
+        /* Out of memory. */
+	throw CoinError("Out of Memory", "Blis_constraintToOsiCut", "NONE");
+    }
+    
+    assert(size_ > 0);
+    
+    cut->setLb(lower);
+    cut->setUb(upper);
+    cut->setRow(size_, indices_, values_);
+    
+    return cut;
+}
+
 //#############################################################################

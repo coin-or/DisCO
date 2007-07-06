@@ -54,10 +54,9 @@
 #include "BlisVariable.h"
 
 //#############################################################################
-//-------------------------------------------------------------------
+
 // Returns the greatest common denominator of two 
 // positive integers, a and b, found using Euclid's algorithm 
-//-------------------------------------------------------------------
 static int gcd(int a, int b) 
 {
     int remainder = -1;

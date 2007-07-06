@@ -63,36 +63,11 @@ BlisConstraint * BlisOsiCutToConstraint(const OsiRowCut *rowCut)
 
 //#############################################################################
 
-/** Convert a Blis constraint to a OsiRowCut. */
-OsiRowCut * BlisConstraintToOsiCut(const BlisConstraint * con)
-{
-    double lower = CoinMax(con->getLbHard(), con->getLbSoft());
-    double upper = CoinMin(con->getUbHard(), con->getUbSoft());
-    
-    OsiRowCut * cut = new OsiRowCut;
-    if (!cut) {
-        /* Out of memory. */
-	throw CoinError("Out of Memory", "Blis_constraintToOsiCut", "NONE");
-    }
-    
-    assert(con->getSize() > 0);
-    
-    cut->setLb(lower);
-    cut->setUb(upper);
-    cut->setRow(con->getSize(),
-                con->getIndices(),
-                con->getValues());
-    
-    return cut;
-}
-
-//#############################################################################
-
 BlisReturnStatus
 BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
-	             const double *saveLower, const double *saveUpper,
-	     	     bool &downKeep, bool &downFinished, double &downDeg,
-		         bool &upKeep, bool &upFinished, double &upDeg)
+		 const double *saveLower, const double *saveUpper,
+		 bool &downKeep, bool &downFinished, double &downDeg,
+		 bool &upKeep, bool &upFinished, double &upDeg)
 {
     BlisReturnStatus status = BlisReturnStatusOk;
     int lpStatus = 0;
@@ -107,7 +82,7 @@ BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
     const double * lower = solver->getColLower();
     const double * upper = solver->getColUpper();
 
-    // restore bounds
+    // Restore bounds
     int numDiff = 0;
 
     BlisSolution* ksol = NULL;
@@ -449,13 +424,36 @@ bool BlisParallelCutCon(OsiRowCut * rowCut,
 			BlisConstraint * con,
 			double threshold)
 {
-    bool parallel;
+    bool parallel = false;
+
     // Convert con to row cut
-    OsiRowCut * rowCut2 = BlisConstraintToOsiCut(con);
+    OsiRowCut * rowCut2 = con->createOsiRowCut();
     
     parallel = BlisParallelCutCut(rowCut,
 				  rowCut2,
 				  threshold);
+    delete rowCut2;
+    
+    return parallel;
+}
+
+//#############################################################################
+
+/** Check if a row cut parallel with a constraint. */
+bool BlisParallelConCon(BlisConstraint * con1,
+			BlisConstraint * con2,
+			double threshold)
+{
+    bool parallel = false;
+
+    // Convert con to row cut
+    OsiRowCut * rowCut1 = con1->createOsiRowCut();
+    OsiRowCut * rowCut2 = con2->createOsiRowCut();
+    
+    parallel = BlisParallelCutCut(rowCut1,
+				  rowCut2,
+				  threshold);
+    delete rowCut1;
     delete rowCut2;
     
     return parallel;
