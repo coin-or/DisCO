@@ -444,7 +444,6 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 				    model->oldConstraints()[(k-numCoreRows)];
 				count = tmpCon->getNumInactive() + 1;
 				tmpCon->setNumInactive(count);
-				//std::cout << "old: k " << k << ", count " << count << std::endl;
 				if (tmpCon->getNumInactive() > BLIS_SLACK_MAX){
 				    oldDelMark[(k-numCoreRows)] = 1;
 				    delIndices.push_back(k);
@@ -455,7 +454,6 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 				    newConstraints[(k-numStartRows)];
 				count = tmpCon->getNumInactive() + 1;
 				tmpCon->setNumInactive(count);
-				//std::cout << "new k " << k << ", count " << count << std::endl;
 				if (tmpCon->getNumInactive() > BLIS_SLACK_MAX){
 				    newDelMark[(k-numStartRows)] = 1;
 				    delIndices.push_back(k);
@@ -2657,6 +2655,8 @@ BlisTreeNode::generateConstraints(BlisModel *model,BcpsConstraintPool &conPool)
             model->cutGenerators(i)->addTime(genCutTime);
             model->cutGenerators(i)->addCalls(1);
 
+	    newNumCons = conPool.getNumConstraints() - preNumCons;
+	    
             if (newNumCons == 0) {
                 model->cutGenerators(i)->addNoConsCalls(1);
             }

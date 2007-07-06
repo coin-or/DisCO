@@ -48,9 +48,9 @@ VrpCutGenerator::VrpCutGenerator(VrpModel *vrp, int vertnum)
 /*===========================================================================*/
 
 // Return if need resolve LP immediately.
-// New cuts are stored in OsiCuts cs
-bool 
-VrpCutGenerator::generateOsiRowCuts(OsiCuts &cs)
+// New constraints are stored in BcpsConstraintPool
+bool
+VrpCutGenerator::generateConstraints(BcpsConstraintPool &conPool) 
 {
    int vertnum = model_->vertnum_;
    int rcnt, cur_bins = 0, i, k, max_node;
@@ -76,7 +76,7 @@ VrpCutGenerator::generateOsiRowCuts(OsiCuts &cs)
       /* if the network is integral, check for connectivity */
       n->connected();
       delete sol;
-      return connectivityCuts(cs) ? true: false;
+      return connectivityCuts(conPool) ? true: false;
    }
 
    vertex *verts = n->verts_;
@@ -133,7 +133,7 @@ VrpCutGenerator::generateOsiRowCuts(OsiCuts &cs)
 	       rhs = (type == SUBTOUR_ELIM_SIDE ?
 		      RHS(compnodes[i+1],compdemands[i+1],
 			  capacity): 2*BINS(compdemands[i+1],capacity));
-	       num_cuts += addCut(cs, coef_list[i], rhs, type);
+	       num_cuts += addCut(conPool, coef_list[i], rhs, type);
 	    }
 	    else{/*if the constraint is not violated, then try generating a
 		   violated constraint by deleting customers that don't
@@ -188,7 +188,7 @@ VrpCutGenerator::generateOsiRowCuts(OsiCuts &cs)
 		     rhs = (type == SUBTOUR_ELIM_SIDE ?
 			    RHS(compnodes[i+1], compdemands[i+1],
 				capacity): 2*cur_bins);
-		     num_cuts += addCut(cs, coef_list[i], rhs, type);
+		     num_cuts += addCut(conPool, coef_list[i], rhs, type);
 		     break;
 		  }
 	       }
@@ -232,7 +232,7 @@ VrpCutGenerator::generateOsiRowCuts(OsiCuts &cs)
 		     for (i = 1; i <vertnum ; i++)
 			if ((i != node1) && (i != node2))
 			   (coef[i >> DELETE_POWER]) |= (1 << (i&DELETE_AND));
-		     num_cuts += addCut(cs, coef, rhs, type);
+		     num_cuts += addCut(conPool, coef, rhs, type);
 		  }
 		  break; 
 	       }
@@ -251,10 +251,10 @@ VrpCutGenerator::generateOsiRowCuts(OsiCuts &cs)
       n->reduce_graph(model_->etol_);
       if (n->numComps_ > 1){
 	 num_cuts += greedyShrinking1(
-                     model_, par->entry(VrpParams::maxNumCutsInShrink), cs);
+                     model_, par->entry(VrpParams::maxNumCutsInShrink), conPool);
       }else{
 	 num_cuts += greedyShrinking1One(
-                     model_, par->entry(VrpParams::maxNumCutsInShrink), cs);
+                     model_, par->entry(VrpParams::maxNumCutsInShrink), conPool);
       }
    }
 
@@ -269,11 +269,11 @@ VrpCutGenerator::generateOsiRowCuts(OsiCuts &cs)
       if (n->numComps_){
 	 num_cuts += greedyShrinking6(
                           model_,par->entry(VrpParams::maxNumCutsInShrink),
-			  num_cuts ? num_trials : 2 * num_trials, 10.5, cs);
+			  num_cuts ? num_trials : 2 * num_trials, 10.5, conPool);
       }else{
 	 num_cuts += greedyShrinking6One(
                              model_, par->entry(VrpParams::maxNumCutsInShrink),
-			     num_cuts ? num_trials : 2 * num_trials, 10.5, cs);
+			     num_cuts ? num_trials : 2 * num_trials, 10.5, conPool);
       }
    }
 
@@ -288,7 +288,7 @@ VrpCutGenerator::generateOsiRowCuts(OsiCuts &cs)
 /*===========================================================================*/
 
 int
-VrpCutGenerator::connectivityCuts(OsiCuts &cs)
+VrpCutGenerator::connectivityCuts(BcpsConstraintPool &conPool)
 {
    int vertnum = model_->vertnum_;
    elist *cur_route_start;
@@ -342,7 +342,7 @@ VrpCutGenerator::connectivityCuts(OsiCuts &cs)
 	rhs = (type == SUBTOUR_ELIM_SIDE ? 
 	       RHS(compnodes[i+1], compdemands[i+1], capacity) :
 	       2*BINS(compdemands[i+1], capacity));
-	num_cuts += addCut(cs, coef_list[i], rhs, type);
+	num_cuts += addCut(conPool, coef_list[i], rhs, type);
      }
   }
 
@@ -380,7 +380,7 @@ VrpCutGenerator::connectivityCuts(OsiCuts &cs)
 		   SUBTOUR_ELIM_SIDE:SUBTOUR_ELIM_ACROSS);
 	   rhs = (type ==SUBTOUR_ELIM_SIDE ? RHS(cust_num, weight, capacity):
 		  2*BINS(weight, capacity));
-	   num_cuts += addCut(cs, coef, rhs, type);
+	   num_cuts += addCut(conPool, coef, rhs, type);
 	   vert1 = route[0];
 	   reduced_weight = weight;
 	   reduced_cust_num = cust_num;
@@ -394,7 +394,7 @@ VrpCutGenerator::connectivityCuts(OsiCuts &cs)
 		 rhs = (type ==SUBTOUR_ELIM_SIDE ?
 			RHS(reduced_cust_num, reduced_weight, capacity):
 			2*BINS(reduced_weight, capacity));
-		 num_cuts += addCut(cs, coef, rhs, type);
+		 num_cuts += addCut(conPool, coef, rhs, type);
 		 vert1 = route[vert1];
 	      }else{
 		 break;
@@ -444,8 +444,9 @@ VrpCutGenerator::connectivityCuts(OsiCuts &cs)
 /*===========================================================================*/
 
 int
-VrpCutGenerator::greedyShrinking1(VrpModel *m, int max_shrink_cuts, 
-				  OsiCuts &cs)
+VrpCutGenerator::greedyShrinking1(VrpModel *m, 
+				  int max_shrink_cuts, 
+				  BcpsConstraintPool &conPool)
 {
    VrpNetwork *n = m->n_;
    double set_cut_val, set_demand;
@@ -528,7 +529,7 @@ VrpCutGenerator::greedyShrinking1(VrpModel *m, int max_shrink_cuts,
 		  if (!memcmp(coef, cutpt, size*sizeof(char)))
 		     break;/* same cuts */ 
 	       if (k >= shrink_cuts){ 
-		  shrink_cuts += addCut(cs, coef, rhs, type);
+		  shrink_cuts += addCut(conPool, coef, rhs, type);
 		  memcpy(cutpt, coef, size);
 	       }
 	       if (shrink_cuts > max_shrink_cuts){
@@ -571,8 +572,11 @@ VrpCutGenerator::greedyShrinking1(VrpModel *m, int max_shrink_cuts,
 /*===========================================================================*/
 
 int
-VrpCutGenerator::greedyShrinking6(VrpModel *m, int max_shrink_cuts, 
-				  int trial_num, double prob, OsiCuts &cs)
+VrpCutGenerator::greedyShrinking6(VrpModel *m, 
+				  int max_shrink_cuts, 
+				  int trial_num, 
+				  double prob,
+				  BcpsConstraintPool &conPool)
 {
    VrpNetwork *n = m->n_;
    double set_cut_val, set_demand;
@@ -672,7 +676,7 @@ VrpCutGenerator::greedyShrinking6(VrpModel *m, int max_shrink_cuts,
 		       cutpt += size)
 		  if (!memcmp(coef, cutpt, size*sizeof(char))) break; 
 	       if ( k >= shrink_cuts){
-		  shrink_cuts += addCut(cs, coef, rhs, type);
+		  shrink_cuts += addCut(conPool, coef, rhs, type);
 		  memcpy(cutpt, coef, size);
 	       }
 	 
@@ -715,8 +719,9 @@ VrpCutGenerator::greedyShrinking6(VrpModel *m, int max_shrink_cuts,
 /*===========================================================================*/
 
 int
-VrpCutGenerator::greedyShrinking1One(VrpModel *m, int max_shrink_cuts, 
-				     OsiCuts &cs)
+VrpCutGenerator::greedyShrinking1One(VrpModel *m, 
+				     int max_shrink_cuts,
+				     BcpsConstraintPool &conPool)
 {
    VrpNetwork *n = m->n_; 
    double set_cut_val, set_demand;
@@ -791,7 +796,7 @@ VrpCutGenerator::greedyShrinking1One(VrpModel *m, int max_shrink_cuts,
 		  if (!memcmp(coef, cutpt, size*sizeof(char)))
 		     break; /* same cuts */
 	    if ( k >= shrink_cuts){
-	       shrink_cuts += addCut(cs, coef, rhs, type);
+	       shrink_cuts += addCut(conPool, coef, rhs, type);
 	       memcpy(cutpt, coef, size);
 	    }
 	    
@@ -829,7 +834,7 @@ VrpCutGenerator::greedyShrinking1One(VrpModel *m, int max_shrink_cuts,
 		    cutpt += size)
 		  if (!memcmp(coef, cutpt, size*sizeof(char))) break; 
 	    if ( k >= shrink_cuts){
-	       shrink_cuts += addCut(cs, coef, rhs, type);
+	       shrink_cuts += addCut(conPool, coef, rhs, type);
 	       memcpy(cutpt, coef, size);
 	    }
 	 
@@ -872,8 +877,11 @@ VrpCutGenerator::greedyShrinking1One(VrpModel *m, int max_shrink_cuts,
 /*===========================================================================*/
 
 int
-VrpCutGenerator::greedyShrinking6One(VrpModel *m, int max_shrink_cuts, 
-				     int trial_num, double prob, OsiCuts &cs)
+VrpCutGenerator::greedyShrinking6One(VrpModel *m, 
+				     int max_shrink_cuts, 
+				     int trial_num, 
+				     double prob,
+				     BcpsConstraintPool &conPool)
 {
    VrpNetwork *n = m->n_;  
    double set_cut_val, set_demand;
@@ -957,7 +965,7 @@ VrpCutGenerator::greedyShrinking6One(VrpModel *m, int max_shrink_cuts,
 		    cutpt += size)
 	       if (!memcmp(coef, cutpt, size*sizeof(char))) break; 
 	    if ( k >= shrink_cuts){
-	       shrink_cuts += addCut(cs, coef, rhs, type);
+	       shrink_cuts += addCut(conPool, coef, rhs, type);
 	       memcpy(cutpt, coef, size);
 	    }
 	    if (shrink_cuts > max_shrink_cuts){
@@ -995,7 +1003,7 @@ VrpCutGenerator::greedyShrinking6One(VrpModel *m, int max_shrink_cuts,
 		    cutpt += size)
 	       if (!memcmp(coef, cutpt, size*sizeof(char))) break; 
 	    if ( k >= shrink_cuts){
-	       shrink_cuts += addCut(cs, coef, rhs, type);
+	       shrink_cuts += addCut(conPool, coef, rhs, type);
 	       memcpy(cutpt, coef, size);
 	    }
 	    
@@ -1038,8 +1046,9 @@ VrpCutGenerator::greedyShrinking6One(VrpModel *m, int max_shrink_cuts,
 /*===========================================================================*/
 
 int
-VrpCutGenerator::greedyShrinking2One(VrpModel *m, int max_shrink_cuts, 
-				     OsiCuts &cs)
+VrpCutGenerator::greedyShrinking2One(VrpModel *m, 
+				     int max_shrink_cuts, 
+				     BcpsConstraintPool &conPool)
 {
    VrpNetwork *n = m->n_;  
    double set_cut_val, set_demand;
@@ -1118,7 +1127,7 @@ VrpCutGenerator::greedyShrinking2One(VrpModel *m, int max_shrink_cuts,
 	       rhs =  (type == SUBTOUR_ELIM_SIDE ?
 		       RHS((int)set_size, (int)set_demand, (int)truck_cap):
 		       2*BINS((int)set_demand, (int)truck_cap));
-	       shrink_cuts += addCut(cs, coef, rhs, type);
+	       shrink_cuts += addCut(conPool, coef, rhs, type);
 	    }
 	    
 	    /* check the complement */
@@ -1146,7 +1155,7 @@ VrpCutGenerator::greedyShrinking2One(VrpModel *m, int max_shrink_cuts,
 		       RHS((int)complement_size,(int)complement_demand,
 			   (int)truck_cap):
 		       2*BINS((int)complement_demand,(int)truck_cap));
-	       shrink_cuts += addCut(cs, coef, rhs, type);
+	       shrink_cuts += addCut(conPool, coef, rhs, type);
 	    }
 	    
 	    for (maxval = -1, pt = inSet_+begin, dpt = cutVal_+begin,
@@ -1183,7 +1192,10 @@ VrpCutGenerator::greedyShrinking2One(VrpModel *m, int max_shrink_cuts,
 /*===========================================================================*/
 
 int
-VrpCutGenerator::addCut(OsiCuts &cs, char *coef, int rhs, int type)
+VrpCutGenerator::addCut(BcpsConstraintPool &conPool, 
+			char *coef, 
+			int rhs, 
+			int type)
 {
    int i, nzcnt = 0, nzcnt_side = 0, nzcnt_across = 0;
    int v0, v1; 
@@ -1279,39 +1291,27 @@ VrpCutGenerator::addCut(OsiCuts &cs, char *coef, int rhs, int type)
    matval = new double[nzcnt];
    for (i = nzcnt-1; i >= 0; i--)
       matval[i] = 1;
-   OsiRowCut *cut;
+
+   BlisConstraint *blisCon = NULL;
+   
    if (sense == 'L'){
-      cut = new OsiRowCut(-infinity, rhs, edgenum, nzcnt, matind, matval);
-   }else if (sense == 'G'){
-      cut = new OsiRowCut(rhs, infinity, edgenum, nzcnt, matind, matval);
-   }else{
-      return 0;
+       blisCon = new BlisConstraint(-infinity, rhs, 
+				    -infinity, rhs,
+				    nzcnt, matind, matval);
    }
-      
-   cs.insert(cut);
- 
+   else if (sense == 'G'){
+       blisCon = new BlisConstraint(rhs, infinity,
+				    rhs, infinity,
+				    nzcnt, matind, matval);
+   }
+   else{
+       return 0;
+   }
+
+   conPool.addConstraint(blisCon);
+   
    return 1;
 }
 
 /*===========================================================================*/
 
-bool 
-VrpCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
-{
-    OsiCuts cs;
-    
-    // Generate Osi Cuts
-    bool resolve = generateOsiRowCuts(cs);
-    
-    // Create BlisConstraint from Osi Cuts
-    int numCuts = cs.sizeRowCuts();   
-    for (int j = 0; j < numCuts; ++j) {
-	OsiRowCut & rCut = cs.rowCut(j);
-	BlisConstraint *blisCon = BlisOsiCutToConstraint(&rCut);
-	conPool.addConstraint(blisCon);
-    }   
-    
-    return resolve;
-}
-
-/*===========================================================================*/

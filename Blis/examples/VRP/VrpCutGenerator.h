@@ -50,32 +50,44 @@ public:
       delete [] inSet_; inSet_ = 0;
    }
 
-   /** Generate Osi Cuts. */
-   bool generateOsiRowCuts(OsiCuts &cs);
-   
    /** Generate cons for the client model.
        The routine returns true if reoptimisation is needed (because the 
        state of the solver interface has been modified).
    */
    virtual bool generateConstraints(BcpsConstraintPool &conPool); 
 
-   int connectivityCuts(OsiCuts &cs);
+   int connectivityCuts(BcpsConstraintPool &conPool);
    
-   int addCut(OsiCuts &cs, char *coef, int rhs, int type);
+   int addCut(BcpsConstraintPool &conPool,
+	      char *coef, 
+	      int rhs, 
+	      int type);
 
    void setModel(VrpModel *vrp){ model_ = vrp; }
    
-   int greedyShrinking1(VrpModel *m, int max_shrink_cuts, OsiCuts &cs);
+   int greedyShrinking1(VrpModel *m, 
+			int max_shrink_cuts, 
+			BcpsConstraintPool &conPool);
 
-   int greedyShrinking1One(VrpModel *m, int max_shrink_cuts, OsiCuts &cs);
+   int greedyShrinking1One(VrpModel *m, 
+			   int max_shrink_cuts, 
+			   BcpsConstraintPool &conPool);
 
-   int greedyShrinking6(VrpModel *m, int max_shrink_cuts, int trial_num,
-			 double prob, OsiCuts &cs);
+   int greedyShrinking6(VrpModel *m, 
+			int max_shrink_cuts, 
+			int trial_num,
+			double prob, 
+			BcpsConstraintPool &conPool);
 
-   int greedyShrinking6One(VrpModel *m, int max_shrink_cuts, int trial_num,
-			    double prob, OsiCuts &cs);
+   int greedyShrinking6One(VrpModel *m, 
+			   int max_shrink_cuts, 
+			   int trial_num,
+			   double prob, 
+			   BcpsConstraintPool &conPool);
 
-   int greedyShrinking2One(VrpModel *m, int max_shrink_cuts, OsiCuts &cs);
+   int greedyShrinking2One(VrpModel *m, 
+			   int max_shrink_cuts, 
+			   BcpsConstraintPool &conPool);
 
 };
 
