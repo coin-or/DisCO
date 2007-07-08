@@ -1674,9 +1674,9 @@ BlisModel::encodeKnowlegeShared()
         //       register it since AlpsKnowledgeTypeModel is registered.
         
         BlisObjectInt *intObj = NULL;
+	encoded = new AlpsEncoded(AlpsKnowledgeTypeModelGen);
         
         if (numShared > 0) {
-            encoded = new AlpsEncoded(AlpsKnowledgeTypeModelGen);
             // Record how many can be shared.
             encoded->writeRep(numShared);
             for (k = 0; k < numIntObjects_; ++k) {
