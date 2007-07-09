@@ -171,6 +171,7 @@ BlisModel::init()
     numCutGenerators_ = 0;
     generators_ = NULL;
     constraintPool_ = NULL;
+    constraintPoolShare_ = NULL;
     oldConstraints_ = NULL;
     oldConstraintsSize_ = 0;
     numOldConstraints_ = 0;
@@ -739,6 +740,7 @@ BlisModel::setupSelf()
     }
     
     constraintPool_ = new BcpsConstraintPool();
+    constraintPoolShare_ = new BcpsConstraintPool();
     oldConstraints_ = new BlisConstraint* [oldConstraintsSize_];
     
     cutStrategy_ = static_cast<BlisCutStrategy> 
@@ -1267,6 +1269,7 @@ BlisModel::gutsOfDestructor()
     }
 
     delete constraintPool_;
+    delete constraintPoolShare_;
     delete [] oldConstraints_;
     delete branchStrategy_;
     delete rampUpBranchStrategy_;

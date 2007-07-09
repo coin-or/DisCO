@@ -279,7 +279,7 @@ protected:
     //------------------------------------------------------
 
     /** Constraints that can be shared.  */
-    BcpsConstraintPool constraintPoolShare;
+    BcpsConstraintPool *constraintPoolShare_;
 
  public:
 
@@ -685,6 +685,9 @@ protected:
 
     /** Access constraint pool. */
     BcpsConstraintPool *constraintPool() { return constraintPool_; }
+
+    /** Access share constraint pool. */
+    BcpsConstraintPool *constraintPoolShare() { return constraintPoolShare_; }
 
     //@{
     /** Get number of old constraints. */
