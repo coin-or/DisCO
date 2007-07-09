@@ -814,28 +814,51 @@ protected:
     //------------------------------------------------------
     // PARALLEL
     //------------------------------------------------------
-    
-    /** Register knowledge. */
-    virtual void registerKnowledge();  
 
+ protected:
+    
     /** Pack Blis portion of the model into an encoded object. */
     AlpsReturnStatus encodeBlis(AlpsEncoded *encoded) const;
 
     /** Unpack Blis portion of the model from an encoded object. */
     AlpsReturnStatus decodeBlis(AlpsEncoded &encoded);  
+
+    /** Retrieve and pack shared pseudocost. */
+    void packSharedPseudocost(AlpsEncoded *encoded, int numToShare);
+
+    /** Unpack and store shared pseduocost */
+    void unpackSharedPseudocost(AlpsEncoded &encoded);
     
+    /** Retrieve and pack shared constraints. */
+    void packSharedConstraints(AlpsEncoded *encoded);
+
+    /** Unpack and store shared constraints. */
+    void unpackSharedConstraints(AlpsEncoded &encoded);
+ 
+    /** Retrieve and pack shared variables. */
+    void packSharedVariables(AlpsEncoded *encoded);
+
+    /** Unpack and store shared variables. */
+    void unpackSharedVariables(AlpsEncoded &encoded);  
+
+ public:
+
+    /** Register knowledge. */
+
+    virtual void registerKnowledge();  
+
     /** The method that encodes the model into an encoded object. */
     virtual AlpsEncoded* encode() const;
     
     /** The method that decodes the model from an encoded object. */
     virtual void decodeToSelf(AlpsEncoded&);
     
-    /** Encode knowledge to be shared with others into an encoded object. 
+    /** Pack knowledge to be shared with others into an encoded object. 
         Return NULL means that no knowledge can be shared. */
-    virtual AlpsEncoded* encodeKnowlegeShared();
+    virtual AlpsEncoded* packSharedKnowlege();
     
-    /** Decode and store shared knowledge from an encoded object. */
-    virtual void decodeKnowledgeShared(AlpsEncoded&);
+    /** Unpack and store shared knowledge from an encoded object. */
+    virtual void unpackSharedKnowledge(AlpsEncoded&);
 };
 
 #endif /* End of file */

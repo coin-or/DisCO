@@ -42,6 +42,14 @@ BlisParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("Blis_presolve"),
 			     AlpsParameter(AlpsBoolPar, presolve)));
     
+   keys_.push_back(make_pair(std::string("Blis_shareConstraints"),
+			     AlpsParameter(AlpsBoolPar,
+					   shareConstraints)));
+
+   keys_.push_back(make_pair(std::string("Blis_shareVariables"),
+			     AlpsParameter(AlpsBoolPar,
+					   shareVariables)));
+
    keys_.push_back(make_pair(std::string("Blis_sharePseudocostRampUp"),
 			     AlpsParameter(AlpsBoolPar,
 					   sharePseudocostRampUp)));
@@ -206,6 +214,8 @@ BlisParams::setDefaultEntries() {
 
   setEntry(cutRampUp, true);
   setEntry(presolve, false);
+  setEntry(shareConstraints, false);
+  setEntry(shareVariables, false);
   setEntry(sharePseudocostRampUp, true);
   setEntry(sharePseudocostSearch, false);
 
@@ -240,7 +250,7 @@ BlisParams::setDefaultEntries() {
   setEntry(heurRoundFreq, 1);
   setEntry(lookAhead, 4);
   setEntry(pseudoRelibility, 8);
-  setEntry(sharePcostDepth, 10);
+  setEntry(sharePcostDepth, 30);
   setEntry(sharePcostFrequency, 100);
   setEntry(strongCandSize, 10);
   

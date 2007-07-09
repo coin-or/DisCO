@@ -1361,8 +1361,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         }
         else if (bStatus == -2) {
             
-#if 1
-            std::cout << "bStatus = -2" << std::endl;
+#if 0
+            std::cout << "bStatus = -2, fathom this node!" << std::endl;
 #endif
             //branchObject->getDown()[0], branchObject->getDown()[1]);
 	    

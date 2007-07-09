@@ -1623,23 +1623,23 @@ BlisModel::decodeToSelf(AlpsEncoded& encoded)
 //#############################################################################
 
 AlpsEncoded* 
-BlisModel::encodeKnowlegeShared()
+BlisModel::packSharedKnowlege()
 {
-    AlpsEncoded* encoded = 0;
+    AlpsEncoded* encoded = NULL;
+
+    bool share = false;
+    bool sharePseudo = false;
+    bool shareCon = false;
+    bool shareVar = false;
 
     int k = 0;
     int numShared = 0;
     int frequency = -1, depth = -1;
-    
-    bool sharePseudo = true;
-    bool share = false;
-
-#if 0
-    bool shareCon = false;
-    bool shareVar = false;
-#endif
-
     int phase = broker_->getPhase();
+
+    //------------------------------------------------------
+    // Decide if share pseudocosts.
+    //------------------------------------------------------
     
     if (phase == AlpsPhaseRampup) {
         sharePseudo = BlisPar_->entry(BlisParams::sharePseudocostRampUp);
@@ -1650,13 +1650,13 @@ BlisModel::encodeKnowlegeShared()
             // Depth and frequency
             depth = BlisPar_->entry(BlisParams::sharePcostDepth);
             frequency =  BlisPar_->entry(BlisParams::sharePcostFrequency);
-            if ( (numNodes_ % frequency != 0) || 
-                 (broker_->getTreeDepth() >  depth) ) {
+            if ( /*(numNodes_ % frequency != 0) ||*/ 
+		(broker_->getTreeDepth() >  depth) ) {
                 sharePseudo = false;
             }
         }
     }
-
+    
     if (sharePseudo) {
         for (k = 0; k < numIntObjects_; ++k) {
             if (sharedObjectMark_[k]){
@@ -1665,7 +1665,15 @@ BlisModel::encodeKnowlegeShared()
         }
         if (numShared) share = true;
     }
-    // TODO: cuts, etc.
+    
+    //------------------------------------------------------
+    // TODO: constraints, and variables, etc.
+    //------------------------------------------------------
+    
+    shareCon = BlisPar_->entry(BlisParams::shareConstraints);
+
+    shareVar = BlisPar_->entry(BlisParams::shareVariables);
+
 
 #if 0
     std::cout << "++++ sharePseudo =  " << sharePseudo
@@ -1678,35 +1686,12 @@ BlisModel::encodeKnowlegeShared()
               << ", treeDepth = " << broker_->getTreeDepth()
               << ", share = " << share << std::endl;
 #endif        
-
+    
     if (share) {
-        // NOTE: "AlpsKnowledgeTypeModelGen" is the type name. We don't need to
-        //       register it since AlpsKnowledgeTypeModel is registered.
-        
-        BlisObjectInt *intObj = NULL;
 	encoded = new AlpsEncoded(AlpsKnowledgeTypeModelGen);
-        
-        if (numShared > 0) {
-            // Record how many can be shared.
-            encoded->writeRep(numShared);
-            for (k = 0; k < numIntObjects_; ++k) {
-                if (sharedObjectMark_[k]) {
-                    // Recored which object.
-                    encoded->writeRep(k);
-                    intObj = dynamic_cast<BlisObjectInt*>(objects_[k]);
-                    (intObj->pseudocost()).encodeTo(encoded);
-                }    
-            }
-            
-            // Clear the mark for next round of sharing.
-            clearSharedObjectMark();
-        }
-        else {
-            encoded->writeRep(numShared);
-        }
-        
-	// Make sure don't exceed large size.
-	assert(encoded->size() < broker_->getLargeSize());
+	packSharedPseudocost(encoded, numShared);
+	packSharedConstraints(encoded);
+	packSharedVariables(encoded);
     }
 
     return encoded;
@@ -1715,34 +1700,11 @@ BlisModel::encodeKnowlegeShared()
 //#############################################################################
 
 void 
-BlisModel::decodeKnowledgeShared(AlpsEncoded& encoded)
+BlisModel::unpackSharedKnowledge(AlpsEncoded& encoded)
 {
-    int k, objIndex, size = 0;
-    
-    // Encode and store pseudocost
-    BlisObjectInt *intObj = NULL;
-    encoded.readRep(size);
-    for (k = 0; k < size; ++k) {
-        encoded.readRep(objIndex);
-        intObj = dynamic_cast<BlisObjectInt *>(objects_[objIndex]);
-        (intObj->pseudocost()).decodeFrom(encoded);
-    }
-
-#if 0        
-    // Encode and store generated constraints that should be shared.
-    encoded.readRep(size);
-    for (k = 0; k < size; ++k) {
-        // TODO
-        assert(0);
-    }
-    
-    // Encode and store variables that should be shared.
-    encoded.readRep(size);
-    for (k = 0; k < size; ++k) {
-        // TODO
-        assert(0);
-    }
-#endif
+    unpackSharedPseudocost(encoded);
+    unpackSharedConstraints(encoded);
+    unpackSharedVariables(encoded);
 }
 
 //#############################################################################
@@ -2089,6 +2051,88 @@ BlisModel::analyzeObjective()
 	    } 
 	} 
     }
+}
+
+//#############################################################################
+
+void 
+BlisModel::packSharedPseudocost(AlpsEncoded *encoded, int numToShare)
+{
+    int k;
+    
+    BlisObjectInt *intObj = NULL;
+    if (numToShare > 0) {
+	// Record how many can be shared.
+	encoded->writeRep(numToShare);
+	for (k = 0; k < numIntObjects_; ++k) {
+	    if (sharedObjectMark_[k]) {
+		// Recored which variable.
+		encoded->writeRep(k);
+		intObj = dynamic_cast<BlisObjectInt*>(objects_[k]);
+		(intObj->pseudocost()).encodeTo(encoded);
+	    } 
+	}
+	
+	// Clear the mark for next round of sharing.
+	clearSharedObjectMark();
+    }
+    else {
+	// numToShare is 0.
+	encoded->writeRep(numToShare);
+    }
+    
+    // Make sure don't exceed large size.
+    assert(encoded->size() < broker_->getLargeSize());
+
+}
+
+//#############################################################################
+
+void 
+BlisModel::unpackSharedPseudocost(AlpsEncoded &encoded)
+{
+    int k, objIndex, size = 0;
+    
+    // Encode and store pseudocost
+    BlisObjectInt *intObj = NULL;
+    encoded.readRep(size);
+    for (k = 0; k < size; ++k) {
+        encoded.readRep(objIndex);
+        intObj = dynamic_cast<BlisObjectInt *>(objects_[objIndex]);
+        (intObj->pseudocost()).decodeFrom(encoded);
+    }
+}
+
+//#############################################################################
+    
+void 
+BlisModel::packSharedConstraints(AlpsEncoded *encoded)
+{
+    
+}
+
+//#############################################################################
+
+void 
+BlisModel::unpackSharedConstraints(AlpsEncoded &encoded)
+{
+    
+}
+
+//#############################################################################
+ 
+void 
+BlisModel::packSharedVariables(AlpsEncoded *encoded)
+{
+    
+}
+
+//#############################################################################
+
+void 
+BlisModel::unpackSharedVariables(AlpsEncoded &encoded)
+{
+    
 }
 
 //#############################################################################

@@ -42,6 +42,12 @@ class BlisParams : public AlpsParameterSet {
       cutRampUp,
       /** Presolve or not */
       presolve,
+      /** Share constraints
+	  Default: false */
+      shareConstraints,
+      /** Share constraints
+	  Default: false */
+      shareVariables,
       /** Share pseudocost during ramp up.
 	  Default: true */
       sharePseudocostRampUp,
