@@ -36,6 +36,9 @@
 void
 VrpModel::readInstance(const char* dataFile)
 {
+
+    int msgLevel = AlpsPar_->entry(AlpsParams::msgLevel);
+
    static char keywords[KEY_NUM][22] = {
       "NAME", 
       "NAME:",                 /* This section lists the names of the */
@@ -180,7 +183,10 @@ VrpModel::readInstance(const char* dataFile)
        case 0: /* NAME */
 	 if (!sscanf(line, "%s", name_))
 	    fprintf(stderr, "\nVrp I/O: error reading NAME\n\n");
-	 printf("PROBLEM NAME: \t\t%s\n", name_);
+
+	 if (msgLevel > 0) {
+	     printf("PROBLEM NAME: \t\t%s\n", name_);
+	 }
 	 break;
        case 1 : /*TYPE*/
 	 sscanf(line, "%s", tmp);
@@ -188,7 +194,9 @@ VrpModel::readInstance(const char* dataFile)
 	    fprintf(stderr, "This is not a recognized file type!\n");
 	    exit(1);
 	 }
-	 printf("TYPE: \t\t\t%s\n", tmp);
+	 if (msgLevel > 0) {
+	     printf("TYPE: \t\t\t%s\n", tmp);
+	 }
        case 2 : /*COMMENT*/
 #if 0
 	 if (!strncpy(tmp, line, 80))
@@ -203,7 +211,9 @@ VrpModel::readInstance(const char* dataFile)
 	 }
 	 vertnum_ = (int) k;
 	 edgenum_ = (int) vertnum_ * (vertnum_ - 1)/2;
-	 printf("DIMENSION: \t\t%i\n", k);
+	 if (msgLevel > 0) {
+	     printf("DIMENSION: \t\t%i\n", k);
+	 }
 	 break;
        case 4 : /*CAPACITY*/
 	 if (!sscanf(line, "%i", &k)){

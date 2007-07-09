@@ -462,7 +462,8 @@ BlisModel::readParameters(const int argnum, const char * const * arglist)
 	std::cout << "Reading in ALPS parameters ..." << std::endl;
 	std::cout << "Reading in BLIS parameters ..." << std::endl;
     }
-
+    bcpsMessageHandler_->setLogLevel(msgLevel);
+    blisMessageHandler_->setLogLevel(msgLevel);
     BlisPar_->readFromArglist(argnum, arglist);
 } 
 
@@ -491,6 +492,9 @@ bool
 BlisModel::setupSelf()
 {
     int j;
+
+    bcpsMessageHandler_->setLogLevel(broker_->getMsgLevel());
+    blisMessageHandler_->setLogLevel(broker_->getMsgLevel());
 
     if (broker_->getMsgLevel() > 0) {
 

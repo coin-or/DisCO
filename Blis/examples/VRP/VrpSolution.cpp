@@ -22,6 +22,8 @@ VrpSolution::VrpSolution(int s, const double *values, double objValue,
 {
    if (!vrp) return;
 
+   int msgLevel = vrp->AlpsPar()->entry(AlpsParams::msgLevel);
+
    opt_ = new _node[vrp->vertnum_];
    int cur_vert = 0, prev_vert = 0, cur_route, count = 0;
    elist *cur_route_start = NULL;
@@ -66,28 +68,40 @@ VrpSolution::VrpSolution(int s, const double *values, double objValue,
 
    /* Display the solution */
    
-   std::cout << std::endl << "Solution Found:" << std::endl;
-   std::cout << "Solution Cost: " << cost << std::endl;
-
+   if (msgLevel > 0) {
+       std::cout << std::endl << "Solution Found:" << std::endl;
+       std::cout << "Solution Cost: " << cost << std::endl;
+   }
+   
    cur_vert = opt_[0].next;
    
-   if (opt_[0].route == 1)
-      std::cout << std::endl << "0 ";
+   if (opt_[0].route == 1 && msgLevel > 0) {
+       std::cout << std::endl << "0 ";
+   }
+   
    while (cur_vert != 0){
       if (opt_[prev_vert].route != opt_[cur_vert].route){
-	 std::cout << std::endl << "Route #" << opt_[cur_vert].route << ": ";
-	 count = 0;
+	  if (msgLevel > 0) {
+	      std::cout << std::endl << "Route #" << opt_[cur_vert].route << ": ";
+	  }
+	  count = 0;
       }
-      std::cout << cur_vert << " ";
+      if (msgLevel > 0) {
+	  std::cout << cur_vert << " ";
+      }
       count++;
       if (count > 15){
-	 std::cout << std::endl;
+	  if (msgLevel > 0) {
+	      std::cout << std::endl;
+	  }
 	 count = 0;
       }
       prev_vert = cur_vert;
       cur_vert = opt_[cur_vert].next;
    }
-   std::cout << std::endl << std::endl;
+   if (msgLevel > 0) {
+       std::cout << std::endl << std::endl;
+   }
 }
 
 //#############################################################################
