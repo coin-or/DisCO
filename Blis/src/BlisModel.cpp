@@ -454,9 +454,15 @@ BlisModel::importModel(std::vector<BlisVariable *> vars,
 /** Read in Alps parameters. */
 void 
 BlisModel::readParameters(const int argnum, const char * const * arglist)
-{    //std::cout << "Reading in ALPS parameters ..." << std::endl;
+{
     AlpsPar_->readFromArglist(argnum, arglist);
-    //std::cout << "Reading in BLIS parameters ..." << std::endl;
+
+    int msgLevel = AlpsPar_->entry(AlpsParams::msgLevel);
+    if (msgLevel > 0) {
+	std::cout << "Reading in ALPS parameters ..." << std::endl;
+	std::cout << "Reading in BLIS parameters ..." << std::endl;
+    }
+
     BlisPar_->readFromArglist(argnum, arglist);
 } 
 
