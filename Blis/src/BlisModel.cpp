@@ -195,6 +195,7 @@ BlisModel::readInstance(const char* dataFile)
     //------------------------------------------------------
     
     CoinMpsIO *mps = new CoinMpsIO;
+    mps->messageHandler()->setLogLevel(msgLevel);
     
     int rc = mps->readMps(dataFile, "");
     if(rc) {
@@ -203,7 +204,6 @@ BlisModel::readInstance(const char* dataFile)
                         "readInstance",
                         "BlisModel");
     }
-    mps->messageHandler()->setLogLevel(msgLevel);
 
     //------------------------------------------------------
     // Get problem data.
