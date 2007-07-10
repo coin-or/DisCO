@@ -171,7 +171,8 @@ BlisModel::init()
     numCutGenerators_ = 0;
     generators_ = NULL;
     constraintPool_ = NULL;
-    constraintPoolShare_ = NULL;
+    constraintPoolReceive_ = NULL;
+    constraintPoolSend_ = NULL;
     oldConstraints_ = NULL;
     oldConstraintsSize_ = 0;
     numOldConstraints_ = 0;
@@ -740,7 +741,8 @@ BlisModel::setupSelf()
     }
     
     constraintPool_ = new BcpsConstraintPool();
-    constraintPoolShare_ = new BcpsConstraintPool();
+    constraintPoolReceive_ = new BcpsConstraintPool();
+    constraintPoolSend_ = new BcpsConstraintPool();
     oldConstraints_ = new BlisConstraint* [oldConstraintsSize_];
     
     cutStrategy_ = static_cast<BlisCutStrategy> 
@@ -1269,7 +1271,8 @@ BlisModel::gutsOfDestructor()
     }
 
     delete constraintPool_;
-    delete constraintPoolShare_;
+    delete constraintPoolReceive_;
+    delete constraintPoolSend_;
     delete [] oldConstraints_;
     delete branchStrategy_;
     delete rampUpBranchStrategy_;
@@ -1676,7 +1679,6 @@ BlisModel::packSharedKnowlege()
     shareCon = BlisPar_->entry(BlisParams::shareConstraints);
 
     shareVar = BlisPar_->entry(BlisParams::shareVariables);
-
 
 #if 0
     std::cout << "++++ sharePseudo =  " << sharePseudo

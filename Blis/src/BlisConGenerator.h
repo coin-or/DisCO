@@ -80,7 +80,7 @@ protected:
     int cutGenerationFrequency_;
     
     /** Name of generator. */
-    char * name_;
+    std::string name_;
     
     /** Whether to call the generator in the normal place. */
     bool normal_;
@@ -130,7 +130,7 @@ protected:
         time_(0),
         calls_(0),
         noConsCalls_(0)
-        { name_ = strdup("Unknown"); }
+        { name_ = "UNKNOWN"; }
     
     /** Useful constructor. */
     BlisConGenerator(BlisModel * model,
@@ -151,8 +151,6 @@ protected:
     /** Destructor. */
     virtual ~BlisConGenerator()
         {
-            free(name_);
-            name_ = NULL;
             if (generator_) {
                 delete generator_;
                 generator_ = NULL;
@@ -187,10 +185,10 @@ protected:
     void refreshModel(BlisModel * model);
     
     /** return name of generator. */
-    void setName(const char *str) { name_ = strdup(str); }
+    void setName(const char *str) { name_ = str; }
     
     /** return name of generator. */
-    inline const char * name() const { return name_; }
+    inline std::string name() const { return name_; }
     
     /** Set the con generation strategy. */
     void setStrategy(BlisCutStrategy value) { strategy_ = value; }

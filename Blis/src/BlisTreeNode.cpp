@@ -113,6 +113,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     int numIntInfs = 0;
     int numObjInfs = 0;
 
+    int voilatedNumCons = 0;
     int origNumOldCons = 0;
     int currNumOldCons = 0;
     int newNumCons = 0;
@@ -141,6 +142,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     bool lpFeasible = false;
     bool foundSolution = false;
     bool genConsHere = false;
+    bool shareCon = false;
+    bool shareVar = false;
 
     CoinWarmStartBasis::Status rowStatus;
     BlisConstraint *aCon = NULL;
@@ -171,6 +174,9 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 	++maxPass;
     }
     
+    shareCon = BlisPar->entry(BlisParams::shareConstraints);
+    shareVar = BlisPar->entry(BlisParams::shareVariables);    
+
     cutoff = model->getCutoff();
 
     numPassesLeft = model->getNumBranchResolve();
@@ -696,23 +702,29 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                    model->getLpSolution(),
                    numCols * sizeof(double));
             
-	    // Generate constraints.
-            lpStatus = static_cast<BlisLpStatus> 
-		(generateConstraints(model, newConPool));
+	    // Get violated constraints that are from other processes.
+            tempNumCons = newConPool.getNumConstraints();
+	    getViolatedConstraints(model, currLpSolution, 
+				   *(model->constraintPoolReceive()));
+	    voilatedNumCons = newConPool.getNumConstraints() - tempNumCons;
+	    
+	    // Generate constraints (only if no violated).
+	    if (voilatedNumCons == 0) {
+		lpStatus = static_cast<BlisLpStatus> 
+		    (generateConstraints(model, newConPool));
             
-            if (lpStatus != BlisLpStatusOptimal) {
-                setStatus(AlpsNodeStatusFathomed);
-                quality_ = -ALPS_OBJ_MAX; // Remove it as soon as possilbe
-                goto TERM_PROCESS;
-            }
+		if (lpStatus != BlisLpStatusOptimal) {
+		    setStatus(AlpsNodeStatusFathomed);
+		    quality_ = -ALPS_OBJ_MAX; // Remove it as soon as possilbe
+		    goto TERM_PROCESS;
+		}
+	    }
             
-            //tempNumCons = newOsiCuts.sizeRowCuts();
 	    tempNumCons = newConPool.getNumConstraints();
             
             if (tempNumCons > 0) {
-
 		// Select and install new constraints
-		applyConstraints(model, newConPool, currLpSolution);
+		applyConstraints(model, currLpSolution, newConPool);
 		
 		// Some weak/parallel/dense constraints might be discarded.
 		tempNumCons = newConPool.getNumConstraints();
@@ -727,7 +739,6 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                 for (k = 0; k < tempNumCons; ++k) {
                     aCon = dynamic_cast<BlisConstraint *>
 			(newConPool.getConstraint(k));
-
                     newConstraints[newNumCons++] = aCon;
                     if (newNumCons >= maxNewNumCons) {
                         // No space, need resize
@@ -743,29 +754,42 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                         delete [] newConstraints;
                         newConstraints = tempNews;
                     }
+
+		    // Make a copy to send pool if share
+		    if (shareCon && (voilatedNumCons == 0)) {
+			if (aCon->getValidRegion() == BcpsValidGlobal) {
+			    model->constraintPoolSend()->
+				addConstraint(new BlisConstraint(*aCon));
+			}
+#if 1
+			std::cout << "+++ Num of send new constraint = " 
+				  << model->constraintPoolSend()->getNumConstraints()
+				  << std::endl;
+#endif
+		    }
                 }
 		
 		newConPool.clear();
                 numAppliedCons += tempNumCons;
             }
-	    else { // Can't generate any new cuts
+	    else { // Didn't generate any new constraints.
 		keepOn = false;
 	    }
         }
-        else {
+        else { // Don't allow to generate constraints.
             keepOn = false;
         }
-    }
-    
-#ifdef BLIS_DEBUG_MORE
-    printf("needBranch = %d\n", needBranch);
-#endif    
+    } // EOF bounding/cutting/heuristics loop
     
     //------------------------------------------------------
     // Select branching object
     //------------------------------------------------------
     
  TERM_BRANCH:
+
+#ifdef BLIS_DEBUG_MORE
+    printf("needBranch = %d\n", needBranch);
+#endif
     
     if (needBranch) { 
 	
@@ -790,7 +814,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                 printf("Resolve since some col fixed, Obj value %g, numRows %d, cutoff %g\n",
                        model->solver()->getObjValue(),
                        model->solver()->getNumRows(),
-                       cutoff;
+                       cutoff);
 #endif
                 if (lpFeasible) {
 		    // Update new quality.
@@ -2577,6 +2601,41 @@ int BlisTreeNode::installSubProblem(BcpsModel *m)
 
 //#############################################################################
 
+void 
+BlisTreeNode::getViolatedConstraints(BlisModel *model, 
+				     const double *LpSolution, 
+				     BcpsConstraintPool & conPool)
+{
+    int k;
+    int numCons = model->constraintPoolReceive()->getNumConstraints();
+    BlisConstraint *blisCon = NULL;
+    std::vector<BlisConstraint *> conVector;
+
+    // Check violation and move voilated constraints to conPool
+    for (k = 0; k < numCons; ++k) {
+	blisCon = dynamic_cast<BlisConstraint *>(conPool.getConstraint(k));
+	
+	if (blisCon->violation(LpSolution) > ALPS_SMALL_4) {    
+	    conPool.addConstraint(blisCon);
+	}
+	else {
+	    conVector.push_back(blisCon);
+	}
+    }
+    
+    if (conVector.size() != numCons) {
+	// There violated constraints. Remove them from conPool.
+	conPool.clear();
+	numCons = conVector.size();
+	for (k = 0; k < numCons; ++k) {
+	    conPool.addConstraint(conVector[k]);
+	}
+	conVector.clear();
+    }
+}
+
+//#############################################################################
+
 int
 BlisTreeNode::generateConstraints(BlisModel *model,BcpsConstraintPool &conPool) 
 {
@@ -2704,7 +2763,7 @@ BlisTreeNode::generateConstraints(BlisModel *model,BcpsConstraintPool &conPool)
 	    }
 	}
     }
-    
+
     return status;
 }
 
@@ -2712,8 +2771,8 @@ BlisTreeNode::generateConstraints(BlisModel *model,BcpsConstraintPool &conPool)
 
 BlisReturnStatus 
 BlisTreeNode::applyConstraints(BlisModel *model, 
-                               BcpsConstraintPool & conPool,
-                               const double *solution)
+			       const double *solution,
+                               BcpsConstraintPool & conPool)
 {
     BlisReturnStatus status = BlisReturnStatusOk;
     int i, k;
@@ -2861,7 +2920,7 @@ BlisTreeNode::applyConstraints(BlisModel *model,
                         //keep = false;
                         break;
                     }
-                    
+
                     //--------------------------------------
                     // Parallel cuts.
                     //--------------------------------------

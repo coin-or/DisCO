@@ -275,11 +275,14 @@ protected:
     //@}
 
     //------------------------------------------------------
-    // Knowledge can be shared
+    // Knowledge shared
     //------------------------------------------------------
 
-    /** Constraints that can be shared.  */
-    BcpsConstraintPool *constraintPoolShare_;
+    /** Constraints that can be sent/broadcasted to other processes. */
+    BcpsConstraintPool *constraintPoolSend_;
+    
+    /** Constraints that are received from other processses. */
+    BcpsConstraintPool *constraintPoolReceive_;
 
  public:
 
@@ -686,9 +689,13 @@ protected:
     /** Access constraint pool. */
     BcpsConstraintPool *constraintPool() { return constraintPool_; }
 
-    /** Access share constraint pool. */
-    BcpsConstraintPool *constraintPoolShare() { return constraintPoolShare_; }
-
+    /** Access receive constraint pool. */
+    BcpsConstraintPool *constraintPoolReceive() 
+	{ return constraintPoolReceive_; }
+    
+    /** Access send constraint pool. */
+    BcpsConstraintPool *constraintPoolSend() { return constraintPoolSend_; }
+    
     //@{
     /** Get number of old constraints. */
     int getNumOldConstraints() const { return numOldConstraints_; }

@@ -1298,17 +1298,22 @@ VrpCutGenerator::addCut(BcpsConstraintPool &conPool,
        blisCon = new BlisConstraint(-infinity, rhs, 
 				    -infinity, rhs,
 				    nzcnt, matind, matval);
+       blisCon->setValidRegion(BcpsValidGlobal);
    }
    else if (sense == 'G'){
        blisCon = new BlisConstraint(rhs, infinity,
 				    rhs, infinity,
 				    nzcnt, matind, matval);
+       blisCon->setValidRegion(BcpsValidGlobal);
    }
    else{
        return 0;
    }
 
    conPool.addConstraint(blisCon);
+
+   delete [] matind;
+   delete [] matval;
    
    return 1;
 }

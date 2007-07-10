@@ -59,10 +59,10 @@ BlisConGenerator::BlisConGenerator(BlisModel * model,
     generator_->refreshSolver(model_->solver());
     
     if (name) {
-        name_ = strdup(name);
+        name_ = name;
     }
     else {
-        name_ = strdup("Unknown");
+        name_ = "UNKNOWN";
     }
     
     strategy_ = strategy;
@@ -87,7 +87,7 @@ BlisConGenerator::BlisConGenerator(const BlisConGenerator & rhs)
     generator_->refreshSolver(model_->solver());
     strategy_ = rhs.strategy_;
     cutGenerationFrequency_ = rhs.cutGenerationFrequency_;
-    name_ = strdup(rhs.name_);
+    name_ = rhs.name_;
     normal_ = rhs.normal_;
     atSolution_ = rhs.atSolution_;
     whenInfeasible_ = rhs.whenInfeasible_;
@@ -106,13 +106,12 @@ BlisConGenerator::operator=( const BlisConGenerator& rhs)
 {
     if (this != &rhs) {
         delete generator_;
-        free(name_);
         model_ = rhs.model_;
         generator_ = rhs.generator_;
         generator_->refreshSolver(model_->solver());
         strategy_ = rhs.strategy_;
 	cutGenerationFrequency_ = rhs.cutGenerationFrequency_;
-        name_ = strdup(rhs.name_);
+        name_ = rhs.name_;
         normal_ = rhs.normal_;
         atSolution_ = rhs.atSolution_;
         whenInfeasible_ = rhs.whenInfeasible_;

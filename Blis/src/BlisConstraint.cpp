@@ -226,3 +226,29 @@ BlisConstraint::createOsiRowCut()
 }
 
 //#############################################################################
+
+double
+BlisConstraint::violation(const double *lpSolution)
+{
+    int k, varInd;
+    double activity = 0.0;
+    double rowLower = CoinMax(lbHard_, lbSoft_);
+    double rowUpper = CoinMin(ubHard_, ubSoft_);
+    double violation = -ALPS_DBL_MAX; // Any negative number is OK
+
+    for (k = 0; k < size_; ++k) {
+	varInd = indices_[k];
+	activity += values_[varInd] * lpSolution[varInd];
+    }
+    
+    if (rowLower > -ALPS_INFINITY) {
+	violation = rowLower - activity;
+    }
+    if (rowUpper < ALPS_INFINITY) {
+	violation = CoinMax(violation, activity-rowUpper);
+    }
+                    
+    return violation;
+}
+
+//#############################################################################

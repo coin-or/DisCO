@@ -141,10 +141,15 @@ public:
     /** Generate constraints. */
     int generateConstraints(BlisModel *model, BcpsConstraintPool &conPool);
 
+    /** Get violated constraints. */
+    void getViolatedConstraints(BlisModel *model, 
+				const double *currLpSolution, 
+				BcpsConstraintPool & conPool);
+
     /** Select and apply constraints. */
     BlisReturnStatus applyConstraints(BlisModel *model,
-                                      BcpsConstraintPool & conPool,
-                                      const double *solution); 
+				      const double *solution,
+                                      BcpsConstraintPool & conPool); 
 
     /** Fix and tighten varaibles based optimality conditions. */
     BlisReturnStatus reducedCostFix(BlisModel *model);

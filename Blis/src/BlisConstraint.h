@@ -33,9 +33,11 @@ class OsiRowCut;
 class BlisConstraint : public BcpsConstraint {
     
  protected:
-
+    /** Number of nonzero coefficients */
     int size_;
+    /** Variable indices */
     int *indices_;
+    /** Value of nonzero coefficients */
     double *values_;
 
  public:
@@ -93,14 +95,17 @@ class BlisConstraint : public BcpsConstraint {
     /** Create a OsiRowCut based on this constraint. */
     OsiRowCut *createOsiRowCut();
 
+    /** Compute a hash key. */
+    virtual void hashing(BcpsModel *model=NULL);
+
+    /** Check if violates a given lp solution. */
+    double violation(const double *lpSolution);
+
     /** Pack into a encode object. */
     virtual AlpsReturnStatus encode(AlpsEncoded *encoded);
     
     /** Decode a constraint from an encoded object. */
     virtual AlpsKnowledge* decode(AlpsEncoded& encoded) const;
-    
-    /** Compute a hash key. */
-    virtual void hashing(BcpsModel *model=NULL);
 };
 
 //#############################################################################
