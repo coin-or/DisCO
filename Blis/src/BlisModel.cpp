@@ -2112,6 +2112,7 @@ BlisModel::unpackSharedPseudocost(AlpsEncoded &encoded)
 
 //#############################################################################
     
+// TODO: Limit msg size
 void 
 BlisModel::packSharedConstraints(AlpsEncoded *encoded)
 {
@@ -2127,12 +2128,13 @@ BlisModel::packSharedConstraints(AlpsEncoded *encoded)
 	// Send constraints.
 	encoded->writeRep(numCons);
 	for (int k = 0; k < numCons; ++k) {
-	    AlpsKnowledge *know = constraintPoolReceive_->getConstraint(k);
+	    AlpsKnowledge *know = constraintPoolSend_->getConstraint(k);
 	    know->encode(encoded);
 	}
 	// Delete all constraints since they are sent.
-	constraintPoolReceive_->freeGuts();
-	std::cout << "Send " << numCons << " constraints"<< std::endl;
+	constraintPoolSend_->freeGuts();
+	std::cout << "Send " << numCons << " constraints"
+		  << "; msg size = " << encoded->size() << std::endl;
     }
 }
 
@@ -2144,7 +2146,7 @@ BlisModel::unpackSharedConstraints(AlpsEncoded &encoded)
     int numCons = 0;
     
     encoded.readRep(numCons);
-    std::cout << "Received " << numCons << "constraints"<< std::endl;
+    std::cout << "Received " << numCons << " constraints"<< std::endl;
 
     for (int k = 0; k < numCons; ++k) {
 	// Unpack and store constraints
