@@ -245,7 +245,7 @@ BlisConstraint::violation(const double *lpSolution)
 	violation = rowLower - activity;
     }
     if (rowUpper < ALPS_INFINITY) {
-	violation = CoinMax(violation, activity-rowUpper);
+	violation = CoinMax(violation, activity - rowUpper);
     }
                     
     return violation;

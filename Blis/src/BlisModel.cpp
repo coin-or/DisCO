@@ -1677,10 +1677,12 @@ BlisModel::packSharedKnowlege()
     //------------------------------------------------------
     
     shareCon = BlisPar_->entry(BlisParams::shareConstraints);
+    if (shareCon) share = true;
 
     shareVar = BlisPar_->entry(BlisParams::shareVariables);
+    if (shareVar) share = true;
 
-#if 0
+#if 1
     std::cout << "++++ sharePseudo =  " << sharePseudo
               << ", shareCon = " << shareCon
               << ", shareVar = " << shareVar
@@ -2113,7 +2115,25 @@ BlisModel::unpackSharedPseudocost(AlpsEncoded &encoded)
 void 
 BlisModel::packSharedConstraints(AlpsEncoded *encoded)
 {
+    int minSend = 10;
+    int numCons = constraintPoolSend_->getNumConstraints();
     
+    if (numCons < minSend) {
+	// Do not send
+	encoded->writeRep(0);
+	std::cout << "Don't send " << numCons << " constraints"<< std::endl;
+    }
+    else {
+	// Send constraints.
+	encoded->writeRep(numCons);
+	for (int k = 0; k < numCons; ++k) {
+	    AlpsKnowledge *know = constraintPoolReceive_->getConstraint(k);
+	    know->encode(encoded);
+	}
+	// Delete all constraints since they are sent.
+	constraintPoolReceive_->freeGuts();
+	std::cout << "Send " << numCons << " constraints"<< std::endl;
+    }
 }
 
 //#############################################################################
@@ -2121,7 +2141,20 @@ BlisModel::packSharedConstraints(AlpsEncoded *encoded)
 void 
 BlisModel::unpackSharedConstraints(AlpsEncoded &encoded)
 {
+    int numCons = 0;
     
+    encoded.readRep(numCons);
+    std::cout << "Received " << numCons << "constraints"<< std::endl;
+
+    for (int k = 0; k < numCons; ++k) {
+	// Unpack and store constraints
+	const AlpsKnowledge* know = 
+            broker_->decoderObject(BcpsKnowledgeTypeConstraint);
+	BcpsConstraint *con = NULL;
+        con = static_cast<BcpsConstraint *>(know->decode(encoded));
+	constraintPoolReceive_->addConstraint(con);
+	con = NULL;
+    }
 }
 
 //#############################################################################

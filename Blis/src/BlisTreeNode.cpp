@@ -761,7 +761,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 			    model->constraintPoolSend()->
 				addConstraint(new BlisConstraint(*aCon));
 			}
-#if 1
+#if 0
 			std::cout << "+++ Num of send new constraint = " 
 				  << model->constraintPoolSend()->getNumConstraints()
 				  << std::endl;
