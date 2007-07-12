@@ -2623,9 +2623,11 @@ BlisTreeNode::getViolatedConstraints(BlisModel *model,
 	}
     }
 
-    std::cout << "Has constraints " << numCons 
-	      << "; violated " << numCons-conVector.size()
-	      << std::endl;
+    if (numCons > 0) {
+	std::cout << "Has constraints " << numCons 
+		  << "; violated " << numCons-conVector.size()
+		  << std::endl;
+    }
     
     if (conVector.size() != numCons) {
 	// There violated constraints. Remove them from conPool.

@@ -54,7 +54,9 @@
 #include "BlisVariable.h"
 
 #define BLIS_MIN_SHARE_CON 5
+#define BLIS_MAX_SHARE_CON 25
 #define BLIS_MIN_SHARE_VAR 5
+#define BLIS_MAX_SHARE_VAR 25
 
 //#############################################################################
 
@@ -377,7 +379,7 @@ BlisModel::importModel(std::vector<BlisVariable *> vars,
         colType_[i] = vars[i]->getIntType();
     }
 
-#if 1
+#if 0
     std::cout << "numCols_ = " << numCols_ 
               << "; numRows_ = " << numRows_ << std::endl;
 #endif
@@ -2126,15 +2128,18 @@ void
 BlisModel::packSharedConstraints(AlpsEncoded *encoded)
 {
     int numCons = constraintPoolSend_->getNumConstraints();
-    
 
     if (numCons < BLIS_MIN_SHARE_CON) {
 	// Do not send
-	encoded->writeRep(0);
-	std::cout << "Don't send " << numCons << " constraints"<< std::endl;
+	int zero = 0; // Let writeRep know it is an integer.
+	encoded->writeRep(zero);
+	//std::cout << "Don't send " << numCons << " constraints"<< std::endl;
     }
     else {
 	// Send constraints.
+	if (numCons > BLIS_MAX_SHARE_CON) {
+	    numCons = BLIS_MAX_SHARE_CON;
+	}
 	encoded->writeRep(numCons);
 	for (int k = 0; k < numCons; ++k) {
 	    AlpsKnowledge *know = constraintPoolSend_->getConstraint(k);
@@ -2142,8 +2147,8 @@ BlisModel::packSharedConstraints(AlpsEncoded *encoded)
 	}
 	// Delete all constraints since they are sent.
 	constraintPoolSend_->freeGuts();
-	std::cout << "Send " << numCons << " constraints"
-		  << "; msg size = " << encoded->size() << std::endl;
+	//std::cout << "Send " << numCons << " constraints"
+	//  << "; msg size = " << encoded->size() << std::endl;
     }
 }
 
@@ -2155,7 +2160,7 @@ BlisModel::unpackSharedConstraints(AlpsEncoded &encoded)
     int numCons = 0;
     
     encoded.readRep(numCons);
-    std::cout << "Received " << numCons << " constraints"<< std::endl;
+    //std::cout << "Received " << numCons << " constraints"<< std::endl;
 
     for (int k = 0; k < numCons; ++k) {
 	// Unpack and store constraints

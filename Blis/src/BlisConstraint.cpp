@@ -112,9 +112,7 @@ BlisConstraint::encodeBlis(AlpsEncoded *encoded)
 	assert(size_ > 0);
     }
 
-#if 1
-    std::cout << "encodeBlis: constraint length/size_=" << size_<<std::endl;
-#endif
+    //std::cout << "encodeBlis: constraint length/size_=" << size_<<std::endl;
 
     encoded->writeRep(indices_, size_);
     encoded->writeRep(values_, size_);
@@ -133,7 +131,7 @@ BlisConstraint::decodeBlis(AlpsEncoded &encoded)
 	std::cout << "ERROR: decodeBlis: con1, size_=" << size_<<std::endl;
 	assert(size_ > 0);
     }
-    std::cout << "----- decodeBlis: con1, size_=" << size_<<std::endl;
+    //std::cout << "----- decodeBlis: con1, size_=" << size_<<std::endl;
 
     encoded.readRep(values_, size_);
     if (size_ < 0) {
@@ -141,7 +139,7 @@ BlisConstraint::decodeBlis(AlpsEncoded &encoded)
 	assert(size_ > 0);
     }
 
-    std::cout << "----- decodeBlis: con2, size_=" << size_<<std::endl;
+    //std::cout << "----- decodeBlis: con2, size_=" << size_<<std::endl;
     return status;
 }
 
