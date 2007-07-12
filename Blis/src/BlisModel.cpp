@@ -53,6 +53,9 @@
 #include "BlisTreeNode.h"
 #include "BlisVariable.h"
 
+#define BLIS_MIN_SHARE_CON 5
+#define BLIS_MIN_SHARE_VAR 5
+
 //#############################################################################
 
 // Returns the greatest common denominator of two 
@@ -1680,7 +1683,7 @@ BlisModel::packSharedKnowlege()
     
     shareCon = BlisPar_->entry(BlisParams::shareConstraints);
     numCons = constraintPoolSend_->getNumConstraints();
-    if (shareCon) {
+    if (shareCon && numCons >= BLIS_MIN_SHARE_CON) {
 	share = true;
     }
     
@@ -2124,14 +2127,13 @@ BlisModel::packSharedConstraints(AlpsEncoded *encoded)
 {
     int numCons = constraintPoolSend_->getNumConstraints();
     
-#if 0
-    if (numCons < minSend) {
+
+    if (numCons < BLIS_MIN_SHARE_CON) {
 	// Do not send
 	encoded->writeRep(0);
 	std::cout << "Don't send " << numCons << " constraints"<< std::endl;
     }
     else {
-#endif
 	// Send constraints.
 	encoded->writeRep(numCons);
 	for (int k = 0; k < numCons; ++k) {
@@ -2142,7 +2144,7 @@ BlisModel::packSharedConstraints(AlpsEncoded *encoded)
 	constraintPoolSend_->freeGuts();
 	std::cout << "Send " << numCons << " constraints"
 		  << "; msg size = " << encoded->size() << std::endl;
-	//}
+    }
 }
 
 //#############################################################################
