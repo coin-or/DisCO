@@ -1639,7 +1639,9 @@ BlisModel::packSharedKnowlege()
     bool shareVar = false;
 
     int k = 0;
-    int numShared = 0;
+    int numPseudcosts = 0;
+    int numCons = 0;
+    int numVars = 0;
     int frequency = -1, depth = -1;
     int phase = broker_->getPhase();
 
@@ -1666,10 +1668,10 @@ BlisModel::packSharedKnowlege()
     if (sharePseudo) {
         for (k = 0; k < numIntObjects_; ++k) {
             if (sharedObjectMark_[k]){
-                ++numShared;
+                ++numPseudcosts;
             }
         }
-        if (numShared) share = true;
+        if (numPseudcosts) share = true;
     }
     
     //------------------------------------------------------
@@ -1677,16 +1679,20 @@ BlisModel::packSharedKnowlege()
     //------------------------------------------------------
     
     shareCon = BlisPar_->entry(BlisParams::shareConstraints);
-    if (shareCon) share = true;
-
+    numCons = constraintPoolSend_->getNumConstraints();
+    if (shareCon) {
+	share = true;
+    }
+    
     shareVar = BlisPar_->entry(BlisParams::shareVariables);
-    if (shareVar) share = true;
+    //numVars = constraintPoolSend_->getNumVariables();
+    //if (shareVar && numVars > 10) share = true;
 
 #if 1
     std::cout << "++++ sharePseudo =  " << sharePseudo
               << ", shareCon = " << shareCon
               << ", shareVar = " << shareVar
-              << ", numShared = " << numShared 
+              << ", numPseudcosts = " << numPseudcosts 
               << ", numNodes_ = " << numNodes_
               << ", frequency = " << frequency
               << ", depth = " << depth
@@ -1696,7 +1702,7 @@ BlisModel::packSharedKnowlege()
     
     if (share) {
 	encoded = new AlpsEncoded(AlpsKnowledgeTypeModelGen);
-	packSharedPseudocost(encoded, numShared);
+	packSharedPseudocost(encoded, numPseudcosts);
 	packSharedConstraints(encoded);
 	packSharedVariables(encoded);
     }
@@ -2116,15 +2122,16 @@ BlisModel::unpackSharedPseudocost(AlpsEncoded &encoded)
 void 
 BlisModel::packSharedConstraints(AlpsEncoded *encoded)
 {
-    int minSend = 10;
     int numCons = constraintPoolSend_->getNumConstraints();
     
+#if 0
     if (numCons < minSend) {
 	// Do not send
 	encoded->writeRep(0);
 	std::cout << "Don't send " << numCons << " constraints"<< std::endl;
     }
     else {
+#endif
 	// Send constraints.
 	encoded->writeRep(numCons);
 	for (int k = 0; k < numCons; ++k) {
@@ -2135,7 +2142,7 @@ BlisModel::packSharedConstraints(AlpsEncoded *encoded)
 	constraintPoolSend_->freeGuts();
 	std::cout << "Send " << numCons << " constraints"
 		  << "; msg size = " << encoded->size() << std::endl;
-    }
+	//}
 }
 
 //#############################################################################
