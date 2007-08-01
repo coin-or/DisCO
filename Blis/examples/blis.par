@@ -29,11 +29,12 @@ Alps_timeLimit 720
 
 #Blis_cutRampUp 1       # true(1) or false(0) 
 
-####### Blis_cutStrategy control the strategy of a cut generator only if
+####### Blis_cutStrategy and Blis_cutGenerationFrequency control
+####### the strategy and frequency of a spefic cut generator only if
 ####### users do not set the strategy for this cut generator.
 
 Blis_cutStrategy              3   # 0: disable, 1: root, 2: auto, 3: periodic
-#Blis_cutGenerationFrequency   10 
+Blis_cutGenerationFrequency   1 
 
 #Blis_cutCliqueStrategy      -2    # 0: disable, 1: root, 2: auto, 3: periodic
 #Blis_cutCliqueFreq         100
