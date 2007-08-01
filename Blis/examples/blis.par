@@ -33,8 +33,8 @@ Alps_timeLimit 720
 ####### the strategy and frequency of a spefic cut generator only if
 ####### users do not set the strategy for this cut generator.
 
-Blis_cutStrategy              3   # 0: disable, 1: root, 2: auto, 3: periodic
-Blis_cutGenerationFrequency   1 
+#Blis_cutStrategy              3   # 0: disable, 1: root, 2: auto, 3: periodic
+#Blis_cutGenerationFrequency   1 
 
 #Blis_cutCliqueStrategy      -2    # 0: disable, 1: root, 2: auto, 3: periodic
 #Blis_cutCliqueFreq         100
