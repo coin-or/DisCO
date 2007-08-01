@@ -1,4 +1,4 @@
-Alps_instance /data/mip/blend2.mps
+Alps_instance egout.mps
 
 Alps_timeLimit 720
 #Alps_nodeLimit 4000000
@@ -28,21 +28,46 @@ Alps_timeLimit 720
 #Alps_hubReportPeriod 0.5
 
 #Blis_cutRampUp 1       # true(1) or false(0) 
-#Blis_cutStrategy     -1 # -2: root, -1: auto, 0: disable, any positive integer
 
-#Blis_cutClique     -2   # -2: root, -1: auto, 0: disable, any positive integer
-#Blis_cutGomory      -2
-#Blis_cutFlowCover   -2
-#Blis_cutKnapsack    -2
+####### Blis_cutStrategy control the strategy of a cut generator only if
+####### users do not set the strategy for this cut generator.
+
+Blis_cutStrategy              3   # 0: disable, 1: root, 2: auto, 3: periodic
+#Blis_cutGenerationFrequency   10 
+
+#Blis_cutCliqueStrategy      -2    # 0: disable, 1: root, 2: auto, 3: periodic
+#Blis_cutCliqueFreq         100
+
+#Blis_cutGomoryStrategy      -2
+#Blis_cutGomoryFreq         100
+
+#Blis_cutFlowCoverStrategy   -2
+#Blis_cutFlowCoverFreq      100
+
+#Blis_cutKnapsackStrategy    -2
+#Blis_cutKnapsackFreq       100
 
 ##---- Following cuts not useful
-#Blis_cutMir         0
-#Blis_cutOddHole     0
-#Blis_cutProbing     0
-#Blis_cutTwoMir      0
+#Blis_cutMirStrategy         0
+#Blis_cutMirFreq           100
 
-#Blis_heurStrategy  -1   # -2: root, -1: auto, 0: disable, any positive integer
-#Blis_heurRound     -1   # -2: root, -1: auto, 0: disable, any positive integer
+#Blis_cutOddHoleStrategy     1
+#Blis_cutOddHoleFreq       100
+
+#Blis_cutProbingStrategy     0
+#Blis_cutProbingFreq       100
+
+#Blis_cutTwoMirStrategy      0
+#Blis_cutTowMirFreq        100
+
+####### Blis_cutStrategy control the strategy of a cut generator only if
+####### users do not set the strategy for this cut generator.
+
+#Blis_heurStrategy        -1    # 0: disable, 1: root, 2: auto, 3: periodic
+#Blis_heurCallFrequency  100
+
+#Blis_heurRoundStrategy     -1  # 0: disable, 1: root, 2: auto, 3: periodic
+#Blis_heurRoundFreq        100
 
 #Blis_branchStrategy 1   # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
 #Blis_branchStrategyRampUp 0
