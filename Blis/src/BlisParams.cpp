@@ -225,7 +225,7 @@ BlisParams::setDefaultEntries() {
 
   setEntry(branchStrategy, BlisBranchingStrategyPseudoCost);
   setEntry(branchStrategyRampUp, BlisBranchingStrategyPseudoCost);
-  setEntry(cutStrategy, BlisCutStrategyRoot);
+  setEntry(cutStrategy, BlisCutStrategyNotSet);
   setEntry(cutGenerationFrequency, 1);
   setEntry(cutPass, 20);
   setEntry(cutCliqueStrategy, BlisCutStrategyNotSet);

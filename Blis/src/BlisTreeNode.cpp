@@ -242,6 +242,9 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
             if (!diving_ || isRoot) genConsHere = true;
 	}
     }
+    else if (cutStrategy == BlisCutStrategyPeriodic) {
+	genConsHere = true;
+    }
     else {
 	genConsHere = true;
     }
@@ -2676,9 +2679,9 @@ BlisTreeNode::generateConstraints(BlisModel *model,BcpsConstraintPool &conPool)
 	    if (model->isRoot_ && (index_ == 0)) useThisCutGenerator = true;
 	}
 	else if (strategy == BlisCutStrategyAuto) {
-	  if (depth_ < maxConstraintDepth) {
-	    if (!diving_ || model->isRoot_) useThisCutGenerator = true;
-	  }
+	    if (depth_ < maxConstraintDepth) {
+		if (!diving_ || model->isRoot_) useThisCutGenerator = true;
+	    }
 	}
 	else if (strategy == BlisCutStrategyPeriodic) {
 	    // Num of nodes is set at the beginning of process().

@@ -112,7 +112,7 @@ public:
       VrpPar_ = new VrpParams;
       readInstance(dataFile);
       VrpCutGenerator *cg = new VrpCutGenerator(this, vertnum_);
-      cg->setStrategy(BlisCutStrategyMultiple);
+      cg->setStrategy(BlisCutStrategyPeriodic);
       addCutGenerator(cg);
    }
    

@@ -722,9 +722,8 @@ BlisModel::setupSelf()
     else {
         denseConCutoff_ = static_cast<int>(aveLen + denseConFactor*stdLen);    
         denseConCutoff_ = ALPS_MIN(numCols_/2, denseConCutoff_);
-        denseConCutoff_ = ALPS_MAX(10, denseConCutoff_);
+        denseConCutoff_ = ALPS_MAX(100, denseConCutoff_);
     }
-    
     
 #ifdef BLIS_DEBUG
     std::cout << "aveLen=" << aveLen << ", minLen=" << minLen
@@ -751,12 +750,22 @@ BlisModel::setupSelf()
     oldConstraints_ = new BlisConstraint* [oldConstraintsSize_];
     
     cutStrategy_ = static_cast<BlisCutStrategy> 
-       (BlisPar_->entry(BlisParams::cutStrategy)); 
+	(BlisPar_->entry(BlisParams::cutStrategy)); 
+    cutGenerationFrequency_ = static_cast<BlisCutStrategy> 
+	(BlisPar_->entry(BlisParams::cutGenerationFrequency));
 
-#ifdef BLIS_DEBUG
-    std::cout << "cutStrategy_ = " << cutStrategy_ << std::endl;
+    if (cutGenerationFrequency_ < 1) {
+	std::cout << "WARNING: Input cut generation frequency is " 
+		  << cutGenerationFrequency_ 
+		  << ", which is not allowed. Changed it to 1" << std::endl;
+	cutGenerationFrequency_ = 1;
+    }
+#if 0
+    std::cout << "Initially, cutStrategy_ = " << cutStrategy_ 
+	      << "; freq = " << cutGenerationFrequency_
+	      << std::endl;
 #endif
-
+    
     BlisCutStrategy cliqueStrategy = static_cast<BlisCutStrategy> 
        (BlisPar_->entry(BlisParams::cutCliqueStrategy));
     BlisCutStrategy fCoverStrategy = static_cast<BlisCutStrategy>
@@ -787,9 +796,23 @@ BlisModel::setupSelf()
     // Add cut generators.
     //------------------------------------------------------
 
+
+    //----------------------------------
+    // Add probe cut generator.
+    //----------------------------------
+
     if (probeStrategy == BlisCutStrategyNotSet) {
         // Disable by default
-        probeStrategy = BlisCutStrategyNone;
+	if (cutStrategy_ == BlisCutStrategyNotSet) {
+	    probeStrategy = BlisCutStrategyNone;
+	}
+	else if (cutStrategy_ == BlisCutStrategyPeriodic) {
+	    probeStrategy = cutStrategy_;
+	    probeFreq = cutGenerationFrequency_;
+	}
+	else {
+	    probeStrategy = cutStrategy_;
+	}
     }
     if (probeStrategy != BlisCutStrategyNone) {
         CglProbing *probing = new CglProbing;
@@ -805,34 +828,49 @@ BlisModel::setupSelf()
         // Only look at rows with fewer than this number of elements
         probing->setMaxElements(200);
         probing->setRowCuts(3);
-        if (probeStrategy == BlisCutStrategyPeriodic) {
-	    // User freq
-            addCutGenerator(probing, "Probing", probeStrategy, probeFreq); 
-        }
-        else {
-            addCutGenerator(probing, "Probing", probeStrategy);
-        }
+	addCutGenerator(probing, "Probing", probeStrategy, probeFreq);
     }
+
+    //----------------------------------
+    // Add clique cut generator.
+    //----------------------------------
 
     if (cliqueStrategy == BlisCutStrategyNotSet) {
         // Only at root by default
-        cliqueStrategy = BlisCutStrategyRoot;
+	if (cutStrategy_ == BlisCutStrategyNotSet) {
+	    cliqueStrategy = BlisCutStrategyRoot;
+	}
+	else if (cutStrategy_ == BlisCutStrategyPeriodic) {
+	    cliqueFreq = cutGenerationFrequency_;
+	    cliqueStrategy = BlisCutStrategyPeriodic;
+	}
+	else { // Root or Auto
+	    cliqueStrategy = cutStrategy_;
+	}
     }
     if (cliqueStrategy != BlisCutStrategyNone) {
         CglClique *cliqueCut = new CglClique ;
         cliqueCut->setStarCliqueReport(false);
         cliqueCut->setRowCliqueReport(false);
-        if (cliqueStrategy == BlisCutStrategyPeriodic) {
-            addCutGenerator(cliqueCut, "Clique", cliqueStrategy, cliqueFreq);
-        }
-        else {
-            addCutGenerator(cliqueCut, "Clique", cliqueStrategy);
-        }
+	addCutGenerator(cliqueCut, "Clique", cliqueStrategy, cliqueFreq);
     }
 
+    //----------------------------------
+    // Add odd hole cut generator.
+    //----------------------------------
+
     if (oddHoleStrategy == BlisCutStrategyNotSet) {
-        // Disable by default
-        oddHoleStrategy = BlisCutStrategyNone;
+	if (cutStrategy_ == BlisCutStrategyNotSet) {
+	    // Disable by default
+	    oddHoleStrategy = BlisCutStrategyNone;
+	}
+	else if (cutStrategy_ == BlisCutStrategyPeriodic) {
+	    oddHoleStrategy = BlisCutStrategyPeriodic;
+	    oddHoleFreq = cutGenerationFrequency_;
+	}
+	else {
+	    oddHoleStrategy = cutStrategy_;
+	}
     }
     if (oddHoleStrategy != BlisCutStrategyNone) {
         CglOddHole *oldHoleCut = new CglOddHole;
@@ -840,86 +878,145 @@ BlisModel::setupSelf()
         oldHoleCut->setMinimumViolationPer(0.00002);
         // try larger limit
         oldHoleCut->setMaximumEntries(200);
-        if (oddHoleStrategy == BlisCutStrategyPeriodic) {
-            addCutGenerator(oldHoleCut, "OddHole",oddHoleStrategy,oddHoleFreq);
-        }
-        else {
-             addCutGenerator(oldHoleCut, "OddHole", oddHoleStrategy);
-        }
+	addCutGenerator(oldHoleCut, "OddHole",oddHoleStrategy,oddHoleFreq);
     }
 
+    //----------------------------------
+    // Add flow cover cut generator.
+    //----------------------------------
+
     if (fCoverStrategy == BlisCutStrategyNotSet) {
-         fCoverStrategy = cutStrategy_;
+	if (cutStrategy_ == BlisCutStrategyNotSet) {
+	    fCoverStrategy = BlisCutStrategyAuto;
+	    fCoverFreq = cutGenerationFrequency_;
+	}
+	else if (cutStrategy_ == BlisCutStrategyPeriodic) {
+	    fCoverStrategy = cutStrategy_;
+	    fCoverFreq = cutGenerationFrequency_;
+	}
+	else {
+	    fCoverStrategy = cutStrategy_;
+	}
     }
     if (fCoverStrategy != BlisCutStrategyNone) {
         CglFlowCover *flowGen = new CglFlowCover;
-        if (fCoverStrategy == BlisCutStrategyPeriodic) {
-            addCutGenerator(flowGen, "Flow Cover", fCoverStrategy, fCoverFreq);
-        }
-        else {
-            addCutGenerator(flowGen, "Flow Cover", fCoverStrategy);
-        }
+	addCutGenerator(flowGen, "Flow Cover", fCoverStrategy, fCoverFreq);
     }
 
+    //----------------------------------
+    // Add knapsack cut generator.
+    //----------------------------------
+
     if (knapStrategy == BlisCutStrategyNotSet) {
-        // Only at root by default
-        knapStrategy = BlisCutStrategyRoot;
+	if (cutStrategy_ == BlisCutStrategyNotSet) {
+	    // Only at root by default
+	    knapStrategy = BlisCutStrategyRoot;
+	}
+	else if (cutStrategy_ == BlisCutStrategyPeriodic) {
+	    knapStrategy = cutStrategy_;
+	    knapFreq = cutGenerationFrequency_;
+	}
+	else {
+	    knapStrategy = cutStrategy_;
+	}
     }
     if (knapStrategy != BlisCutStrategyNone) {
         CglKnapsackCover *knapCut = new CglKnapsackCover;
-        if (knapStrategy == BlisCutStrategyPeriodic) {
-            addCutGenerator(knapCut, "Knapsack", knapStrategy, knapFreq);
-        }
-        else {
-             addCutGenerator(knapCut, "Knapsack", knapStrategy);
-        }
+	addCutGenerator(knapCut, "Knapsack", knapStrategy, knapFreq);
     }
 
+    //----------------------------------
+    // Add MIR cut generator.
+    //----------------------------------
+
     if (mirStrategy == BlisCutStrategyNotSet) {
-        // Disable by default
-        mirStrategy = BlisCutStrategyNone;
+	if (cutStrategy_ == BlisCutStrategyNotSet) {
+	    // Disable by default
+	    mirStrategy = BlisCutStrategyNone;
+	}
+	else if (cutStrategy_ == BlisCutStrategyPeriodic) {
+	    mirStrategy = cutStrategy_;
+	    mirFreq = cutGenerationFrequency_;
+	}
+	else {
+	    mirStrategy = cutStrategy_;
+	}
     }
     if (mirStrategy != BlisCutStrategyNone) {
         CglMixedIntegerRounding2 *mixedGen = new CglMixedIntegerRounding2;
-        if (mirStrategy == BlisCutStrategyPeriodic) {
-            addCutGenerator(mixedGen, "MIR", mirStrategy, mirFreq);
-        }
-        else {
-            addCutGenerator(mixedGen, "MIR", mirStrategy);
-        }
+	addCutGenerator(mixedGen, "MIR", mirStrategy, mirFreq);
     }
 
+    //----------------------------------
+    // Add Gomory cut generator.
+    //----------------------------------
+
     if (gomoryStrategy == BlisCutStrategyNotSet) {
-        // Only at root by default
-        gomoryStrategy = BlisCutStrategyRoot;
+	if (cutStrategy_ == BlisCutStrategyNotSet) {
+	    // Only at root by default
+	    gomoryStrategy = BlisCutStrategyRoot;	    
+	}
+	else if (cutStrategy_ == BlisCutStrategyPeriodic) {
+	    gomoryStrategy = cutStrategy_;
+	    gomoryFreq = cutGenerationFrequency_;
+	}
+	else {
+	    gomoryStrategy = cutStrategy_;
+	}
     }
     if (gomoryStrategy != BlisCutStrategyNone) {
         CglGomory *gomoryCut = new CglGomory;
         // try larger limit
         gomoryCut->setLimit(300);
-        if (gomoryStrategy == BlisCutStrategyPeriodic) {
-            addCutGenerator(gomoryCut, "Gomory", gomoryStrategy, gomoryFreq);
-        }
-        else {
-            addCutGenerator(gomoryCut, "Gomory", gomoryStrategy);
-        }
+	addCutGenerator(gomoryCut, "Gomory", gomoryStrategy, gomoryFreq);
     }
 
-    if (twoMirStrategy == BlisCutStrategyNotSet) {
-        // Disable by default
-        twoMirStrategy = BlisCutStrategyNone;
-    }
+    //----------------------------------
+    // Add Tow MIR cut generator.
+    //----------------------------------
+
+    // Disable forever, not useful.
+    twoMirStrategy = BlisCutStrategyNone;
     if (twoMirStrategy != BlisCutStrategyNone) {
         CglTwomir *twoMirCut =  new CglTwomir;
-        if (twoMirStrategy == BlisCutStrategyPeriodic) {
-            addCutGenerator(twoMirCut, "Two MIR", twoMirStrategy, twoMirFreq);
-        }
-        else  {
-            addCutGenerator(twoMirCut, "Two MIR", twoMirStrategy);
+	addCutGenerator(twoMirCut, "Two MIR", twoMirStrategy, twoMirFreq);
+    }
+
+    //--------------------------------------------
+    // Adjust cutStrategy_ according to the strategies of
+    // each cut generators.
+    //--------------------------------------------
+
+    if (numCutGenerators_ > 0) {
+	BlisCutStrategy strategy0 = cutGenerators(0)->strategy();
+	BlisCutStrategy strategy1;
+	for (j = 1; j < numCutGenerators_; ++j) {
+	    strategy1 = cutGenerators(j)->strategy();
+	    if (strategy1 != strategy0) {
+	       // A generator has different strategy.
+		break;
+	    }
+	}
+	if (j == numCutGenerators_) {
+	    // All cut generators has same strategy.
+	    cutStrategy_ = strategy0;
+	}
+        else {
+            // Assume to generate cons at each node since generators 
+	    // has various strategies.
+            cutStrategy_ = BlisCutStrategyPeriodic;
+	    cutGenerationFrequency_ = 1;
         }
     }
-    
+     
+#if 0
+    std::cout << "AFTER: cutStrategy_ = " << cutStrategy_ << std::endl;
+#endif
+
+    //--------------------------------------------
     // Random vector
+    //--------------------------------------------
+
     // TODO, if generating variable, then need more space.
     conRandoms_ = new double [numCols_];
     double deseed = 12345678.0;
@@ -935,32 +1032,6 @@ BlisModel::setupSelf()
         //      <<conRandoms_[j]<< std::endl;
     }
 
-    // Adjust cutstrategy
-    if (numCutGenerators_ > 0) {
-	BlisCutStrategy strategy0 = cutGenerators(0)->strategy();
-	BlisCutStrategy strategy1;
-	for (j = 1; j < numCutGenerators_; ++j) {
-	    strategy1 = cutGenerators(j)->strategy();
-	    if (strategy1 != strategy0) {
-	       // Different for each cut
-	       cutStrategy_ =  BlisCutStrategyMultiple;
-	       break;
-	    }
-	}
-	if (j == numCutGenerators_) {
-	    // Cut has same strategy.
-	    cutStrategy_ = strategy0;
-	}
-        else {
-            // Assume to generate cons at each node.
-            cutStrategy_ = BlisCutStrategyPeriodic;
-	    cutGenerationFrequency_ = 1;
-        }
-    }
-     
-#if 0
-    std::cout << "AFTER: cutStrategy_ = " << cutStrategy_ << std::endl;
-#endif
 
     return true;
 }
@@ -1530,6 +1601,10 @@ BlisModel::addCutGenerator(CglCutGenerator * generator,
                              normal, atSolution, whenInfeasible);
     delete [] temp;
     temp = NULL;
+#if 0
+    std::cout << "Added " << name << " cut generator, strategy is "
+	      << strategy << ", freq is " << freq << std::endl;
+#endif
 }
 
 //#############################################################################

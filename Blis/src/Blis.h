@@ -63,21 +63,19 @@ enum BlisReturnStatus {
 //#############################################################################
 
 enum BlisCutStrategy{
-   BlisCutStrategyNotSet,
-   BlisCutStrategyMultiple,
-   BlisCutStrategyPeriodic,
+   BlisCutStrategyNotSet = -1,
+   BlisCutStrategyNone = 0,
    BlisCutStrategyRoot,
    BlisCutStrategyAuto,
-   BlisCutStrategyNone
+   BlisCutStrategyPeriodic
 };
 
 enum BlisHeurStrategy{
-   BlisHeurStrategyNotSet,
-   BlisHeurStrategyMultiple,
+   BlisHeurStrategyNotSet = -1,
+   BlisHeurStrategyNone = 0,
    BlisHeurStrategyPeriodic,
    BlisHeurStrategyRoot,
-   BlisHeurStrategyAuto,
-   BlisHeurStrategyNone
+   BlisHeurStrategyAuto
 };
 
 #if 0
