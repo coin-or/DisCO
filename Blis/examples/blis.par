@@ -31,21 +31,21 @@ Alps_timeLimit 720
 
 ####### Blis_cutStrategy and Blis_cutGenerationFrequency control
 ####### the strategy and frequency of a spefic cut generator only if
-####### users do not set the strategy for this cut generator.
+####### users do not set the strategy for that cut generator.
 
 #Blis_cutStrategy              3   # 0: disable, 1: root, 2: auto, 3: periodic
 #Blis_cutGenerationFrequency   1 
 
-#Blis_cutCliqueStrategy      -2    # 0: disable, 1: root, 2: auto, 3: periodic
+#Blis_cutCliqueStrategy       2    # 0: disable, 1: root, 2: auto, 3: periodic
 #Blis_cutCliqueFreq         100
 
-#Blis_cutGomoryStrategy      -2
+#Blis_cutGomoryStrategy       2
 #Blis_cutGomoryFreq         100
 
-#Blis_cutFlowCoverStrategy   -2
+#Blis_cutFlowCoverStrategy    2
 #Blis_cutFlowCoverFreq      100
 
-#Blis_cutKnapsackStrategy    -2
+#Blis_cutKnapsackStrategy     2
 #Blis_cutKnapsackFreq       100
 
 ##---- Following cuts not useful
@@ -61,13 +61,14 @@ Alps_timeLimit 720
 #Blis_cutTwoMirStrategy      0
 #Blis_cutTowMirFreq        100
 
-####### Blis_cutStrategy control the strategy of a cut generator only if
-####### users do not set the strategy for this cut generator.
+####### Blis_heurStrategy and Blis_heurCallFrequency control
+####### the strategy and frequency of a spefic heuristic only if
+####### users do not set the strategy for that heuristic.
 
-#Blis_heurStrategy        -1    # 0: disable, 1: root, 2: auto, 3: periodic
+#Blis_heurStrategy         3    # 0: disable, 1: root, 2: auto, 3: periodic
 #Blis_heurCallFrequency  100
 
-#Blis_heurRoundStrategy     -1  # 0: disable, 1: root, 2: auto, 3: periodic
+#Blis_heurRoundStrategy      3  # 0: disable, 1: root, 2: auto, 3: periodic
 #Blis_heurRoundFreq        100
 
 #Blis_branchStrategy 1   # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
