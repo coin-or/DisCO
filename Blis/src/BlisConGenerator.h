@@ -181,7 +181,7 @@ protected:
     /** Get a pointer to the model */
     inline BlisModel *getModel() { return model_; }
 
-    /** Get a pointer to the model */
+    /** Set the model */
     inline void setModel(BlisModel *m) { model_ = m; }
     
     /** Refresh the model */
