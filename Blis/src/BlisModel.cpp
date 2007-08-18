@@ -663,7 +663,7 @@ BlisModel::setupSelf()
        static_cast<BlisHeurStrategy> (BlisPar_->entry(BlisParams::heurCallFrequency));
     BlisHeurStrategy heurRoundStrategy = 
        static_cast<BlisHeurStrategy> (BlisPar_->entry(BlisParams::heurRoundStrategy)); 
-    int callFreq;
+    int callFreq = 1;
 
     if (heurRoundStrategy == BlisHeurStrategyNotSet) {
         heurRoundStrategy = heurStrategy_;
