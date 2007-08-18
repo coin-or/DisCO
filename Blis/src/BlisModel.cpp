@@ -1768,7 +1768,7 @@ BlisModel::packSharedKnowlege()
     //numVars = constraintPoolSend_->getNumVariables();
     //if (shareVar && numVars > 10) share = true;
 
-#if 1
+#if 0
     std::cout << "++++ sharePseudo =  " << sharePseudo
               << ", shareCon = " << shareCon
               << ", shareVar = " << shareVar
