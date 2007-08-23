@@ -1085,6 +1085,11 @@ BlisModel::storeSolution(BlisSolutionType how, BlisSolution* sol)
 
     ++numSolutions_;
 
+    if (getKnowledgeBroker()->getBestSolDepth() >
+	activeNode_->getDepth()) {
+	getKnowledgeBroker()->setBestSolDepth(activeNode_->getDepth());
+    }
+
     // Store in pool, assume minimization.
     getKnowledgeBroker()->addKnowledge(AlpsKnowledgeTypeSolution, 
                                        sol,
