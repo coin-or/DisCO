@@ -168,10 +168,18 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     BlisParams * BlisPar = model->BlisPar();
 
     int maxPass = BlisPar->entry(BlisParams::cutPass);
+    int quickCutPass = BlisPar->entry(BlisParams::quickCutPass);
+
     double tailOffTol = BlisPar->entry(BlisParams::tailOff);
 
-    if (maxPass < ALPS_INT_MAX) {
-	++maxPass;
+    //if ( (quickCutPass > 0 ) && (phase == AlpsPhaseRampup) ) {
+    if (quickCutPass > 0) {
+        std::cout << "+++ Quick branching; pass is "<<quickCutPass<<std::endl;
+        maxPass = quickCutPass + 1;
+    }
+    else if (maxPass < ALPS_INT_MAX) {
+        // Add one to solve initial subprolem.
+        ++maxPass;
     }
     
     shareCon = BlisPar->entry(BlisParams::shareConstraints);
@@ -372,7 +380,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                 reducedCostFix(model);
                 
                 //------------------------------------------
-                // Check if tailoff
+                // Check if tailoff or have to keep on.
                 //------------------------------------------
 
                 if (model->boundingPass_ > 1) {
@@ -395,9 +403,22 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                 else {
                     keepOn = true;
                 }
-                // Update previous objective value.
-                preObjValue = quality_;
 
+                if (model->boundingPass_ == maxPass) {
+                    if (!numIntInfs && !numObjInfs) {
+                        /* No fractional objects, have to process one more pass.
+                           For applications like VRP. */
+                        ++maxPass;
+                        keepOn = true;
+                    }
+                }
+
+                //------------------------------------------
+                // Update previous objective value.
+                //------------------------------------------
+
+                preObjValue = quality_;
+                
                 //------------------------------------------
                 // Remove non-core slack constraints. 
                 //------------------------------------------
@@ -1412,6 +1433,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         if ( (getKnowledgeBroker()->getProcType() == AlpsProcessTypeMaster) &&
              (msgLevel > 0) ) {
             printCutStat = true;
+            //std::cout << "+++++master print cut stats"<< std::endl;
         }
         else if ( (getKnowledgeBroker()->getProcType()==AlpsProcessTypeHub) &&
                   (hubMsgLevel > 0) ) {

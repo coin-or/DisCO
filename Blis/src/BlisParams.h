@@ -79,7 +79,8 @@ class BlisParams : public AlpsParameterSet {
       cutStrategy, /** All constraint generators */
       cutGenerationFrequency,
       
-      cutPass,     /** The pass to generate cuts */
+      cutPass,      /** The pass to generate cuts */
+      quickCutPass, /** The pass to generate cuts for quick branching */
 
       cutCliqueStrategy,
       cutGomoryStrategy,

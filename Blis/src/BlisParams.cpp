@@ -74,6 +74,9 @@ BlisParams::createKeywordList() {
 
   keys_.push_back(make_pair(std::string("Blis_cutPass"),
 			    AlpsParameter(AlpsIntPar, cutPass)));
+
+  keys_.push_back(make_pair(std::string("Blis_quickCutPass"),
+			    AlpsParameter(AlpsIntPar, quickCutPass)));
   
   keys_.push_back(make_pair(std::string("Blis_cutStrategy"),
 			    AlpsParameter(AlpsIntPar, cutStrategy)));
@@ -228,6 +231,7 @@ BlisParams::setDefaultEntries() {
   setEntry(cutStrategy, BlisCutStrategyNotSet);
   setEntry(cutGenerationFrequency, 1);
   setEntry(cutPass, 20);
+  setEntry(quickCutPass, 0);
   setEntry(cutCliqueStrategy, BlisCutStrategyNotSet);
   setEntry(cutGomoryStrategy, BlisCutStrategyNotSet);
   setEntry(cutFlowCoverStrategy, BlisCutStrategyNotSet);

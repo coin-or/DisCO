@@ -1416,7 +1416,7 @@ BlisModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
 	    numBranchResolve_ = 10;
 	}
     }
-    
+
     if (!numUnsatisfied && userFeasible && !sol) {
         // User doesn't overload feasible solution function.
         sol = new BlisSolution(getNumCols(), 
