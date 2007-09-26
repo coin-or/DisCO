@@ -82,7 +82,8 @@ public:
       VrpPar_ = new VrpParams;
 
       AlpsPar()->setEntry(AlpsParams::searchStrategy,
-			  AlpsSearchTypeBestEstimate);
+			  AlpsSearchTypeBestFirst);
+      AlpsPar()->setEntry(AlpsParams::staticBalanceScheme, 1); // Spiral
 
       BlisPar()->setEntry(BlisParams::branchStrategy,
 			  BlisBranchingStrategyStrong);
