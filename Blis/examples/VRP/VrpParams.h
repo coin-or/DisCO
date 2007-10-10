@@ -28,6 +28,7 @@ class VrpParams : public AlpsParameterSet {
   enum boolParams{
      doGreedy,
      doExtraInRoot,
+     tspProb,
      endOfBoolParams
   };
   

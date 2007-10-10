@@ -191,8 +191,12 @@ VrpModel::readInstance(const char* dataFile)
        case 1 : /*TYPE*/
 	 sscanf(line, "%s", tmp);
 	 if (strcmp("CVRP", tmp) != 0){
-	    fprintf(stderr, "This is not a recognized file type!\n");
-	    exit(1);
+	   if (strcmp("TSP", tmp) == 0){
+	      VrpPar_->setEntry(VrpParams::tspProb, true);
+	   }else{
+	      fprintf(stderr, "This is not a recognized file type!\n");
+	      exit(1);
+	   }
 	 }
 	 if (msgLevel > 0) {
 	     printf("TYPE: \t\t\t%s\n", tmp);
@@ -482,6 +486,15 @@ VrpModel::readInstance(const char* dataFile)
 	 }
       }
       wtype_ = _EXPLICIT;
+   }
+
+   if (VrpPar_->entry(VrpParams::tspProb)){
+      capacity_ = vertnum_;
+      numroutes_ = 1;
+      demand_ = new int[vertnum_];
+      demand_[0] = vertnum_;
+      for (i = vertnum_ - 1; i > 0; i--)
+	 demand_[i] = 1;
    }
 
    //-------------------------------------------------------

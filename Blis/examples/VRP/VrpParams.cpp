@@ -29,10 +29,13 @@ VrpParams::createKeywordList() {
   //--------------------------------------------------------
 
   keys_.push_back(make_pair(std::string("Vrp_doGreedy"),
-			    AlpsParameter(AlpsIntPar, doGreedy)));
+			    AlpsParameter(AlpsBoolPar, doGreedy)));
     
   keys_.push_back(make_pair(std::string("Vrp_doExtraInRoot"),
-			    AlpsParameter(AlpsIntPar, doExtraInRoot)));
+			    AlpsParameter(AlpsBoolPar, doExtraInRoot)));
+
+  keys_.push_back(make_pair(std::string("Vrp_tspProb"),
+			    AlpsParameter(AlpsBoolPar, tspProb)));
 
   //--------------------------------------------------------
   // BoolArrayPar
@@ -69,12 +72,14 @@ void
 VrpParams::setDefaultEntries() {
 
   //-------------------------------------------------------------
-  // Char Parameters.
+  // Bool Parameters.
   //-------------------------------------------------------------
 
    setEntry(doGreedy, true);
 
    setEntry(doExtraInRoot, false);
+
+   setEntry(tspProb, false);
 
   //-------------------------------------------------------------
   // Int Parameters.
