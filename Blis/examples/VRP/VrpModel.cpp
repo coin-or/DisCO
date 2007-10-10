@@ -192,7 +192,7 @@ VrpModel::readInstance(const char* dataFile)
 	 sscanf(line, "%s", tmp);
 	 if (strcmp("CVRP", tmp) != 0){
 	    fprintf(stderr, "This is not a recognized file type!\n");
-	    exit(1);
+	    //exit(1);
 	 }
 	 if (msgLevel > 0) {
 	     printf("TYPE: \t\t\t%s\n", tmp);
