@@ -301,7 +301,7 @@ VrpModel::readInstance(const char* dataFile)
 			     "EDGE_WEIGHT_TYPE declared wrong");
 		     exit(1);
 		  } else {
-		     edges_[index(i, j)] = new VrpVariable(i, j, (int) fdummy);
+		     edges_.push_back(new VrpVariable(i, j, (int) fdummy));
 		  }
 	       }
 	    }
@@ -325,7 +325,8 @@ VrpModel::readInstance(const char* dataFile)
 			     "EDGE_WEIGHT_TYPE declared wrong");
 		     exit(1);
 		  }
-		  edges_[index(i, j)] = new VrpVariable(i, j, (int) fdummy);
+		  edges_.push_back(new VrpVariable(i, j, (int) fdummy));
+		  //edges_[index(i, j)] = new VrpVariable(i, j, (int) fdummy);
 	       }
 	    }
 	    if (fscanf(f,"%lf", &fdummy)){
