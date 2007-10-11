@@ -1723,7 +1723,7 @@ BlisTreeNode::branch()
                 
 		assert(aCon);
 		assert(aCon->getSize() > 0);
-		assert(aCon->getSize() < 100000);
+		assert(aCon->getSize() < numCols);
 		BlisConstraint *newCon = new BlisConstraint(*aCon);
 		tempCons[k] = newCon;
 	    }
@@ -1742,7 +1742,7 @@ BlisTreeNode::branch()
 		BlisConstraint *aCon = model->oldConstraints()[k];                
 		assert(aCon);
 		assert(aCon->getSize() > 0);
-		assert(aCon->getSize() < 100000);
+		assert(aCon->getSize() < numCols);
 		BlisConstraint *newCon = new BlisConstraint(*aCon);
 		tempCons[k] = newCon;
 	    }
@@ -1906,7 +1906,7 @@ BlisTreeNode::branch()
 	    
 		assert(aCon);
 		assert(aCon->getSize() > 0);
-		assert(aCon->getSize() < 1000);
+		assert(aCon->getSize() <= numCols);
 		BlisConstraint *newCon = new BlisConstraint(*aCon);
 		tempCons[k] = newCon;
 	    }
@@ -1923,7 +1923,7 @@ BlisTreeNode::branch()
 		BlisConstraint *aCon = model->oldConstraints()[k];                
 		assert(aCon);
 		assert(aCon->getSize() > 0);
-		assert(aCon->getSize() < 1000);
+		assert(aCon->getSize() <= numCols);
 		BlisConstraint *newCon = new BlisConstraint(*aCon);
 		tempCons[k] = newCon;
 	    }
