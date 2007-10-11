@@ -24,6 +24,13 @@
 
 //#############################################################################
 
+static int VrpRoundToNearest(double x) 
+{
+    return (int)(x + 0.5);
+}
+
+//#############################################################################
+
 /** For parallel code, only the master calls this function.
  *  1) Read in the instance data
  *  2) Set colMatrix_, varLB_, varUB_, conLB_, conUB
@@ -397,10 +404,12 @@ VrpModel::readInstance(const char* dataFile)
 	    if (nctype == 1) coordz_[node-1] = coord_z;
 	    if (wtype_ == _GEO){ /* GEO */
 	       /*--- latitude & longitude for node ------------*/
-	       deg = (int)(coordx_[node-1]);
+                //deg = (int)(coordx_[node-1]);
+                deg = VrpRoundToNearest(coordx_[node-1]);
 	       min = coordx_[node-1] - deg;
 	       coordx_[node-1] = MY_PI * (deg + 5.0*min/3.0 ) / 180.0;
-	       deg = floor(coordy_[node-1]);
+	       //deg = floor(coordy_[node-1]);
+               deg = VrpRoundToNearest(coordy_[node-1]);
 	       min = coordy_[node-1] - deg;
 	       coordy_[node-1] = MY_PI * (deg + 5.0*min/3.0 ) / 180.0;
 	    }
