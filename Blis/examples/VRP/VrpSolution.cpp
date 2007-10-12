@@ -66,59 +66,37 @@ VrpSolution::VrpSolution(int s, const double *values, double objValue,
       }
    }
 
-   /* Display the solution */
-   
+   /* Display the solution (tours). */
    if (msgLevel > 0) {
        std::cout << std::endl << "Solution Found:" << std::endl;
        std::cout << "Solution Cost: " << cost << std::endl;
-   }
-   
-   cur_vert = opt_[0].next;
-   
-   if (opt_[0].route == 1 && msgLevel > 0) {
-       std::cout << std::endl << "0 ";
-   }
-   
-   while (cur_vert != 0){
-      if (opt_[prev_vert].route != opt_[cur_vert].route){
-	  if (msgLevel > 0) {
-	      std::cout << std::endl << "Route #" << opt_[cur_vert].route << ": ";
-	  }
-	  count = 0;
-      }
-      if (msgLevel > 0) {
-	  std::cout << cur_vert << " ";
-      }
-      count++;
-      if (count > 15){
-	  if (msgLevel > 0) {
-	      std::cout << std::endl;
-	  }
-	 count = 0;
-      }
-      prev_vert = cur_vert;
-      cur_vert = opt_[cur_vert].next;
-   }
-   if (msgLevel > 0) {
-       std::cout << std::endl << std::endl;
+       print(std::cout);
    }
 }
 
 //#############################################################################
 
 void 
-VrpSolution::print(std::ostream& os) const {
-   
+VrpSolution::print(std::ostream& os) const 
+{   
    int cur_vert = opt_[0].next, prev_vert = 0, count = 0;
    
-   if (opt_[0].route == 1)
-      std::cout << std::endl << "0 ";
+   if (opt_[0].route == 1) {
+       //std::cout << std::endl << "0 ";
+       std::cout << std::endl << "1 ";  // TSP solution start with 1
+   }
+   
    while (cur_vert != 0){
       if (opt_[prev_vert].route != opt_[cur_vert].route){
-	 std::cout << std::endl << "Route #" << opt_[cur_vert].route << ": ";
-	 count = 0;
+          std::cout << std::endl << "Route #" << opt_[cur_vert].route << ": ";
+          count = 0;
       }
-      std::cout << cur_vert << " ";
+      if  (opt_[0].route == 1) {
+          std::cout << cur_vert+1 << " ";  // Stardard TSP solution
+      }
+      else {
+          std::cout << cur_vert << " ";    // VRP solution start with 0
+      }
       count++;
       if (count > 15){
 	 std::cout << std::endl;
@@ -128,21 +106,8 @@ VrpSolution::print(std::ostream& os) const {
       cur_vert = opt_[cur_vert].next;
    }
    std::cout << std::endl << std::endl;
-
-   
-#if 0
-   double nearInt = 0.0;
-   
-   for (int j = 0; j < size_; ++j) {
-      if (values_[j] > 1.0e-15 || values_[j] < -1.0e-15) {
-	 nearInt = floor(values_[j] + 0.5);
-	 if (ALPS_FABS(nearInt - values_[j]) < 1.0e-6) {
-	    os << "x[" << j << "] = " << nearInt << std::endl;
-	 }
-	 else {
-	    os << "x[" << j << "] = " << values_[j] << std::endl;
-	 }   
-      }
-   }
-#endif
 }
+
+//#############################################################################
+
+
