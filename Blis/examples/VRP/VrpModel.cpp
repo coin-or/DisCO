@@ -404,12 +404,13 @@ VrpModel::readInstance(const char* dataFile)
 	    if (nctype == 1) coordz_[node-1] = coord_z;
 	    if (wtype_ == _GEO){ /* GEO */
 	       /*--- latitude & longitude for node ------------*/
-                //deg = (int)(coordx_[node-1]);
-                deg = VrpRoundToNearest(coordx_[node-1]);
+                deg = (int)(coordx_[node-1]);
+                //deg = VrpRoundToNearest(coordx_[node-1]);
 	       min = coordx_[node-1] - deg;
 	       coordx_[node-1] = MY_PI * (deg + 5.0*min/3.0 ) / 180.0;
-	       //deg = floor(coordy_[node-1]);
-               deg = VrpRoundToNearest(coordy_[node-1]);
+	       deg = (int)(coordy_[node-1]);
+               //deg = floor(coordy_[node-1]);
+               //deg = VrpRoundToNearest(coordy_[node-1]);
 	       min = coordy_[node-1] - deg;
 	       coordy_[node-1] = MY_PI * (deg + 5.0*min/3.0 ) / 180.0;
 	    }
@@ -651,6 +652,7 @@ VrpModel::computeCost(int v0, int v1){
       q1 = cos( coordy_[v0] - coordy_[v1] );
       q2 = cos( coordx_[v0] - coordx_[v1] );
       q3 = cos( coordx_[v0] + coordx_[v1] );
+      //cost = VrpRoundToNearest(RRR*acos(0.5*((1.0+q1)*q2-(1.0-q1)*q3))+1.0);
       cost = (int) (RRR*acos(0.5*((1.0+q1)*q2-(1.0-q1)*q3))+1.0);
    }else{
       dx = coordx_[v0] - coordx_[v1];
