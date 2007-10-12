@@ -19,6 +19,8 @@ Blis/examples/VRP/VrpCommonTypes.h -text
 Blis/examples/VRP/VrpConstants.h -text
 Blis/examples/VRP/VrpCutGenerator.cpp -text
 Blis/examples/VRP/VrpCutGenerator.h -text
+Blis/examples/VRP/VrpHeurTSP.cpp -text
+Blis/examples/VRP/VrpHeurTSP.h -text
 Blis/examples/VRP/VrpMacros.h -text
 Blis/examples/VRP/VrpMain.cpp -text
 Blis/examples/VRP/VrpModel.cpp -text
