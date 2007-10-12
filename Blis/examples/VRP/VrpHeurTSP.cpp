@@ -12,8 +12,10 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
+#include <vector>
 #include "VrpHeurTSP.h"
 #include "VrpModel.h"
+#include "VrpVariable.h"
 
 //#############################################################################
 
@@ -35,10 +37,37 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 
 void VrpHeurTSP::findNearest(VrpModel * model)
 {
+    std::vector<VrpVariable *> edges = model->getEdgeList();
     
+    VrpVariable *var = NULL;
+    int beg, end, k = 0;
+    double cost;
 
-
+    int numVertices = model->getNumVertices();
+    int numEdges = edges.size();
     
+    assert(numEdges == model->getNumEdges());
+    
+    // Allocate memory for nearest_;
+    nearest_ = new int [numVertices];
+    weights_ = new double [numVertices]; 
+    CoinZeroN(nearest_, numVertices);
+    CoinFillN(weights_, numVertices, 1.0e20);
+    for (k = 0; k < numEdges; ++k) {
+        cost = var->getObjCoef();
+        beg = var->getv0();
+        end = var->getv1();
+        if (cost < weights_[beg]) {
+            weights_[beg] = cost;
+        }
+        if (cost < weights_[end]) {
+            weights_[end] = cost;
+        }
+    }
+
+    for (k = 0; k < numVertices; ++k) {
+        assert(weights_[k] < 1.0e19);
+    }
 }
 
 //#############################################################################

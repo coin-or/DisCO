@@ -159,6 +159,10 @@ public:
    
    int computeCost(int v0, int v1); 
    
+   int getNumVertices() { return vertnum_; }
+
+   int getNumEdges() { return edgenum_; }
+   
    std::vector<VrpVariable *> getEdgeList() { return edges_; }
 
    CoinPackedVector *getSolution();

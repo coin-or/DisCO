@@ -34,7 +34,8 @@ protected:
     
     /* Nearest neighbor of vertex. */
     int *nearest_;
-
+    double *weights_;
+    
     void findNearest(VrpModel * model);
     
 public:
@@ -46,10 +47,17 @@ public:
                BlisHeurStrategy strategy, int freq)
         :
         BlisHeuristic(model, name, strategy, freq) 
-    { findNearest(model); }
+    { 
+        findNearest(model);
+    }
         
     /** Destructor. */
-    ~VrpHeurTSP() {}
+    ~VrpHeurTSP() 
+    { 
+        delete [] determined_; 
+        delete [] nearest_;
+        delete [] weights_;
+    }
     
     /** Returns 0 if no solution, 1 if valid solution. newSolution stores
         the solution in dense format. */
