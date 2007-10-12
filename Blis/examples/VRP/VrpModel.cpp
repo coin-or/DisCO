@@ -291,12 +291,57 @@ VrpModel::readInstance(const char* dataFile)
 	       exit(1);
 	    }
 	    break;
-	  case 0 : /* UPPER_ROW */
-	  case 5 : /* LOWER_COL */
-	  case 2 : /* UPPER_DIAG_ROW */
-	  case 7 : /* LOWER_DIAG_COL */
+         case 0 : /* UPPER_ROW */
+         case 2 : /* UPPER_DIAG_ROW */ 
+         {
+             
+             // Deem not to be able solve large problem
+             int ** lowDiag = new int* [vertnum_];
+             for (i = 0; i < vertnum_; ++i) {
+                 lowDiag[i] = new int [vertnum_];
+             }
+             for (i = 0; i < vertnum_; i++){
+                 if (wformat == 2) {
+                     if (!fscanf(f,"%lf", &fdummy)){
+                         fprintf(stderr, "Not enough data -- DIMENSION or "
+                                 "EDGE_WEIGHT_TYPE declared wrong");
+                         exit(1);
+                     }
+                 }
+                 for (j= i + 1; j < vertnum_; j++){
+                     if (!fscanf(f,"%lf", &fdummy)){
+                         fprintf(stderr, "Not enough data -- DIMENSION or "
+                                 "EDGE_WEIGHT_TYPE declared wrong");
+                         exit(1);
+                     } else {
+                         // Create lower diag 
+                         lowDiag[j][i] = (int) fdummy;
+                     }
+                 }
+             }
+             if (fscanf(f,"%lf", &fdummy)){
+                 fprintf(stderr, "Too much data -- DIMENSION or "
+                         "EDGE_WEIGHT_TYPE declared wrong\n");
+                 exit(1);
+             }
+             // Create edges
+             for (i = 1, k = 0; i < vertnum_; i++){
+                 for (j = 0; j < i; j++){
+                     VrpVariable *aVar = new VrpVariable(i, j, lowDiag[i][j]);
+                     edges_.push_back(aVar);
+                 }
+             }
+             // Free lowDiag
+             for (i = 0; i < vertnum_; ++i) {
+                 delete [] lowDiag[i];
+             }
+             delete [] lowDiag;
+             break;
+         }
+         case 5 : /* LOWER_COL */
+         case 7 : /* LOWER_DIAG_COL */
 	    for (i = 0; i < vertnum_; i++){
-	       if (wformat==2 || wformat==7) 
+	       if (wformat==7) 
 		  if (!fscanf(f,"%lf", &fdummy)){
 		     fprintf(stderr, "Not enough data -- DIMENSION or "
 			     "EDGE_WEIGHT_TYPE declared wrong");
@@ -308,7 +353,7 @@ VrpModel::readInstance(const char* dataFile)
 			     "EDGE_WEIGHT_TYPE declared wrong");
 		     exit(1);
 		  } else {
-		     edges_.push_back(new VrpVariable(i, j, (int) fdummy));
+                          edges_.push_back(new VrpVariable(i, j, (int) fdummy));
 		  }
 	       }
 	    }
@@ -320,6 +365,23 @@ VrpModel::readInstance(const char* dataFile)
 	    break;
 	  case 8 : /* FULL_MATRIX */
 	    for (i = 0; i < vertnum_; i++){
+                for (j = 0; j < i; j++){
+                    if(!fscanf(f,"%lf", &fdummy)){
+                        fprintf(stderr, "Not enough data -- DIMENSION or "
+                                "EDGE_WEIGHT_TYPE declared wrong");
+                        exit(1);
+                    }
+                    edges_.push_back(new VrpVariable(i, j, (int) fdummy));
+                    //edges_[index(i, j)] = new VrpVariable(i, j, (int) fdummy);
+                }
+	       for (j = i; j < vertnum_; j++){
+                   if(!fscanf(f,"%lf", &fdummy)){
+                       fprintf(stderr, "Not enough data -- DIMENSION or "
+                               "EDGE_WEIGHT_TYPE declared wrong");
+                       exit(1);
+                   }
+               }
+#if 0 // BUG: can read upper diag
 	       for (j = 0; j <= i; j++)
 		  if(!fscanf(f,"%lf", &fdummy)){
 		     fprintf(stderr, "Not enough data -- DIMENSION or "
@@ -335,6 +397,8 @@ VrpModel::readInstance(const char* dataFile)
 		  edges_.push_back(new VrpVariable(i, j, (int) fdummy));
 		  //edges_[index(i, j)] = new VrpVariable(i, j, (int) fdummy);
 	       }
+#endif
+
 	    }
 	    if (fscanf(f,"%lf", &fdummy)){
 	       fprintf(stderr, "Too much data -- DIMENSION or "
