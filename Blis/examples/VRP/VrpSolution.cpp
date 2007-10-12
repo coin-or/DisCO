@@ -105,7 +105,7 @@ VrpSolution::print(std::ostream& os) const
       prev_vert = cur_vert;
       cur_vert = opt_[cur_vert].next;
    }
-   std::cout << std::endl << std::endl;
+   std::cout << std::endl;
 }
 
 //#############################################################################
