@@ -305,7 +305,8 @@ EXTRA_DIST = examples/BlisMain.cpp examples/blis.par \
 	examples/VRP/Makefile.in examples/VRP/README \
 	examples/VRP/VrpCommonTypes.h examples/VRP/VrpConstants.h \
 	examples/VRP/VrpCutGenerator.cpp \
-	examples/VRP/VrpCutGenerator.h examples/VRP/VrpMain.cpp \
+	examples/VRP/VrpCutGenerator.h examples/VRP/VrpHeurTSP.cpp \
+	examples/VRP/VrpHeurTSP.h examples/VRP/VrpMain.cpp \
 	examples/VRP/VrpModel.cpp examples/VRP/VrpModel.h \
 	examples/VRP/VrpNetwork.cpp examples/VRP/VrpNetwork.h \
 	examples/VRP/VrpParams.cpp examples/VRP/VrpParams.h \

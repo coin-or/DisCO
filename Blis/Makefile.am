@@ -66,6 +66,8 @@ EXTRA_DIST = \
 	examples/VRP/VrpConstants.h \
 	examples/VRP/VrpCutGenerator.cpp \
 	examples/VRP/VrpCutGenerator.h \
+	examples/VRP/VrpHeurTSP.cpp \
+	examples/VRP/VrpHeurTSP.h \
 	examples/VRP/VrpMain.cpp \
 	examples/VRP/VrpModel.cpp \
 	examples/VRP/VrpModel.h \
