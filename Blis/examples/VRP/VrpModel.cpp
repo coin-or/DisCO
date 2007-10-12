@@ -639,10 +639,10 @@ VrpModel::getSolution()
    assert(varnum == edgenum_);
 
    for (i = 0; i < varnum; i++){
-      if (sol[i] > etol || sol[i] < -etol){
-	 indices[cnt] = vars[i]->getIndex();
-	 values[cnt++] = sol[i];
-      }
+       if (sol[i] > etol || sol[i] < -etol){ // Store nonzero
+           indices[cnt] = vars[i]->getIndex();
+           values[cnt++] = sol[i];
+       }
    }
 
    return(new CoinPackedVector(varnum, cnt, indices, values, false));

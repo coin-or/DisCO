@@ -81,6 +81,8 @@ BlisHeurRound::searchSolution(double & solutionValue, double * betterSolution)
         return foundBetter;
     }
 
+    //std::cout << "HERE!!" << std::endl;
+    
     //------------------------------------------------------
     // Start to search solution ...
     //------------------------------------------------------
