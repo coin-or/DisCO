@@ -28,6 +28,7 @@ EXE = vrp@EXEEXT@
 OBJS =  VrpMain.@OBJEXT@ \
 	VrpCutGenerator.@OBJEXT@ \
 	VrpParams.@OBJEXT@ \
+	VrpHeurTSP.@OBJEXT@ \
 	VrpModel.@OBJEXT@ \
 	VrpNetwork.@OBJEXT@ \
 	VrpSolution.@OBJEXT@ 
