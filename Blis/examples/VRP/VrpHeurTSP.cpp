@@ -28,12 +28,12 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 
 
     
-    
+    return feasible;
 }
 
 //#############################################################################
 
-void VrpHeurTSP::findNearest()
+void VrpHeurTSP::findNearest(VrpModel * model)
 {
     
 

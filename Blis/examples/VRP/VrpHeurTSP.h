@@ -18,8 +18,7 @@
 //#############################################################################
 
 #include "BlisHeuristic.h"
-
-class VrpModel;
+#include "VrpModel.h"
 
 //#############################################################################
 
@@ -35,6 +34,8 @@ protected:
     
     /* Nearest neighbor of vertex. */
     int *nearest_;
+
+    void findNearest(VrpModel * model);
     
 public:
     /** Default Constructor. */
@@ -49,8 +50,6 @@ public:
         
     /** Destructor. */
     ~VrpHeurTSP() {}
-    
-    void findNearest();
     
     /** Returns 0 if no solution, 1 if valid solution. newSolution stores
         the solution in dense format. */

@@ -36,6 +36,8 @@
 #include "CoinPackedMatrix.hpp"
 #include "OsiCuts.hpp"
 
+#include "Blis.h"
+
 class BlisModel;
 
 
