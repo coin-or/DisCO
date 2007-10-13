@@ -26,8 +26,9 @@ bool
 VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 {
     bool feasible = false;
-    
 
+    const double * sol = model_->getLpSolution();
+    
 
     
     return feasible;
@@ -48,7 +49,7 @@ void VrpHeurTSP::findNearest(VrpModel * model)
     
     assert(numEdges == model->getNumEdges());
     
-    // Allocate memory for nearest_;
+    // Allocate memory for nearest_ and weights_;
     nearest_ = new int [numVertices];
     weights_ = new double [numVertices]; 
     CoinZeroN(nearest_, numVertices);
