@@ -17,8 +17,30 @@
 
 //#############################################################################
 
+#include <vector>
+
+#include "CoinPackedVector.hpp"
+
 #include "BlisHeuristic.h"
 #include "VrpModel.h"
+
+//#############################################################################
+#if 0
+class VrpAdjList 
+{
+private:
+    std::vector<CoinPackedVector *> list_;
+    VrpModel *model_;
+public:
+    VrpAdjList() {}
+    VrpAdjList(VrpModel *m) { 
+	model_ = m; 
+	createAdjList(m);
+    }
+    
+    void createAdjList(VrpModel *model);
+};
+#endif
 
 //#############################################################################
 
@@ -30,14 +52,14 @@ private:
 protected:
     /* Stored the predetermined next vertex to visit for vertex k if 
        the value determined_[k] greater than zero. */
-    int *determined_;
+    //int *determined_;
     
-    /* Nearest neighbor of vertex. */
-    int *nearest_;
-    double *weights_;
-    
-    void findNearest(VrpModel * model);
-    
+    /* Adjacent list of all vertices. */
+    std::vector<CoinPackedVector *> adjList_;
+
+    /** Create adjacent list for each vertex. */
+    void createAdjList(VrpModel *model);
+
 public:
     /** Default Constructor. */
     VrpHeurTSP() {}
@@ -48,15 +70,13 @@ public:
         :
         BlisHeuristic(model, name, strategy, freq) 
     { 
-        findNearest(model);
+        createAdjList(model);
     }
-        
+
     /** Destructor. */
     ~VrpHeurTSP() 
     { 
-        delete [] determined_; 
-        delete [] nearest_;
-        delete [] weights_;
+        //delete [] determined_; 
     }
     
     /** Returns 0 if no solution, 1 if valid solution. newSolution stores

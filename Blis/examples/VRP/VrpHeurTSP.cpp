@@ -36,6 +36,17 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 
 //#############################################################################
 
+void
+VrpHeurTSP::createAdjList(VrpModel *model) 
+{
+    std::vector<VrpVariable *> edges = model->getEdgeList();
+    int numVertices = model->getNumVertices();
+    int numEdges = edges.size();
+    
+}
+
+//#############################################################################
+#if 0
 void VrpHeurTSP::findNearest(VrpModel * model)
 {
     std::vector<VrpVariable *> edges = model->getEdgeList();
@@ -70,5 +81,6 @@ void VrpHeurTSP::findNearest(VrpModel * model)
         assert(weights_[k] < 1.0e19);
     }
 }
+#endif
 
 //#############################################################################

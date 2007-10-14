@@ -25,7 +25,7 @@ VrpSolution::VrpSolution(int s, const double *values, double objValue,
    int msgLevel = vrp->AlpsPar()->entry(AlpsParams::msgLevel);
 
    opt_ = new _node[vrp->vertnum_];
-   int cur_vert = 0, prev_vert = 0, cur_route, count = 0;
+   int cur_vert = 0, prev_vert = 0, cur_route;
    elist *cur_route_start = NULL;
    edge *edge_data;
    vertex *verts = vrp->n_->verts_;
@@ -83,7 +83,8 @@ VrpSolution::print(std::ostream& os) const
    
    if (opt_[0].route == 1) {
        //std::cout << std::endl << "0 ";
-       std::cout << std::endl << "1 ";  // TSP solution start with 1
+       std::cout << "Tour is" << std::endl;
+       std::cout << "1 ";  // TSP solution start with 1
    }
    
    while (cur_vert != 0){

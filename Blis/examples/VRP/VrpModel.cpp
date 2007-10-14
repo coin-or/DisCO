@@ -18,6 +18,7 @@
 #include "BlisTreeNode.h"
 
 #include "VrpConstants.h"
+#include "VrpHeurTSP.h"
 #include "VrpModel.h"
 #include "VrpSolution.h"
 #include "VrpVariable.h"
@@ -614,12 +615,19 @@ VrpModel::readInstance(const char* dataFile)
    // Allocate space for network for later use
    n_ = new VrpNetwork(edgenum_, vertnum_);
 
+   // Add VRP cut generator
    VrpCutGenerator *cg = new VrpCutGenerator(this, vertnum_);
-
    cg->setStrategy(BlisCutStrategyPeriodic);
    cg->setCutGenerationFreq(1);
-
    addCutGenerator(cg);
+
+   // Add TSP heuristic
+   if (numroutes_ == 1) {  // TSP
+       VrpHeurTSP *heurTSP = new VrpHeurTSP(this, 
+					    "Nearest Neighbor",
+					    BlisHeurStrategyPeriodic, 1);
+       addHeuristic(heurTSP);
+   }
 }
 
 //#############################################################################
