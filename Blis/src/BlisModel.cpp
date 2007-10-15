@@ -1119,10 +1119,10 @@ BlisModel::storeSolution(BlisSolutionType how, BlisSolution* sol)
                   << ", new cutoff = " << getCutoff()  << std::endl;
 #endif
         break;
-    case BlisSolutionTypeRounding:
+    case BlisSolutionTypeHeuristic:
         ++numHeurSolutions_;
 #ifdef BLIS_DEBUG
-        std::cout << "Rounding heuristics found a better solution" 
+        std::cout << "Heuristics found a better solution" 
                   <<", old cutoff = " << cutoff 
                   << ", new cutoff = " << getCutoff()  << std::endl;
 #endif
@@ -1374,6 +1374,107 @@ BlisModel::gutsOfDestructor()
 //#############################################################################
 
 BlisSolution *
+BlisModel::feasibleSolutionHeur(const double *solution) 
+{
+    int j, ind;
+    
+    bool feasible = true;
+    bool userFeasible = true;
+    
+    double tol = 1.0e-6;
+    double value, nearest, objValue = 0.0;
+    double *rowAct = NULL;
+    
+    BlisSolution *blisSol = NULL;
+    
+    // Check if within column bounds
+    for (j = 0; j < numCols_; ++j) {
+        value = solution[j];
+        if (varLB_[j] > -ALPS_INFINITY) {
+            if (value < varLB_[j] - tol) {
+                feasible = false;
+                goto TERM_FEAS_HEUR;
+            }
+        }
+        if (varUB_[j] < ALPS_INFINITY) {
+            if (value > varUB_[j] + tol) {
+                feasible = false;
+                goto TERM_FEAS_HEUR;
+            }
+        }
+        objValue += value * objCoef_[j];
+    }
+    
+    if (broker_->getMsgLevel() > 200) {
+        std::cout << "FEASIBLE HEUR: numCols = " << numCols_
+                  << " ; pass column bound check." << std::endl;
+    }
+   
+    // Check if integeral
+    for (j = 0; j < numIntObjects_; ++j) {
+        ind = intColIndices_[j];
+        value = solution[ind];
+        //std::cout << "ind = " << ind << " ; value = " << value << std::endl;
+        
+        nearest = static_cast<int>(value + 0.5);
+        if (fabs(value - nearest) > integerTol_) {
+            feasible = false;
+            goto TERM_FEAS_HEUR;
+        }
+    }
+
+    if (broker_->getMsgLevel() > 200) {
+        std::cout << "FEASIBLE HEUR: numInts = " << numIntObjects_
+                  << " ; pass integral check." << std::endl;
+    }
+
+    // Check if within row bounds
+    rowAct = new double [numRows_];
+    colMatrix_->times(solution, rowAct);
+    for (j = 0; j < numRows_; ++j) {
+        value = rowAct[j];
+        if (conLB_[j] > -ALPS_INFINITY) {
+            if (value < conLB_[j] - tol) {
+                feasible = false;
+                goto TERM_FEAS_HEUR;
+            }
+        }
+        if (conUB_[j] < ALPS_INFINITY) {
+            if (value > conUB_[j] + tol) {
+                feasible = false;
+                goto TERM_FEAS_HEUR;
+            }
+        }
+    }
+
+    if (broker_->getMsgLevel() > 200) {
+        std::cout << "FEASIBLE HEUR: numRows = " << numRows_
+                  << " ; pass row bounds check." << std::endl;
+    }
+
+TERM_FEAS_HEUR:
+
+    // Check if satisfy user criteria
+    if (feasible) {
+        blisSol = userFeasibleSolution(solution, userFeasible);
+	if (!blisSol && userFeasible) {
+	    // User doesn't provide feasibility check.
+	    numBranchResolve_ = 10;
+	}
+    }
+
+    if (feasible && userFeasible && !blisSol) {
+        // User doesn't overload feasible solution function.
+        blisSol = new BlisSolution(getNumCols(), solution, objValue);
+    }
+    
+    if (rowAct) delete rowAct;
+    return blisSol;
+}
+
+//#############################################################################
+
+BlisSolution *
 BlisModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
 {
     int preferredWay, j;
@@ -1413,7 +1514,7 @@ BlisModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
     }
 
     if (!numUnsatisfied) {
-        sol = userFeasibleSolution(userFeasible);
+        sol = userFeasibleSolution(getLpSolution(), userFeasible);
 	if (!sol && userFeasible) {
 	    // User doesn't provide feasibility check.
 	    numBranchResolve_ = 10;

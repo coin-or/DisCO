@@ -633,27 +633,26 @@ VrpModel::readInstance(const char* dataFile)
 //#############################################################################
 
 CoinPackedVector * 
-VrpModel::getSolution()
+VrpModel::getSolution(const double *sol)
 {
-   // Can get LP solution information from solver;
-   int varnum = solver()->getNumCols();
-   const double *sol = solver()->getColSolution();
-   std::vector<VrpVariable *>vars = getEdgeList();
-   double etol = etol_;
-   int *indices = new int[varnum];
-   double *values = new double[varnum]; /* n */
-   int i, cnt = 0;
-
-   assert(varnum == edgenum_);
-
-   for (i = 0; i < varnum; i++){
-       if (sol[i] > etol || sol[i] < -etol){ // Store nonzero
-           indices[cnt] = vars[i]->getIndex();
-           values[cnt++] = sol[i];
-       }
-   }
-
-   return(new CoinPackedVector(varnum, cnt, indices, values, false));
+    // Transform to sparse vector from dense array.
+    int varnum = solver()->getNumCols();
+    std::vector<VrpVariable *>vars = getEdgeList();
+    double etol = etol_;
+    int *indices = new int[varnum];
+    double *values = new double[varnum]; /* n */
+    int i, cnt = 0;
+    
+    assert(varnum == edgenum_);
+    
+    for (i = 0; i < varnum; i++){
+        if (sol[i] > etol || sol[i] < -etol){ // Store nonzero
+            indices[cnt] = vars[i]->getIndex();
+            values[cnt++] = sol[i];
+        }
+    }
+    
+    return(new CoinPackedVector(varnum, cnt, indices, values, false));
 }
 
 //#############################################################################
@@ -666,16 +665,16 @@ void VrpModel::createNet(CoinPackedVector *vec)
 //#############################################################################
 
 BlisSolution * 
-VrpModel::userFeasibleSolution(bool &userFeasible)
+VrpModel::userFeasibleSolution(const double *solution, bool &userFeasible)
 {
-    CoinPackedVector *sol = getSolution();
+    CoinPackedVector *sol = getSolution(solution);
     VrpSolution *vrpSol = NULL;
 
     int msgLevel = AlpsPar_->entry(AlpsParams::msgLevel);
     userFeasible = true;
 
     createNet(sol);
-
+    
     if (!n_->isIntegral_){
 	if (msgLevel > 200) {
 	    std::cout << "UserFeasible: not integral" << std::endl;
@@ -706,15 +705,15 @@ VrpModel::userFeasibleSolution(bool &userFeasible)
     if (userFeasible) {
         // Create a VRP solution
         vrpSol = new VrpSolution(getNumCols(),
-                                 getLpSolution(),
+                                 solution,
                                  getLpObjValue() * objSense_,
 				 this);
-
+        
         // TODO: add tour
     }
 
-    delete sol;    
-
+    delete sol;
+    
     return vrpSol;
 }
 

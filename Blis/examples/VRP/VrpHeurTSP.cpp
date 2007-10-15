@@ -108,9 +108,16 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 
     // Transfer the tour into a solution
     int beg, end;
+    int tourLenAddOne = tourLen + 1;
     currV = tour_[0];
-    for (k = 1; k < tourLen; ++k) {
-	nextV = tour_[k];
+    for (k = 1; k < tourLenAddOne; ++k) {
+        if (k < tourLen) {
+            nextV = tour_[k];
+        }
+        else {  // edge {currV, tour_[0]}
+            nextV = tour_[0];
+        }
+        
 	// Edge is stored in the way that beginning vertex index is 
 	// greater than the end vertex index.
 	if (currV > nextV) {

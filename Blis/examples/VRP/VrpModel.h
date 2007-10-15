@@ -144,14 +144,15 @@ public:
    virtual void readParameters(const int argnum, const char * const *arglist);
    
    /** User's criteria for a feasible solution. 
-    *  If user think the solution is feasible then need
+    *  If user think the given solution is feasible then need
     *     1) set userFeasible to true, and
     *     2) return a non-null VRP solution.
     *  If user think the solution is infeasible then need
     *     1) set userFeasible to false, and
     *     2) return a null.
     */
-   virtual BlisSolution * userFeasibleSolution(bool &userFeasible);
+   virtual BlisSolution * userFeasibleSolution(const double *solution,
+                                               bool &userFeasible);
    
    int index (int v0, int v1) {
       return(v0 < v1 ? v1*(v1 - 1)/2 + v0 : v0*(v0 - 1)/2 + v1);
@@ -165,7 +166,8 @@ public:
    
    std::vector<VrpVariable *> getEdgeList() { return edges_; }
 
-   CoinPackedVector *getSolution();
+   // Transform dense solution to a sparse vector.
+   CoinPackedVector *getSolution(const double *denseSol);
 
    void createNet(CoinPackedVector *vec);
 

@@ -108,7 +108,7 @@ enum BlisSolutionType {
     BlisSolutionTypeBounding,
     BlisSolutionTypeBranching,
     BlisSolutionTypeDiving,
-    BlisSolutionTypeRounding,
+    BlisSolutionTypeHeuristic,
     BlisSolutionTypeStrong
 };
 

@@ -680,7 +680,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                     model->heuristics(k)->addCalls(1);
 
                     if (foundSolution) {
-                        ipSol = model->feasibleSolution(numIntInfs,numObjInfs);
+                        // Check if solution from heuristic is feasible.
+                        ipSol = model->feasibleSolutionHeur(heurSolution);
                     }
                     
                     if (ipSol) {
@@ -688,7 +689,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                         int noSols = model->heuristics(k)->noSolCalls();
                         model->heuristics(k)->addNoSolCalls(-noSols);
 
-                        model->storeSolution(BlisSolutionTypeRounding, ipSol);
+                        model->storeSolution(BlisSolutionTypeHeuristic, ipSol);
                         cutoff = model->getCutoff();
                         if (quality_ > cutoff) {
                             setStatus(AlpsNodeStatusFathomed);

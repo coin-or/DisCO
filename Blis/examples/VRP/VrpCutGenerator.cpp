@@ -69,7 +69,10 @@ VrpCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
    int type, rhs, capacity = model_->capacity_;
    VrpNetwork *n = model_->n_;
 
-   CoinPackedVector *sol = model_->getSolution();
+   // Get dense solution
+   const double *denseSol = model_->getLpSolution();
+   // Transform it to a sparse vector.
+   CoinPackedVector *sol = model_->getSolution(denseSol);
    model_->createNet(sol);
    
    if (n->isIntegral_){
