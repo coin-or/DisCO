@@ -1080,6 +1080,8 @@ BlisModel::storeSolution(BlisSolutionType how, BlisSolution* sol)
 {
     double quality = sol->getQuality();
 
+    double cutoff = getCutoff();
+    
     // Update cutoff and lp cutoff.
     setCutoff(quality);
 
@@ -1121,11 +1123,11 @@ BlisModel::storeSolution(BlisSolutionType how, BlisSolution* sol)
         break;
     case BlisSolutionTypeHeuristic:
         ++numHeurSolutions_;
-#ifdef BLIS_DEBUG
-        std::cout << "Heuristics found a better solution" 
-                  <<", old cutoff = " << cutoff 
-                  << ", new cutoff = " << getCutoff()  << std::endl;
-#endif
+        if (broker_->getMsgLevel() > 200) {
+            std::cout << "Heuristics found a better solution" 
+                      <<", old cutoff = " << cutoff 
+                      << ", new cutoff = " << getCutoff()  << std::endl;
+        }
         break;
     case BlisSolutionTypeStrong:
 #ifdef BLIS_DEBUG
@@ -1457,6 +1459,11 @@ TERM_FEAS_HEUR:
     // Check if satisfy user criteria
     if (feasible) {
         blisSol = userFeasibleSolution(solution, userFeasible);
+
+        if (broker_->getMsgLevel() > 200 && blisSol && userFeasible) {
+            std::cout << "FEASIBLE HEUR: pass user feasibility check." << std::endl;
+        }
+
 	if (!blisSol && userFeasible) {
 	    // User doesn't provide feasibility check.
 	    numBranchResolve_ = 10;
@@ -1515,6 +1522,9 @@ BlisModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
 
     if (!numUnsatisfied) {
         sol = userFeasibleSolution(getLpSolution(), userFeasible);
+        if (broker_->getMsgLevel() > 200 && blisSol && userFeasible) {
+            std::cout << "FEASIBLE HEUR: pass user feasibility check." << std::endl;
+        }
 	if (!sol && userFeasible) {
 	    // User doesn't provide feasibility check.
 	    numBranchResolve_ = 10;

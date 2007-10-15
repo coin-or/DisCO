@@ -667,13 +667,14 @@ void VrpModel::createNet(CoinPackedVector *vec)
 BlisSolution * 
 VrpModel::userFeasibleSolution(const double *solution, bool &userFeasible)
 {
-    CoinPackedVector *sol = getSolution(solution);
+    double objValue = 0.0;
+    CoinPackedVector *solVec = getSolution(solution);
     VrpSolution *vrpSol = NULL;
 
     int msgLevel = AlpsPar_->entry(AlpsParams::msgLevel);
     userFeasible = true;
 
-    createNet(sol);
+    createNet(solVec);
     
     if (!n_->isIntegral_){
 	if (msgLevel > 200) {
@@ -703,16 +704,22 @@ VrpModel::userFeasibleSolution(const double *solution, bool &userFeasible)
     }
     
     if (userFeasible) {
+        // Compute obj value
+        for (int k = 0; k < numCols_; ++k) {
+            objValue += objCoef_[k] * solution[k];
+        }
+        
         // Create a VRP solution
         vrpSol = new VrpSolution(getNumCols(),
                                  solution,
-                                 getLpObjValue() * objSense_,
+                                 objValue,
 				 this);
         
         // TODO: add tour
     }
 
-    delete sol;
+    // Free memory.
+    delete solVec;
     
     return vrpSol;
 }

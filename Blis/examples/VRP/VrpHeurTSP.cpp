@@ -35,10 +35,11 @@
 bool
 VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 {
-    bool feasible = false;
-#if 0
+    bool foundSolution = true;
+
     int j, k, len, tourLen;
     int currV, nextV;
+    int count = 0;
     
     CoinPackedVector * vList = NULL;
     VrpVariable * aVar = NULL;
@@ -52,6 +53,10 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
     int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
 
     double upperBound = model->getKnowledgeBroker()->getIncumbentValue();
+
+    objectiveValue  = 0.0;
+    const double *objCoef = model->getObjCoef();
+    
     memset(newSolution, 0, numEdges * sizeof(double));
     //const double * solution = model_->getLpSolution();
     //memcpy(newSolution, solution, numEdges * sizeof(double));
@@ -93,22 +98,10 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 	tourLen = tour_.size();
     }
     
-    if (msgLevel > 0) {
-	int count = 0;
-	std::cout << "Found a tour : len = " << tourLen << std::endl;
-	for (k = 0; k < tourLen; ++k) {
-	    std::cout << tour_[k] << " ";
-	    ++count;
-	    if (count % 15 == 0) {
-		std::cout << std::endl;
-	    }
-	}
-	std::cout << std::endl;
-    }
-
     // Transfer the tour into a solution
     int beg, end;
     int tourLenAddOne = tourLen + 1;
+    count = 0;
     currV = tour_[0];
     for (k = 1; k < tourLenAddOne; ++k) {
         if (k < tourLen) {
@@ -120,7 +113,7 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
         
 	// Edge is stored in the way that beginning vertex index is 
 	// greater than the end vertex index.
-	if (currV > nextV) {
+	if (currV < nextV) {
 	    beg = currV;
 	    end = nextV;
 	}
@@ -134,17 +127,37 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 	    aVar = edges[j];
 	    if (aVar->getv0() == beg) {
 		if (aVar->getv1() == end) {
+                    ++count;
 		    newSolution[j] = 1.0;
+                    objectiveValue += objCoef[j];
+                    if (objectiveValue >= upperBound) {
+                        foundSolution = false;
+                        break;
+                    }
 		}
 	    }
 	}
 	currV = nextV;
     }
     
-    feasible = true;
-#endif
+    if (msgLevel > 200 && foundSolution) {
+        std::cout << "count = " << count << std::endl;
+	std::cout << "Found a better tour : len = " << tourLen 
+                  << " ; cost = " << objectiveValue << std::endl;
+        assert(count == tourLen);
 
-    return feasible;
+	count = 0;
+	for (k = 0; k < tourLen; ++k) {
+	    std::cout << tour_[k]+1 << " ";
+	    ++count;
+	    if (count % 15 == 0) {
+		std::cout << std::endl;
+	    }
+	}
+	std::cout << std::endl;
+    }
+    
+    return foundSolution;
 }
 
 //#############################################################################
@@ -190,14 +203,14 @@ VrpHeurTSP::createAdjList(VrpModel *model)
     // Sort the adjacent list of each vertex incremently
     // based on weights.
     for (k = 0; k < numVertices; ++k) {
-	adjList_[k]->sortIncrElement();\
+	adjList_[k]->sortIncrElement();
 	if (msgLevel > 300) {
 	    std::cout << "vertex " << k << " : size " 
 		      << adjList_[k]->getNumElements() << std::endl;
 	}
     }
     
-    if (msgLevel > 0) {
+    if (msgLevel > 200) {
 	// Creating adjlist takes the half time of solving a LP.
 	std::cout << "createAdjList took " << timer.getCpuTime() 
 		  << " seconds." << std::endl;
