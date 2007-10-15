@@ -1407,7 +1407,10 @@ BlisModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
 
     numObjectInfs = numUnsatisfied - numIntegerInfs;
 
-    //printf("numUnsatisfied = %d\n",numUnsatisfied);
+    if (broker_->getMsgLevel() > 200) {
+	std::cout << "FEASIBLE SOL: numUnsatisfied = " 
+		  << numUnsatisfied << std::endl;
+    }
 
     if (!numUnsatisfied) {
         sol = userFeasibleSolution(userFeasible);
