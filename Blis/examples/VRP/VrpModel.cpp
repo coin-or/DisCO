@@ -624,7 +624,7 @@ VrpModel::readInstance(const char* dataFile)
    // Add TSP heuristic
    if (numroutes_ == 1) {  // TSP
        VrpHeurTSP *heurTSP = new VrpHeurTSP(this, 
-					    "Nearest Neighbor",
+					    "TSP",
 					    BlisHeurStrategyPeriodic, 1);
        addHeuristic(heurTSP);
    }
@@ -671,11 +671,15 @@ VrpModel::userFeasibleSolution(bool &userFeasible)
     CoinPackedVector *sol = getSolution();
     VrpSolution *vrpSol = NULL;
 
+    int msgLevel = AlpsPar_->entry(AlpsParams::msgLevel);
     userFeasible = true;
 
     createNet(sol);
 
     if (!n_->isIntegral_){
+	if (msgLevel > 200) {
+	    std::cout << "UserFeasible: not integral" << std::endl;
+	}
         userFeasible = false;
     }
     else {
@@ -684,10 +688,16 @@ VrpModel::userFeasibleSolution(bool &userFeasible)
         for (i = 0; i < rcnt; i++){
             if (n_->compCuts_[i+1] < 2 - etol_){
                 userFeasible = false;
+		if (msgLevel > 200) {
+		    std::cout << "UserFeasible: not 2" << std::endl;
+		}
                 break;
             }
             else if (n_->compDemands_[i+1] > capacity_){
                 userFeasible = false;
+		if (msgLevel > 200) {
+		    std::cout << "UserFeasible: greater than capacity" << std::endl;
+		}
                 break;
             }
         }

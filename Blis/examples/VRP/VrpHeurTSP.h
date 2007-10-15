@@ -60,23 +60,36 @@ protected:
     /** Create adjacent list for each vertex. */
     void createAdjList(VrpModel *model);
 
+    /** TSP Tour */
+    std::vector<int> tour_;
+    
+    /** Mark if vertices have been visited. */
+    bool *visited_;
+
 public:
     /** Default Constructor. */
-    VrpHeurTSP() {}
+    VrpHeurTSP(): visited_(0) {}
     
     /** Constructor with model. */
     VrpHeurTSP(VrpModel * model, const char *name,
                BlisHeurStrategy strategy, int freq)
         :
-        BlisHeuristic(model, name, strategy, freq) 
+        BlisHeuristic(model, name, strategy, freq)
     { 
+	visited_ = NULL;
         createAdjList(model);
     }
 
     /** Destructor. */
     ~VrpHeurTSP() 
     { 
-        //delete [] determined_; 
+	if (visited_) {
+	    delete [] visited_;
+	}
+	int numVertices = adjList_.size();
+	for (int k = 0; k < numVertices; ++k) {
+	    delete adjList_[k];
+	}
     }
     
     /** Returns 0 if no solution, 1 if valid solution. newSolution stores
