@@ -1522,7 +1522,7 @@ BlisModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
 
     if (!numUnsatisfied) {
         sol = userFeasibleSolution(getLpSolution(), userFeasible);
-        if (broker_->getMsgLevel() > 200 && blisSol && userFeasible) {
+        if (broker_->getMsgLevel() > 200 && sol && userFeasible) {
             std::cout << "FEASIBLE HEUR: pass user feasibility check." << std::endl;
         }
 	if (!sol && userFeasible) {
