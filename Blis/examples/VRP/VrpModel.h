@@ -107,16 +107,21 @@ public:
       BlisPar()->setEntry(BlisParams::cutPass, ALPS_INT_MAX);
       BlisPar()->setEntry(BlisParams::tailOff, -1000.0);
       BlisPar()->setEntry(BlisParams::denseConFactor, ALPS_DBL_MAX);
+
+      // Seed
+      CoinSeedRandom(1234567);
    }
    
+#if 0
    VrpModel(const char* dataFile) : etol_(1e-5){
-      VrpPar_ = new VrpParams;
-      readInstance(dataFile);
-      VrpCutGenerator *cg = new VrpCutGenerator(this, vertnum_);
-      cg->setStrategy(BlisCutStrategyPeriodic);
-      addCutGenerator(cg);
+       VrpPar_ = new VrpParams;
+       readInstance(dataFile);
+       VrpCutGenerator *cg = new VrpCutGenerator(this, vertnum_);
+       cg->setStrategy(BlisCutStrategyPeriodic);
+       addCutGenerator(cg);
    }
-   
+#endif   
+
    /** Destructor. */
    virtual ~VrpModel() {
       delete [] demand_; demand_ = 0;

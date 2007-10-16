@@ -40,6 +40,13 @@ public:
     
     void createAdjList(VrpModel *model);
 };
+
+typedef struct vrp_neighbors 
+{
+    int n1;
+    int n2;
+} VrpNeighbors;
+
 #endif
 
 //#############################################################################
@@ -66,11 +73,16 @@ protected:
     /** Mark if vertices have been visited. */
     bool *visited_;
 
+    /** The node at which this heuristic was call*/
     int preNode_;
 
+    /** Neighbors determined from LP solution */
+    //VrpNeighbor *
+    int *neighbors_;
+ 
 public:
     /** Default Constructor. */
-    VrpHeurTSP(): visited_(0), preNode_(-1) {}
+    VrpHeurTSP(): visited_(0), preNode_(-1), neighbors_(0) {}
     
     /** Constructor with model. */
     VrpHeurTSP(VrpModel * model, const char *name,
@@ -80,19 +92,19 @@ public:
     { 
 	visited_ = NULL;
 	preNode_ = -1;
+	neighbors_ = NULL;
         createAdjList(model);
     }
 
     /** Destructor. */
     ~VrpHeurTSP() 
     { 
-	if (visited_) {
-	    delete [] visited_;
-	}
+	if (visited_) delete [] visited_;
 	int numVertices = adjList_.size();
 	for (int k = 0; k < numVertices; ++k) {
 	    delete adjList_[k];
 	}
+	if (neighbors_) delete [] neighbors_;
     }
     
     /** Returns 0 if no solution, 1 if valid solution. newSolution stores

@@ -35,6 +35,7 @@
 bool
 VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 {
+#if 1
     bool foundSolution = true;
     
     int j, k, len, tourLen;
@@ -57,12 +58,15 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 
     objectiveValue  = 0.0;
     const double *objCoef = model->getObjCoef();
-
+    double *lpSolution = NULL;
+    
     //------------------------------------------------------
     // Determine if call heuristic
     //------------------------------------------------------
 
-    if (numNodes > 10 || preNode_ == numNodes) {
+    if ( ((numNodes > 10) && (numNodes % 10 != 0)) 
+	 || preNode_ == numNodes) {
+	// Just call one time at a node
 	return false;
     }
     
@@ -73,9 +77,34 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
     preNode_ = numNodes;
     
     memset(newSolution, 0, numEdges * sizeof(double));
-    //const double * solution = model_->getLpSolution();
-    //memcpy(newSolution, solution, numEdges * sizeof(double));
 
+    if (strategy_ == BlisHeurStrategyPeriodic) {
+	lpSolution = const_cast<double *>(model_->getLpSolution());
+	if (!neighbors_) {
+	    neighbors_ = new int [numVertices];
+	}
+	for (k = 0; k < numVertices; ++k) {
+	    neighbors_[k] = -1;
+	}
+	for (k = 0; k < numEdges; ++k) {
+	    if (lpSolution[k] > 0.9) {
+		double sh1 = CoinDrand48();
+		double sh2 = CoinDrand48();
+		int v0 = edges[k]->getv0();
+		int v1 = edges[k]->getv1();
+		if (sh1 > 0.5) {
+		    if (neighbors_[v0] < 0 || sh2 < 0.5) {
+			neighbors_[v0] = v1;
+		    }
+		}
+		else {
+		    if (neighbors_[v1] < 0 || sh2 < 0.5) {
+			neighbors_[v1] = v0;		    
+		    }
+		}
+	    }
+	}
+    }
 
     // Allocated memory and clear buffer.
     if (!visited_) {
@@ -95,22 +124,40 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
     tourLen = tour_.size();
     
     while (tourLen < numVertices) {
-	// 2. find out the lightest edge connecting current vertex and 
-	//    an unvisited vertex V.
-	vList = adjList_[currV];
-	len = vList->getNumElements();
-	for (k = 0; k < len; ++k) {
-	    nextV = (vList->getIndices())[k];
-	    if (!visited_[nextV]) {
+	nextV = -1;
+	if (neighbors_) {
+	    // 2. Find nextV for pre-determined neighbor
+	    nextV = neighbors_[currV];
+	    if (nextV > -1 && !visited_[nextV]) {
 		tour_.push_back(nextV);
+		tourLen = tour_.size();
 		// 3. set current vertex be V.
 		currV = nextV;
 		// 4. mark V as visited.
 		visited_[nextV] = true;
-		break;
+	    }
+	    else {  // Didn't find nextV
+		nextV = -1;
 	    }
 	}
-	tourLen = tour_.size();
+	if (nextV == -1) {
+	    // 2. find out the lightest edge connecting current vertex and 
+	    //    an unvisited vertex V.
+	    vList = adjList_[currV];
+	    len = vList->getNumElements();
+	    for (k = 0; k < len; ++k) {
+		nextV = (vList->getIndices())[k];
+		if (!visited_[nextV]) {
+		    tour_.push_back(nextV);
+		    tourLen = tour_.size();
+		    // 3. set current vertex be V.
+		    currV = nextV;
+		    // 4. mark V as visited.
+		    visited_[nextV] = true;
+		    break;
+		}
+	    }
+	}
     }
     
     // Transfer the tour into a solution
@@ -118,7 +165,7 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
     int tourLenAddOne = tourLen + 1;
     count = 0;
     currV = tour_[0];
-    for (k = 1; k < tourLenAddOne; ++k) {
+for (k = 1; k < tourLenAddOne; ++k) {
         if (k < tourLen) {
             nextV = tour_[k];
         }
@@ -182,6 +229,7 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
     addCalls();
     
     return foundSolution;
+#endif
 }
 
 //#############################################################################
