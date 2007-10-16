@@ -137,10 +137,17 @@ public:
 
     /** To be defined. */
     virtual int chooseBranchingObject(BcpsModel*) { return AlpsReturnStatusOk;}
+    
+    // Why need below?
+    //using BcpsTreeNode::generateConstraints ;
 
-    using BcpsTreeNode::generateConstraints ;
     /** Generate constraints. */
     int generateConstraints(BlisModel *model, BcpsConstraintPool &conPool);
+
+    /** Call heuristic to search solutions.
+     *  0: no solution; 1: found solutions; 2: fathom this node.
+     */
+    int callHeuristics(BlisModel *model);
 
     /** Get violated constraints. */
     void getViolatedConstraints(BlisModel *model, 

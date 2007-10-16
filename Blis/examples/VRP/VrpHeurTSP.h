@@ -66,9 +66,11 @@ protected:
     /** Mark if vertices have been visited. */
     bool *visited_;
 
+    int preNode_;
+
 public:
     /** Default Constructor. */
-    VrpHeurTSP(): visited_(0) {}
+    VrpHeurTSP(): visited_(0), preNode_(-1) {}
     
     /** Constructor with model. */
     VrpHeurTSP(VrpModel * model, const char *name,
@@ -77,6 +79,7 @@ public:
         BlisHeuristic(model, name, strategy, freq)
     { 
 	visited_ = NULL;
+	preNode_ = -1;
         createAdjList(model);
     }
 

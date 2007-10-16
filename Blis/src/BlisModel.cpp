@@ -1475,7 +1475,7 @@ TERM_FEAS_HEUR:
         blisSol = new BlisSolution(getNumCols(), solution, objValue);
     }
     
-    if (rowAct) delete rowAct;
+    if (rowAct) delete [] rowAct;
     return blisSol;
 }
 

@@ -40,7 +40,7 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
     int j, k, len, tourLen;
     int currV, nextV;
     int count = 0;
-    
+
     CoinPackedVector * vList = NULL;
     VrpVariable * aVar = NULL;
     
@@ -51,11 +51,26 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
     int numVertices = model->getNumVertices();
     int numEdges = edges.size();
     int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
-
+    int numNodes = model->getNumNodes();
+    
     double upperBound = model->getKnowledgeBroker()->getIncumbentValue();
 
     objectiveValue  = 0.0;
     const double *objCoef = model->getObjCoef();
+
+    //------------------------------------------------------
+    // Determine if call heuristic
+    //------------------------------------------------------
+
+    if (numNodes > 1) {
+	return false;
+    }
+    
+    //------------------------------------------------------
+    // Start heuristic
+    //------------------------------------------------------
+
+    preNode_ = numNodes;
     
     memset(newSolution, 0, numEdges * sizeof(double));
     //const double * solution = model_->getLpSolution();

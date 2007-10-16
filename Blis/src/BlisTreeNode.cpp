@@ -133,8 +133,6 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     double preObjValue = -ALPS_OBJ_MAX;
     double improvement = 100.0;
 
-    double  heurObjValue;
-    double *heurSolution = NULL;
     double *currLpSolution = NULL;
 
     bool keepOn = true;
@@ -222,7 +220,6 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     
     maxNumCons = model->getMaxNumCons();
 
-    heurSolution = new double [numCols];
     currLpSolution = new double [numCols];
 
     //------------------------------------------------------
@@ -660,48 +657,15 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         // Call heuristics.
         //--------------------------------------------------
         
-        if (keepOn && (model->heurStrategy_ != BlisHeurStrategyNone)) {
-            heurObjValue = getKnowledgeBroker()->getIncumbentValue();
-
-            for (k = 0; k < model->numHeuristics(); ++k) {
-                int heurStrategy = model->heuristics(k)->strategy();
-                
-                if (heurStrategy != BlisHeurStrategyNone) {
-
-                    getKnowledgeBroker()->tempTimer().start();
-                    foundSolution = false;
-                    foundSolution = 
-                        model->heuristics(k)->searchSolution(heurObjValue,
-                                                             heurSolution);
-                    getKnowledgeBroker()->tempTimer().stop();
-
-                    model->heuristics(k)->
-                        addTime(getKnowledgeBroker()->tempTimer().getCpuTime());
-                    model->heuristics(k)->addCalls(1);
-
-                    if (foundSolution) {
-                        // Check if solution from heuristic is feasible.
-                        ipSol = model->feasibleSolutionHeur(heurSolution);
-                    }
-                    
-                    if (ipSol) {
-                        model->heuristics(k)->addNumSolutions(1);
-                        int noSols = model->heuristics(k)->noSolCalls();
-                        model->heuristics(k)->addNoSolCalls(-noSols);
-
-                        model->storeSolution(BlisSolutionTypeHeuristic, ipSol);
-                        cutoff = model->getCutoff();
-                        if (quality_ > cutoff) {
-                            setStatus(AlpsNodeStatusFathomed);
-                            goto TERM_PROCESS;
-                        }
-                    }
-                    else {
-                        model->heuristics(k)->addNoSolCalls(1);
-                    }
-                    
-                } // EOF heurStrategy
-            }    
+        if (keepOn) {
+	    int heurStatus = callHeuristics(model);
+	    if (heurStatus == 1) {
+		cutoff = model->getCutoff();
+	    }
+	    else if (heurStatus == 2) {
+		// Fathom this node
+		goto TERM_PROCESS;
+	    }
         }
         
         //--------------------------------------------------
@@ -1485,7 +1449,6 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         }
     }
 
-    delete [] heurSolution;
     delete [] currLpSolution;
 
     if (status_ == AlpsNodeStatusFathomed) {
@@ -3570,3 +3533,73 @@ BlisTreeNode::estimateSolution(BlisModel *model,
 }
 
 //#############################################################################
+
+int
+BlisTreeNode::callHeuristics(BlisModel *model)
+{
+    int status = 0;
+    
+    if (model->heurStrategy_ == BlisHeurStrategyNone) {
+	return status;
+    }
+
+    int foundSolution = false;
+    int numCols = model->solver()->getNumCols();
+
+    double heurObjValue = getKnowledgeBroker()->getIncumbentValue();
+    double *heurSolution = new double [numCols];
+
+    BlisSolution *bSol = NULL;
+
+    for (int k = 0; k < model->numHeuristics(); ++k) {
+	int heurStrategy = model->heuristics(k)->strategy();
+	
+	if (heurStrategy != BlisHeurStrategyNone) {
+	    
+	    getKnowledgeBroker()->tempTimer().start();
+	    foundSolution = false;
+	    foundSolution = 
+		model->heuristics(k)->searchSolution(heurObjValue,
+						     heurSolution);
+	    getKnowledgeBroker()->tempTimer().stop();
+	    
+	    model->heuristics(k)->
+		addTime(getKnowledgeBroker()->tempTimer().getCpuTime());
+	    model->heuristics(k)->addCalls(1);
+	    
+	    if (foundSolution) {
+		// Check if solution from heuristic is feasible.
+		bSol = model->feasibleSolutionHeur(heurSolution);
+	    }
+            
+	    if (bSol) {
+		model->heuristics(k)->addNumSolutions(1);
+		int noSols = model->heuristics(k)->noSolCalls();
+		model->heuristics(k)->addNoSolCalls(-noSols);
+		// Store the newly found blis solution.
+		model->storeSolution(BlisSolutionTypeHeuristic, bSol);
+
+		if (quality_ >  model->getCutoff()) {
+		    setStatus(AlpsNodeStatusFathomed);
+		    status = 2;
+		    goto TERM_HEUR;
+		}
+		else {
+		    status = 1;
+		}
+	    }
+	    else {
+		model->heuristics(k)->addNoSolCalls(1);
+	    }  
+	} 
+    }
+
+TERM_HEUR:
+
+    if (heurSolution) delete [] heurSolution;
+
+    return status;
+}
+
+//#############################################################################
+
