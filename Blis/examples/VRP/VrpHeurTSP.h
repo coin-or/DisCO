@@ -79,10 +79,15 @@ protected:
     /** Neighbors determined from LP solution */
     //VrpNeighbor *
     int *neighbors_;
- 
+
+    /** Call how many time at a node. */
+    int nodeCalls_;
+    
 public:
     /** Default Constructor. */
-    VrpHeurTSP(): visited_(0), preNode_(-1), neighbors_(0) {}
+    VrpHeurTSP()
+        : 
+        visited_(0), preNode_(-1), neighbors_(0), nodeCalls_(0) {}
     
     /** Constructor with model. */
     VrpHeurTSP(VrpModel * model, const char *name,
@@ -93,6 +98,7 @@ public:
 	visited_ = NULL;
 	preNode_ = -1;
 	neighbors_ = NULL;
+        nodeCalls_ = 0;
         createAdjList(model);
     }
 

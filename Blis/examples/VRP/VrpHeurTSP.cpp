@@ -36,6 +36,32 @@ bool
 VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 {
 #if 1
+    VrpModel *model = dynamic_cast<VrpModel *>(model_);
+
+    int numNodes = model->getNumNodes();
+
+    //------------------------------------------------------
+    // Determine if call heuristic
+    //------------------------------------------------------
+
+    if (numNodes < 30) {
+        // Call at most 4 times at each node
+        if (preNode_ != numNodes) { // Reset count since at different node
+            nodeCalls_ = 0;
+        }
+        if (nodeCalls_ > 3) {
+            return false;
+        }
+    }
+    else if ( (numNodes % 2 != 0) || (preNode_ == numNodes) ){
+        // If nodes > 20, do every 2 nodes and only once at a node
+	return false;
+    }
+
+    //------------------------------------------------------
+    // Declaration 
+    //------------------------------------------------------
+    
     bool foundSolution = true;
     
     int j, k, len, tourLen;
@@ -45,30 +71,17 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
     CoinPackedVector * vList = NULL;
     VrpVariable * aVar = NULL;
     
-    VrpModel *model = dynamic_cast<VrpModel *>(model_);
-
     std::vector<VrpVariable *> edges = model->getEdgeList();
 
     int numVertices = model->getNumVertices();
     int numEdges = edges.size();
     int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
-    int numNodes = model->getNumNodes();
-    
+
     double upperBound = model->getKnowledgeBroker()->getIncumbentValue();
 
     objectiveValue  = 0.0;
     const double *objCoef = model->getObjCoef();
-    double *lpSolution = NULL;
-    
-    //------------------------------------------------------
-    // Determine if call heuristic
-    //------------------------------------------------------
-
-    if ( ((numNodes > 10) && (numNodes % 10 != 0)) 
-	 || preNode_ == numNodes) {
-	// Just call one time at a node
-	return false;
-    }
+    double *lpSolution = NULL;   
     
     //------------------------------------------------------
     // Start heuristic
@@ -115,9 +128,11 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
     }
     tour_.clear();
 
-    
-    // 1. stand on an arbitrary vertex as current vertex
-    currV = 0;
+    //------------------------------------------------------
+    // 1. Stand on an arbitrary vertex as current vertex
+    //------------------------------------------------------
+
+    currV = (int)(CoinDrand48() * numVertices);
     visited_[currV] = true;
 
     tour_.push_back(currV);
@@ -131,9 +146,9 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 	    if (nextV > -1 && !visited_[nextV]) {
 		tour_.push_back(nextV);
 		tourLen = tour_.size();
-		// 3. set current vertex be V.
+		// 3. Set current vertex be V.
 		currV = nextV;
-		// 4. mark V as visited.
+		// 4. Mark V as visited.
 		visited_[nextV] = true;
 	    }
 	    else {  // Didn't find nextV
@@ -141,7 +156,7 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 	    }
 	}
 	if (nextV == -1) {
-	    // 2. find out the lightest edge connecting current vertex and 
+	    // 2. Find out the lightest edge connecting current vertex and 
 	    //    an unvisited vertex V.
 	    vList = adjList_[currV];
 	    len = vList->getNumElements();
@@ -150,9 +165,9 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 		if (!visited_[nextV]) {
 		    tour_.push_back(nextV);
 		    tourLen = tour_.size();
-		    // 3. set current vertex be V.
+		    // 3. Set current vertex be V.
 		    currV = nextV;
-		    // 4. mark V as visited.
+		    // 4. Mark V as visited.
 		    visited_[nextV] = true;
 		    break;
 		}
@@ -160,12 +175,15 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 	}
     }
     
-    // Transfer the tour into a solution
+    //------------------------------------------------------
+    // Transfer the tour into a LP solution.
+    //------------------------------------------------------
+    
     int beg, end;
     int tourLenAddOne = tourLen + 1;
     count = 0;
     currV = tour_[0];
-for (k = 1; k < tourLenAddOne; ++k) {
+    for (k = 1; k < tourLenAddOne; ++k) {
         if (k < tourLen) {
             nextV = tour_[k];
         }
@@ -174,7 +192,7 @@ for (k = 1; k < tourLenAddOne; ++k) {
         }
         
 	// Edge is stored in the way that beginning vertex index is 
-	// greater than the end vertex index.
+	// less than the end vertex index, like {3, 12}
 	if (currV < nextV) {
 	    beg = currV;
 	    end = nextV;

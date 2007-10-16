@@ -3019,6 +3019,8 @@ BlisTreeNode::reducedCostFix(BlisModel *model)
     double boundDistance;
     double dj;
 
+    int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
+
     const double *lb = model->solver()->getColLower();
     const double *ub = model->solver()->getColUpper();
     const double *solution = model->solver()->getColSolution();
@@ -3055,9 +3057,9 @@ BlisTreeNode::reducedCostFix(BlisModel *model)
                 newBound = ub[var] - movement;
                 newBound = CoinMin(newBound, ub[var]);
 
-#ifdef BLIS_DEBUG_MORE
-                printf("RED-FIX: dj %g, lb %.10g, ub %.10g, newBound %.10g, movement %g\n", dj, lb[var], ub[var], newBound, movement);
-#endif
+                if (msgLevel > 200) {
+                    printf("RED-FIX: dj %g, lb %.10g, ub %.10g, newBound %.10g, movement %g\n", dj, lb[var], ub[var], newBound, movement);
+                }
                 
                 if (movement <= ALPS_ZERO) {
                     ++numFixedUp;
@@ -3074,9 +3076,9 @@ BlisTreeNode::reducedCostFix(BlisModel *model)
                 newBound = lb[var] + movement;
                 newBound = CoinMax(newBound, lb[var]);
                 
-#ifdef BLIS_DEBUG_MORE
-                printf("RED-FIX: dj %g, lb %g, ub %g, newBound %g, movement %g\n", dj, lb[var], ub[var], newBound, movement);
-#endif
+                if (msgLevel > 200) {
+                    printf("RED-FIX: dj %g, lb %g, ub %g, newBound %g, movement %g\n", dj, lb[var], ub[var], newBound, movement);
+                }
 		
                 if (movement <= ALPS_ZERO) {
                     ++numFixedDown;
@@ -3092,12 +3094,13 @@ BlisTreeNode::reducedCostFix(BlisModel *model)
     
     //int change = numFixedUp + numFixedDown + numTighten;
     //model->reducedCostFixed_ += change;
-#ifdef BLIS_DEBUG_MORE
-    if (numFixedUp > 0 || numFixedDown > 0 || numTighten > 0) {
-        printf("reducedCostFix: numFixedUp = %d, numFixedDown = %d, numTighten %d\n", numFixedUp, numFixedDown, numTighten);
-    }
-#endif
 
+    if (msgLevel > 200) {
+        if (numFixedUp > 0 || numFixedDown > 0 || numTighten > 0) {
+            printf("reducedCostFix: numFixedUp = %d, numFixedDown = %d, numTighten %d\n", numFixedUp, numFixedDown, numTighten);
+        }
+    }
+    
     return status; 
 }
 
