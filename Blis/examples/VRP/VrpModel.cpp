@@ -623,10 +623,14 @@ VrpModel::readInstance(const char* dataFile)
 
    // Add TSP heuristic
    if (numroutes_ == 1) {  // TSP
-       VrpHeurTSP *heurTSP = new VrpHeurTSP(this, 
-					    "TSP",
-					    BlisHeurStrategyPeriodic, 1);
-       addHeuristic(heurTSP);
+       VrpHeurTSP *heurTSP1 = new VrpHeurTSP(this,
+					     "TSP Root",
+					     BlisHeurStrategyBeforeRoot, 1);
+       VrpHeurTSP *heurTSP2 = new VrpHeurTSP(this, 
+					     "TSP",
+					     BlisHeurStrategyPeriodic, 1);
+       addHeuristic(heurTSP1);
+       addHeuristic(heurTSP2);
    }
 }
 

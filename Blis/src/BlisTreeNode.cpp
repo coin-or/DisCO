@@ -260,6 +260,21 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 	}
     }
 
+    //--------------------------------------------------
+    // Call HeurisBounding before solving for the first node.
+    //--------------------------------------------------
+    
+    if (model->getNumNodes() == 1) {
+	int heurStatus = callHeuristics(model, true); // before root
+	if (heurStatus == 1) {
+	    cutoff = model->getCutoff();
+	}
+	else if (heurStatus == 2) {
+	    // Fathom this node
+	    goto TERM_PROCESS;
+	}
+    }
+
     //======================================================
     // Restore, load and solve the subproblem.
     // (1) LP infeasible
@@ -337,6 +352,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
             getKnowledgeBroker()->tempTimer().start();
         }
         
+	// Get lowe bound.
         lpStatus = static_cast<BlisLpStatus> (bound(model));
 
 	if (model->boundingPass_ == 1) {
@@ -3535,13 +3551,14 @@ BlisTreeNode::estimateSolution(BlisModel *model,
 //#############################################################################
 
 int
-BlisTreeNode::callHeuristics(BlisModel *model)
+BlisTreeNode::callHeuristics(BlisModel *model, bool onlyBeforeRoot)
 {
     int status = 0;
-    
+
     if (model->heurStrategy_ == BlisHeurStrategyNone) {
 	return status;
     }
+    int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
 
     int foundSolution = false;
     int numCols = model->solver()->getNumCols();
@@ -3553,8 +3570,19 @@ BlisTreeNode::callHeuristics(BlisModel *model)
 
     for (int k = 0; k < model->numHeuristics(); ++k) {
 	int heurStrategy = model->heuristics(k)->strategy();
-	
 	if (heurStrategy != BlisHeurStrategyNone) {
+	    if (onlyBeforeRoot) {
+		// heuristics that can only be used before root.
+		if (heurStrategy != BlisHeurStrategyBeforeRoot) {
+		    continue;
+		}
+	    }
+	    else {
+		// regular heuristics
+		if (heurStrategy == BlisHeurStrategyBeforeRoot) {
+		    continue;
+		}
+	    }
 	    
 	    getKnowledgeBroker()->tempTimer().start();
 	    foundSolution = false;
@@ -3565,7 +3593,6 @@ BlisTreeNode::callHeuristics(BlisModel *model)
 	    
 	    model->heuristics(k)->
 		addTime(getKnowledgeBroker()->tempTimer().getCpuTime());
-	    model->heuristics(k)->addCalls(1);
 	    
 	    if (foundSolution) {
 		// Check if solution from heuristic is feasible.
@@ -3578,14 +3605,24 @@ BlisTreeNode::callHeuristics(BlisModel *model)
 		model->heuristics(k)->addNoSolCalls(-noSols);
 		// Store the newly found blis solution.
 		model->storeSolution(BlisSolutionTypeHeuristic, bSol);
-
-		if (quality_ >  model->getCutoff()) {
+		if (onlyBeforeRoot) {
+		    status = 1;
+		}
+		else if (quality_ >  model->getCutoff()) {
 		    setStatus(AlpsNodeStatusFathomed);
 		    status = 2;
 		    goto TERM_HEUR;
 		}
 		else {
 		    status = 1;
+		}
+		if (heurStrategy == BlisHeurStrategyBeforeRoot && 
+		    msgLevel > 200) {
+		    model->blisMessageHandler()->message(BLIS_HEUR_BEFORE_ROOT, 
+							 model->blisMessages())
+			<< (model->heuristics(k)->name())
+			<< bSol->getQuality()
+                        << CoinMessageEol;
 		}
 	    }
 	    else {

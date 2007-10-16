@@ -36,7 +36,7 @@ bool
 VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 {
     bool foundSolution = true;
-
+    
     int j, k, len, tourLen;
     int currV, nextV;
     int count = 0;
@@ -62,7 +62,7 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
     // Determine if call heuristic
     //------------------------------------------------------
 
-    if (numNodes > 1) {
+    if (numNodes > 10 || preNode_ == numNodes) {
 	return false;
     }
     
@@ -155,12 +155,18 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 	currV = nextV;
     }
     
+    if (msgLevel > 0 && foundSolution) {
+	std::cout << std::endl << "***** "<< name_ 
+		  << " heuristic found a solution, quality " 
+		  << objectiveValue << std::endl << std::endl;
+    }
+    
     if (msgLevel > 200 && foundSolution) {
-        std::cout << "count = " << count << std::endl;
-	std::cout << "Found a better tour : len = " << tourLen 
-                  << " ; cost = " << objectiveValue << std::endl;
-        assert(count == tourLen);
 
+	std::cout << "Found a better tour : len = " << tourLen 
+		  << " ; cost = " << objectiveValue << std::endl;
+	assert(count == tourLen);
+	
 	count = 0;
 	for (k = 0; k < tourLen; ++k) {
 	    std::cout << tour_[k]+1 << " ";
@@ -171,6 +177,9 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 	}
 	std::cout << std::endl;
     }
+
+    // Add count by 1
+    addCalls();
     
     return foundSolution;
 }

@@ -84,7 +84,7 @@ public:
       AlpsPar()->setEntry(AlpsParams::searchStrategy,
 			  AlpsSearchTypeBestFirst);
       AlpsPar()->setEntry(AlpsParams::staticBalanceScheme, 1); // Spiral
-
+      AlpsPar()->setEntry(AlpsParams::nodeLogInterval, 20);
       BlisPar()->setEntry(BlisParams::branchStrategy,
 			  BlisBranchingStrategyStrong);
 

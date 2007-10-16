@@ -65,6 +65,7 @@ class BlisHeuristic {
         BlisHeurStrategyRoot:     just root
         BlisHeurStrategyAuto:     automatically decided by BLIS
         BlisHeurStrategyPeriodic: every 't' nodes
+	BlisHeurStrategyBeforeRoot: before solving first LP
     */
     BlisHeurStrategy strategy_;
 

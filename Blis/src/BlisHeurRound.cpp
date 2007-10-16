@@ -409,6 +409,9 @@ BlisHeurRound::searchSolution(double & solutionValue, double * betterSolution)
         }
     }
 
+    // Increase count by 1
+    addCalls(1);
+
     return foundBetter;
 }
 
