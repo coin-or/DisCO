@@ -82,7 +82,23 @@ protected:
 
     /** Call how many time at a node. */
     int nodeCalls_;
-    
+
+    void freeGuts() {
+        if (visited_) {
+            delete [] visited_;
+            visited_ = NULL;
+        }
+	int numVertices = adjList_.size();
+	for (int k = 0; k < numVertices; ++k) {
+	    delete adjList_[k];
+	}
+        adjList_.clear();
+	if (neighbors_) {
+            delete [] neighbors_;
+            neighbors_ = NULL;
+        }
+    }
+
 public:
     /** Default Constructor. */
     VrpHeurTSP()
@@ -105,12 +121,7 @@ public:
     /** Destructor. */
     ~VrpHeurTSP() 
     { 
-	if (visited_) delete [] visited_;
-	int numVertices = adjList_.size();
-	for (int k = 0; k < numVertices; ++k) {
-	    delete adjList_[k];
-	}
-	if (neighbors_) delete [] neighbors_;
+        freeGuts();
     }
     
     /** Returns 0 if no solution, 1 if valid solution. newSolution stores

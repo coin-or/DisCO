@@ -35,8 +35,10 @@
 bool
 VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 {
-#if 1
     VrpModel *model = dynamic_cast<VrpModel *>(model_);
+
+    std::vector<VrpVariable *> edges = model->getEdgeList();
+    int numEdges = edges.size();
 
     int numNodes = model->getNumNodes();
 
@@ -49,12 +51,12 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
         if (preNode_ != numNodes) { // Reset count since at different node
             nodeCalls_ = 0;
         }
-        if (nodeCalls_ > 3) {
+        if (nodeCalls_ > 4) {
             return false;
         }
     }
-    else if ( (numNodes % 2 != 0) || (preNode_ == numNodes) ){
-        // If nodes > 20, do every 2 nodes and only once at a node
+    else if ( (numNodes % 1 != 0) || (preNode_ == numNodes) ){
+        // If nodes > 30, do every node and only once at a node
 	return false;
     }
 
@@ -71,10 +73,8 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
     CoinPackedVector * vList = NULL;
     VrpVariable * aVar = NULL;
     
-    std::vector<VrpVariable *> edges = model->getEdgeList();
 
     int numVertices = model->getNumVertices();
-    int numEdges = edges.size();
     int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
 
     double upperBound = model->getKnowledgeBroker()->getIncumbentValue();
@@ -175,6 +175,10 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 	}
     }
     
+    if (msgLevel > 200 && foundSolution) {
+    	std::cout << "Found a better tour " << std::endl;
+    }
+    
     //------------------------------------------------------
     // Transfer the tour into a LP solution.
     //------------------------------------------------------
@@ -228,7 +232,7 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
     
     if (msgLevel > 200 && foundSolution) {
 
-	std::cout << "Found a better tour : len = " << tourLen 
+	std::cout << "Tour : len = " << tourLen 
 		  << " ; cost = " << objectiveValue << std::endl;
 	assert(count == tourLen);
 	
@@ -245,9 +249,13 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 
     // Add count by 1
     addCalls();
+
+    if (strategy_ == BlisHeurStrategyBeforeRoot) {
+        // Free adjacent list to solve memory
+        freeGuts();
+    }
     
     return foundSolution;
-#endif
 }
 
 //#############################################################################
