@@ -47,7 +47,7 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
     //------------------------------------------------------
 
     if (numNodes < 30) {
-        // Call at most 4 times at each node
+        // Call at most 5 times at each node
         if (preNode_ != numNodes) { // Reset count since at different node
             nodeCalls_ = 0;
         }
@@ -71,8 +71,6 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
     int count = 0;
 
     CoinPackedVector * vList = NULL;
-    VrpVariable * aVar = NULL;
-    
 
     int numVertices = model->getNumVertices();
     int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
@@ -205,29 +203,24 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 	    beg = nextV;
 	    end = currV;
 	}
+
 	// Find edge(variable) {beg, end} in the edge(variable) list and 
-	// set it to 1.0. 
-	for (j = 0; j < numEdges; ++j) {
-	    aVar = edges[j];
-	    if (aVar->getv0() == beg) {
-		if (aVar->getv1() == end) {
-                    ++count;
-		    newSolution[j] = 1.0;
-                    objectiveValue += objCoef[j];
-                    if (objectiveValue >= upperBound) {
-                        foundSolution = false;
-                        break;
-                    }
-		}
-	    }
+	// set it to 1.0.
+	j = edgeColMatch_[end-1][beg];
+	++count;
+	newSolution[j] = 1.0;
+	objectiveValue += objCoef[j];
+	if (objectiveValue >= upperBound) {
+	    foundSolution = false;
+	    break;
 	}
 	currV = nextV;
     }
-    
-    if (msgLevel > 0 && foundSolution) {
-	std::cout << std::endl << "***** "<< name_ 
+
+    if (msgLevel > 0 && foundSolution && numNodes < 2) {
+	std::cout << "***** "<< name_ 
 		  << " heuristic found a solution, quality " 
-		  << objectiveValue << std::endl << std::endl;
+		  << objectiveValue << std::endl;
     }
     
     if (msgLevel > 200 && foundSolution) {
@@ -276,7 +269,7 @@ VrpHeurTSP::createAdjList(VrpModel *model)
     int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
     AlpsTimer timer;
 
-    if (msgLevel > 0) {
+    if (msgLevel > 200) {
 	timer.start();
     }
 
@@ -311,6 +304,30 @@ VrpHeurTSP::createAdjList(VrpModel *model)
     if (msgLevel > 200) {
 	// Creating adjlist takes the half time of solving a LP.
 	std::cout << "createAdjList took " << timer.getCpuTime() 
+		  << " seconds." << std::endl;
+	timer.start();
+    }
+
+    // Create edge and column relationship
+    edgeColMatch_ = new std::vector<int> [numVertices - 1];
+    int emptySpace = 0;
+    int col = 0;
+    int v1 = 0;
+    int j;
+    for (k = 1; k< numVertices; ++k) {
+	emptySpace += (numVertices - k);
+	v1 = k - 1;
+	for (j = 0; j < k; ++j) {
+	    col = k * numVertices - k + j - emptySpace;
+	    edgeColMatch_[v1].push_back(col);
+	    //std::cout << "{" << k << "," << j << "}: " << col << " ; ";
+	}
+	//std::cout << std::endl;
+    }
+
+    if (msgLevel > 200) {
+	// Creating adjlist takes the half time of solving a LP.
+	std::cout << "create edge col relation took " << timer.getCpuTime() 
 		  << " seconds." << std::endl;
     }
 }

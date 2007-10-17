@@ -82,7 +82,11 @@ protected:
 
     /** Call how many time at a node. */
     int nodeCalls_;
-
+    
+    /** Edge and column relationship. Give an edge {v0, v1}, 
+	edgeColMatch_[v1-1][v0] is the column index. */
+    std::vector<int> *edgeColMatch_;
+    
     void freeGuts() {
         if (visited_) {
             delete [] visited_;
@@ -97,13 +101,18 @@ protected:
             delete [] neighbors_;
             neighbors_ = NULL;
         }
+	if (edgeColMatch_) {
+	    delete [] edgeColMatch_;
+	    edgeColMatch_ = NULL;
+	}
     }
 
 public:
     /** Default Constructor. */
     VrpHeurTSP()
         : 
-        visited_(0), preNode_(-1), neighbors_(0), nodeCalls_(0) {}
+        visited_(0), preNode_(-1), 
+	neighbors_(0), nodeCalls_(0), edgeColMatch_(0) {}
     
     /** Constructor with model. */
     VrpHeurTSP(VrpModel * model, const char *name,
@@ -115,6 +124,7 @@ public:
 	preNode_ = -1;
 	neighbors_ = NULL;
         nodeCalls_ = 0;
+	edgeColMatch_ = NULL;
         createAdjList(model);
     }
 
