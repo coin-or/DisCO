@@ -672,9 +672,16 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         //--------------------------------------------------
         // Call heuristics.
         //--------------------------------------------------
-        
+
+#if 0
+        std::cout << "Process " << getKnowledgeBroker()->getProcRank()
+                  << " : model->boundingPass_=" << model->boundingPass_
+                  << " ; maxPass = " << maxPass
+                  << " ; keepOn = " << keepOn << std::endl;
+#endif
+
         if (keepOn) {
-	    int heurStatus = callHeuristics(model);
+	    int heurStatus = callHeuristics(model, false);
 	    if (heurStatus == 1) {
 		cutoff = model->getCutoff();
 	    }
@@ -3057,7 +3064,7 @@ BlisTreeNode::reducedCostFix(BlisModel *model)
                 newBound = ub[var] - movement;
                 newBound = CoinMin(newBound, ub[var]);
 
-                if (msgLevel > 200) {
+                if (msgLevel > 300) {
                     printf("RED-FIX: dj %g, lb %.10g, ub %.10g, newBound %.10g, movement %g\n", dj, lb[var], ub[var], newBound, movement);
                 }
                 
@@ -3076,7 +3083,7 @@ BlisTreeNode::reducedCostFix(BlisModel *model)
                 newBound = lb[var] + movement;
                 newBound = CoinMax(newBound, lb[var]);
                 
-                if (msgLevel > 200) {
+                if (msgLevel > 300) {
                     printf("RED-FIX: dj %g, lb %g, ub %g, newBound %g, movement %g\n", dj, lb[var], ub[var], newBound, movement);
                 }
 		
@@ -3559,8 +3566,9 @@ BlisTreeNode::callHeuristics(BlisModel *model, bool onlyBeforeRoot)
     int status = 0;
 
     if (model->heurStrategy_ == BlisHeurStrategyNone) {
-	return status;
+        return status;
     }
+
     int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
 
     int foundSolution = false;
@@ -3573,6 +3581,9 @@ BlisTreeNode::callHeuristics(BlisModel *model, bool onlyBeforeRoot)
 
     for (int k = 0; k < model->numHeuristics(); ++k) {
 	int heurStrategy = model->heuristics(k)->strategy();
+        //std::cout << " call heur " << k << "; strategy = " 
+        //        << heurStrategy << std::endl;
+
 	if (heurStrategy != BlisHeurStrategyNone) {
 	    if (onlyBeforeRoot) {
 		// heuristics that can only be used before root.

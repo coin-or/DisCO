@@ -112,16 +112,6 @@ public:
       CoinSeedRandom(1234567);
    }
    
-#if 0
-   VrpModel(const char* dataFile) : etol_(1e-5){
-       VrpPar_ = new VrpParams;
-       readInstance(dataFile);
-       VrpCutGenerator *cg = new VrpCutGenerator(this, vertnum_);
-       cg->setStrategy(BlisCutStrategyPeriodic);
-       addCutGenerator(cg);
-   }
-#endif   
-
    /** Destructor. */
    virtual ~VrpModel() {
       delete [] demand_; demand_ = 0;

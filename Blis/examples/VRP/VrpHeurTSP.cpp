@@ -35,7 +35,9 @@
 bool
 VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 {
+
     VrpModel *model = dynamic_cast<VrpModel *>(model_);
+    int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
 
     std::vector<VrpVariable *> edges = model->getEdgeList();
     int numEdges = edges.size();
@@ -60,6 +62,11 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 	return false;
     }
 
+    if (msgLevel > 200) {
+	std::cout << "***** Call "<< name_ << " heuristic at node " 
+                  << numNodes << std::endl;
+    }
+
     //------------------------------------------------------
     // Declaration 
     //------------------------------------------------------
@@ -73,7 +80,6 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
     CoinPackedVector * vList = NULL;
 
     int numVertices = model->getNumVertices();
-    int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
 
     double upperBound = model->getKnowledgeBroker()->getIncumbentValue();
 
@@ -84,6 +90,15 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
     //------------------------------------------------------
     // Start heuristic
     //------------------------------------------------------
+
+#if 0
+    for (k = 0; k < numEdges; ++k) {
+        int v0 = edges[k]->getv0();
+        int v1 = edges[k]->getv1();
+        std::cout << "edge " << k << " : v0 = " << v0 << " ; v1 = " << v1 
+                  << std::endl;
+    }
+#endif
 
     preNode_ = numNodes;
     
