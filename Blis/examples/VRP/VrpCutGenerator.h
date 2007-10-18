@@ -21,6 +21,11 @@
 #include "VrpModel.h"
 #include "VrpNetwork.h"
 #include "VrpMacros.h"
+#ifdef DO_TSP_CUTS
+extern "C"{
+   #include "concorde.h"
+}
+#endif
 
 class VrpModel;
 
@@ -58,36 +63,30 @@ public:
 
    int connectivityCuts(BcpsConstraintPool &conPool);
    
-   int addCut(BcpsConstraintPool &conPool,
-	      char *coef, 
-	      int rhs, 
-	      int type);
+   int addVrpCut(BcpsConstraintPool &conPool, char *coef, int rhs,int type);
 
    void setModel(VrpModel *vrp){ model_ = vrp; }
    
-   int greedyShrinking1(VrpModel *m, 
-			int max_shrink_cuts, 
+   int greedyShrinking1(VrpModel *m, int max_shrink_cuts,
 			BcpsConstraintPool &conPool);
 
-   int greedyShrinking1One(VrpModel *m, 
-			   int max_shrink_cuts, 
+   int greedyShrinking1One(VrpModel *m, int max_shrink_cuts, 
 			   BcpsConstraintPool &conPool);
 
-   int greedyShrinking6(VrpModel *m, 
-			int max_shrink_cuts, 
-			int trial_num,
-			double prob, 
-			BcpsConstraintPool &conPool);
+   int greedyShrinking6(VrpModel *m, int max_shrink_cuts, int trial_num,
+			double prob, BcpsConstraintPool &conPool);
 
-   int greedyShrinking6One(VrpModel *m, 
-			   int max_shrink_cuts, 
-			   int trial_num,
-			   double prob, 
+   int greedyShrinking6One(VrpModel *m, int max_shrink_cuts, int trial_num,
+			   double prob, BcpsConstraintPool &conPool);
+
+   int greedyShrinking2One(VrpModel *m, int max_shrink_cuts, 
 			   BcpsConstraintPool &conPool);
 
-   int greedyShrinking2One(VrpModel *m, 
-			   int max_shrink_cuts, 
-			   BcpsConstraintPool &conPool);
+#ifdef DO_TSP_CUTS
+   int tspCuts(VrpModel *m, BcpsConstraintPool &conPool);
+   int addTspCuts(VrpModel *m, BcpsConstraintPool &conPool,
+		  CCtsp_lpcut_in **tsp_cuts);
+#endif
 
 };
 

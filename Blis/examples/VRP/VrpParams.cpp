@@ -37,6 +37,9 @@ VrpParams::createKeywordList() {
   keys_.push_back(make_pair(std::string("Vrp_tspProb"),
 			    AlpsParameter(AlpsBoolPar, tspProb)));
 
+  keys_.push_back(make_pair(std::string("Vrp_whichTspCuts"),
+			    AlpsParameter(AlpsIntPar, whichTspCuts)));
+ 
   //--------------------------------------------------------
   // BoolArrayPar
   //--------------------------------------------------------
@@ -94,6 +97,8 @@ VrpParams::setDefaultEntries() {
    setEntry(whichConnectedRoutine, BOTH);
 
    setEntry(maxNumCutsInShrink, 200);
+
+   setEntry(whichTspCuts, ALL_TSP_CUTS);
 
   //-------------------------------------------------------------
   // Double Parameters
