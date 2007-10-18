@@ -43,6 +43,36 @@ ADDINCFLAGS =
 SRCDIR = @srcdir@
 VPATH = @srcdir@
 
+##############################################################################
+# This section is for CONCORDE
+##############################################################################
+
+##############################################################################
+# This solver can use separation routines from CONCORDE, the
+# TSP solver of Applegate, Bixby, Chvatal, and Cook. To enable this option:
+# 1. set the variables DO_CONCORDE_CUTS to TRUE. 
+# 2. Download the source code for CONCORDE and the qsopt LP solver from 
+#    http://www.tsp.gatech.edu.
+# 3. Put qsopt.a and qsopt.h in ~/lib (make the directory if it doesn't exist).
+# 4. Put a copy of qsopt.h in ~/include (make this directory if it doesn't 
+#    exist).
+#.5. Rename qsopt.a libqsopt.a (so it is detected as a library).
+# 6. Build concorde with qsopt as the LP solver (configure --with-qsopt=~/lib).
+# 7. Move the resulting library concorde.a to ~/lib and rename it 
+#    libconcorde.a (or create a soft link).
+# 8. Put a copy of concorde.h in ~/include (or create a soft link).
+# 9. Make the CNRP application as usual.
+##############################################################################
+
+DO_TSP_CUTS = FALSE
+
+ifeq ($(DO_TSP_CUTS),TRUE)
+ADDLIBS += -L${HOME}/lib -lconcorde -lqsopt
+ADDINCFLAGS += -I${HOME}/include -DDO_TSP_CUTS 
+endif
+
+ADDFLAGS += $(ADDINCFLAGS) @SYMDEFS@
+
 ##########################################################################
 #  Usually, you don't have to change anything below.  Note that if you   #
 #  change certain compiler options, you might have to recompile the      #
@@ -73,7 +103,8 @@ LIBS = -L$(COINLIBDIR) -lBlis -lBcps -lAlps -lCgl -lOsiClp -lOsi -lClp -lCoinUti
 	`cat $(COINLIBDIR)/cgl_addlibs.txt` \
 	`cat $(COINLIBDIR)/osi_addlibs.txt` \
 	`cat $(COINLIBDIR)/clp_addlibs.txt` \
-	`cat $(COINLIBDIR)/coinutils_addlibs.txt`
+	`cat $(COINLIBDIR)/coinutils_addlibs.txt` \
+	$(ADDLIBS)
 
 # Necessary Include dirs (we use the CYGPATH_W variables to allow
 # compilation with Windows compilers)

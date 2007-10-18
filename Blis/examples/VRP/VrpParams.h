@@ -39,6 +39,7 @@ class VrpParams : public AlpsParameterSet {
      greedyNumTrials,
      whichConnectedRoutine,
      maxNumCutsInShrink,
+     whichTspCuts,
      endOfIntParams
   };
 
