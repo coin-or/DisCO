@@ -189,7 +189,7 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
     }
     
     if (msgLevel > 200 && foundSolution) {
-    	std::cout << "Found a better tour " << std::endl;
+    	std::cout << "Found a tour " << std::endl;
     }
     
     //------------------------------------------------------
@@ -227,7 +227,12 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 	objectiveValue += objCoef[j];
 	if (objectiveValue >= upperBound) {
 	    foundSolution = false;
-	    break;
+            if (msgLevel > 200) {
+                std::cout << "Discard the found tour because cost "
+                          << objectiveValue << " is worse than UB "
+                          << upperBound << std::endl;
+            }
+            break;
 	}
 	currV = nextV;
     }
