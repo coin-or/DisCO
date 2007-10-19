@@ -85,7 +85,7 @@ public:
 #ifdef DO_TSP_CUTS
    int tspCuts(VrpModel *m, BcpsConstraintPool &conPool);
    int addTspCuts(VrpModel *m, BcpsConstraintPool &conPool,
-		  CCtsp_lpcut_in **tsp_cuts);
+		  CCtsp_lpcut_in **tsp_cuts, CCtsp_lpgraph *g);
 #endif
 
 };

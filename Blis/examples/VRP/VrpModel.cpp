@@ -276,7 +276,13 @@ VrpModel::readInstance(const char* dataFile)
 			     "EDGE_WEIGHT_TYPE declared wrong\n");
 		     exit(1);
 		  } else {
-		     edges_.push_back(new VrpVariable(i, j, (int) fdummy));
+		     if (VrpPar_->entry(VrpParams::tspProb)){
+			edges_.push_back(new VrpVariable(i, j, (int) fdummy,
+					 1));
+		     }else{
+			edges_.push_back(new VrpVariable(i, j, (int) fdummy,
+					 j ? 1 : 2));
+		     }			
 		  }
 	       }
 	       if ((wformat==3 || wformat==6) && 
@@ -328,8 +334,13 @@ VrpModel::readInstance(const char* dataFile)
              // Create edges
              for (i = 1, k = 0; i < vertnum_; i++){
                  for (j = 0; j < i; j++){
-                     VrpVariable *aVar = new VrpVariable(i, j, lowDiag[i][j]);
-                     edges_.push_back(aVar);
+		     if (VrpPar_->entry(VrpParams::tspProb)){
+			edges_.push_back(new VrpVariable(i, j, lowDiag[i][j],
+					 1));
+		     }else{
+			edges_.push_back(new VrpVariable(i, j, lowDiag[i][j],
+					 j ? 1 : 2));
+		     }			
                  }
              }
              // Free lowDiag
@@ -354,7 +365,13 @@ VrpModel::readInstance(const char* dataFile)
 			     "EDGE_WEIGHT_TYPE declared wrong");
 		     exit(1);
 		  } else {
-                          edges_.push_back(new VrpVariable(i, j, (int) fdummy));
+		     if (VrpPar_->entry(VrpParams::tspProb)){
+			edges_.push_back(new VrpVariable(i, j, (int) fdummy,
+					 1));
+		     }else{
+			edges_.push_back(new VrpVariable(i, j, (int) fdummy,
+					 j ? 1 : 2));
+		     }			
 		  }
 	       }
 	    }
@@ -372,14 +389,19 @@ VrpModel::readInstance(const char* dataFile)
                                 "EDGE_WEIGHT_TYPE declared wrong");
                         exit(1);
                     }
-                    edges_.push_back(new VrpVariable(i, j, (int) fdummy));
-                    //edges_[index(i, j)] = new VrpVariable(i, j, (int) fdummy);
+		    if (VrpPar_->entry(VrpParams::tspProb)){
+		       edges_.push_back(new VrpVariable(i, j, (int) fdummy,
+					1));
+		    }else{
+		       edges_.push_back(new VrpVariable(i, j, (int) fdummy,
+					j ? 1 : 2));
+		    }			
                 }
-	       for (j = i; j < vertnum_; j++){
+		for (j = i; j < vertnum_; j++){
                    if(!fscanf(f,"%lf", &fdummy)){
-                       fprintf(stderr, "Not enough data -- DIMENSION or "
-                               "EDGE_WEIGHT_TYPE declared wrong");
-                       exit(1);
+		      fprintf(stderr, "Not enough data -- DIMENSION or "
+			      "EDGE_WEIGHT_TYPE declared wrong");
+		      exit(1);
                    }
                }
 #if 0 // BUG: can read upper diag
@@ -395,8 +417,13 @@ VrpModel::readInstance(const char* dataFile)
 			     "EDGE_WEIGHT_TYPE declared wrong");
 		     exit(1);
 		  }
-		  edges_.push_back(new VrpVariable(i, j, (int) fdummy));
-		  //edges_[index(i, j)] = new VrpVariable(i, j, (int) fdummy);
+		  if (VrpPar_->entry(VrpParams::tspProb)){
+		     edges_.push_back(new VrpVariable(i, j, (int) fdummy,
+				      1));
+		  }else{
+		     edges_.push_back(new VrpVariable(i, j, (int) fdummy,
+				      j ? 1 : 2));
+		  }			
 	       }
 #endif
 
@@ -557,8 +584,13 @@ VrpModel::readInstance(const char* dataFile)
    if (wtype_ != _EXPLICIT){
       for (i = 1, k = 0; i < vertnum_; i++){
 	 for (j = 0; j < i; j++){
-             VrpVariable *aVar = new VrpVariable(i, j, computeCost(i, j));
-             edges_.push_back(aVar);
+	    if (VrpPar_->entry(VrpParams::tspProb)){
+	       edges_.push_back(new VrpVariable(i, j, computeCost(i, j),
+				1));
+	    }else{
+	       edges_.push_back(new VrpVariable(i, j, computeCost(i, j),
+				j ? 1 : 2));
+	    }			
 	 }
       }
       wtype_ = _EXPLICIT;
