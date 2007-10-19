@@ -1584,9 +1584,10 @@ VrpCutGenerator::addTspCuts(VrpModel *m, BcpsConstraintPool &conPool,
       cliquecount = tsp_cut->cliquecount;
       size = cliquecount * clique_size;
       rhs = (cliquecount == 1 ? 0.0 : -((double)cliquecount)/2.0 + 1.0);
-      clique_array = new char[size];
+      clique_set = clique_array = new char[size];
       memset(clique_array, 0, size);
-      for (i = 0; i < cliquecount; i++, clique_array += size){
+      
+      for (i = 0; i < cliquecount; i++, clique_set += clique_size){
 	 for(j = 0; j < tsp_cut->cliques[i].segcount; j++){
 	    for(k = tsp_cut->cliques[i].nodes[j].lo;
 		k <= tsp_cut->cliques[i].nodes[j].hi; k++){
@@ -1607,7 +1608,7 @@ VrpCutGenerator::addTspCuts(VrpModel *m, BcpsConstraintPool &conPool,
 	 v1 = edges[i]->getv1();
 	 val = 0;
 	 for (jj = 0; jj < cliquecount; jj++){
-	    clique_set = clique_array + size * jj;
+	    clique_set = clique_array + clique_size * jj;
 	    if (clique_set[v0 >> DELETE_POWER] &
 		(1 << (v0 & DELETE_AND)) &&
 		(clique_set[v1 >> DELETE_POWER]) &
