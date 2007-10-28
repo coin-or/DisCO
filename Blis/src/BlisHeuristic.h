@@ -36,6 +36,8 @@
 #include "CoinPackedMatrix.hpp"
 #include "OsiCuts.hpp"
 
+#include "Blis.h"
+
 class BlisModel;
 
 
@@ -63,6 +65,7 @@ class BlisHeuristic {
         BlisHeurStrategyRoot:     just root
         BlisHeurStrategyAuto:     automatically decided by BLIS
         BlisHeurStrategyPeriodic: every 't' nodes
+	BlisHeurStrategyBeforeRoot: before solving first LP
     */
     BlisHeurStrategy strategy_;
 
@@ -144,7 +147,11 @@ public:
     //@]
 
     /** Clone a heuristic. */
-    virtual BlisHeuristic * clone() const = 0;
+    virtual BlisHeuristic * clone() const {
+	BlisHeuristic *h = NULL;
+	assert(0);
+	return h;
+    };
     
     /** returns 0 if no solution, 1 if valid solution
         with better objective value than one passed in

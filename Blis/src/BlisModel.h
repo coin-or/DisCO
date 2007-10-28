@@ -538,7 +538,10 @@ protected:
         }
     }
 
-    /** Test the current solution for feasiblility.
+    /** Test if a solution found by heuristic is feasible. */
+    BlisSolution *feasibleSolutionHeur(const double *solution);
+
+    /** Test the current LP solution for feasiblility.
 	Scan all objects for indications of infeasibility. This is broken down
 	into simple integer infeasibility (\p numIntegerInfs)
 	and all other reports of infeasibility(\p numObjectInfs). */
@@ -546,14 +549,15 @@ protected:
                                            int & numObjectInfs);
     
    /** User's criteria for a feasible solution. 
-    *  If user think the solution is feasible then need
+    *  If user think the given solution is feasible then need
     *     1) set userFeasible to true, and
     *     2) return a non-null solution.
     *  If user think the solution is infeasible then need
     *     1) set userFeasible to false, and
     *     2) return a null.
     */
-    virtual BlisSolution *userFeasibleSolution(bool &feasible) { 
+    virtual BlisSolution *userFeasibleSolution(const double * solution, 
+                                               bool &feasible) { 
         BlisSolution *sol = NULL;
         feasible = true; // Feasible by default
         return sol; 

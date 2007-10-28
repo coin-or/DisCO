@@ -73,9 +73,10 @@ enum BlisCutStrategy{
 enum BlisHeurStrategy{
    BlisHeurStrategyNotSet = -1,
    BlisHeurStrategyNone = 0,
-   BlisHeurStrategyPeriodic,
    BlisHeurStrategyRoot,
-   BlisHeurStrategyAuto
+   BlisHeurStrategyAuto,
+   BlisHeurStrategyPeriodic,
+   BlisHeurStrategyBeforeRoot // Before solving first relaxation
 };
 
 #if 0
@@ -108,7 +109,7 @@ enum BlisSolutionType {
     BlisSolutionTypeBounding,
     BlisSolutionTypeBranching,
     BlisSolutionTypeDiving,
-    BlisSolutionTypeRounding,
+    BlisSolutionTypeHeuristic,
     BlisSolutionTypeStrong
 };
 

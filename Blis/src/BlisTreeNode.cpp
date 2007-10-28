@@ -133,8 +133,6 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     double preObjValue = -ALPS_OBJ_MAX;
     double improvement = 100.0;
 
-    double  heurObjValue;
-    double *heurSolution = NULL;
     double *currLpSolution = NULL;
 
     bool keepOn = true;
@@ -222,7 +220,6 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     
     maxNumCons = model->getMaxNumCons();
 
-    heurSolution = new double [numCols];
     currLpSolution = new double [numCols];
 
     //------------------------------------------------------
@@ -260,6 +257,21 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     if (genConsHere && (phase == AlpsPhaseRampup)) {
 	if (!(BlisPar->entry(BlisParams::cutRampUp))) {
 	    genConsHere = false;
+	}
+    }
+
+    //--------------------------------------------------
+    // Call HeurisBounding before solving for the first node.
+    //--------------------------------------------------
+    
+    if (model->getNumNodes() == 1) {
+	int heurStatus = callHeuristics(model, true); // before root
+	if (heurStatus == 1) {
+	    cutoff = model->getCutoff();
+	}
+	else if (heurStatus == 2) {
+	    // Fathom this node
+	    goto TERM_PROCESS;
 	}
     }
 
@@ -340,6 +352,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
             getKnowledgeBroker()->tempTimer().start();
         }
         
+	// Get lowe bound.
         lpStatus = static_cast<BlisLpStatus> (bound(model));
 
 	if (model->boundingPass_ == 1) {
@@ -659,48 +672,23 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         //--------------------------------------------------
         // Call heuristics.
         //--------------------------------------------------
-        
-        if (keepOn && (model->heurStrategy_ != BlisHeurStrategyNone)) {
-            heurObjValue = getKnowledgeBroker()->getIncumbentValue();
 
-            for (k = 0; k < model->numHeuristics(); ++k) {
-                int heurStrategy = model->heuristics(k)->strategy();
-                
-                if (heurStrategy != BlisHeurStrategyNone) {
+#if 0
+        std::cout << "Process " << getKnowledgeBroker()->getProcRank()
+                  << " : model->boundingPass_=" << model->boundingPass_
+                  << " ; maxPass = " << maxPass
+                  << " ; keepOn = " << keepOn << std::endl;
+#endif
 
-                    getKnowledgeBroker()->tempTimer().start();
-                    foundSolution = false;
-                    foundSolution = 
-                        model->heuristics(k)->searchSolution(heurObjValue,
-                                                             heurSolution);
-                    getKnowledgeBroker()->tempTimer().stop();
-
-                    model->heuristics(k)->
-                        addTime(getKnowledgeBroker()->tempTimer().getCpuTime());
-                    model->heuristics(k)->addCalls(1);
-
-                    if (foundSolution) {
-                        ipSol = model->feasibleSolution(numIntInfs,numObjInfs);
-                    }
-                    
-                    if (ipSol) {
-                        model->heuristics(k)->addNumSolutions(1);
-                        int noSols = model->heuristics(k)->noSolCalls();
-                        model->heuristics(k)->addNoSolCalls(-noSols);
-
-                        model->storeSolution(BlisSolutionTypeRounding, ipSol);
-                        cutoff = model->getCutoff();
-                        if (quality_ > cutoff) {
-                            setStatus(AlpsNodeStatusFathomed);
-                            goto TERM_PROCESS;
-                        }
-                    }
-                    else {
-                        model->heuristics(k)->addNoSolCalls(1);
-                    }
-                    
-                } // EOF heurStrategy
-            }    
+        if (keepOn) {
+	    int heurStatus = callHeuristics(model, false);
+	    if (heurStatus == 1) {
+		cutoff = model->getCutoff();
+	    }
+	    else if (heurStatus == 2) {
+		// Fathom this node
+		goto TERM_PROCESS;
+	    }
         }
         
         //--------------------------------------------------
@@ -1484,7 +1472,6 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         }
     }
 
-    delete [] heurSolution;
     delete [] currLpSolution;
 
     if (status_ == AlpsNodeStatusFathomed) {
@@ -1723,7 +1710,7 @@ BlisTreeNode::branch()
                 
 		assert(aCon);
 		assert(aCon->getSize() > 0);
-		assert(aCon->getSize() < 100000);
+		assert(aCon->getSize() < numCols);
 		BlisConstraint *newCon = new BlisConstraint(*aCon);
 		tempCons[k] = newCon;
 	    }
@@ -1742,7 +1729,7 @@ BlisTreeNode::branch()
 		BlisConstraint *aCon = model->oldConstraints()[k];                
 		assert(aCon);
 		assert(aCon->getSize() > 0);
-		assert(aCon->getSize() < 100000);
+		assert(aCon->getSize() < numCols);
 		BlisConstraint *newCon = new BlisConstraint(*aCon);
 		tempCons[k] = newCon;
 	    }
@@ -1906,7 +1893,7 @@ BlisTreeNode::branch()
 	    
 		assert(aCon);
 		assert(aCon->getSize() > 0);
-		assert(aCon->getSize() < 1000);
+		assert(aCon->getSize() <= numCols);
 		BlisConstraint *newCon = new BlisConstraint(*aCon);
 		tempCons[k] = newCon;
 	    }
@@ -1923,7 +1910,7 @@ BlisTreeNode::branch()
 		BlisConstraint *aCon = model->oldConstraints()[k];                
 		assert(aCon);
 		assert(aCon->getSize() > 0);
-		assert(aCon->getSize() < 1000);
+		assert(aCon->getSize() <= numCols);
 		BlisConstraint *newCon = new BlisConstraint(*aCon);
 		tempCons[k] = newCon;
 	    }
@@ -3039,6 +3026,8 @@ BlisTreeNode::reducedCostFix(BlisModel *model)
     double boundDistance;
     double dj;
 
+    int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
+
     const double *lb = model->solver()->getColLower();
     const double *ub = model->solver()->getColUpper();
     const double *solution = model->solver()->getColSolution();
@@ -3075,9 +3064,9 @@ BlisTreeNode::reducedCostFix(BlisModel *model)
                 newBound = ub[var] - movement;
                 newBound = CoinMin(newBound, ub[var]);
 
-#ifdef BLIS_DEBUG_MORE
-                printf("RED-FIX: dj %g, lb %.10g, ub %.10g, newBound %.10g, movement %g\n", dj, lb[var], ub[var], newBound, movement);
-#endif
+                if (msgLevel > 300) {
+                    printf("RED-FIX: dj %g, lb %.10g, ub %.10g, newBound %.10g, movement %g\n", dj, lb[var], ub[var], newBound, movement);
+                }
                 
                 if (movement <= ALPS_ZERO) {
                     ++numFixedUp;
@@ -3094,9 +3083,9 @@ BlisTreeNode::reducedCostFix(BlisModel *model)
                 newBound = lb[var] + movement;
                 newBound = CoinMax(newBound, lb[var]);
                 
-#ifdef BLIS_DEBUG_MORE
-                printf("RED-FIX: dj %g, lb %g, ub %g, newBound %g, movement %g\n", dj, lb[var], ub[var], newBound, movement);
-#endif
+                if (msgLevel > 300) {
+                    printf("RED-FIX: dj %g, lb %g, ub %g, newBound %g, movement %g\n", dj, lb[var], ub[var], newBound, movement);
+                }
 		
                 if (movement <= ALPS_ZERO) {
                     ++numFixedDown;
@@ -3112,12 +3101,13 @@ BlisTreeNode::reducedCostFix(BlisModel *model)
     
     //int change = numFixedUp + numFixedDown + numTighten;
     //model->reducedCostFixed_ += change;
-#ifdef BLIS_DEBUG_MORE
-    if (numFixedUp > 0 || numFixedDown > 0 || numTighten > 0) {
-        printf("reducedCostFix: numFixedUp = %d, numFixedDown = %d, numTighten %d\n", numFixedUp, numFixedDown, numTighten);
-    }
-#endif
 
+    if (msgLevel > 200) {
+        if (numFixedUp > 0 || numFixedDown > 0 || numTighten > 0) {
+            printf("reducedCostFix: numFixedUp = %d, numFixedDown = %d, numTighten %d\n", numFixedUp, numFixedDown, numTighten);
+        }
+    }
+    
     return status; 
 }
 
@@ -3569,3 +3559,98 @@ BlisTreeNode::estimateSolution(BlisModel *model,
 }
 
 //#############################################################################
+
+int
+BlisTreeNode::callHeuristics(BlisModel *model, bool onlyBeforeRoot)
+{
+    int status = 0;
+
+    if (model->heurStrategy_ == BlisHeurStrategyNone) {
+        return status;
+    }
+
+    int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
+
+    int foundSolution = false;
+    int numCols = model->solver()->getNumCols();
+
+    double heurObjValue = getKnowledgeBroker()->getIncumbentValue();
+    double *heurSolution = new double [numCols];
+
+    BlisSolution *bSol = NULL;
+
+    for (int k = 0; k < model->numHeuristics(); ++k) {
+	int heurStrategy = model->heuristics(k)->strategy();
+        //std::cout << " call heur " << k << "; strategy = " 
+        //        << heurStrategy << std::endl;
+
+	if (heurStrategy != BlisHeurStrategyNone) {
+	    if (onlyBeforeRoot) {
+		// heuristics that can only be used before root.
+		if (heurStrategy != BlisHeurStrategyBeforeRoot) {
+		    continue;
+		}
+	    }
+	    else {
+		// regular heuristics
+		if (heurStrategy == BlisHeurStrategyBeforeRoot) {
+		    continue;
+		}
+	    }
+	    
+	    getKnowledgeBroker()->tempTimer().start();
+	    foundSolution = false;
+	    foundSolution = 
+		model->heuristics(k)->searchSolution(heurObjValue,
+						     heurSolution);
+	    getKnowledgeBroker()->tempTimer().stop();
+	    
+	    model->heuristics(k)->
+		addTime(getKnowledgeBroker()->tempTimer().getCpuTime());
+	    
+	    if (foundSolution) {
+		// Check if solution from heuristic is feasible.
+		bSol = model->feasibleSolutionHeur(heurSolution);
+	    }
+            
+	    if (bSol) {
+		model->heuristics(k)->addNumSolutions(1);
+		int noSols = model->heuristics(k)->noSolCalls();
+		model->heuristics(k)->addNoSolCalls(-noSols);
+		// Store the newly found blis solution.
+		model->storeSolution(BlisSolutionTypeHeuristic, bSol);
+		if (onlyBeforeRoot) {
+		    status = 1;
+		}
+		else if (quality_ >  model->getCutoff()) {
+		    setStatus(AlpsNodeStatusFathomed);
+		    status = 2;
+		    goto TERM_HEUR;
+		}
+		else {
+		    status = 1;
+		}
+		if (heurStrategy == BlisHeurStrategyBeforeRoot && 
+		    msgLevel > 200) {
+		    model->blisMessageHandler()->message(BLIS_HEUR_BEFORE_ROOT, 
+							 model->blisMessages())
+			<< (model->heuristics(k)->name())
+			<< bSol->getQuality()
+                        << CoinMessageEol;
+		}
+	    }
+	    else {
+		model->heuristics(k)->addNoSolCalls(1);
+	    }  
+	} 
+    }
+
+TERM_HEUR:
+
+    if (heurSolution) delete [] heurSolution;
+
+    return status;
+}
+
+//#############################################################################
+

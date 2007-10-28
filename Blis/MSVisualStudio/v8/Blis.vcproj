@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="Vrp"
-	ProjectGUID="{85E96A37-B291-46DB-87E3-CF3533CA03FC}"
-	RootNamespace="Knap"
+	Name="Blis"
+	ProjectGUID="{D090269B-605D-440A-87DB-311831391794}"
+	RootNamespace="Blis"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\BuildTools\headers;..\..\..\..\..\CoinUtils\src;..\..\..\..\..\Osi\src;..\..\..\..\..\Osi\src\OsiCbc;..\..\..\..\..\Osi\src\OsiSpx;..\..\..\..\..\Osi\src\OsiVol;..\..\..\..\..\Osi\src\OsiOsl;..\..\..\..\..\Osi\src\OsiXpr;..\..\..\..\..\Osi\src\OsiCpx;..\..\..\..\..\Osi\src\OsiClp;..\..\..\..\..\Cgl\src;..\..\..\..\..\Cgl\src\CglTwomir;..\..\..\..\..\Cgl\src\CglMixedIntegerRounding;..\..\..\..\..\Cgl\src\CglMixedIntegerRounding2;..\..\..\..\..\Cgl\src\CglFlowCover;..\..\..\..\..\Cgl\src\CglClique;..\..\..\..\..\Cgl\src\CglOddHole;..\..\..\..\..\Cgl\src\CglKnapsackCover;..\..\..\..\..\Cgl\src\CglGomory;..\..\..\..\..\Cgl\src\CglPreProcess;..\..\..\..\..\Cgl\src\CglProbing;..\..\..\..\..\Clp\src;..\..\..\..\..\Alps\src;..\..\..\..\..\Bcps\src;..\..\..\..\..\Blis\src"
+				AdditionalIncludeDirectories="..\..\..\BuildTools\headers;..\..\..\CoinUtils\src;..\..\..\Osi\src;..\..\..\Osi\src\OsiCbc;..\..\..\Osi\src\OsiSpx;..\..\..\Osi\src\OsiVol;..\..\..\Osi\src\OsiOsl;..\..\..\Osi\src\OsiXpr;..\..\..\Osi\src\OsiCpx;..\..\..\Osi\src\OsiClp;..\..\..\Cgl\src;..\..\..\Cgl\src\CglTwomir;..\..\..\Cgl\src\CglMixedIntegerRounding;..\..\..\Cgl\src\CglMixedIntegerRounding2;..\..\..\Cgl\src\CglFlowCover;..\..\..\Cgl\src\CglClique;..\..\..\Cgl\src\CglOddHole;..\..\..\Cgl\src\CglKnapsackCover;..\..\..\Cgl\src\CglGomory;..\..\..\Cgl\src\CglPreProcess;..\..\..\Cgl\src\CglProbing;..\..\..\Clp\src;..\..\..\Bcps\src;..\..\..\Alps\src;..\..\..\Blis\src\"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -177,27 +177,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\VrpCutGenerator.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\VrpMain.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\VrpModel.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\VrpNetwork.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\VrpParams.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\VrpSolution.cpp"
+				RelativePath="..\..\src\BlisMain.cpp"
 				>
 			</File>
 		</Filter>
@@ -206,38 +186,6 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath="..\..\VrpCommonTypes.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\VrpCutGenerator.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\VrpMacros.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\VrpModel.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\VrpNetwork.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\VrpParams.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\VrpSolution.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\VrpVariable.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

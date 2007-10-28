@@ -69,7 +69,10 @@ VrpCutGenerator::generateConstraints(BcpsConstraintPool &conPool)
    int type, rhs, capacity = model_->capacity_;
    VrpNetwork *n = model_->n_;
 
-   CoinPackedVector *sol = model_->getSolution();
+   // Get dense solution	
+   const double *denseSol = model_->getLpSolution();
+   // Transform it to a sparse vector.
+   CoinPackedVector *sol = model_->getSolution(denseSol);
    model_->createNet(sol);
    
    if (n->isIntegral_){
@@ -1327,6 +1330,7 @@ VrpCutGenerator::addVrpCut(BcpsConstraintPool &conPool,
 
 /*===========================================================================*/
 
+<<<<<<< .working
 #ifdef DO_TSP_CUTS
 int
 VrpCutGenerator::tspCuts(VrpModel *m, BcpsConstraintPool &conPool)
@@ -1636,3 +1640,396 @@ VrpCutGenerator::addTspCuts(VrpModel *m, BcpsConstraintPool &conPool,
    return(num_cuts);
 }
 #endif
+=======
+#ifdef DO_TSP_CUTS
+int
+VrpCutGenerator::tspCuts(VrpModel *m, BcpsConstraintPool &conPool)
+{
+   VrpNetwork *n = m->n_;  
+   VrpParams *par = model_->VrpPar_;
+   int edgenum = n->edgenum_;
+   int vertnum = m->vertnum_;
+   int verbosity = par->verbosity;
+
+   edge *edges = n->edges_;
+   CCtsp_lpcut_in *tsp_cuts = NULL;
+   int *tsp_edgelist = new int[2*edgenum];
+   double *tsp_x = new double[edgenum];
+   int i, cutnum = 0, cuts_added = 0, rval, seed;
+   CCrandstate rstate;
+   CCtsp_cutselect *sel = new CCtsp_cutselect;
+   CCtsp_tighten_info *stats = new CCtsp_tighten_info;
+   memset (sel, 0, sizeof(CCtsp_cutselect));
+   memset (stats, 0, sizeof(CCtsp_tighten_info));
+   CCtsp_lpgraph g;
+      
+   sel->connect          = 1;
+   if (par->whichTspCuts & SUBTOUR){
+      sel->segments         = 1;
+      sel->exactsubtour     = 1;
+   }
+   if (par->whichTspCuts & BLOSSOM){
+      sel->fastblossom      = 1;
+      sel->ghfastblossom    = 1;
+      sel->exactblossom     = 0;
+   }
+   if (par->whichTspCuts & COMB){
+      sel->blockcombs       = 1;
+      sel->growcombs        = 0;
+      sel->prclique         = 0;
+   }
+   
+   for (i = 0; i < edgenum; i++, edges++){
+      tsp_edgelist[i << 1] = edges->v0;
+      tsp_edgelist[(i << 1) + 1] = edges->v1;
+      tsp_x[i] = edges->weight;
+   }
+
+   CCtsp_init_lpgraph_struct (&g);
+   CCtsp_build_lpgraph (&g, vertnum, edgenum, tsp_edgelist, (int *) NULL);   
+   CCtsp_build_lpadj (&g, 0, edgenum);
+
+   if (sel->connect){
+      rval = CCtsp_connect_cuts(&tsp_cuts, &cutnum, vertnum, edgenum,
+				tsp_edgelist, tsp_x);
+      if (rval) {
+	 fprintf(stderr, "CCtsp_connect_cuts failed\n");
+	 printf("CCtsp_connect_cuts failed\n");
+	 rval = 1;
+      }
+      if (verbosity > 3)
+	 printf("Found %2d connect cuts\n", cutnum);
+      if (!rval && cutnum > 0){
+	 cuts_added += addTspCuts(m, conPool, &tsp_cuts, &g);
+	 if (cuts_added){
+	    if (verbosity > 3)
+	       printf("%i connect cuts added\n", cuts_added);
+	    goto CLEANUP;
+	 }
+      }
+   }
+
+   if (sel->segments){
+      rval = CCtsp_segment_cuts(&tsp_cuts, &cutnum, vertnum, edgenum,
+				tsp_edgelist, tsp_x);
+      if (rval) {
+	 fprintf(stderr, "CCtsp_segment_cuts failed\n");
+	 printf("CCtsp_segment_cuts failed\n");
+	 rval = 1;
+      }
+      if (verbosity > 3)
+	 printf("Found %2d segment cuts\n", cutnum);
+      if (!rval && cutnum > 0){
+	 cuts_added += addTspCuts(m, conPool, &tsp_cuts, &g);
+	 if (cuts_added){
+	    if (verbosity > 3)
+	       printf("%i segment cuts added\n", cuts_added);
+	    goto CLEANUP;
+	 }
+      }
+    }
+
+   if (sel->fastblossom){
+      rval = CCtsp_fastblossom(&tsp_cuts, &cutnum, vertnum, edgenum,
+			       tsp_edgelist, tsp_x);
+      if (rval) {
+	 fprintf(stderr, "CCtsp_fastblossom failed\n");
+	 printf("CCtsp_fastblossom failed\n");
+	 rval = 1;
+      }
+      if (verbosity > 3)
+	 printf("Found %2d fastblossom cuts\n", cutnum);
+      if (!rval && cutnum > 0){
+	 cuts_added += addTspCuts(m, conPool, &tsp_cuts, &g);
+	 if (cuts_added){
+	    if (verbosity > 3)
+	       printf("%i fastblossom cuts added\n", cuts_added);
+	    goto CLEANUP;
+	 }
+      }
+   }
+
+   if (sel->ghfastblossom){
+      rval = CCtsp_ghfastblossom(&tsp_cuts, &cutnum, vertnum, edgenum,
+				 tsp_edgelist, tsp_x);
+      if (rval) {
+	 fprintf(stderr, "CCtsp_ghfastblossom failed\n");
+	 printf("CCtsp_ghfastblossom failed\n");
+	 rval = 1;
+      }
+      if (verbosity > 3)
+	 printf("Found %2d ghfastblossom cuts\n", cutnum);
+      if (!rval && cutnum > 0){
+	 cuts_added += addTspCuts(m, conPool, &tsp_cuts, &g);
+	 if (cuts_added){
+	    if (verbosity > 3)
+	       printf("%i ghfastblossom cuts added\n", cuts_added);
+	    goto CLEANUP;
+	 }
+      }
+   }
+
+   if (sel->blockcombs){
+      rval = CCtsp_block_combs(&tsp_cuts, &cutnum, vertnum, edgenum,
+			       tsp_edgelist, tsp_x, true);
+      if (rval) {
+	 fprintf(stderr, "CCtsp_block_combs failed\n");
+	 printf("CCtsp_block_combs failed\n");
+	 rval = 1;
+      }
+      if (verbosity > 3)
+	 printf("Found %2d block combs\n", cutnum);
+      if (!rval && cutnum > 0){
+	 cuts_added += addTspCuts(m, conPool, &tsp_cuts, &g);
+	 if (cuts_added){
+	    if (verbosity > 3)
+	       printf("%i block combs added\n", cuts_added);
+	    goto CLEANUP;
+	 }
+      }
+   }
+
+   if (sel->growcombs){
+      rval = CCtsp_edge_comb_grower(&tsp_cuts, &cutnum, vertnum,
+				    edgenum, tsp_edgelist, tsp_x, stats);
+      if (rval) {
+	 fprintf(stderr, "CCtsp_edge_comb_grower failed\n");
+	 printf("CCtsp_edge_comb_grower failed\n");
+	 rval = 1;
+      }
+      if (verbosity > 3)
+	 printf("Found %2d grown combs\n", cutnum);
+      if (!rval && cutnum > 0){
+	 cuts_added += addTspCuts(m, conPool, &tsp_cuts, &g);
+	 if (cuts_added){
+	    if (verbosity > 3)
+	       printf("%i grown combs added\n", cuts_added);
+	    goto CLEANUP;
+	 }
+      }
+   }
+
+   if (sel->prclique){
+      rval = CCtsp_pr_cliquetree(&tsp_cuts, &cutnum, vertnum,
+				 edgenum, tsp_edgelist, tsp_x, stats);
+      if (rval) {
+	 fprintf(stderr, "CCtsp_pr_cliquetree failed\n");
+	 printf("CCtsp_pr_cliquetree failed\n");
+	 rval = 1;
+      }
+      if (verbosity > 3)
+	 printf("Found %2d PR cliquetrees\n", cutnum);
+      if (!rval && cutnum > 0){
+	 cuts_added += addTspCuts(m, conPool, &tsp_cuts, &g);
+	 if (cuts_added){
+	    if (verbosity > 3)
+	       printf("%i PR cliquetrees added\n", cuts_added);
+	    goto CLEANUP;
+	 }
+      }
+   }
+
+   if (sel->exactsubtour){
+      rval = CCtsp_exact_subtours(&tsp_cuts, &cutnum, vertnum,
+				  edgenum, tsp_edgelist, tsp_x);
+      if (rval) {
+	 fprintf(stderr, "CCtsp_exact_subtours failed\n");
+	 printf("CCtsp_exact_subtours failed\n");
+	 rval = 1;
+      }
+      if (verbosity > 3)
+	 printf("Found %2d exact subtours\n", cutnum);
+      if (!rval && cutnum > 0){
+	 cuts_added += addTspCuts(m, conPool, &tsp_cuts, &g);
+	 if (cuts_added){
+	    if (verbosity > 3)
+	       printf("%i exactsubtours added\n", cuts_added);
+	    goto CLEANUP;
+	 }
+      }
+   }
+
+   if (sel->exactblossom){
+      seed = (int) CCutil_real_zeit ();
+      CCutil_sprand(seed, &rstate);
+      rval = CCtsp_exactblossom(&tsp_cuts, &cutnum, vertnum, edgenum,
+				tsp_edgelist, tsp_x, &rstate);
+      if (rval) {
+	 fprintf(stderr, "CCtsp_exactblossom failed\n");
+	 printf("CCtsp_exactblossom failed\n");
+	 rval = 1;
+      }
+      if (verbosity > 3)
+	 printf("Found %2d exactblossoms\n", cutnum);
+      if (!rval && cutnum > 0){
+	 cuts_added += addTspCuts(m, conPool, &tsp_cuts, &g);
+	 if (cuts_added){
+	    if (verbosity > 3)
+	       printf("%i exact blossoms added\n", cuts_added);
+	    goto CLEANUP;
+	 }
+      }
+   }
+
+CLEANUP:
+
+   delete [] stats;
+   delete [] tsp_edgelist;
+   delete [] tsp_x;
+   delete [] sel;
+
+   return(cuts_added);
+
+}
+
+/*===========================================================================*/
+
+int
+VrpCutGenerator::addTspCuts(VrpModel *m, BcpsConstraintPool &conPool, 
+			    CCtsp_lpcut_in **tsp_cuts, CCtsp_lpgraph *g)
+{
+#if 1
+   int clique_size = (m->vertnum_ >> DELETE_POWER) + 1;
+   char *clique_array, *clique_set;
+   int i, j, k, size, cliquecount, val, *matind, nzcnt;
+   double *matval, rhs;
+   BlisConstraint *blisCon = NULL;
+   int num_cuts = 0;
+   CCtsp_lpcut_in *tsp_cut, *tsp_cut_next;   
+   int v0, v1, jj, edgenum = m->edgenum_;;
+   std::vector<VrpVariable *>edges = model_->getEdgeList();
+   double infinity = model_->solver()->getInfinity();
+
+   for (tsp_cut = *tsp_cuts; tsp_cut; tsp_cut = tsp_cut->next){
+      cliquecount = tsp_cut->cliquecount;
+      size = cliquecount * clique_size;
+      rhs = (cliquecount == 1 ? 0.0 : -((double)cliquecount)/2.0 + 1.0);
+      clique_set = clique_array = new char[size];
+      memset(clique_array, 0, size);
+      
+      for (i = 0; i < cliquecount; i++, clique_set += clique_size){
+	 for(j = 0; j < tsp_cut->cliques[i].segcount; j++){
+	    for(k = tsp_cut->cliques[i].nodes[j].lo;
+		k <= tsp_cut->cliques[i].nodes[j].hi; k++){
+	       rhs++;
+	       clique_set[k >> DELETE_POWER] |= (1 << (k & DELETE_AND));
+	    }
+	 }
+	 /*For each tooth, we want to add |T|-1 to the rhs so we have to
+	   subtract off the one here. It subtracts one for the handle too
+	   but that is compensated for above*/
+	 rhs--;
+      }
+      matind = new int[cliquecount*edgenum];
+      matval = new double[cliquecount*edgenum];
+      for (nzcnt = 0, i = 0; i < edgenum; i++){
+	 v0 = edges[i]->getv0();
+	 v1 = edges[i]->getv1();
+	 val = 0;
+	 for (jj = 0; jj < cliquecount; jj++){
+	    clique_set = clique_array + clique_size * jj;
+	    if (clique_set[v0 >> DELETE_POWER] &
+		(1 << (v0 & DELETE_AND)) &&
+		(clique_set[v1 >> DELETE_POWER]) &
+		(1 << (v1 & DELETE_AND))){
+	       val += 1;
+	    }
+	 }
+	 if (val){
+	    matind[nzcnt] = i;
+	    matval[nzcnt++] = val;
+	 }
+      }
+
+      if (tsp_cut->sense == 'L'){
+	 blisCon = new BlisConstraint(-infinity, (double) rhs, 
+				      -infinity, (double) rhs, nzcnt, 
+				      matind, matval);
+      }else{
+	 blisCon = new BlisConstraint((double) rhs, infinity, 
+				      (double) rhs, infinity, nzcnt, 
+				      matind, matval);
+      }
+	 
+      conPool.addConstraint(blisCon);
+      num_cuts++;
+
+      delete [] matind;
+      delete [] matval;
+      delete [] clique_array;
+   }
+
+#else
+
+   int nzlist, nzcnt;
+   CCtsp_lpcut new_cut;
+   int rval = 0, rhs, i, *matind;
+   double *matval;
+   BlisConstraint *blisCon = NULL;
+   int num_cuts = 0;
+   CCtsp_lpcut_in *tsp_cut;   
+   double infinity = model_->solver()->getInfinity();
+
+   for (tsp_cut = *tsp_cuts; tsp_cut; tsp_cut = tsp_cut->next){
+      
+      CCtsp_init_lpcut (&new_cut);
+      
+      new_cut.rhs         = tsp_cut->rhs;
+      new_cut.sense       = tsp_cut->sense;
+      new_cut.branch      = tsp_cut->branch;
+      
+      nzlist = CCtsp_lpcut_in_nzlist (g, tsp_cut);
+      
+      rval = CCtsp_copy_skeleton (&tsp_cut->skel, &new_cut.skel);
+      
+      rhs = new_cut.rhs;
+      for (i=0; i<new_cut.modcount; i++) {
+	 rhs += 2*(((int) new_cut.mods[i].mult) - 128);
+      }
+      
+      nzcnt = 0;
+      for (i=nzlist; i != -1; i = g->edges[i].coefnext) {
+	 if (g->edges[i].coef) nzcnt++;
+      }
+      
+      if (nzcnt != 0) {
+	 matind = new int[nzcnt];
+	 matval = new double[nzcnt];
+	 for (nzcnt = 0; nzlist != -1; nzlist = i) {
+	    i = g->edges[nzlist].coefnext;
+	    g->edges[nzlist].coefnext = -2;
+	    if (g->edges[nzlist].coef) {
+	       matind[nzcnt] = nzlist;
+	       matval[nzcnt] = g->edges[nzlist].coef;
+	       g->edges[nzlist].coef = 0;
+	       nzcnt++;
+	    }
+	 }
+	 if (new_cut.sense == 'L'){
+	    blisCon = new BlisConstraint(-infinity, (double) rhs, 
+					 -infinity, (double) rhs, nzcnt, 
+					 matind, matval);
+	 }else{
+	    blisCon = new BlisConstraint((double) rhs, infinity, 
+					 (double) rhs, infinity, nzcnt, 
+					 matind, matval);
+	 }
+	 
+	 num_cuts++;
+	 
+	 blisCon->setValidRegion(BcpsValidGlobal);
+	 
+	 delete [] matind;
+	 delete [] matval;
+      } else {
+	 printf ("WARNING: Adding an empty cut\n");
+      }
+   }
+
+#endif
+
+   return(num_cuts);
+
+}
+#endif
+>>>>>>> .merge-right.r1041

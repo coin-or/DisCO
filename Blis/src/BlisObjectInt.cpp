@@ -81,7 +81,6 @@ BlisObjectInt::operator = (const BlisObjectInt& rhs)
 
 //#############################################################################
 
-
 // Compute the infeasibility based on currently relax solution.
 double 
 BlisObjectInt::infeasibility(BcpsModel *m, int & preferredWay) const

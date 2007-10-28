@@ -82,6 +82,32 @@ libBlis_la_SOURCES = \
 libBlis_la_LDFLAGS = $(LT_LDFLAGS)
 
 ########################################################################
+#                        blis binary                                   #
+########################################################################
+
+LDADD = $(BCPSOBJDIR)/src/libBcps.la \
+	$(ALPSOBJDIR)/src/libAlps.la \
+	$(CGLOBJDIR)/src/libCgl.la \
+	$(OSIOBJDIR)/src/OsiClp/libOsiClp.la \
+	$(OSIOBJDIR)/src/libOsi.la \
+	$(CLPOBJDIR)/src/libClp.la \
+	$(COINUTILSOBJDIR)/src/libCoinUtils.la 
+
+bin_PROGRAMS = blis
+blis_SOURCES = BlisMain.cpp 
+blis_LDADD = libBlis.la $(LDADD)
+
+LIBS += $(ADDLIBS) \
+	`cat $(BCPSOBJDIR)/bcps_addlibs.txt` \
+	`cat $(ALPSOBJDIR)/alps_addlibs.txt` \
+	`cat $(CGLOBJDIR)/cgl_addlibs.txt` \
+	`cat $(OSIOBJDIR)/osi_addlibs.txt` \
+	`cat $(CLPOBJDIR)/clp_addlibs.txt` \
+	`cat $(COINUTILSOBJDIR)/coinutils_addlibs.txt`
+
+blis_LDFLAGS = -rpath $(libdir)
+
+########################################################################
 #                            Additional flags                          #
 ########################################################################
 

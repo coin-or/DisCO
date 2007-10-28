@@ -105,8 +105,7 @@ AC_COIN_HAS_USER_LIBRARY([Mpi], [MPI], [mpi.h], [MPI_Irecv])
 
 # In this case, the source code is taken from the Blis examples directory
 
-AC_CONFIG_LINKS(test/BlisMain.cpp:examples/BlisMain.cpp
-	test/flugpl.mps:examples/flugpl.mps)
+AC_CONFIG_LINKS(test/BlisMain.cpp:src/BlisMain.cpp)
 
 # In case this is a VPATH configuration we need to make sure that the
 # input files for the examples are available in the VPATH directory.
@@ -123,7 +122,6 @@ AC_CONFIG_LINKS(test/BlisMain.cpp:examples/BlisMain.cpp
 # Here list all the files that configure should create (except for the
 # configuration header file)
 AC_CONFIG_FILES([Makefile
-		 examples/Makefile
 		 examples/VRP/Makefile
                  src/Makefile
                  test/Makefile

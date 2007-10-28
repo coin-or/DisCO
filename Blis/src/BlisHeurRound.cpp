@@ -81,6 +81,8 @@ BlisHeurRound::searchSolution(double & solutionValue, double * betterSolution)
         return foundBetter;
     }
 
+    //std::cout << "HERE!!" << std::endl;
+    
     //------------------------------------------------------
     // Start to search solution ...
     //------------------------------------------------------
@@ -406,6 +408,9 @@ BlisHeurRound::searchSolution(double & solutionValue, double * betterSolution)
             strategy_ = BlisHeurStrategyNone;
         }
     }
+
+    // Increase count by 1
+    addCalls(1);
 
     return foundBetter;
 }
