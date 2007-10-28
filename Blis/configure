@@ -20878,7 +20878,7 @@ fi
 
 # In this case, the source code is taken from the Blis examples directory
 
-                    ac_config_links="$ac_config_links test/BlisMain.cpp:examples/BlisMain.cpp test/flugpl.mps:examples/flugpl.mps"
+          ac_config_links="$ac_config_links test/BlisMain.cpp:src/BlisMain.cpp"
 
 
 # In case this is a VPATH configuration we need to make sure that the
@@ -20895,7 +20895,7 @@ fi
 
 # Here list all the files that configure should create (except for the
 # configuration header file)
-                                                            ac_config_files="$ac_config_files Makefile examples/Makefile examples/VRP/Makefile src/Makefile test/Makefile blis_addlibs.txt"
+                                                  ac_config_files="$ac_config_files Makefile examples/VRP/Makefile src/Makefile test/Makefile blis_addlibs.txt"
 
 
 # Here put the location and name of the configuration header file
@@ -21597,13 +21597,11 @@ do
   case "$ac_config_target" in
   # Handling of arguments.
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
-  "examples/Makefile" ) CONFIG_FILES="$CONFIG_FILES examples/Makefile" ;;
   "examples/VRP/Makefile" ) CONFIG_FILES="$CONFIG_FILES examples/VRP/Makefile" ;;
   "src/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
   "test/Makefile" ) CONFIG_FILES="$CONFIG_FILES test/Makefile" ;;
   "blis_addlibs.txt" ) CONFIG_FILES="$CONFIG_FILES blis_addlibs.txt" ;;
-  "test/BlisMain.cpp" ) CONFIG_LINKS="$CONFIG_LINKS test/BlisMain.cpp:examples/BlisMain.cpp" ;;
-  "test/flugpl.mps" ) CONFIG_LINKS="$CONFIG_LINKS test/flugpl.mps:examples/flugpl.mps" ;;
+  "test/BlisMain.cpp" ) CONFIG_LINKS="$CONFIG_LINKS test/BlisMain.cpp:src/BlisMain.cpp" ;;
   "depfiles" ) CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
   "inc/config_blis.h" ) CONFIG_HEADERS="$CONFIG_HEADERS inc/config_blis.h" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5

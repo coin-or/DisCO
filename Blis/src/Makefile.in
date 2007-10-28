@@ -69,8 +69,8 @@ bin_PROGRAMS = blis$(EXEEXT)
 # Include MPI header directory if MPI is used
 @COIN_HAS_MPI_TRUE@am__append_1 = -I`$(CYGPATH_W) $(MPIINCDIR)`
 subdir = src
-DIST_COMMON = $(include_HEADERS) $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in
+DIST_COMMON = $(include_HEADERS) $(srcdir)/BlisMain.cpp \
+	$(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.ac

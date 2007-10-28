@@ -82,10 +82,7 @@ DIST_COMMON = README $(am__configure_deps) \
 	$(srcdir)/../ltmain.sh $(srcdir)/../missing \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/blis_addlibs.txt.in $(top_srcdir)/configure \
-	$(top_srcdir)/examples/BlisMain.cpp \
-	$(top_srcdir)/examples/Makefile.in \
 	$(top_srcdir)/examples/VRP/Makefile.in \
-	$(top_srcdir)/examples/flugpl.mps \
 	$(top_srcdir)/inc/config_blis.h.in AUTHORS INSTALL
 @HAVE_EXTERNALS_TRUE@am__append_2 = Externals
 @HAVE_EXTERNALS_TRUE@am__append_3 = .Externals-stamp
@@ -99,8 +96,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno configure.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/inc/config_blis.h
-CONFIG_CLEAN_FILES = examples/Makefile examples/VRP/Makefile \
-	blis_addlibs.txt
+CONFIG_CLEAN_FILES = examples/VRP/Makefile blis_addlibs.txt
 SOURCES =
 DIST_SOURCES =
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
@@ -378,8 +374,6 @@ $(top_srcdir)/inc/config_blis.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 
 distclean-hdr:
 	-rm -f inc/config_blis.h inc/stamp-h1
-examples/Makefile: $(top_builddir)/config.status $(top_srcdir)/examples/Makefile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
 examples/VRP/Makefile: $(top_builddir)/config.status $(top_srcdir)/examples/VRP/Makefile.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 blis_addlibs.txt: $(top_builddir)/config.status $(srcdir)/blis_addlibs.txt.in
@@ -530,7 +524,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/. $(distdir)/.. $(distdir)/../BuildTools $(distdir)/examples $(distdir)/examples/VRP $(distdir)/inc
+	$(mkdir_p) $(distdir)/. $(distdir)/.. $(distdir)/../BuildTools $(distdir)/examples $(distdir)/examples/VRP $(distdir)/inc $(distdir)/src
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \

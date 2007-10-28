@@ -29,7 +29,7 @@
 
 AC_PREREQ(2.59)
 
-AC_INIT([Blis],[0.8],[https://projects.coin-or.org/Blis/newticket])
+AC_INIT([Blis],[0.9],[https://projects.coin-or.org/Blis/newticket])
 
 AC_COPYRIGHT([
 #==========================================================================#
@@ -83,10 +83,10 @@ AC_COIN_MAIN_SUBDIRS(CoinUtils)
 AC_COIN_MAIN_SUBDIRS(Alps)
 AC_COIN_MAIN_SUBDIRS(Bcps)
 AC_COIN_MAIN_SUBDIRS(Blis)
-# The following are required for Alps examples
 AC_COIN_MAIN_SUBDIRS(Clp)
 AC_COIN_MAIN_SUBDIRS(Osi)
 AC_COIN_MAIN_SUBDIRS(Cgl)
+AC_COIN_MAIN_SUBDIRS(Data/Sample)
 
 ##############################################################################
 #                   Finishing up by writing all the output                   #
