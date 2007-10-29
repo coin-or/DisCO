@@ -1,97 +1,65 @@
-These instructions are for UNIX-like systems (including Linux, Cygwin
-and MSys) only.  If Microsoft Developer Studio projects are
-maintained for this package, you can find instructions at
+TO BUILD AND RUN SERIAL VRP (UNIX-LIKE ENVIRONMENTS)
+====================================================
 
-  https://projects.coin-or.org/MSDevStudio
+1. Download and build BLIS-0.9 serial library. Please refer to the INSTALL
+file in the installation directory.
 
-**********************************************************************
-***                         DOWNLOAD                               ***
-**********************************************************************
+2. In BUILDDIR/Blis/examples/VRP, type 'make' to build the executable.
 
-You can obtain the source code for the Alps package in two ways:
+3. Modify parameters if desired. BLIS-0.9/Blis/include/BlisParams.h has
+explanations of each parameter. There are two ways to specify parameters:
+   - parameter file: vrp.par
+   - command line
 
-1. Obtain the source directly from the COIN-OR subversion repository
-   (recommended).  For this you needs the program 'svn' installed on
-   your machine, and output of "svn --version" must contain 
-   "handles 'https' scheme".
+The user must specify:
+   - which instance to solve
 
-   Assuming that you want to download stable vesion 0.8 into a subdirectory
-   "Blis-0.8", you type
+The users can specify:
+   - maximum solution time
+   - log level, etc.
 
-   svn checkout https://projects.coin-or.org/svn/Cops/Blis/stable/0.8 Blis-0.8
+4. To run VRP, type 
 
-2. Download the tarball from http://www.coin-or.org/download/source/Cops and
-   extract it, for example, with
+	BUILDDIR/Blis/examples/VRP/vrp -param vrp.par
 
-   tar -xzvf Blis-0.8.0.tgz
+   VRP can also read in parameters from command line, for instance
 
-   More detailed download instructions can be found at
+	BUILDDIR/Blis/examples/VRP/vrp -Alps_instance ./data/input3.txt
+	
+        BUILDDIR/Blis/examples/VRP/vrp -par vrp.par -Alps_instance sample.vrp -Vrp_numRoutes 4  -Alps_timeLimit 600
 
-   https://projects.coin-or.org/Cops
+TO BUILD AND RUN PARALLEL VRP (UNIX_LIKE ENVIRONMENTS)
+======================================================
 
-**********************************************************************
-***      CONFIGURATION, COMPILE, INSTALLATION                      ***
-**********************************************************************
+1. Download and build BCPS-1.0 serial library. Please refer to the INSTALL
+file in the installation directory.
 
-1. Serial Solver
-----------------
+2. In BUILDDIR/Bcps/examples/Blis, type 'make' to build the executable.
 
-Go into the directory that you just downloaded or extracted (e.g. Blis-0.8),
-then you type following commands:
+3. Modify parameters if desired. BCPS-1.0/Alps/include/AlpsParams.h has
+explanations of each parameter. There are two ways to specify parameters:
+   - parameter file: blis.par
+   - command line
 
-  1) ./configure
-  2) make
-  3) make test
-  4) make install 
+The user must specify:
+   - which instance to solve
+   - how many processes to be launched 
 
-Then, go to Blis-0.8/Blis/example/VRP
-  5) make
+The user can specify:
+   - how many hubs
+   - maximum solution time
+   - log level, etc.
 
-Step 5) creates an executable vrp that you can run as
+4. The way to run the parallel version depends on users' computing
+environment, but in general the command line should look something like
 
-  ./vrp -par vrp.par
-
+  mpirun -np 8 -machinefile machines BUILDDIR/Blis/examples/VRP/vrp -par vrp.par
 Besides setting parameters in vrp.par, you can also set parameters in 
 command line, which overrides the parameter values in vrp.par:
 
-  ./vrp -par vrp.par -Alps_instance sample.vrp -Vrp_numRoutes 4  -Alps_timeLimit 600
+  mpirun -np 8 -machinefile machines BUILDDIR/Blis/examples/VRP/vrp -par vrp.par -Alps_instance sample.vrp -Vrp_numRoutes 4 -Alps_hubNum 2
 
+TO BUILD AND RUN SERIAL VRP (MS VISUAL STUDIO)
+==============================================
 
-2. Parallel Solver (MPI as message passing interface) 
------------------------------------------------------
-
-Configuration and and compilation of the MPI parallel solver is system
-dependent. The user has to specify options --with-mpi-incdir, --with-mpi-lib,
-MPICC, and MPICXX. The following is an example.
-
-Go into the directory that you just downloaded or extracted (e.g. Blis-0.8),
-type
-
-  1) ./configure --with-mpi-incdir=/usr/local/mpich/include --with-mpi-lib='-L/usr/local/mpich/lib  -lmpich -lpthread -lrt' MPICC=mpicc MPICXX=mpiCC
-  2) make 
-  3) make install
-
-Then, go to Blis-0.8/Blis/example/VRP
-  4) make
-
-Step 4) creates an executable vrp that you can issue mpirun like 
-(assume MPICH)
-
-  mpirun -np 8 -machinefile machines ./vrp -par vrp.par
-
-Besides setting parameters in vrp.par, you can also set parameters in 
-command line, which overrides the parameter values in vrp.par:
-
-  mpirun -np 8 -machinefile machines ./vrp -par vrp.par -Alps_instance sample.vrp -Vrp_numRoutes 4 -Alps_hubNum 2
-
-You might want to specify other configure options, in case you don't want to 
-use the default choices that configure makes (e.g., compilers). 
-Please visit
- 
-   https://projects.coin-or.org/BuildTools
-
-and the COPS Trac page
-
-   https://projects.coin-or.org/Cops
-
-for more information.
+See INSTALL file in the BLIS distribution

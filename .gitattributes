@@ -123,6 +123,7 @@ Blis/src/blis.par -text
 Blis/test/Makefile.am -text
 Blis/test/Makefile.in -text
 /Externals -text
+/LICENSE -text
 /Makefile.am -text
 /Makefile.in -text
 /README -text
