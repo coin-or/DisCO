@@ -82,11 +82,11 @@ AC_COIN_CREATE_LIBTOOL
 AC_COIN_MAIN_SUBDIRS(CoinUtils)
 AC_COIN_MAIN_SUBDIRS(Alps)
 AC_COIN_MAIN_SUBDIRS(Bcps)
-AC_COIN_MAIN_SUBDIRS(Blis)
 AC_COIN_MAIN_SUBDIRS(Clp)
 AC_COIN_MAIN_SUBDIRS(Osi)
 AC_COIN_MAIN_SUBDIRS(Cgl)
 AC_COIN_MAIN_SUBDIRS(Data/Sample)
+AC_COIN_MAIN_SUBDIRS(Blis)
 
 ##############################################################################
 #                   Finishing up by writing all the output                   #

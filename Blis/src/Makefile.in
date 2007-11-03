@@ -210,7 +210,8 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LDFLAGS = @LDFLAGS@
 LIBEXT = @LIBEXT@
 LIBOBJS = @LIBOBJS@
-LIBS = @LIBS@ $(ADDLIBS) `cat $(BCPSOBJDIR)/bcps_addlibs.txt` `cat \
+LIBS = @LIBS@ $(ADDLIBS) `cat $(BCPSOBJDIR)/blis_addlibs.txt` `cat \
+	$(BCPSOBJDIR)/bcps_addlibs.txt` `cat \
 	$(ALPSOBJDIR)/alps_addlibs.txt` `cat \
 	$(CGLOBJDIR)/cgl_addlibs.txt` `cat \
 	$(OSIOBJDIR)/osi_addlibs.txt` `cat \
@@ -298,7 +299,6 @@ prefix = @prefix@
 program_transform_name = @program_transform_name@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
-sol_cc_compiler = @sol_cc_compiler@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 AUTOMAKE_OPTIONS = foreign
