@@ -1,6 +1,5 @@
 * text=auto !eol
 Blis/AUTHORS -text
-Blis/INSTALL -text
 Blis/LICENSE -text
 Blis/MSVisualStudio/v8/Blis.sln -text
 Blis/MSVisualStudio/v8/Blis.suo -text
