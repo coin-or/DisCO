@@ -1096,6 +1096,11 @@ BlisModel::storeSolution(BlisSolutionType how, BlisSolution* sol)
     getKnowledgeBroker()->addKnowledge(AlpsKnowledgeTypeSolution, 
                                        sol,
                                        objSense_ * sol->getQuality()); 
+#if 0
+        std::cout << "Found a better solution" 
+                  <<", old cutoff = " << cutoff 
+                  << ", new cutoff = " << getCutoff()  << std::endl;
+#endif
 
     // Record how the solution was found
     switch (how) {
