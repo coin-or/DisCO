@@ -18,9 +18,17 @@
 #include "BlisTreeNode.h"
 
 #include "VrpConstants.h"
+#include "VrpHeurTSP.h"
 #include "VrpModel.h"
 #include "VrpSolution.h"
 #include "VrpVariable.h"
+
+//#############################################################################
+
+static int VrpRoundToNearest(double x) 
+{
+    return (int)(x + 0.5);
+}
 
 //#############################################################################
 
@@ -268,7 +276,13 @@ VrpModel::readInstance(const char* dataFile)
 			     "EDGE_WEIGHT_TYPE declared wrong\n");
 		     exit(1);
 		  } else {
-		     edges_.push_back(new VrpVariable(i, j, (int) fdummy));
+		     if (VrpPar_->entry(VrpParams::tspProb)){
+			edges_.push_back(new VrpVariable(i, j, (int) fdummy,
+					 1));
+		     }else{
+			edges_.push_back(new VrpVariable(i, j, (int) fdummy,
+					 j ? 1 : 2));
+		     }			
 		  }
 	       }
 	       if ((wformat==3 || wformat==6) && 
@@ -284,12 +298,62 @@ VrpModel::readInstance(const char* dataFile)
 	       exit(1);
 	    }
 	    break;
-	  case 0 : /* UPPER_ROW */
-	  case 5 : /* LOWER_COL */
-	  case 2 : /* UPPER_DIAG_ROW */
-	  case 7 : /* LOWER_DIAG_COL */
+         case 0 : /* UPPER_ROW */
+         case 2 : /* UPPER_DIAG_ROW */ 
+         {
+             
+             // Deem not to be able solve large problem
+             int ** lowDiag = new int* [vertnum_];
+             for (i = 0; i < vertnum_; ++i) {
+                 lowDiag[i] = new int [vertnum_];
+             }
+             for (i = 0; i < vertnum_; i++){
+                 if (wformat == 2) {
+                     if (!fscanf(f,"%lf", &fdummy)){
+                         fprintf(stderr, "Not enough data -- DIMENSION or "
+                                 "EDGE_WEIGHT_TYPE declared wrong");
+                         exit(1);
+                     }
+                 }
+                 for (j= i + 1; j < vertnum_; j++){
+                     if (!fscanf(f,"%lf", &fdummy)){
+                         fprintf(stderr, "Not enough data -- DIMENSION or "
+                                 "EDGE_WEIGHT_TYPE declared wrong");
+                         exit(1);
+                     } else {
+                         // Create lower diag 
+                         lowDiag[j][i] = (int) fdummy;
+                     }
+                 }
+             }
+             if (fscanf(f,"%lf", &fdummy)){
+                 fprintf(stderr, "Too much data -- DIMENSION or "
+                         "EDGE_WEIGHT_TYPE declared wrong\n");
+                 exit(1);
+             }
+             // Create edges
+             for (i = 1, k = 0; i < vertnum_; i++){
+                 for (j = 0; j < i; j++){
+		     if (VrpPar_->entry(VrpParams::tspProb)){
+			edges_.push_back(new VrpVariable(i, j, lowDiag[i][j],
+					 1));
+		     }else{
+			edges_.push_back(new VrpVariable(i, j, lowDiag[i][j],
+					 j ? 1 : 2));
+		     }			
+                 }
+             }
+             // Free lowDiag
+             for (i = 0; i < vertnum_; ++i) {
+                 delete [] lowDiag[i];
+             }
+             delete [] lowDiag;
+             break;
+         }
+         case 5 : /* LOWER_COL */
+         case 7 : /* LOWER_DIAG_COL */
 	    for (i = 0; i < vertnum_; i++){
-	       if (wformat==2 || wformat==7) 
+	       if (wformat==7) 
 		  if (!fscanf(f,"%lf", &fdummy)){
 		     fprintf(stderr, "Not enough data -- DIMENSION or "
 			     "EDGE_WEIGHT_TYPE declared wrong");
@@ -301,7 +365,13 @@ VrpModel::readInstance(const char* dataFile)
 			     "EDGE_WEIGHT_TYPE declared wrong");
 		     exit(1);
 		  } else {
-		     edges_.push_back(new VrpVariable(i, j, (int) fdummy));
+		     if (VrpPar_->entry(VrpParams::tspProb)){
+			edges_.push_back(new VrpVariable(i, j, (int) fdummy,
+					 1));
+		     }else{
+			edges_.push_back(new VrpVariable(i, j, (int) fdummy,
+					 j ? 1 : 2));
+		     }			
 		  }
 	       }
 	    }
@@ -313,6 +383,28 @@ VrpModel::readInstance(const char* dataFile)
 	    break;
 	  case 8 : /* FULL_MATRIX */
 	    for (i = 0; i < vertnum_; i++){
+                for (j = 0; j < i; j++){
+                    if(!fscanf(f,"%lf", &fdummy)){
+                        fprintf(stderr, "Not enough data -- DIMENSION or "
+                                "EDGE_WEIGHT_TYPE declared wrong");
+                        exit(1);
+                    }
+		    if (VrpPar_->entry(VrpParams::tspProb)){
+		       edges_.push_back(new VrpVariable(i, j, (int) fdummy,
+					1));
+		    }else{
+		       edges_.push_back(new VrpVariable(i, j, (int) fdummy,
+					j ? 1 : 2));
+		    }			
+                }
+		for (j = i; j < vertnum_; j++){
+                   if(!fscanf(f,"%lf", &fdummy)){
+		      fprintf(stderr, "Not enough data -- DIMENSION or "
+			      "EDGE_WEIGHT_TYPE declared wrong");
+		      exit(1);
+                   }
+               }
+#if 0 // BUG: can read upper diag
 	       for (j = 0; j <= i; j++)
 		  if(!fscanf(f,"%lf", &fdummy)){
 		     fprintf(stderr, "Not enough data -- DIMENSION or "
@@ -325,8 +417,16 @@ VrpModel::readInstance(const char* dataFile)
 			     "EDGE_WEIGHT_TYPE declared wrong");
 		     exit(1);
 		  }
-		  edges_[index(i, j)] = new VrpVariable(i, j, (int) fdummy);
+		  if (VrpPar_->entry(VrpParams::tspProb)){
+		     edges_.push_back(new VrpVariable(i, j, (int) fdummy,
+				      1));
+		  }else{
+		     edges_.push_back(new VrpVariable(i, j, (int) fdummy,
+				      j ? 1 : 2));
+		  }			
 	       }
+#endif
+
 	    }
 	    if (fscanf(f,"%lf", &fdummy)){
 	       fprintf(stderr, "Too much data -- DIMENSION or "
@@ -396,10 +496,13 @@ VrpModel::readInstance(const char* dataFile)
 	    if (nctype == 1) coordz_[node-1] = coord_z;
 	    if (wtype_ == _GEO){ /* GEO */
 	       /*--- latitude & longitude for node ------------*/
-	       deg = (int)(coordx_[node-1]);
+                deg = (int)(coordx_[node-1]);
+                //deg = VrpRoundToNearest(coordx_[node-1]);
 	       min = coordx_[node-1] - deg;
 	       coordx_[node-1] = MY_PI * (deg + 5.0*min/3.0 ) / 180.0;
-	       deg = floor(coordy_[node-1]);
+	       deg = (int)(coordy_[node-1]);
+               //deg = floor(coordy_[node-1]);
+               //deg = VrpRoundToNearest(coordy_[node-1]);
 	       min = coordy_[node-1] - deg;
 	       coordy_[node-1] = MY_PI * (deg + 5.0*min/3.0 ) / 180.0;
 	    }
@@ -481,8 +584,13 @@ VrpModel::readInstance(const char* dataFile)
    if (wtype_ != _EXPLICIT){
       for (i = 1, k = 0; i < vertnum_; i++){
 	 for (j = 0; j < i; j++){
-             VrpVariable *aVar = new VrpVariable(i, j, computeCost(i, j));
-             edges_.push_back(aVar);
+	    if (VrpPar_->entry(VrpParams::tspProb)){
+	       edges_.push_back(new VrpVariable(i, j, computeCost(i, j),
+				1));
+	    }else{
+	       edges_.push_back(new VrpVariable(i, j, computeCost(i, j),
+				j ? 1 : 2));
+	    }			
 	 }
       }
       wtype_ = _EXPLICIT;
@@ -539,38 +647,48 @@ VrpModel::readInstance(const char* dataFile)
    // Allocate space for network for later use
    n_ = new VrpNetwork(edgenum_, vertnum_);
 
+   // Add VRP cut generator
    VrpCutGenerator *cg = new VrpCutGenerator(this, vertnum_);
-
    cg->setStrategy(BlisCutStrategyPeriodic);
    cg->setCutGenerationFreq(1);
-
    addCutGenerator(cg);
+
+   // Add TSP heuristic
+   if (numroutes_ == 1) {  // TSP
+       VrpHeurTSP *heurTSP1 = new VrpHeurTSP(this,
+					     "TSP Root",
+					     BlisHeurStrategyBeforeRoot, 1);
+       VrpHeurTSP *heurTSP2 = new VrpHeurTSP(this, 
+					     "TSP",
+					     BlisHeurStrategyPeriodic, 1);
+       addHeuristic(heurTSP1);
+       addHeuristic(heurTSP2);
+   }
 }
 
 //#############################################################################
 
 CoinPackedVector * 
-VrpModel::getSolution()
+VrpModel::getSolution(const double *sol)
 {
-   // Can get LP solution information from solver;
-   int varnum = solver()->getNumCols();
-   const double *sol = solver()->getColSolution();
-   std::vector<VrpVariable *>vars = getEdgeList();
-   double etol = etol_;
-   int *indices = new int[varnum];
-   double *values = new double[varnum]; /* n */
-   int i, cnt = 0;
-
-   assert(varnum == edgenum_);
-
-   for (i = 0; i < varnum; i++){
-      if (sol[i] > etol || sol[i] < -etol){
-	 indices[cnt] = vars[i]->getIndex();
-	 values[cnt++] = sol[i];
-      }
-   }
-
-   return(new CoinPackedVector(varnum, cnt, indices, values, false));
+    // Transform to sparse vector from dense array.
+    int varnum = solver()->getNumCols();
+    std::vector<VrpVariable *>vars = getEdgeList();
+    double etol = etol_;
+    int *indices = new int[varnum];
+    double *values = new double[varnum]; /* n */
+    int i, cnt = 0;
+    
+    assert(varnum == edgenum_);
+    
+    for (i = 0; i < varnum; i++){
+        if (sol[i] > etol || sol[i] < -etol){ // Store nonzero
+            indices[cnt] = vars[i]->getIndex();
+            values[cnt++] = sol[i];
+        }
+    }
+    
+    return(new CoinPackedVector(varnum, cnt, indices, values, false));
 }
 
 //#############################################################################
@@ -583,16 +701,21 @@ void VrpModel::createNet(CoinPackedVector *vec)
 //#############################################################################
 
 BlisSolution * 
-VrpModel::userFeasibleSolution(bool &userFeasible)
+VrpModel::userFeasibleSolution(const double *solution, bool &userFeasible)
 {
-    CoinPackedVector *sol = getSolution();
+    double objValue = 0.0;
+    CoinPackedVector *solVec = getSolution(solution);
     VrpSolution *vrpSol = NULL;
 
+    int msgLevel = AlpsPar_->entry(AlpsParams::msgLevel);
     userFeasible = true;
 
-    createNet(sol);
-
+    createNet(solVec);
+    
     if (!n_->isIntegral_){
+	if (msgLevel > 200) {
+	    std::cout << "UserFeasible: not integral" << std::endl;
+	}
         userFeasible = false;
     }
     else {
@@ -601,27 +724,39 @@ VrpModel::userFeasibleSolution(bool &userFeasible)
         for (i = 0; i < rcnt; i++){
             if (n_->compCuts_[i+1] < 2 - etol_){
                 userFeasible = false;
+		if (msgLevel > 200) {
+		    std::cout << "UserFeasible: not 2" << std::endl;
+		}
                 break;
             }
             else if (n_->compDemands_[i+1] > capacity_){
                 userFeasible = false;
+		if (msgLevel > 200) {
+		    std::cout << "UserFeasible: greater than capacity" << std::endl;
+		}
                 break;
             }
         }
     }
     
     if (userFeasible) {
+        // Compute obj value
+        for (int k = 0; k < numCols_; ++k) {
+            objValue += objCoef_[k] * solution[k];
+        }
+        
         // Create a VRP solution
         vrpSol = new VrpSolution(getNumCols(),
-                                 getLpSolution(),
-                                 getLpObjValue() * objSense_,
+                                 solution,
+                                 objValue,
 				 this);
-
+        
         // TODO: add tour
     }
 
-    delete sol;    
-
+    // Free memory.
+    delete solVec;
+    
     return vrpSol;
 }
 
@@ -641,6 +776,7 @@ VrpModel::computeCost(int v0, int v1){
       q1 = cos( coordy_[v0] - coordy_[v1] );
       q2 = cos( coordx_[v0] - coordx_[v1] );
       q3 = cos( coordx_[v0] + coordx_[v1] );
+      //cost = VrpRoundToNearest(RRR*acos(0.5*((1.0+q1)*q2-(1.0-q1)*q3))+1.0);
       cost = (int) (RRR*acos(0.5*((1.0+q1)*q2-(1.0-q1)*q3))+1.0);
    }else{
       dx = coordx_[v0] - coordx_[v1];
@@ -904,6 +1040,17 @@ VrpModel::decodeVrp(AlpsEncoded &encoded)
     cg->setStrategy(BlisCutStrategyPeriodic);
     cg->setCutGenerationFreq(1); // Generate cuts at every node
     addCutGenerator(cg);
+    // Add TSP heuristic
+    if (numroutes_ == 1) {  // TSP
+        VrpHeurTSP *heurTSP1 = new VrpHeurTSP(this,
+                                              "TSP Root",
+                                              BlisHeurStrategyBeforeRoot, 1);
+        VrpHeurTSP *heurTSP2 = new VrpHeurTSP(this, 
+                                              "TSP",
+                                              BlisHeurStrategyPeriodic, 1);
+        addHeuristic(heurTSP1);
+        addHeuristic(heurTSP2);
+    }
 
     return status;
 }

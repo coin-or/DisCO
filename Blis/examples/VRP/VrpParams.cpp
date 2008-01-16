@@ -34,18 +34,12 @@ VrpParams::createKeywordList() {
   keys_.push_back(make_pair(std::string("Vrp_doExtraInRoot"),
 			    AlpsParameter(AlpsBoolPar, doExtraInRoot)));
 
-<<<<<<< .working
-  keys_.push_back(make_pair(std::string("Vrp_tspProb"),
-			    AlpsParameter(AlpsBoolPar, tspProb)));
-
-=======
   keys_.push_back(make_pair(std::string("Vrp_tspProb"),
 			    AlpsParameter(AlpsBoolPar, tspProb)));
 
   keys_.push_back(make_pair(std::string("Vrp_whichTspCuts"),
 			    AlpsParameter(AlpsIntPar, whichTspCuts)));
  
->>>>>>> .merge-right.r1041
   //--------------------------------------------------------
   // BoolArrayPar
   //--------------------------------------------------------
@@ -68,9 +62,6 @@ VrpParams::createKeywordList() {
 
   keys_.push_back(make_pair(std::string("Vrp_maxNumCutsInShrink"),
 			    AlpsParameter(AlpsIntPar, maxNumCutsInShrink)));
-
-  keys_.push_back(make_pair(std::string("Vrp_whichTspCuts"),
-			    AlpsParameter(AlpsIntPar, whichTspCuts)));
 
   //--------------------------------------------------------
   // String Parameters.
