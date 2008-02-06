@@ -98,12 +98,12 @@ blis_SOURCES = BlisMain.cpp
 blis_LDADD = libBlis.la $(LDADD)
 
 LIBS += $(ADDLIBS) \
-	`cat $(BCPSDOCDIR)/bcps_addlibs.txt` \
-	`cat $(ALPSDOCDIR)/alps_addlibs.txt` \
-	`cat $(CGLDOCDIR)/cgl_addlibs.txt` \
-	`cat $(OSIDOCDIR)/osi_addlibs.txt` \
-	`cat $(CLPDOCDIR)/clp_addlibs.txt` \
-	`cat $(COINUTILSDOCDIR)/coinutils_addlibs.txt`
+	`cat $(BCPSOBJDIR)/bcps_addlibs.txt` \
+	`cat $(ALPSOBJDIR)/alps_addlibs.txt` \
+	`cat $(CGLOBJDIR)/cgl_addlibs.txt` \
+	`cat $(OSIOBJDIR)/osi_addlibs.txt` \
+	`cat $(CLPOBJDIR)/clp_addlibs.txt` \
+	`cat $(COINUTILSOBJDIR)/coinutils_addlibs.txt`
 
 blis_LDFLAGS = -rpath $(libdir)
 
