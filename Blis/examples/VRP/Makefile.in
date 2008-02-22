@@ -98,13 +98,13 @@ COINLIBDIR = @abs_lib_dir@
 # Libraries necessary to link with Clp
 LIBS = -L$(COINLIBDIR) -lBlis -lBcps -lAlps -lCgl -lOsiClp -lOsi -lClp -lCoinUtils \
 	@ADDLIBS@ \
-	`cat $(COINLIBDIR)/blis_addlibs.txt` \
-	`cat $(COINLIBDIR)/bcps_addlibs.txt` \
-	`cat $(COINLIBDIR)/alps_addlibs.txt` \
-	`cat $(COINLIBDIR)/cgl_addlibs.txt` \
-	`cat $(COINLIBDIR)/osi_addlibs.txt` \
-	`cat $(COINLIBDIR)/clp_addlibs.txt` \
-	`cat $(COINLIBDIR)/coinutils_addlibs.txt` \
+	`cat @BLISDOCDIR@/blis_addlibs.txt` \
+	`cat @BCPSDOCDIR@/bcps_addlibs.txt` \
+	`cat @ALPSDOCDIR@/alps_addlibs.txt` \
+	`cat @CGLDOCDIR@/cgl_addlibs.txt` \
+	`cat @OSIDOCDIR@/osi_addlibs.txt` \
+	`cat @CLPDOCDIR@/clp_addlibs.txt` \
+	`cat @COINUTILSDOCDIR@/coinutils_addlibs.txt` \
 	$(ADDLIBS)
 
 # Necessary Include dirs (we use the CYGPATH_W variables to allow
