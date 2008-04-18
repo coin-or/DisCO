@@ -79,6 +79,8 @@ AC_COIN_CREATE_LIBTOOL
 #                  Check which subprojects are there                        #
 #############################################################################
 
+AC_COIN_MAIN_SUBDIRS(ThirdParty/Blas)
+AC_COIN_MAIN_SUBDIRS(ThirdParty/Lapack)
 AC_COIN_MAIN_SUBDIRS(CoinUtils)
 AC_COIN_MAIN_SUBDIRS(Alps)
 AC_COIN_MAIN_SUBDIRS(Bcps)

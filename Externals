@@ -6,3 +6,5 @@ Cgl           https://projects.coin-or.org/svn/Cgl/stable/0.52/Cgl
 Alps          https://projects.coin-or.org/svn/Cops/Alps/stable/1.0/Alps
 Bcps          https://projects.coin-or.org/svn/Cops/Bcps/stable/0.9/Bcps
 Data/Sample   https://projects.coin-or.org/svn/Data/stable/1.0/Sample
+ThirdParty/Blas https://projects.coin-or.org/svn/BuildTools/ThirdParty/Blas/stable/1.0
+ThirdParty/Lapack https://projects.coin-or.org/svn/BuildTools/ThirdParty/Lapack/stable/1.0
