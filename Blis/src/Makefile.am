@@ -98,7 +98,6 @@ blis_SOURCES = BlisMain.cpp
 blis_LDADD = libBlis.la $(LDADD)
 
 LIBS += $(ADDLIBS) \
-	`cat $(BCPSOBJDIR)/blis_addlibs.txt` \
 	`cat $(BCPSOBJDIR)/bcps_addlibs.txt` \
 	`cat $(ALPSOBJDIR)/alps_addlibs.txt` \
 	`cat $(CGLOBJDIR)/cgl_addlibs.txt` \

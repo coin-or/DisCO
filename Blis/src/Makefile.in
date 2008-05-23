@@ -216,8 +216,7 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LDFLAGS = @LDFLAGS@
 LIBEXT = @LIBEXT@
 LIBOBJS = @LIBOBJS@
-LIBS = @LIBS@ $(ADDLIBS) `cat $(BCPSOBJDIR)/blis_addlibs.txt` `cat \
-	$(BCPSOBJDIR)/bcps_addlibs.txt` `cat \
+LIBS = @LIBS@ $(ADDLIBS) `cat $(BCPSOBJDIR)/bcps_addlibs.txt` `cat \
 	$(ALPSOBJDIR)/alps_addlibs.txt` `cat \
 	$(CGLOBJDIR)/cgl_addlibs.txt` `cat \
 	$(OSIOBJDIR)/osi_addlibs.txt` `cat \
