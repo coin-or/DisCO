@@ -49,7 +49,7 @@ unitTest_LDADD = \
 
 # List additional libraries
 LIBS += $(ADDLIBS) \
-	`cat $(BCPSOBJDIR)/biceps_addlibs.txt` \
+	`cat $(BCPSOBJDIR)/bcps_addlibs.txt` \
 	`cat $(ALPSOBJDIR)/alps_addlibs.txt` \
 	`cat $(CGLOBJDIR)/cgl_addlibs.txt` \
 	`cat $(OSIOBJDIR)/osi_addlibs.txt` \
