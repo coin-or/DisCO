@@ -336,7 +336,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         // Bounding to get the quality of this node.
         //--------------------------------------------------
         
-        if ( (knowledgeBroker_->getProcType() == AlpsProcessTypeMaster) && 
+        if ( ((knowledgeBroker_->getProcType() == AlpsProcessTypeMaster) || 
+              (knowledgeBroker_->getProcType() == AlpsProcessTypeSerial)) && 
              isRoot && (model->boundingPass_ == 1) ) {
             if (msgLevel > 0) {
                 model->blisMessageHandler()->message(BLIS_ROOT_PROCESS, 
@@ -360,7 +361,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 	    model->addNumIterations(iter);
             if (isRoot) {
                 getKnowledgeBroker()->tempTimer().stop();
-                if ((knowledgeBroker_->getProcType() == AlpsProcessTypeMaster)
+                if (((knowledgeBroker_->getProcType()==AlpsProcessTypeMaster)||
+                     (knowledgeBroker_->getProcType()==AlpsProcessTypeSerial))
 		    && (msgLevel > 0)) {
                     model->solver()->messageHandler()->setLogLevel(0);
                     model->blisMessageHandler()->message(BLIS_ROOT_TIME, 
@@ -1418,7 +1420,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 
     bool printCutStat = false;
     if (genConsHere) {
-        if ( (getKnowledgeBroker()->getProcType() == AlpsProcessTypeMaster) &&
+        if ( ((getKnowledgeBroker()->getProcType()==AlpsProcessTypeMaster)||
+              (getKnowledgeBroker()->getProcType()==AlpsProcessTypeSerial)) &&
              (msgLevel > 0) ) {
             printCutStat = true;
             //std::cout << "+++++master print cut stats"<< std::endl;

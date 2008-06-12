@@ -504,9 +504,6 @@ BlisModel::setupSelf()
     blisMessageHandler_->setLogLevel(broker_->getMsgLevel());
 
     if (broker_->getMsgLevel() > 0) {
-
-        //std::cout << "**** getProcType = " << broker_->getProcType() << std::endl;
-
         if (broker_->getProcRank() == broker_->getMasterRank()) {
             bcpsMessageHandler_->message(BCPS_S_VERSION, bcpsMessages())
                 << CoinMessageEol;
@@ -597,6 +594,8 @@ BlisModel::setupSelf()
     
     // Disable Alps message
     // AlpsPar()->setEntry(AlpsParams::msgLevel, 1);
+
+    AlpsPar()->setEntry(AlpsParams::printSystemStatus, 0);
     
 #ifdef BLIS_DEBUG_MORE
     std::string problemName;
@@ -1963,43 +1962,75 @@ BlisModel::registerKnowledge() {
 void 
 BlisModel::modelLog() 
 {
-    if (broker_->getProcType() != AlpsProcessTypeMaster) return;
-    
     int logFileLevel = AlpsPar_->entry(AlpsParams::logFileLevel);
     int msgLevel = AlpsPar_->entry(AlpsParams::msgLevel);
-    if (logFileLevel > 0) {
-	std::string logfile = AlpsPar_->entry(AlpsParams::logFile);
-	std::ofstream logFout(logfile.c_str(), std::ofstream::app);
-	writeParameters(logFout);
-    }
 
-    if (msgLevel > 0) {
-        int k;
-        for (k = 0; k < numCutGenerators_; ++k) {
-            if (cutGenerators(k)->calls() > 0) {
-                blisMessageHandler()->message(BLIS_CUT_STAT_FINAL,
-                                              blisMessages())
-                    << cutGenerators(k)->name()
-                    << cutGenerators(k)->calls()
-                    << cutGenerators(k)->numConsGenerated()
-                    << cutGenerators(k)->time()
-                    << cutGenerators(k)->strategy()
+    if (broker_->getProcType() == AlpsProcessTypeSerial) {
+        /* Only valid for serial code */
+        if (logFileLevel > 0) {
+            std::string logfile = AlpsPar_->entry(AlpsParams::logFile);
+            std::ofstream logFout(logfile.c_str(), std::ofstream::app);
+            writeParameters(logFout);
+        }
+        
+        if (msgLevel > 0) {
+            int k;
+            for (k = 0; k < numCutGenerators_; ++k) {
+                if (cutGenerators(k)->calls() > 0) {
+                    blisMessageHandler()->message(BLIS_CUT_STAT_FINAL,
+                                                  blisMessages())
+                        << cutGenerators(k)->name()
+                        << cutGenerators(k)->calls()
+                        << cutGenerators(k)->numConsGenerated()
+                        << cutGenerators(k)->time()
+                        << cutGenerators(k)->strategy()
+                        << CoinMessageEol;
+                }
+            }
+            for (k = 0; k < numHeuristics_; ++k) {
+                if (heuristics(k)->calls() > 0) {
+                    blisMessageHandler()->message(BLIS_HEUR_STAT_FINAL,
+                                                  blisMessages())
+                        << heuristics(k)->name()
+                        << heuristics(k)->calls()
+                        << heuristics(k)->numSolutions()
+                        << heuristics(k)->time()
+                        << heuristics(k)->strategy()
+                        << CoinMessageEol;
+                }   
+            }
+
+            // Print gap
+            if (optimalRelGap_ > ALPS_OBJ_MAX_LESS) {
+                blisMessageHandler()->message(BLIS_GAP_NO, blisMessages())
                     << CoinMessageEol;
             }
+            else {
+                blisMessageHandler()->message(BLIS_GAP_YES, blisMessages())
+                    << optimalRelGap_ << CoinMessageEol;
+            }
+
         }
-        for (k = 0; k < numHeuristics_; ++k) {
-            if (heuristics(k)->calls() > 0) {
-                blisMessageHandler()->message(BLIS_HEUR_STAT_FINAL,
-                                              blisMessages())
-                    << heuristics(k)->name()
-                    << heuristics(k)->calls()
-                    << heuristics(k)->numSolutions()
-                    << heuristics(k)->time()
-                    << heuristics(k)->strategy()
+    }
+    else if (broker_->getProcType() == AlpsProcessTypeMaster) {
+        if (msgLevel > 0) {
+            // Print gap if have
+            double feasBound = broker_->getIncumbentValue();
+            double relBound =  broker_->getBestEstimateQuality();
+            double gap = ALPS_OBJ_MAX;
+            double gapVal = ALPS_OBJ_MAX;
+
+            // Print gap
+            if (optimalRelGap_ > ALPS_OBJ_MAX_LESS) {
+                blisMessageHandler()->message(BLIS_GAP_NO, blisMessages())
                     << CoinMessageEol;
-            }   
+            }
+            else {
+                blisMessageHandler()->message(BLIS_GAP_YES, blisMessages())
+                    << optimalRelGap_ << CoinMessageEol;
+            }
         }
-    }    
+    }
 }
 
 //#############################################################################
@@ -2013,41 +2044,26 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
     int numNodesProcessed = broker_->getNumNodesProcessed();
     int numNodesLeft = broker_->updateNumNodesLeft();
     int msgLevel = broker_->getMsgLevel();
-    bool printLog = false;
-    
-    int numCols = getNumCols();
-    int numRows = getNumRows();
 
-    //std::cout << "nodeInterval = " << nodeInterval << std::endl;
+    bool printLog = false;
+    double feasBound = ALPS_OBJ_MAX;
+    double relBound = ALPS_OBJ_MAX;
+    double gap = ALPS_OBJ_MAX;
+    double gapVal = ALPS_OBJ_MAX;
     
     AlpsTreeNode *bestNode = NULL;
-
-    if ((msgLevel > 1) && (force||(numNodesProcessed % nodeInterval == 0))) {
-        printLog = true;
-    }
-
-    if (broker_->getProcType() != AlpsProcessTypeMaster) {
-        printLog = false;
-    }
     
-    if (msgLevel > 200) {
-        printLog = true;
-    }
-
+    if (broker_->getProcType() == AlpsProcessTypeSerial) {
+        /* For serial code only */
 #if 0
-    std::cout << "==== Process " << broker_->getProcRank()
-              << ": printLog = " << printLog 
-              << ", msgLevel = " << msgLevel 
-              << ", proc type = " << broker_->getProcType()
-              << std::endl;
+        std::cout << "==== Process " << broker_->getProcRank()
+                  << ": printLog = " << printLog 
+                  << ", msgLevel = " << msgLevel 
+                  << ", proc type = " << broker_->getProcType()
+                  << std::endl;
 #endif
-    
-    if (printLog) {
-        double feasBound = ALPS_OBJ_MAX;
-	double relBound = ALPS_OBJ_MAX;
-	double gap = ALPS_OBJ_MAX;
-	double gapVal = ALPS_OBJ_MAX;
-	
+        
+        // Get gap
         if (broker_->getNumKnowledges(AlpsKnowledgeTypeSolution) > 0) {
             feasBound = (broker_->getBestKnowledge(AlpsKnowledgeTypeSolution)).second;
         }
@@ -2057,121 +2073,244 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
         if (bestNode) {
             relBound = bestNode->getQuality();
         }	
-
-	if (numNodesProcessed == 0 ||
-	    (numNodesProcessed % (nodeInterval * 30)) == 0) {
-	    /* Print header. */
-	    std::cout << "\n";
-            std::cout << "    Node";         /*8 spaces*/
-            std::cout << "      ObjValue";   /*14 spaces*/
-            if (msgLevel > 2) {
-                std::cout << "     Row";    /*8 Spaces*/
-                std::cout << "  Column";    /*8 Spaces*/
-                std::cout << "   Index";     /*8 spaces*/
-                std::cout << "  Parent";     /*8 spaces*/
-                std::cout << "   Depth";     /*8 spaces*/
-            }
-
-            std::cout << "  BestFeasible";
-            std::cout << "     BestBound";
-            std::cout << "      Gap";         /*9 spaces*/
-            std::cout << "   Time";
-            std::cout << "    Left";
-            std::cout << std::endl;
-	}
-	
-	if (numNodesProcessed < 10000000) {
-	    printf("%8d", numNodesProcessed);
-	}
-	else {
-	    printf("%7dK", numNodesProcessed/1000);
-	}
-
-        /* Quality */
-	if (node->getStatus() == AlpsNodeStatusFathomed) {
-	    printf("      Fathomed");
-	}
-	else {
-	    printf(" %13g", node->getQuality());
-	}
-
-        if (msgLevel > 2) {
-            if (numRows < 10000000) {
-                printf("%8d", numRows);
-            }
-            else {
-                printf("%7dK", numRows/1000);
-            }
-            if (numCols < 10000000) {
-                printf("%8d", numCols);
-            }
-            else {
-                printf("%7dK", numCols/1000);
-            }
-            /* This index */
-            printf("%8d", node->getIndex());
-            /* Paraent index */
-            if (node->getParent()) {
-                printf(" %7d", node->getParent()->getIndex());
-            }
-            else {
-                printf("        ");
-            }
-            /* Depth */
-            printf(" %7d", node->getDepth());
+        if ( (feasBound < ALPS_OBJ_MAX_LESS) &&
+             (relBound < ALPS_OBJ_MAX_LESS) ) {
+            gapVal = ALPS_MAX(0, feasBound - relBound);
+            gap = 100 * gapVal / (ALPS_FABS(relBound) + 1.0);
         }
+        else if ( (feasBound < ALPS_OBJ_MAX_LESS) &&
+                  (relBound > ALPS_OBJ_MAX_LESS) ) {
+            gap = gapVal = 0.0;
+        }
+        // Record it
+        optimalRelGap_ = gap;
+            
+        // print node log
+        if ((msgLevel > 1) && (force||(numNodesProcessed % nodeInterval == 0))) {
+            printLog = true;
+        }
+        if (msgLevel > 200) {
+            printLog = true;
+        }
+        if (printLog) {
+            int numCols = getNumCols();
+            int numRows = getNumRows();
+            
+            // Print header
+            if (numNodesProcessed == 0 ||
+                (numNodesProcessed % (nodeInterval * 30)) == 0) {
+                /* Print header. */
+                std::cout << "\n";
+                std::cout << "    Node";         /*8 spaces*/
+                std::cout << "      ObjValue";   /*14 spaces*/
+                if (msgLevel > 2) {
+                    std::cout << "     Row";    /*8 Spaces*/
+                    std::cout << "  Column";    /*8 Spaces*/
+                    std::cout << "   Index";     /*8 spaces*/
+                    std::cout << "  Parent";     /*8 spaces*/
+                    std::cout << "   Depth";     /*8 spaces*/
+                }
+                
+                std::cout << "  BestFeasible";
+                std::cout << "     BestBound";
+                std::cout << "      Gap";         /*9 spaces*/
+                std::cout << "   Time";
+                std::cout << "    Left";
+                std::cout << std::endl;
+            }
 
-	if (feasBound > ALPS_OBJ_MAX_LESS) {
-	    printf("              ");
-	}
-	else {
-	    printf(" %13g", feasBound);
-	}
+            // Print log
+            if (numNodesProcessed < 10000000) {
+                printf("%8d", numNodesProcessed);
+            }
+            else {
+                printf("%7dK", numNodesProcessed/1000);
+            }
+            
+            /* Quality */
+            if (node->getStatus() == AlpsNodeStatusFathomed) {
+                printf("      Fathomed");
+            }
+            else {
+                printf(" %13g", node->getQuality());
+            }
+            
+            if (msgLevel > 2) {
+                if (numRows < 10000000) {
+                    printf("%8d", numRows);
+                }
+                else {
+                    printf("%7dK", numRows/1000);
+                }
+                if (numCols < 10000000) {
+                    printf("%8d", numCols);
+                }
+                else {
+                    printf("%7dK", numCols/1000);
+                }
+                /* This index */
+                printf("%8d", node->getIndex());
+                /* Paraent index */
+                if (node->getParent()) {
+                    printf(" %7d", node->getParent()->getIndex());
+                }
+                else {
+                    printf("        ");
+                }
+                /* Depth */
+                printf(" %7d", node->getDepth());
+            }
+            
+            if (feasBound > ALPS_OBJ_MAX_LESS) {
+                printf("              ");
+            }
+            else {
+                printf(" %13g", feasBound);
+            }
 
-	if (relBound > ALPS_OBJ_MAX_LESS) {
-	    printf("              ");
-	}
-	else {
-	    printf(" %13g", relBound);    
-	}
+            if (relBound > ALPS_OBJ_MAX_LESS) {
+                printf("              ");
+            }
+            else {
+                printf(" %13g", relBound);    
+            }
+
+            /* Gap */
+            if (gap > ALPS_OBJ_MAX_LESS) {
+                printf("         "); /* 9 spaces*/
+            }
+            else {
+                if (gap < 1.0e4) {
+                    printf(" %7.2f%%", gap);
+                }
+                else {
+                    printf("% 8g", gapVal);
+                }
+            }
+            
+            int solTime = static_cast<int>(broker_->timer().getCpuTime());
+            if (solTime < 1000000) {
+                printf("%7d", solTime);
+            }
+            else {
+                solTime = static_cast<int>(solTime/3600.0);
+                printf("%6d", solTime);
+                printf("H");
+            }
+            
+            /* Number of left nodes */
+            if (numNodesLeft < 10000000) {
+                printf(" %7d", numNodesLeft);
+            }
+            else {
+                printf(" %6dK", numNodesLeft/1000);
+            }
+            
+            printf("\n");
+        }
+    }
+    else if (broker_->getProcType() == AlpsProcessTypeMaster){
+        /* For parallel code, only master print node log. */
+
+        double feasBound = broker_->getIncumbentValue();
+        double relBound = broker_->getBestEstimateQuality();
+        double gap = ALPS_OBJ_MAX;
+        double gapVal = ALPS_OBJ_MAX;
+        int numNodeLog = broker_->getNumNodeLog();
+        numNodesProcessed = broker_->getNumNodesProcessedSystem();
 
         /* Gap */
-	if ( (feasBound < ALPS_OBJ_MAX_LESS) &&
-	     (relBound < ALPS_OBJ_MAX_LESS) ) {
-	    gapVal = ALPS_MAX(0, feasBound - relBound);
-	    gap = 100 * gapVal / (ALPS_FABS(relBound) + 1.0);
-	}
-	if (gap > ALPS_OBJ_MAX_LESS) {
-	    printf("         "); /* 9 spaces*/
- 	}
-	else {
-	    if (gap < 1.0e4) {
-		printf(" %7.2f%%", gap);
-	    }
-	    else {
-		printf("% 8g", gapVal);
-	    }
-	}
+        if ( (feasBound < ALPS_OBJ_MAX_LESS) &&
+             (relBound < ALPS_OBJ_MAX_LESS) ) {
+            gapVal = ALPS_MAX(0, feasBound - relBound);
+            gap = 100 * gapVal / (ALPS_FABS(relBound) + 1.0);
+        }
+        else if ( (feasBound < ALPS_OBJ_MAX_LESS) &&
+                  (relBound > ALPS_OBJ_MAX_LESS) ) {
+            gap = gapVal = 0.0;
+        }
+        // Record it
+        optimalRelGap_ = gap;
 
-	int solTime = static_cast<int>(broker_->timer().getCpuTime());
-	if (solTime < 1000000) {
-	    printf("%7d", solTime);
-	}
-	else {
-	    solTime = static_cast<int>(solTime/3600.0);
-	    printf("%6d", solTime);
-	    printf("H");
-	}
+        if (msgLevel < 1) {
+            return;
+        }
+        if ( (numNodeLog == 0) ||
+             (numNodesProcessed - numNodeLog >= nodeInterval) ) {
+            printLog = true;
+        }
+        
+        if (printLog) {
+            
+            numNodesLeft = broker_->getNumNodeLeftSystem();
+            
+            // Print header
+            if (numNodeLog == 0) {
+                std::cout << "\n";
+                std::cout << "    Node";         /*8 spaces*/
+                std::cout << "  BestFeasible";
+                std::cout << "     BestBound";
+                std::cout << "      Gap";         /*9 spaces*/
+                std::cout << "   Time";
+                std::cout << "    Left";
+                std::cout << std::endl;
+            }
+            
+            // Print log
+            if (numNodesProcessed < 10000000) {
+                printf("%8d", numNodesProcessed);
+            }
+            else {
+                printf("%7dK", numNodesProcessed/1000);
+            }
+            
+            if (feasBound > ALPS_OBJ_MAX_LESS) {
+                printf("              ");
+            }
+            else {
+                printf(" %13g", feasBound);
+            }
+            
+            if (relBound > ALPS_OBJ_MAX_LESS) {
+                printf("              ");
+            }
+            else {
+                printf(" %13g", relBound);    
+            }
 
-        /* Number of left nodes */
-	if (numNodesLeft < 10000000) {
-	    printf(" %7d", numNodesLeft);
-	}
-	else {
-	    printf(" %6dK", numNodesLeft/1000);
-	}
-
-	printf("\n");
+            if (gap > ALPS_OBJ_MAX_LESS) {
+                printf("         "); /* 9 spaces*/
+            }
+            else {
+                if (gap < 1.0e4) {
+                    printf(" %7.2f%%", gap);
+                }
+                else {
+                    printf("% 8g", gapVal);
+                }
+            }
+            
+            int solTime = static_cast<int>(broker_->timer().getCpuTime());
+            if (solTime < 1000000) {
+                printf("%7d", solTime);
+            }
+            else {
+                solTime = static_cast<int>(solTime/3600.0);
+                printf("%6d", solTime);
+                printf("H");
+            }
+            
+            /* Number of left nodes */
+            if (numNodesLeft < 10000000) {
+                printf(" %7d", numNodesLeft);
+            }
+            else {
+                printf(" %6dK", numNodesLeft/1000);
+            }
+            
+            printf("\n");
+            broker_->setNumNodeLog(numNodesProcessed);
+        }
     }
 }
 

@@ -40,6 +40,8 @@ static Blis_message us_english[]=
     {BLIS_CUTOFF_INC, 43, 1, "Objective coefficients are multiples of %g"},
     {BLIS_CUT_STAT_FINAL, 53, 1, "Called %s cut generator %d times, generated %d cuts, CPU time %.4f seconds, current strategy %d"},
     {BLIS_CUT_STAT_NODE, 55, 1, "Node %d, called %s cut generator %d times, generated %d cuts, CPU time %.4f seconds, current strategy %d"},
+    {BLIS_GAP_NO, 57, 1, "Relative optimality gap is infinity because no solution was found"},
+    {BLIS_GAP_YES, 58, 1, "Relative optimality gap is %.2f%%"},
     {BLIS_HEUR_BEFORE_ROOT, 60, 1, "%s heuristic found a solution; quality is %g"},
     {BLIS_HEUR_STAT_FINAL, 63, 1, "Called %s heuristic %d times, found %d solutions, CPU time %.4f seconds, current strategy %d"},
     {BLIS_HEUR_STAT_NODE, 65, 1, "Node %d, called %s heuristic %d times, found %d solutions, CPU time %.4f seconds, current strategy %d"},
