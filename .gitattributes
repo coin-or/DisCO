@@ -127,7 +127,7 @@ Blis/src/Makefile.am -text
 Blis/src/Makefile.in -text
 Blis/test/Makefile.am -text
 Blis/test/Makefile.in -text
-/Externals.release -text
+/Externals -text
 /Makefile.am -text
 /Makefile.in -text
 /README -text
