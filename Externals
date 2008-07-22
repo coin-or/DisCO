@@ -3,8 +3,8 @@ CoinUtils  https://projects.coin-or.org/svn/CoinUtils/releases/2.2.4/CoinUtils
 Clp  https://projects.coin-or.org/svn/Clp/releases/1.7.4/Clp
 Osi  https://projects.coin-or.org/svn/Osi/releases/0.98.2/Osi
 Cgl  https://projects.coin-or.org/svn/Cgl/releases/0.52.0/Cgl
-Alps  https://projects.coin-or.org/svn/Cops/Alps/releases/1.0.1/Alps
-Bcps  https://projects.coin-or.org/svn/Cops/Bcps/releases/0.9.1/Bcps
+Alps  https://projects.coin-or.org/svn/CHiPPS/Alps/releases/1.0.1/Alps
+Bcps  https://projects.coin-or.org/svn/CHiPPS/Bcps/releases/0.9.1/Bcps
 Data/Sample  https://projects.coin-or.org/svn/Data/releases/1.0.6/Sample
 ThirdParty/Blas  https://projects.coin-or.org/svn/BuildTools/ThirdParty/Blas/releases/1.0.11
 ThirdParty/Lapack  https://projects.coin-or.org/svn/BuildTools/ThirdParty/Lapack/releases/1.0.12
