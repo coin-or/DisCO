@@ -5,6 +5,6 @@ CoinUtils     https://projects.coin-or.org/svn/CoinUtils/trunk/CoinUtils
 Clp           https://projects.coin-or.org/svn/Clp/trunk/Clp
 Osi           https://projects.coin-or.org/svn/Osi/trunk/Osi
 Cgl           https://projects.coin-or.org/svn/Cgl/trunk/Cgl
-Alps          https://projects.coin-or.org/svn/Cops/Alps/trunk/Alps
-Bcps          https://projects.coin-or.org/svn/Cops/Bcps/trunk/Bcps
+Alps          https://projects.coin-or.org/svn/CHiPPS/Alps/trunk/Alps
+Bcps          https://projects.coin-or.org/svn/CHiPPS/Bcps/trunk/Bcps
 Data/Sample   https://projects.coin-or.org/svn/Data/trunk/Sample
