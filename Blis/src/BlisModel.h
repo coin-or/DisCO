@@ -64,6 +64,7 @@ class BlisVariable;
 
 //#############################################################################
 
+/* Declare a BLIS model */
 class BlisModel : public BcpsModel {
 
 protected:
