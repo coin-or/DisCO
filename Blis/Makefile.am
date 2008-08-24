@@ -100,13 +100,13 @@ distclean-local:
 ########################################################################
 
 addlibsfile = blis_addlibs.txt
-addlibsdir = $(prefix)/share/doc/coin/$(PACKAGE_NAME)/
+addlibsdir = $(prefix)/share/doc/coin/$(PACKAGE_NAME)
 
 install-exec-local: install-doc
 	$(install_sh_DATA) $(addlibsfile) $(DESTDIR)$(addlibsdir)/$(addlibsfile)
 
 uninstall-local: uninstall-doc
-	rm -f $(DESTDIR)$(addlibsdir)/$(addlibsfile)
+	rm -f $(addlibsdir)/$(addlibsfile)
 
 ########################################################################
 #                         Maintainer Stuff                             #
