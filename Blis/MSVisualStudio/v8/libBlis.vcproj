@@ -100,13 +100,15 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\BuildTools\headers;..\..\..\CoinUtils\src;..\..\..\Osi\src;..\..\..\Osi\src\OsiCbc;..\..\..\Osi\src\OsiSpx;..\..\..\Osi\src\OsiVol;..\..\..\Osi\src\OsiOsl;..\..\..\Osi\src\OsiXpr;..\..\..\Osi\src\OsiCpx;..\..\..\Osi\src\OsiClp;..\..\..\Cgl\src;..\..\..\Cgl\src\CglTwomir;..\..\..\Cgl\src\CglMixedIntegerRounding;..\..\..\Cgl\src\CglMixedIntegerRounding2;..\..\..\Cgl\src\CglFlowCover;..\..\..\Cgl\src\CglClique;..\..\..\Cgl\src\CglOddHole;..\..\..\Cgl\src\CglKnapsackCover;..\..\..\Cgl\src\CglGomory;..\..\..\Cgl\src\CglPreProcess;..\..\..\Cgl\src\CglProbing;..\..\..\Clp\src;..\..\..\Bcps\src;..\..\..\Alps\src;..\..\..\Blis/src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;"
+				StringPooling="true"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="3"
+				DebugInformationFormat="0"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
