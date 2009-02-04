@@ -68,7 +68,9 @@ correct paths and command names).
   2) make 
   3) make install
 
-This will create an executable that you can run as follows
+Note for MPICH2, you might need add CXXDEFS="-DMPICH_IGNORE_CXX_SEEK" in configure options.
+
+The above three steps will create an executable that you can run as follows
 
   mpirun -np 8 -machinefile machines BUILDDIR/bin/blis -par blis.par
 
