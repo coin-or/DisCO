@@ -121,6 +121,7 @@ Blis/src/Makefile.in -text
 Blis/src/blis.par -text
 Blis/test/Makefile.am -text
 Blis/test/Makefile.in -text
+Blis/test/blis.par -text
 /Externals -text
 /LICENSE -text
 /Makefile.am -text
