@@ -5,6 +5,10 @@ Blis/MSVisualStudio/v8/Blis.sln -text
 Blis/MSVisualStudio/v8/Blis.suo -text
 Blis/MSVisualStudio/v8/Blis.vcproj -text
 Blis/MSVisualStudio/v8/libBlis.vcproj -text
+Blis/MSVisualStudio/v9/Blis.sln -text
+Blis/MSVisualStudio/v9/Blis.suo -text
+Blis/MSVisualStudio/v9/Blis.vcproj -text
+Blis/MSVisualStudio/v9/libBlis.vcproj -text
 Blis/Makefile.am -text
 Blis/Makefile.in -text
 Blis/README -text
@@ -17,6 +21,9 @@ Blis/examples/VRP/LICENSE -text
 Blis/examples/VRP/MSVisualStudio/v8/Vrp.sln -text
 Blis/examples/VRP/MSVisualStudio/v8/Vrp.suo -text
 Blis/examples/VRP/MSVisualStudio/v8/Vrp.vcproj -text
+Blis/examples/VRP/MSVisualStudio/v9/Vrp.sln -text
+Blis/examples/VRP/MSVisualStudio/v9/Vrp.suo -text
+Blis/examples/VRP/MSVisualStudio/v9/Vrp.vcproj -text
 Blis/examples/VRP/Makefile.in -text
 Blis/examples/VRP/README -text
 Blis/examples/VRP/VrpCommonTypes.h -text
