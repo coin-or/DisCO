@@ -296,11 +296,17 @@ protected:
     /** Integer tolerance. */
     double integerTol_;
 
-    /** Relative optimal gap. */
+    /** Input relative optimal gap. */
     double optimalRelGap_;
 
-    /** Absolute optimal gap. */
+    /** Input absolute optimal gap. */
     double optimalAbsGap_;
+
+    /** Current relative optimal gap. */
+    double currRelGap_;
+
+    /** Current absolute optimal gap. */
+    double currAbsGap_;
 
     /** If use heuristics. */
     BlisHeurStrategy heurStrategy_;
@@ -825,6 +831,9 @@ protected:
 
     /** Node log. */
     virtual void nodeLog(AlpsTreeNode *node, bool force);
+
+    /** Return true, if all nodes can be fathomed.*/
+    virtual bool fathomAllNodes();
 
     //------------------------------------------------------
     // PARALLEL

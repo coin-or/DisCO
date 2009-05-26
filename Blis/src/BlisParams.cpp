@@ -268,8 +268,8 @@ BlisParams::setDefaultEntries() {
   setEntry(denseConFactor, 5.0);
   setEntry(integerTol, 1.0e-5);
   setEntry(objSense, 1.0);
-  setEntry(optimalRelGap, 1.0e-6);
-  setEntry(optimalAbsGap, 1.0e-4);
+  setEntry(optimalRelGap, 1.0e-4);
+  setEntry(optimalAbsGap, 1.0e-6);
   setEntry(pseudoWeight, 0.8);
   setEntry(scaleConFactor, 1000000.0);
   setEntry(tailOff, 1e-7);

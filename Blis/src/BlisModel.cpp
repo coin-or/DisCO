@@ -163,6 +163,8 @@ BlisModel::init()
     integerTol_ = 1.0e-5;
     optimalRelGap_ = 1.0e-4;
     optimalAbsGap_ = 1.0e-6;
+    currRelGap_ = ALPS_OBJ_MAX;
+    currAbsGap_ = ALPS_OBJ_MAX;
 
     // Heuristic
     heurStrategy_ = BlisHeurStrategyAuto;
@@ -2001,33 +2003,27 @@ BlisModel::modelLog()
             }
 
             // Print gap
-            if (optimalRelGap_ > ALPS_OBJ_MAX_LESS) {
+            if (currRelGap_ > ALPS_OBJ_MAX_LESS) {
                 blisMessageHandler()->message(BLIS_GAP_NO, blisMessages())
                     << CoinMessageEol;
             }
             else {
                 blisMessageHandler()->message(BLIS_GAP_YES, blisMessages())
-                    << optimalRelGap_ << CoinMessageEol;
+                    << currRelGap_ << CoinMessageEol;
             }
 
         }
     }
     else if (broker_->getProcType() == AlpsProcessTypeMaster) {
         if (msgLevel > 0) {
-            // Print gap if have
-            double feasBound = broker_->getIncumbentValue();
-            double relBound =  broker_->getBestEstimateQuality();
-            double gap = ALPS_OBJ_MAX;
-            double gapVal = ALPS_OBJ_MAX;
-
             // Print gap
-            if (optimalRelGap_ > ALPS_OBJ_MAX_LESS) {
+            if (currRelGap_ > ALPS_OBJ_MAX_LESS) {
                 blisMessageHandler()->message(BLIS_GAP_NO, blisMessages())
                     << CoinMessageEol;
             }
             else {
                 blisMessageHandler()->message(BLIS_GAP_YES, blisMessages())
-                    << optimalRelGap_ << CoinMessageEol;
+                    << currRelGap_ << CoinMessageEol;
             }
         }
     }
@@ -2048,9 +2044,8 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
     bool printLog = false;
     double feasBound = ALPS_OBJ_MAX;
     double relBound = ALPS_OBJ_MAX;
-    double gap = ALPS_OBJ_MAX;
     double gapVal = ALPS_OBJ_MAX;
-    
+
     AlpsTreeNode *bestNode = NULL;
     
     if (broker_->getProcType() == AlpsProcessTypeSerial) {
@@ -2072,18 +2067,16 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
         
         if (bestNode) {
             relBound = bestNode->getQuality();
-        }	
-        if ( (feasBound < ALPS_OBJ_MAX_LESS) &&
-             (relBound < ALPS_OBJ_MAX_LESS) ) {
+        }
+
+        if (relBound > ALPS_OBJ_MAX_LESS) {
+            currAbsGap_ = currRelGap_ = 0.0;
+        }
+        else if (feasBound < ALPS_OBJ_MAX_LESS) {
             gapVal = ALPS_MAX(0, feasBound - relBound);
-            gap = 100 * gapVal / (ALPS_FABS(relBound) + 1.0);
+            currAbsGap_ = ALPS_MAX(0, gapVal);
+            currRelGap_ = 100 * gapVal / (ALPS_FABS(relBound) + 1.0);
         }
-        else if ( (feasBound < ALPS_OBJ_MAX_LESS) &&
-                  (relBound > ALPS_OBJ_MAX_LESS) ) {
-            gap = gapVal = 0.0;
-        }
-        // Record it
-        optimalRelGap_ = gap;
             
         // print node log
         if ((msgLevel > 1) && (force||(numNodesProcessed % nodeInterval == 0))) {
@@ -2176,15 +2169,15 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
             }
 
             /* Gap */
-            if (gap > ALPS_OBJ_MAX_LESS) {
+            if (currRelGap_ > ALPS_OBJ_MAX_LESS) {
                 printf("         "); /* 9 spaces*/
             }
             else {
-                if (gap < 1.0e4) {
-                    printf(" %7.2f%%", gap);
+                if (currRelGap_ < 1.0e4) {
+                    printf(" %7.2f%%", currRelGap_);
                 }
                 else {
-                    printf("% 8g", gapVal);
+                    printf("% 8g", currAbsGap_);
                 }
             }
             
@@ -2214,23 +2207,19 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
 
         double feasBound = broker_->getIncumbentValue();
         double relBound = broker_->getBestEstimateQuality();
-        double gap = ALPS_OBJ_MAX;
         double gapVal = ALPS_OBJ_MAX;
         int numNodeLog = broker_->getNumNodeLog();
         numNodesProcessed = broker_->getNumNodesProcessedSystem();
 
-        /* Gap */
-        if ( (feasBound < ALPS_OBJ_MAX_LESS) &&
-             (relBound < ALPS_OBJ_MAX_LESS) ) {
+        /* Compute gap */
+        if (relBound > ALPS_OBJ_MAX_LESS) {
+            currAbsGap_ = currRelGap_ = 0.0;
+        }
+        else if (feasBound < ALPS_OBJ_MAX_LESS) {
             gapVal = ALPS_MAX(0, feasBound - relBound);
-            gap = 100 * gapVal / (ALPS_FABS(relBound) + 1.0);
+            currAbsGap_ = ALPS_MAX(0, gapVal);
+            currRelGap_ = 100 * gapVal / (ALPS_FABS(relBound) + 1.0);
         }
-        else if ( (feasBound < ALPS_OBJ_MAX_LESS) &&
-                  (relBound > ALPS_OBJ_MAX_LESS) ) {
-            gap = gapVal = 0.0;
-        }
-        // Record it
-        optimalRelGap_ = gap;
 
         if (msgLevel < 1) {
             return;
@@ -2278,15 +2267,15 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
                 printf(" %13g", relBound);    
             }
 
-            if (gap > ALPS_OBJ_MAX_LESS) {
+            if (currRelGap_ > ALPS_OBJ_MAX_LESS) {
                 printf("         "); /* 9 spaces*/
             }
             else {
-                if (gap < 1.0e4) {
-                    printf(" %7.2f%%", gap);
+                if (currRelGap_ < 1.0e4) {
+                    printf(" %7.2f%%", currRelGap_);
                 }
                 else {
-                    printf("% 8g", gapVal);
+                    printf("% 8g", currAbsGap_);
                 }
             }
             
@@ -2311,6 +2300,49 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
             printf("\n");
             broker_->setNumNodeLog(numNodesProcessed);
         }
+    }
+}
+
+
+
+//#############################################################################
+
+bool 
+BlisModel::fathomAllNodes()
+{
+    double feasBound = ALPS_OBJ_MAX;
+    double relBound = ALPS_OBJ_MAX;
+    double gapVal = ALPS_OBJ_MAX;
+
+    AlpsTreeNode *bestNode = NULL;
+    
+    // Compute gap
+    feasBound = broker_->getIncumbentValue();
+    bestNode = broker_->getBestNode();
+    
+    if (bestNode) {
+        relBound = bestNode->getQuality();
+    }	
+
+    if (relBound > ALPS_OBJ_MAX_LESS) {
+        currAbsGap_ = currRelGap_ = 0.0;
+    }
+    else if (feasBound < ALPS_OBJ_MAX_LESS) {
+        gapVal = ALPS_MAX(0, feasBound - relBound);
+        currAbsGap_ = ALPS_MAX(0, gapVal);
+        currRelGap_ = 100 * gapVal / (ALPS_FABS(relBound) + 1.0);
+    }
+#if 0
+    printf("+++ Process %d: currAbsGap_ %g, currRelGap_%g\n",
+           broker_->getProcRank(), currAbsGap_,  currRelGap_);
+#endif
+
+    if ( (currAbsGap_ <= optimalAbsGap_ + ALPS_ZERO) ||
+         (currRelGap_ <= optimalRelGap_ + ALPS_ZERO) ) {
+        return true;
+    }
+    else {
+        return false;
     }
 }
 
