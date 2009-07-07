@@ -199,9 +199,8 @@ BlisObjectInt::preferredNewFeasible(BcpsModel *m) const
     double value = solver->getColSolution()[columnIndex_];
     
     double nearest = floor(value + 0.5);
-    double integerTolerance = model->BlisPar()->entry(BlisParams::integerTol);
 
-    assert(fabs(value - nearest) <= integerTolerance);
+    assert(fabs(value - nearest) <= model->BlisPar()->entry(BlisParams::integerTol));
 
     double dj = solver->getObjSense()*solver->getReducedCost()[columnIndex_];
 
@@ -248,9 +247,8 @@ BlisObjectInt::notPreferredNewFeasible(BcpsModel *m) const
     double value = solver->getColSolution()[columnIndex_];
     
     double nearest = floor(value + 0.5);
-    double integerTolerance = model->BlisPar()->entry(BlisParams::integerTol);
 
-    assert (fabs(value-nearest) <= integerTolerance);
+    assert (fabs(value-nearest) <= model->BlisPar()->entry(BlisParams::integerTol));
     double dj = solver->getObjSense()*solver->getReducedCost()[columnIndex_];
     BlisBranchObjectInt * object = NULL;
 
