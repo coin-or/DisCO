@@ -305,7 +305,9 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
         //--------------------------------------------------------
         
         // set true to say look at all even if some fixed (experiment)
+#if 0
 	bool solveAll = false;
+#endif
 	int saveLimit;
         
 	CoinWarmStart * ws = solver->getWarmStart();

@@ -40,6 +40,8 @@ lib_LTLIBRARIES = libBlis.la
 libBlis_la_SOURCES = \
 	BlisBranchObjectInt.cpp \
 	BlisBranchObjectInt.h \
+	BlisBranchObjectBilevel.cpp \
+	BlisBranchObjectBilevel.h \
 	BlisBranchStrategyMaxInf.cpp \
 	BlisBranchStrategyMaxInf.h \
 	BlisBranchStrategyPseudo.cpp \
@@ -48,6 +50,8 @@ libBlis_la_SOURCES = \
 	BlisBranchStrategyRel.h \
 	BlisBranchStrategyStrong.cpp \
 	BlisBranchStrategyStrong.h \
+	BlisBranchStrategyBilevel.cpp \
+	BlisBranchStrategyBilevel.h \
 	BlisConGenerator.cpp \
 	BlisConGenerator.h \
 	BlisConstraint.cpp \

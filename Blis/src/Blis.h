@@ -119,7 +119,8 @@ enum BlisSolutionType {
 enum BlisBranchingObjectType {
     BlisBranchingObjectTypeNone = 0,
     BlisBranchingObjectTypeInt,
-    BlisBranchingObjectTypeSos
+    BlisBranchingObjectTypeSos,
+    BlisBranchingObjectTypeBilevel
 };
 
 //#############################################################################

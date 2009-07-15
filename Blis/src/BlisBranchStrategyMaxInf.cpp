@@ -28,10 +28,8 @@
 
 // Copy constructor 
 BlisBranchStrategyMaxInf::BlisBranchStrategyMaxInf (
-    const BlisBranchStrategyMaxInf & rhs
-    )
-    :
-    BcpsBranchStrategy()
+    const BlisBranchStrategyMaxInf & rhs)
+    : BcpsBranchStrategy()
 {
     bestChangeUp_ = rhs.bestChangeUp_;
     bestNumberUp_ = rhs.bestNumberUp_;

@@ -52,44 +52,46 @@
 
 int main(int argc, char *argv[]) 
 {
-    try{
-	// Set up lp solver
+
+	try{
+		// Set up lp solver
 #ifdef  COIN_HAS_CLP
-        OsiClpSolverInterface lpSolver;
-	lpSolver.getModelPtr()->setDualBound(1.0e10);
-	lpSolver.messageHandler()->setLogLevel(0);
+		OsiClpSolverInterface lpSolver;
+		lpSolver.getModelPtr()->setDualBound(1.0e10);
+		lpSolver.messageHandler()->setLogLevel(0);
 #endif
 	
-	// Create BLIS model 
-	BlisModel model;
-	model.setSolver(&lpSolver);
+		// Create BLIS model 
+		BlisModel model;
+		model.setSolver(&lpSolver);
 	
 #ifdef  COIN_HAS_MPI
-	AlpsKnowledgeBrokerMPI broker(argc, argv, model);
+		AlpsKnowledgeBrokerMPI broker(argc, argv, model);
 #else
-	AlpsKnowledgeBrokerSerial broker(argc, argv, model); 
+		AlpsKnowledgeBrokerSerial broker(argc, argv, model); 
 #endif
 
-	// Search for best solution
-	broker.search(&model);
+		// Search for best solution
+		broker.search(&model);
 	
-	// Report the best solution found and its ojective value
-	broker.printBestSolution();
-    }
-    catch(CoinError& er) {
-	std::cerr << "\nBLIS ERROR: \"" << er.message() 
+		// Report the best solution found and its ojective value
+		broker.printBestSolution();
+ }	
+
+	catch(CoinError& er) {
+ 	std::cerr << "\nBLIS ERROR: \"" << er.message() 
 		  << "\""<< std::endl
 		  << "             from function \"" << er.methodName()
 		  << "\""<< std::endl
 		  << "             from class \"" << er.className()
 		  << "\"" << std::endl;
-    }
-    catch(...) {
-	std::cerr << "Something went wrong!" << std::endl;
-    }
+	}
+  catch(...) {
+		std::cerr << "Something went wrong!" << std::endl;
+  }
     
     
-    return 0;
+  return 0;
 }
 
 //#############################################################################

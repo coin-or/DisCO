@@ -91,8 +91,9 @@ libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libBlis_la_LIBADD =
 am_libBlis_la_OBJECTS = BlisBranchObjectInt.lo \
-	BlisBranchStrategyMaxInf.lo BlisBranchStrategyPseudo.lo \
-	BlisBranchStrategyRel.lo BlisBranchStrategyStrong.lo \
+	BlisBranchObjectBilevel.lo BlisBranchStrategyMaxInf.lo \
+	BlisBranchStrategyPseudo.lo BlisBranchStrategyRel.lo \
+	BlisBranchStrategyStrong.lo BlisBranchStrategyBilevel.lo \
 	BlisConGenerator.lo BlisConstraint.lo BlisHelp.lo \
 	BlisHeurRound.lo BlisMessage.lo BlisModel.lo BlisObjectInt.lo \
 	BlisParams.lo BlisPresolve.lo BlisPseudo.lo BlisTreeNode.lo
@@ -322,6 +323,8 @@ lib_LTLIBRARIES = libBlis.la
 libBlis_la_SOURCES = \
 	BlisBranchObjectInt.cpp \
 	BlisBranchObjectInt.h \
+	BlisBranchObjectBilevel.cpp \
+	BlisBranchObjectBilevel.h \
 	BlisBranchStrategyMaxInf.cpp \
 	BlisBranchStrategyMaxInf.h \
 	BlisBranchStrategyPseudo.cpp \
@@ -330,6 +333,8 @@ libBlis_la_SOURCES = \
 	BlisBranchStrategyRel.h \
 	BlisBranchStrategyStrong.cpp \
 	BlisBranchStrategyStrong.h \
+	BlisBranchStrategyBilevel.cpp \
+	BlisBranchStrategyBilevel.h \
 	BlisConGenerator.cpp \
 	BlisConGenerator.h \
 	BlisConstraint.cpp \
@@ -546,7 +551,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisBranchObjectBilevel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisBranchObjectInt.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisBranchStrategyBilevel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisBranchStrategyMaxInf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisBranchStrategyPseudo.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisBranchStrategyRel.Plo@am__quote@

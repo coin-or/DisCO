@@ -42,6 +42,7 @@
 
 #include "Blis.h"
 #include "BlisBranchObjectInt.h"
+#include "BlisBranchObjectBilevel.h"
 #include "BlisConstraint.h"
 #include "BlisHelp.h"
 #include "BlisTreeNode.h"
@@ -1528,7 +1529,6 @@ BlisTreeNode::branch()
 
     int numCols = model->getNumCols();
 
-
 #ifdef BLIS_DEBUG_MORE
     // Debug survived old constraints.
     int currNumOldCons = model->getNumOldConstraints();
@@ -1545,418 +1545,465 @@ BlisTreeNode::branch()
     // Get branching object. TODO: Assume integer branching object. 
     //------------------------------------------------------
     
-    BlisBranchObjectInt *branchObject =
-	dynamic_cast<BlisBranchObjectInt *>(branchObject_);
-    int objInd = branchObject->getObjectIndex();
-
-    double bValue = branchObject->getValue();
-
-    BlisObjectInt *obj = dynamic_cast<BlisObjectInt *>(model->objects(objInd));
-    int branchVar = obj->columnIndex();
-    
-#ifdef BLIS_DEBUG
-    if ( (branchVar < 0) || (branchVar >= numCols) ) {
-	std::cout << "ERROR: BRANCH(): branchVar = " << branchVar 
-		  << "; numCols = " << numCols  << std::endl;
-	throw CoinError("branch index is out of range", 
-			"branch", "BlisTreeNode");
-    }
-#endif
-
-#ifdef BLIS_DEBUG
-    printf("BRANCH(): on %d, phase %d\n", branchVar, phase);
-    printf("DOWN: lb %g, up %g\n",
-	   branchObject->getDown()[0], branchObject->getDown()[1]);
-    printf("UP  : lb %g, up %g\n",
-	   branchObject->getUp()[0], branchObject->getUp()[1]);
-#endif
-
     BlisNodeDesc* thisDesc = dynamic_cast<BlisNodeDesc*>(desc_);
 
-        
-    //======================================================
-    //------------------------------------------------------
-    // Create down-branch node description.
-    //------------------------------------------------------
-    //======================================================
-    
-    childDesc = new BlisNodeDesc(model);
-    
-    if (phase == AlpsPhaseRampup) {
-	
-	//--------------------------------------------------
-	// Store a full description since each node will be the root of
-	// a subtree.
-	// NOTE: this desc must be explicit during rampup.
-	//--------------------------------------------------	
+    BlisBranchingObjectType type = 
+	static_cast<BlisBranchingObjectType>(branchObject_->getType());
 
-	int index, k;
-	int numModify = -1;
-	double value;
-	
-	double *fVarHardLB = new double [numCols];
-	double *fVarHardUB = new double [numCols];
-	int *fVarHardLBInd = new int [numCols];
-	int *fVarHardUBInd = new int [numCols];
-		
-	double *fVarSoftLB = NULL;
-	double *fVarSoftUB = NULL;
-	int *fVarSoftLBInd = NULL;
-	int *fVarSoftUBInd = NULL;
+    switch(type){
 
-	//--------------------------------------------------
-	// Full hard variable bounds.
-	//--------------------------------------------------
+     case BlisBranchingObjectTypeInt: 
+	 {
+	     BlisBranchObjectInt *branchObject =
+		 dynamic_cast<BlisBranchObjectInt *>(branchObject_);
 
-	numModify = thisDesc->getVars()->lbHard.numModify;
-	assert(numModify == numCols);
-	for (k = 0; k < numModify; ++k) {
-	    index = thisDesc->getVars()->lbHard.posModify[k];
-	    assert(index == k);
-	    value = thisDesc->getVars()->lbHard.entries[k];
-	    fVarHardLB[k] = value;
-	    fVarHardLBInd[k] = index;
-	}
-	
-	numModify = thisDesc->getVars()->ubHard.numModify;
-	assert(numModify == numCols);
-	for (k = 0; k < numModify; ++k) {
-	    index = thisDesc->getVars()->ubHard.posModify[k];
-	    assert(index == k);
-	    value = thisDesc->getVars()->ubHard.entries[k];
-	    fVarHardUB[k] = value;
-	    fVarHardUBInd[k] = index;
-	}
-	
-	// Branching bounds.
-	fVarHardLB[branchVar] = branchObject->getDown()[0];
-	fVarHardUB[branchVar] = branchObject->getDown()[1];
-
-
-	childDesc->assignVarHardBound(numCols,
-				      fVarHardLBInd,
-				      fVarHardLB,
-				      numCols,
-				      fVarHardUBInd,
-				      fVarHardUB);
-
-	//--------------------------------------------------
-	// Soft variable bounds.
-	//--------------------------------------------------
-
-	int numSoftVarLowers = thisDesc->getVars()->lbSoft.numModify;
-	assert(numSoftVarLowers >= 0 && numSoftVarLowers <= numCols);
-	if (numSoftVarLowers > 0) {
-	    fVarSoftLB = new double [numSoftVarLowers];
-	    fVarSoftLBInd = new int [numSoftVarLowers];
-	    for (k = 0; k < numSoftVarLowers; ++k) {
-		index = thisDesc->getVars()->lbSoft.posModify[k];
-		value = thisDesc->getVars()->lbSoft.entries[k];
-		fVarSoftLB[k] = value;
-		fVarSoftLBInd[k] = index;
-	    }
-	}
-		    
-	int numSoftVarUppers = thisDesc->getVars()->ubSoft.numModify;
-	assert(numSoftVarUppers >= 0 && numSoftVarUppers <= numCols);
-	if (numSoftVarUppers > 0) {
-	    fVarSoftUB = new double [numSoftVarUppers];
-	    fVarSoftUBInd = new int [numSoftVarUppers];
-	    for (k = 0; k < numSoftVarUppers; ++k) {
-		index = thisDesc->getVars()->ubSoft.posModify[k];
-		value = thisDesc->getVars()->ubSoft.entries[k];
-		fVarSoftUB[k] = value;
-		fVarSoftUBInd[k] = index;
-	    }
-	}
-
-#ifdef BLIS_DEBUG_MORE
-	// Print soft bounds.
-	std::cout << "\nBRANCH: numSoftVarLowers=" << numSoftVarLowers
-		  << ", numSoftVarUppers=" << numSoftVarUppers
-		  << std::endl;
-	for (k = 0; k < numSoftVarLowers; ++k) {
-	    std::cout << "Col[" << fVarSoftLBInd[k] << "]: soft lb="
-		      << fVarSoftLB[k] << std::endl;		    
-	}
-	std::cout << "------------------" << std::endl;
-	for (k = 0; k < numSoftVarUppers; ++k) {
-	    std::cout << "Col[" << fVarSoftUBInd[k] << "]: soft ub="
-		      << fVarSoftUB[k] << std::endl;
-	}
-	std::cout << "------------------" << std::endl << std::endl;
+	     int objInd = branchObject->getObjectIndex();
+	     
+	     double bValue = branchObject->getValue();
+	     
+	     BlisObjectInt *obj = 
+		 dynamic_cast<BlisObjectInt *>(model->objects(objInd));
+	     int branchVar = obj->columnIndex();
+	     
+#ifdef BLIS_DEBUG
+	     if ( (branchVar < 0) || (branchVar >= numCols) ) {
+		 std::cout << "ERROR: BRANCH(): branchVar = " << branchVar 
+			   << "; numCols = " << numCols  << std::endl;
+		 throw CoinError("branch index is out of range", 
+				 "branch", "BlisTreeNode");
+	     }
 #endif
+	     
+#ifdef BLIS_DEBUG
+	     printf("BRANCH(): on %d, phase %d\n", branchVar, phase);
+	     printf("DOWN: lb %g, up %g\n",
+		    branchObject->getDown()[0], branchObject->getDown()[1]);
+	     printf("UP  : lb %g, up %g\n",
+		    branchObject->getUp()[0], branchObject->getUp()[1]);
+#endif
+	     
+	     //======================================================
+	     //------------------------------------------------------
+	     // Create down-branch node description.
+	     //------------------------------------------------------
+	     //======================================================
 
-	// Assign it anyway so to transfer ownership of memory(fVarSoftLBInd,etc.)
-	childDesc->assignVarSoftBound(numSoftVarLowers, 
-				      fVarSoftLBInd,
-				      fVarSoftLB,
-				      numSoftVarUppers, 
-				      fVarSoftUBInd,
-				      fVarSoftUB);
-
-	//--------------------------------------------------
-	// Full set of non-core constraints.
-	// NOTE: non-core constraints have been saved in description
-	//       when process() during ramp-up.
-	//--------------------------------------------------
-
-	BcpsObject **tempCons = NULL;
-	int tempInt = 0;
-	
-	tempInt = thisDesc->getCons()->numAdd;
-	if (tempInt > 0) {
-	    tempCons = new BcpsObject* [tempInt];
-	    for (k = 0; k < tempInt; ++k) {
-		BlisConstraint *aCon = dynamic_cast<BlisConstraint *>
-		    (thisDesc->getCons()->objects[k]);
-                
-		assert(aCon);
-		assert(aCon->getSize() > 0);
-		assert(aCon->getSize() < numCols);
-		BlisConstraint *newCon = new BlisConstraint(*aCon);
-		tempCons[k] = newCon;
-	    }
-	}
+	     childDesc = new BlisNodeDesc(model);
+	     
+	     if (phase == AlpsPhaseRampup) {
+		 
+		 //--------------------------------------------------
+		 // Store a full description since each node will be the 
+		 // root of a subtree.
+		 // NOTE: this desc must be explicit during rampup.
+		 //--------------------------------------------------	
+		 
+		 int index, k;
+		 int numModify = -1;
+		 double value;
+		 
+		 double *fVarHardLB = new double [numCols];
+		 double *fVarHardUB = new double [numCols];
+		 int *fVarHardLBInd = new int [numCols];
+		 int *fVarHardUBInd = new int [numCols];
+		 
+		 double *fVarSoftLB = NULL;
+		 double *fVarSoftUB = NULL;
+		 int *fVarSoftLBInd = NULL;
+		 int *fVarSoftUBInd = NULL;
 	    
-
-#if 0
-	else {
-	    // No cons or only root cons.
-	    tempInt = model->getNumOldConstraints();
-
-	    if (tempInt > 0) {
-		tempCons = new BcpsObject* [tempInt];
-	    }
-	    for (k = 0; k < tempInt; ++k) {
-		BlisConstraint *aCon = model->oldConstraints()[k];                
-		assert(aCon);
-		assert(aCon->getSize() > 0);
-		assert(aCon->getSize() < numCols);
-		BlisConstraint *newCon = new BlisConstraint(*aCon);
-		tempCons[k] = newCon;
-	    }
-	}
-#endif
-
+		 //--------------------------------------------------
+		 // Full hard variable bounds.
+		 //--------------------------------------------------
+		 
+		 numModify = thisDesc->getVars()->lbHard.numModify;
+		 assert(numModify == numCols);
+		 for (k = 0; k < numModify; ++k) {
+		     index = thisDesc->getVars()->lbHard.posModify[k];
+		     assert(index == k);
+		     value = thisDesc->getVars()->lbHard.entries[k];
+		     fVarHardLB[k] = value;
+		     fVarHardLBInd[k] = index;
+		 }
+		 
+		 numModify = thisDesc->getVars()->ubHard.numModify;
+		 assert(numModify == numCols);
+		 for (k = 0; k < numModify; ++k) {
+		     index = thisDesc->getVars()->ubHard.posModify[k];
+		     assert(index == k);
+		     value = thisDesc->getVars()->ubHard.entries[k];
+		     fVarHardUB[k] = value;
+		     fVarHardUBInd[k] = index;
+		 }
+		 
+		 // Branching bounds.
+		 fVarHardLB[branchVar] = branchObject->getDown()[0];
+		 fVarHardUB[branchVar] = branchObject->getDown()[1];
+		 
+		 
+		 childDesc->assignVarHardBound(numCols,
+					       fVarHardLBInd,
+					       fVarHardLB,
+					       numCols,
+					       fVarHardUBInd,
+					       fVarHardUB);
+		 
+		 //--------------------------------------------------
+		 // Soft variable bounds.
+		 //--------------------------------------------------
+		 
+		 int numSoftVarLowers = thisDesc->getVars()->lbSoft.numModify;
+		 assert(numSoftVarLowers >= 0 && numSoftVarLowers <= numCols);
+		 if (numSoftVarLowers > 0) {
+		     fVarSoftLB = new double [numSoftVarLowers];
+		     fVarSoftLBInd = new int [numSoftVarLowers];
+		     for (k = 0; k < numSoftVarLowers; ++k) {
+			 index = thisDesc->getVars()->lbSoft.posModify[k];
+			 value = thisDesc->getVars()->lbSoft.entries[k];
+			 fVarSoftLB[k] = value;
+			 fVarSoftLBInd[k] = index;
+		     }
+		 }
+		 
+		 int numSoftVarUppers = thisDesc->getVars()->ubSoft.numModify;
+		 assert(numSoftVarUppers >= 0 && numSoftVarUppers <= numCols);
+		 if (numSoftVarUppers > 0) {
+		     fVarSoftUB = new double [numSoftVarUppers];
+		     fVarSoftUBInd = new int [numSoftVarUppers];
+		     for (k = 0; k < numSoftVarUppers; ++k) {
+			 index = thisDesc->getVars()->ubSoft.posModify[k];
+			 value = thisDesc->getVars()->ubSoft.entries[k];
+			 fVarSoftUB[k] = value;
+			 fVarSoftUBInd[k] = index;
+		     }
+		 }
+		 
 #ifdef BLIS_DEBUG_MORE
-	std::cout << "BRANCH: down: tempInt=" << tempInt <<std::endl;
+		 // Print soft bounds.
+		 std::cout << "\nBRANCH: numSoftVarLowers=" << numSoftVarLowers
+			   << ", numSoftVarUppers=" << numSoftVarUppers
+			   << std::endl;
+		 for (k = 0; k < numSoftVarLowers; ++k) {
+		     std::cout << "Col[" << fVarSoftLBInd[k] << "]: soft lb="
+			       << fVarSoftLB[k] << std::endl;		    
+		 }
+		 std::cout << "------------------" << std::endl;
+		 for (k = 0; k < numSoftVarUppers; ++k) {
+		     std::cout << "Col[" << fVarSoftUBInd[k] << "]: soft ub="
+			       << fVarSoftUB[k] << std::endl;
+		 }
+		 std::cout << "------------------" << std::endl << std::endl;
 #endif
-	// Fresh desc, safely add.
-	childDesc->setAddedConstraints(tempInt, tempCons);
-    }
-    else {
-	
-	//--------------------------------------------------
-	// Relative: Only need to record hard var bound change. 
-	// NOTE: soft var bound changes are Record after selectBranchObject.
-	//--------------------------------------------------
-	
-	childDesc->setVarHardBound(1,
-				   &branchVar,
-				   &(branchObject->getDown()[0]),
-				   1,
-				   &branchVar,
-				   &(branchObject->getDown()[1]));
-    }
-
-    childDesc->setBranchedDir(-1);
-    childDesc->setBranchedInd(objInd);
-    childDesc->setBranchedVal(bValue);
-
-    // Copy warm start.
-    CoinWarmStartBasis *ws = thisDesc->getBasis();
-    CoinWarmStartBasis *newWs = new CoinWarmStartBasis(*ws);
-    childDesc->setBasis(newWs);
-    
-    childNodeDescs.push_back(CoinMakeTriple(static_cast<AlpsNodeDesc *>
-					    (childDesc),
-					    AlpsNodeStatusCandidate,
-					    objVal));
-
-    //======================================================
-    //------------------------------------------------------
-    // Create up-branch node description.
-    //------------------------------------------------------
-    //======================================================
-    
-    childDesc = new BlisNodeDesc(model);
-
-    if (phase == AlpsPhaseRampup) {
-
-	//--------------------------------------------------
-	// Store a full description since each node will be the root of
-	// a subtree.
-	// NOTE: parent must be explicit during rampup.
-	//--------------------------------------------------	
-
-	int index, k;
-	int numModify = -1;
-	double value;
-	
-	double *fVarHardLB = new double [numCols];
-	double *fVarHardUB = new double [numCols];
-	int *fVarHardLBInd = new int [numCols];
-	int *fVarHardUBInd = new int [numCols];
-		
-	double *fVarSoftLB = NULL;
-	double *fVarSoftUB = NULL;
-	int *fVarSoftLBInd = NULL;
-	int *fVarSoftUBInd = NULL;
-
-	//--------------------------------------------------
-	// Full hard variable bounds.
-	//--------------------------------------------------
-	
-	numModify = thisDesc->getVars()->lbHard.numModify;
-	assert(numModify == numCols);
-	for (k = 0; k < numModify; ++k) {
-	    index = thisDesc->getVars()->lbHard.posModify[k];
-	    assert(index == k);
-	    value = thisDesc->getVars()->lbHard.entries[k];
-	    fVarHardLB[k] = value;
-	    fVarHardLBInd[k] = index;
-	}
-	
-	numModify = thisDesc->getVars()->ubHard.numModify;
-	assert(numModify == numCols);
-	for (k = 0; k < numModify; ++k) {
-	    index = thisDesc->getVars()->ubHard.posModify[k];
-	    assert(index == k);
-	    value = thisDesc->getVars()->ubHard.entries[k];
-	    fVarHardUB[k] = value;
-	    fVarHardUBInd[k] = index;
-	}
-	
-	// Branching bounds.
-	fVarHardLB[branchVar] = branchObject->getUp()[0];
-	fVarHardUB[branchVar] = branchObject->getUp()[1];
-
-	childDesc->assignVarHardBound(numCols,
-				      fVarHardLBInd,
-				      fVarHardLB,
-				      numCols,
-				      fVarHardUBInd,
-				      fVarHardUB);
-
-	//--------------------------------------------------
-	// Soft variable bounds.
-	//--------------------------------------------------
-
-	int numSoftVarLowers = thisDesc->getVars()->lbSoft.numModify;
-	assert(numSoftVarLowers >= 0 && numSoftVarLowers <= numCols);
-	if (numSoftVarLowers > 0) {
-	    fVarSoftLB = new double [numSoftVarLowers];
-	    fVarSoftLBInd = new int [numSoftVarLowers];
-	    for (k = 0; k < numSoftVarLowers; ++k) {
-		index = thisDesc->getVars()->lbSoft.posModify[k];
-		value = thisDesc->getVars()->lbSoft.entries[k];
-		fVarSoftLB[k] = value;
-		fVarSoftLBInd[k] = index;
-	    }
-	}
-		    
-	int numSoftVarUppers = thisDesc->getVars()->ubSoft.numModify;
-	assert(numSoftVarUppers >= 0 && numSoftVarUppers <= numCols);
-	if (numSoftVarUppers > 0) {
-	    fVarSoftUB = new double [numSoftVarUppers];
-	    fVarSoftUBInd = new int [numSoftVarUppers];
-	    for (k = 0; k < numSoftVarUppers; ++k) {
-		index = thisDesc->getVars()->ubSoft.posModify[k];
-		value = thisDesc->getVars()->ubSoft.entries[k];
-		fVarSoftUB[k] = value;
-		fVarSoftUBInd[k] = index;
-	    }
-	}
-
-	// Assign it anyway so to transfer ownership of memory(fVarSoftLBInd,etc.)
-	childDesc->assignVarSoftBound(numSoftVarLowers, 
-				      fVarSoftLBInd,
-				      fVarSoftLB,
-				      numSoftVarUppers, 
-				      fVarSoftUBInd,
-				      fVarSoftUB);
-
-	//--------------------------------------------------
-	// Full set of non-core constraints.
-	// NOTE: non-core constraints have been saved in description
-	//       when process() during ramp-up.
-	//--------------------------------------------------
-	
-	BcpsObject **tempCons = NULL;
-	int tempInt = 0;
-	
-	tempInt = thisDesc->getCons()->numAdd;
-	if (tempInt > 0) {
-	    tempCons = new BcpsObject* [tempInt];
-	
-	    for (k = 0; k < tempInt; ++k) {
-		BlisConstraint *aCon = dynamic_cast<BlisConstraint *>
-		    (thisDesc->getCons()->objects[k]);
-	    
-		assert(aCon);
-		assert(aCon->getSize() > 0);
-		assert(aCon->getSize() <= numCols);
-		BlisConstraint *newCon = new BlisConstraint(*aCon);
-		tempCons[k] = newCon;
-	    }
-	}
-	
+		 
+		 // Assign it anyway so to transfer ownership of 
+		 // memory(fVarSoftLBInd,etc.)
+		 childDesc->assignVarSoftBound(numSoftVarLowers, 
+					       fVarSoftLBInd,
+					       fVarSoftLB,
+					       numSoftVarUppers, 
+					       fVarSoftUBInd,
+					       fVarSoftUB);
+		 
+		 //--------------------------------------------------
+		 // Full set of non-core constraints.
+		 // NOTE: non-core constraints have been saved in description
+		 //       when process() during ramp-up.
+		 //--------------------------------------------------
+		 
+		 BcpsObject **tempCons = NULL;
+		 int tempInt = 0;
+		 
+		 tempInt = thisDesc->getCons()->numAdd;
+		 if (tempInt > 0) {
+		     tempCons = new BcpsObject* [tempInt];
+		     for (k = 0; k < tempInt; ++k) {
+			 BlisConstraint *aCon = dynamic_cast<BlisConstraint *>
+			     (thisDesc->getCons()->objects[k]);
+			 
+			 assert(aCon);
+			 assert(aCon->getSize() > 0);
+			 assert(aCon->getSize() < numCols);
+			 BlisConstraint *newCon = new BlisConstraint(*aCon);
+			 tempCons[k] = newCon;
+		     }
+		 }
+		 
+		 
 #if 0
-	else {
-	    // No cons or only root cons.
-	    tempInt = model->getNumOldConstraints();
-	    if (tempInt > 0) {
-		tempCons = new BcpsObject* [tempInt];
-	    }
-	    for (k = 0; k < tempInt; ++k) {
-		BlisConstraint *aCon = model->oldConstraints()[k];                
-		assert(aCon);
-		assert(aCon->getSize() > 0);
-		assert(aCon->getSize() <= numCols);
-		BlisConstraint *newCon = new BlisConstraint(*aCon);
-		tempCons[k] = newCon;
-	    }
-	}
+		 else {
+		     // No cons or only root cons.
+		     tempInt = model->getNumOldConstraints();
+		     
+		     if (tempInt > 0) {
+			 tempCons = new BcpsObject* [tempInt];
+		     }
+		     for (k = 0; k < tempInt; ++k) {
+			 BlisConstraint *aCon = model->oldConstraints()[k];                
+			 assert(aCon);
+			 assert(aCon->getSize() > 0);
+			 assert(aCon->getSize() < numCols);
+			 BlisConstraint *newCon = new BlisConstraint(*aCon);
+			 tempCons[k] = newCon;
+		     }
+		 }
 #endif
-
+		 
 #ifdef BLIS_DEBUG_MORE
-	std::cout << "BRANCH: up: tempInt=" << tempInt <<std::endl;
+		 std::cout << "BRANCH: down: tempInt=" << tempInt <<std::endl;
 #endif
-	// Fresh desc, safely add.
-	childDesc->setAddedConstraints(tempInt, tempCons);
+		 // Fresh desc, safely add.
+		 childDesc->setAddedConstraints(tempInt, tempCons);
+	     }else{
+		 
+		 //--------------------------------------------------
+		 // Relative: Only need to record hard var bound change. 
+		 // NOTE: soft var bound changes are Record after 
+		 // selectBranchObject.
+		 //--------------------------------------------------
+		 
+		 childDesc->setVarHardBound(1,
+					    &branchVar,
+					    &(branchObject->getDown()[0]),
+					    1,
+					    &branchVar,
+					    &(branchObject->getDown()[1]));
+	     }
+	     
+	     childDesc->setBranchedDir(-1);
+	     childDesc->setBranchedInd(objInd);
+	     childDesc->setBranchedVal(bValue);
+	     
+	     // Copy warm start.
+	     CoinWarmStartBasis *ws = thisDesc->getBasis();
+	     CoinWarmStartBasis *newWs = new CoinWarmStartBasis(*ws);
+	     childDesc->setBasis(newWs);
+	     
+	     childNodeDescs.push_back(CoinMakeTriple(static_cast<AlpsNodeDesc *>
+						     (childDesc),
+						     AlpsNodeStatusCandidate,
+						     objVal));
+	     
+	     //======================================================
+	     //------------------------------------------------------
+	     // Create up-branch node description.
+	     //------------------------------------------------------
+	     //======================================================
+	     
+	     childDesc = new BlisNodeDesc(model);
+	     
+	     if (phase == AlpsPhaseRampup) {
+		 
+		 //--------------------------------------------------
+		 // Store a full description since each node will be the 
+		 // root of a subtree.
+		 // NOTE: parent must be explicit during rampup.
+		 //--------------------------------------------------	
+		 
+		 int index, k;
+		 int numModify = -1;
+		 double value;
+		 
+		 double *fVarHardLB = new double [numCols];
+		 double *fVarHardUB = new double [numCols];
+		 int *fVarHardLBInd = new int [numCols];
+		 int *fVarHardUBInd = new int [numCols];
+		 
+		 double *fVarSoftLB = NULL;
+		 double *fVarSoftUB = NULL;
+		 int *fVarSoftLBInd = NULL;
+		 int *fVarSoftUBInd = NULL;
+		 
+		 //--------------------------------------------------
+		 // Full hard variable bounds.
+		 //--------------------------------------------------
+		 
+		 numModify = thisDesc->getVars()->lbHard.numModify;
+		 assert(numModify == numCols);
+		 for (k = 0; k < numModify; ++k) {
+		     index = thisDesc->getVars()->lbHard.posModify[k];
+		     assert(index == k);
+		     value = thisDesc->getVars()->lbHard.entries[k];
+		     fVarHardLB[k] = value;
+		     fVarHardLBInd[k] = index;
+		 }
+		 
+		 numModify = thisDesc->getVars()->ubHard.numModify;
+		 assert(numModify == numCols);
+		 for (k = 0; k < numModify; ++k) {
+		     index = thisDesc->getVars()->ubHard.posModify[k];
+		     assert(index == k);
+		     value = thisDesc->getVars()->ubHard.entries[k];
+		     fVarHardUB[k] = value;
+		     fVarHardUBInd[k] = index;
+		 }
+		 
+		 // Branching bounds.
+		 fVarHardLB[branchVar] = branchObject->getUp()[0];
+		 fVarHardUB[branchVar] = branchObject->getUp()[1];
+		 
+		 childDesc->assignVarHardBound(numCols,
+					       fVarHardLBInd,
+					       fVarHardLB,
+					       numCols,
+					       fVarHardUBInd,
+					       fVarHardUB);
+		 
+		 //--------------------------------------------------
+		 // Soft variable bounds.
+		 //--------------------------------------------------
+		 
+		 int numSoftVarLowers = thisDesc->getVars()->lbSoft.numModify;
+		 assert(numSoftVarLowers >= 0 && numSoftVarLowers <= numCols);
+		 if (numSoftVarLowers > 0) {
+		     fVarSoftLB = new double [numSoftVarLowers];
+		     fVarSoftLBInd = new int [numSoftVarLowers];
+		     for (k = 0; k < numSoftVarLowers; ++k) {
+			 index = thisDesc->getVars()->lbSoft.posModify[k];
+			 value = thisDesc->getVars()->lbSoft.entries[k];
+			 fVarSoftLB[k] = value;
+			 fVarSoftLBInd[k] = index;
+		     }
+		 }
+		 
+		 int numSoftVarUppers = thisDesc->getVars()->ubSoft.numModify;
+		 assert(numSoftVarUppers >= 0 && numSoftVarUppers <= numCols);
+		 if (numSoftVarUppers > 0) {
+		     fVarSoftUB = new double [numSoftVarUppers];
+		     fVarSoftUBInd = new int [numSoftVarUppers];
+		     for (k = 0; k < numSoftVarUppers; ++k) {
+			 index = thisDesc->getVars()->ubSoft.posModify[k];
+			 value = thisDesc->getVars()->ubSoft.entries[k];
+			 fVarSoftUB[k] = value;
+			 fVarSoftUBInd[k] = index;
+		     }
+		 }
+		 
+		 // Assign it anyway so to transfer ownership of 
+		 // memory(fVarSoftLBInd,etc.)
+		 childDesc->assignVarSoftBound(numSoftVarLowers, 
+					       fVarSoftLBInd,
+					       fVarSoftLB,
+					       numSoftVarUppers, 
+					       fVarSoftUBInd,
+					       fVarSoftUB);
+		 
+		 //--------------------------------------------------
+		 // Full set of non-core constraints.
+		 // NOTE: non-core constraints have been saved in description
+		 //       when process() during ramp-up.
+		 //--------------------------------------------------
+		 
+		 BcpsObject **tempCons = NULL;
+		 int tempInt = 0;
+		 
+		 tempInt = thisDesc->getCons()->numAdd;
+		 if (tempInt > 0) {
+		     tempCons = new BcpsObject* [tempInt];
+		     
+		     for (k = 0; k < tempInt; ++k) {
+			 BlisConstraint *aCon = dynamic_cast<BlisConstraint *>
+			     (thisDesc->getCons()->objects[k]);
+			 
+			 assert(aCon);
+			 assert(aCon->getSize() > 0);
+			 assert(aCon->getSize() <= numCols);
+			 BlisConstraint *newCon = new BlisConstraint(*aCon);
+			 tempCons[k] = newCon;
+		     }
+		 }
+		 
+#if 0
+		 else {
+		     // No cons or only root cons.
+		     tempInt = model->getNumOldConstraints();
+		     if (tempInt > 0) {
+			 tempCons = new BcpsObject* [tempInt];
+		     }
+		     for (k = 0; k < tempInt; ++k) {
+			 BlisConstraint *aCon = model->oldConstraints()[k];                
+			 assert(aCon);
+			 assert(aCon->getSize() > 0);
+			 assert(aCon->getSize() <= numCols);
+			 BlisConstraint *newCon = new BlisConstraint(*aCon);
+			 tempCons[k] = newCon;
+		     }
+		 }
+#endif
+		 
+#ifdef BLIS_DEBUG_MORE
+		 std::cout << "BRANCH: up: tempInt=" << tempInt <<std::endl;
+#endif
+		 // Fresh desc, safely add.
+		 childDesc->setAddedConstraints(tempInt, tempCons);
+	     }else{
+		 
+		 //--------------------------------------------------
+		 // Relative: Only need to record hard var bound change. 
+		 // NOTE: soft var bound changes are Record after selectBranchObject.
+		 //--------------------------------------------------
+		 
+		 childDesc->setVarHardBound(1,
+					    &branchVar,
+					    &(branchObject->getUp()[0]),
+					    1,
+					    &branchVar,
+					    &(branchObject->getUp()[1]));
+	     }
+	     
+	     childDesc->setBranchedDir(1);
+	     childDesc->setBranchedInd(objInd);
+	     childDesc->setBranchedVal(bValue);
+	     
+	     // Copy warm start.
+	     CoinWarmStartBasis *newWs2 = new CoinWarmStartBasis(*ws);
+	     childDesc->setBasis(newWs2);
+	     childNodeDescs.push_back(CoinMakeTriple(static_cast<AlpsNodeDesc *>
+						     (childDesc),
+						     AlpsNodeStatusCandidate,
+						     objVal));  
+	     
+	     // Change node status to branched.
+	     status_ = AlpsNodeStatusBranched; 
+	 }
+	 
+	 break;
+
+     case BlisBranchingObjectTypeBilevel :
+	 {
+	     BlisBranchObjectBilevel *branchObject =
+		 dynamic_cast<BlisBranchObjectBilevel *>(branchObject_);
+	     std::deque<int> branchingSet = branchObject->getBranchingSet();
+
+	     CoinWarmStartBasis *ws = thisDesc->getBasis();
+	     std::deque<int>::iterator ptr1, ptr2;
+	     int size = branchingSet.size();
+	     int *indices = new int[size];
+	     double *values = new double[size];
+	     values[0] = 1;
+		   int i;
+	     for (i = 0, ptr1 = branchingSet.begin(); 
+		  ptr1 != branchingSet.end(); i++, ptr1++){
+		 indices[i] = *ptr1;
+		 values[i] = 1;
+		 childDesc = new BlisNodeDesc(model);
+		 childDesc->setVarHardBound(i+1, indices, values,
+					    i+1, indices, values);
+		 CoinWarmStartBasis *newWs = new CoinWarmStartBasis(*ws);
+		 childDesc->setBasis(newWs);
+		 childNodeDescs.push_back(CoinMakeTriple(
+                                       static_cast<AlpsNodeDesc *>(childDesc), 
+				       AlpsNodeStatusCandidate,
+				       getQuality()));
+		 values[i] = 0;
+	     }
+	     delete[] indices;
+	     delete[] values;
+	 }
+	 
+     default :
+	
+	std::cout << "Unknown branching object type" << std::endl;
     }
-    else {
-
-	//--------------------------------------------------
-	// Relative: Only need to record hard var bound change. 
-	// NOTE: soft var bound changes are Record after selectBranchObject.
-	//--------------------------------------------------
-
-	childDesc->setVarHardBound(1,
-				   &branchVar,
-				   &(branchObject->getUp()[0]),
-				   1,
-				   &branchVar,
-				   &(branchObject->getUp()[1]));
-    }
-
-    childDesc->setBranchedDir(1);
-    childDesc->setBranchedInd(objInd);
-    childDesc->setBranchedVal(bValue);
-    
-    // Copy warm start.
-    CoinWarmStartBasis *newWs2 = new CoinWarmStartBasis(*ws);
-    childDesc->setBasis(newWs2);
-    
-    childNodeDescs.push_back(CoinMakeTriple(static_cast<AlpsNodeDesc *>
-					    (childDesc),
-					    AlpsNodeStatusCandidate,
-					    objVal));  
-
-    // Change node status to branched.
-    status_ = AlpsNodeStatusBranched;
-    
     return childNodeDescs;
 }
 
@@ -2007,11 +2054,10 @@ int BlisTreeNode::selectBranchObject(BlisModel *model,
     
     if (bStatus >= 0) {
         
-        int bestIndex = strategy->bestBranchObject();
+	branchObject_ = strategy->bestBranchObject();
         
-        if (bestIndex >= 0) {
+        if (branchObject_) {
             // Move best branching object to node.
-            branchObject_ = strategy->getBestBranchObject();
 
 #ifdef BLIS_DEBUG_MORE
             std::cout << "SELECTBEST: Set branching obj" << std::endl;
@@ -2019,9 +2065,9 @@ int BlisTreeNode::selectBranchObject(BlisModel *model,
         }
         else {
 #ifdef BLIS_DEBUG
-            std::cout << "WARNING: Can't find best branching obj" << std::endl;
-            assert(0);
+            std::cout << "ERROR: Can't find branching object" << std::endl;
 #endif      
+            assert(0);
         }
         
         // Set guessed solution value
