@@ -85,6 +85,8 @@ Blis/inc/config_blis.h.in -text
 Blis/src/Blis.h -text
 Blis/src/BlisBranchObjectInt.cpp -text
 Blis/src/BlisBranchObjectInt.h -text
+Blis/src/BlisBranchStrategyBilevel.cpp -text
+Blis/src/BlisBranchStrategyBilevel.h -text
 Blis/src/BlisBranchStrategyMaxInf.cpp -text
 Blis/src/BlisBranchStrategyMaxInf.h -text
 Blis/src/BlisBranchStrategyPseudo.cpp -text
