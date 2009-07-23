@@ -83,6 +83,8 @@ Blis/examples/data/swath2.mps.gz -text
 Blis/examples/data/vpm2.mps.gz -text
 Blis/inc/config_blis.h.in -text
 Blis/src/Blis.h -text
+Blis/src/BlisBranchObjectBilevel.cpp -text
+Blis/src/BlisBranchObjectBilevel.h -text
 Blis/src/BlisBranchObjectInt.cpp -text
 Blis/src/BlisBranchObjectInt.h -text
 Blis/src/BlisBranchStrategyBilevel.cpp -text
