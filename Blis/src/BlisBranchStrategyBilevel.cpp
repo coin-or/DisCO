@@ -21,17 +21,29 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
-#include "BlisBranchStrategyMaxInf.h"
-#include "BlisObjectInt.h"
+#include <algorithm>
+#include <vector>
+
+#include "CoinHelperFunctions.hpp"
+#include "CoinSort.hpp"
+
+#include "BlisBranchStrategyBilevel.h"
+#include "BlisBranchObjectBilevel.h"
+
+class doubleIntCompare {
+public:
+  /// Compare function
+  inline bool operator()(const std::pair<double, int>& t1,
+			 const std::pair<double, int>& t2) const
+  { return t1.first < t2.first; }
+};
 
 //#############################################################################
 
 // Copy constructor 
-BlisBranchStrategyMaxInf::BlisBranchStrategyMaxInf (
-    const BlisBranchStrategyMaxInf & rhs
-    )
-    :
-    BcpsBranchStrategy()
+BlisBranchStrategyBilevel::BlisBranchStrategyBilevel (
+    const BlisBranchStrategyBilevel & rhs)
+    : BcpsBranchStrategy()
 {
     bestChangeUp_ = rhs.bestChangeUp_;
     bestNumberUp_ = rhs.bestNumberUp_;
@@ -43,63 +55,42 @@ BlisBranchStrategyMaxInf::BlisBranchStrategyMaxInf (
 
 /** Create a set of candidate branching objects. */
 int 
-BlisBranchStrategyMaxInf::createCandBranchObjects(int numPassesLeft)
+BlisBranchStrategyBilevel::createCandBranchObjects(int numPassesLeft)
 {
+    int i(0);
+    std::deque<int> branchingSet;
 
-    int numInfs = 0;
-    
-    int i, col, preferDir, maxInfDir, maxScoreDir;
-    
-    double score, maxScore = 0.0;
-    double infeasibility, maxInf = 0.0;
-    
     BlisModel *model = dynamic_cast<BlisModel *>(model_);
+    OsiSolverInterface *solver = model->solver();
+
+    int numCols = model->getNumCols();
     
-    BlisObjectInt * intObject = 0;
-    BlisObjectInt * maxInfIntObject = 0;
-    BlisObjectInt * maxScoreIntObject = 0;
+    const double *redCosts = solver->getReducedCost();
     
-    int numObjects = model->numObjects();
-    
-    double *objCoef = model->getObjCoef();
-    
-    for (i = 0; i < numObjects; ++i) {
-	
-        // TODO: currently all integer object.
-        intObject = dynamic_cast<BlisObjectInt *>(model->objects(i));
-        infeasibility = intObject->infeasibility(model, preferDir);
-        
-        if (infeasibility) {
-            ++numInfs;
-            
-            if (infeasibility > maxInf) {
-                maxInfIntObject = intObject;
-                maxInfDir = preferDir;
-                maxInf = infeasibility;
-            }
-            
-            col = intObject->columnIndex();
-            score = ALPS_FABS(objCoef[col] * infeasibility);
-            
-            if (score > maxScore) {
-                maxScoreIntObject = intObject;
-                maxScoreDir = preferDir;
-                maxScore = score;
-            }
-        }
+    //Copied from CoinSort_2, which doesn;t seem to work for this case.
+
+    std::vector< std::pair<double, int> > sortedRedCosts;
+
+    for (i = 0; i < numCols; i++){
+	sortedRedCosts.push_back(std::pair<double, int>(redCosts[i], i));
     }
 
-    assert(numInfs > 0);
+    std::sort(sortedRedCosts.begin(), sortedRedCosts.end(), doubleIntCompare());
     
-    if (maxScoreIntObject) {
-        maxInfIntObject = maxInfIntObject;
-        maxInfDir = maxScoreDir;
+    // Start fixing variables to zero one by one until the threshold is 
+    // exceeded
+
+    double objVal;
+    for (i = 0; i < numCols; i++){
+	branchingSet.push_back(sortedRedCosts[i].second);
+	solver->setColBounds(sortedRedCosts[i].second, 0.0, 0.0);
+	solver->resolve();
+	objVal = solver->getObjValue();
     }
     
     numBranchObjects_ = 1;
     branchObjects_ = new BcpsBranchObject* [1];
-    branchObjects_[0] = maxInfIntObject->createBranchObject(model,
-                                                            maxInfDir);
+    branchObjects_[0] = new BlisBranchObjectBilevel(model_, branchingSet);
     
     return 0;
 }
@@ -109,13 +100,14 @@ BlisBranchStrategyMaxInf::createCandBranchObjects(int numPassesLeft)
 /** Compare branching object thisOne to bestSoFar. If thisOne is better 
     than bestObject, return branching direction(1 or -1), otherwise
     return 0. 
-    If bestSorFar is NULL, then always return branching direction(1 or -1).
+    If bestSoFar is NULL, then always return branching direction(1 or -1).
+    This should not be called for this class.
 */
 int
-BlisBranchStrategyMaxInf::betterBranchObject(BcpsBranchObject * thisOne,
+BlisBranchStrategyBilevel::betterBranchObject(BcpsBranchObject * thisOne,
 					     BcpsBranchObject * bestSoFar)
 {
-    return thisOne->getDirection();
+    return 0;
 }
 
 //#############################################################################

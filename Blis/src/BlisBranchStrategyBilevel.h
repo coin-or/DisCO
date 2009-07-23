@@ -21,45 +21,43 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
-#ifndef BlisBranchStrategyMaxInf_h_
-#define BlisBranchStrategyMaxInf_h_
+#ifndef BlisBranchStrategyBilevel_h_
+#define BlisBranchStrategyBilevel_h_
 
 #include "BcpsBranchObject.h"
 #include "BcpsBranchStrategy.h"
 #include "BlisModel.h"
 
 /** This class implements maximum infeasibility branching. */
-class BlisBranchStrategyMaxInf : public BcpsBranchStrategy {
+class BlisBranchStrategyBilevel : public BcpsBranchStrategy {
 
  private:
 
-  /** Illegal Assignment operator.*/
-    BlisBranchStrategyMaxInf& operator=(const BlisBranchStrategyMaxInf& rhs);
+    /** Illegal Assignment operator.*/
+    BlisBranchStrategyBilevel& operator=(const BlisBranchStrategyBilevel& rhs);
     
  public:
     
-    /** MaxInf Constructor. */
-    BlisBranchStrategyMaxInf() {}
-
-    /** MaxInf Constructor. */
-    BlisBranchStrategyMaxInf(BlisModel *model)
-        : BcpsBranchStrategy(model)
-        {}
-    
+    /** Bilevel Constructor. */
+    BlisBranchStrategyBilevel() {}
+  
+    /** Bilevel Constructor. */
+    BlisBranchStrategyBilevel(BlisModel *model) : BcpsBranchStrategy(model) {}
+  
     /** Destructor. */
-    virtual ~BlisBranchStrategyMaxInf() {}
-    
+    virtual ~BlisBranchStrategyBilevel() {}
+  
     /** Copy constructor. */
-    BlisBranchStrategyMaxInf(const BlisBranchStrategyMaxInf &);
+    BlisBranchStrategyBilevel(const BlisBranchStrategyBilevel &);
     
     /** Clone a brancing strategy. */
     virtual BcpsBranchStrategy * clone() const {
-	return new BlisBranchStrategyMaxInf(*this);
+	return new BlisBranchStrategyBilevel(*this);
     }
-    
+  
     /** Create a set of candidate branching objects. */
     virtual int createCandBranchObjects(int numPassesLeft);
-    
+  
     /** Compare branching object thisOne to bestSoFar. If thisOne is better 
 	than bestObject, return branching direction(1 or -1), otherwise
 	return 0. 
