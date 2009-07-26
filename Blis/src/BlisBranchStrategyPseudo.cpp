@@ -53,6 +53,8 @@ BlisBranchStrategyPseudo::BlisBranchStrategyPseudo (
     bestNumberUp_ = rhs.bestNumberUp_;
     bestChangeDown_ = rhs.bestChangeDown_;
     bestNumberDown_ = rhs.bestNumberDown_;
+    relibility_ = rhs.relibility_;
+    type_ = rhs.type_;
 }
 
 //#############################################################################

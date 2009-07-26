@@ -49,6 +49,7 @@ BlisBranchStrategyBilevel::BlisBranchStrategyBilevel (
     bestNumberUp_ = rhs.bestNumberUp_;
     bestChangeDown_ = rhs.bestChangeDown_;
     bestNumberDown_ = rhs.bestNumberDown_;
+    type_ = rhs.type_;
 }
 
 //#############################################################################
@@ -67,6 +68,8 @@ BlisBranchStrategyBilevel::createCandBranchObjects(int numPassesLeft,
     int numCols = model->getNumCols();
     
     const double *redCosts = solver->getReducedCost();
+    const double *colLower = solver->getColLower();
+    const double *colUpper = solver->getColUpper();
     
     //Copied from CoinSort_2, which doesn;t seem to work for this case.
 
@@ -83,13 +86,23 @@ BlisBranchStrategyBilevel::createCandBranchObjects(int numPassesLeft,
 
     double objVal;
     for (i = 0; i < numCols; i++){
-	branchingSet.push_back(sortedRedCosts[i].second);
-	solver->setColBounds(sortedRedCosts[i].second, 0.0, 0.0);
-	solver->resolve();
-	objVal = solver->getObjValue();
-	if (objVal >= ub){
-	    break;
+	// FIXME: Is there a better way to determine is a variable is fixed?
+	if (colLower[i] == 0.0 && colUpper[i] == 1.0){
+	    branchingSet.push_back(sortedRedCosts[i].second);
+	    solver->setColBounds(sortedRedCosts[i].second, 0.0, 0.0);
+	    solver->resolve();
+	    objVal = solver->getObjValue();
+	    if (objVal >= ub){
+		break;
+	    }
 	}
+    }
+
+    // Set bounds back where they were
+    std::deque<int>::iterator ptr1;
+    for (i = 0, ptr1 = branchingSet.begin(); ptr1 != branchingSet.end(); 
+	 i++, ptr1++){
+	solver->setColBounds(*ptr1, 0.0, 1.0);
     }
     
     numBranchObjects_ = 1;

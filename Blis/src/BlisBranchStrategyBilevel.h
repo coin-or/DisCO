@@ -39,10 +39,14 @@ class BlisBranchStrategyBilevel : public BcpsBranchStrategy {
  public:
     
     /** Bilevel Constructor. */
-    BlisBranchStrategyBilevel() {}
+    BlisBranchStrategyBilevel(){
+	type_ = static_cast<int>(BlisBranchingStrategyBilevel);
+    }
   
     /** Bilevel Constructor. */
-    BlisBranchStrategyBilevel(BlisModel *model) : BcpsBranchStrategy(model) {}
+    BlisBranchStrategyBilevel(BlisModel *model) : BcpsBranchStrategy(model) {
+	type_ = static_cast<int>(BlisBranchingStrategyBilevel);
+    }
   
     /** Destructor. */
     virtual ~BlisBranchStrategyBilevel() {}

@@ -39,12 +39,14 @@ class BlisBranchStrategyMaxInf : public BcpsBranchStrategy {
  public:
     
     /** MaxInf Constructor. */
-    BlisBranchStrategyMaxInf() {}
+    BlisBranchStrategyMaxInf() {
+	type_ = static_cast<int>(BlisBranchingStrategyMaxInfeasibility);
+    }
 
     /** MaxInf Constructor. */
-    BlisBranchStrategyMaxInf(BlisModel *model)
-        : BcpsBranchStrategy(model)
-        {}
+    BlisBranchStrategyMaxInf(BlisModel *model) : BcpsBranchStrategy(model) {
+	type_ = static_cast<int>(BlisBranchingStrategyMaxInfeasibility);
+    }
     
     /** Destructor. */
     virtual ~BlisBranchStrategyMaxInf() {}

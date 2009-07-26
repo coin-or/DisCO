@@ -461,7 +461,7 @@ BlisModel::importModel(std::vector<BlisVariable *> vars,
 
 //############################################################################ 
 
-/** Read in Alps parameters. */
+/** Read in parameters. */
 void 
 BlisModel::readParameters(const int argnum, const char * const * arglist)
 {

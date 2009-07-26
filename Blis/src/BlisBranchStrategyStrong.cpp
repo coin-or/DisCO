@@ -46,6 +46,7 @@ BlisBranchStrategyStrong::BlisBranchStrategyStrong (
     bestNumberUp_ = rhs.bestNumberUp_;
     bestChangeDown_ = rhs.bestChangeDown_;
     bestNumberDown_ = rhs.bestNumberDown_;
+    type_ = rhs.type_;
 }
 
 //#############################################################################

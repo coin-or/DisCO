@@ -64,12 +64,15 @@ class BlisBranchStrategyStrong : public BcpsBranchStrategy {
  public:
     
     /** Strong Constructor. */
-    BlisBranchStrategyStrong() {}
+    BlisBranchStrategyStrong() {
+	type_ = static_cast<int>(BlisBranchingStrategyStrong);
+    }
 
     /** Strong Constructor. */
     BlisBranchStrategyStrong(BlisModel *model)
-        : BcpsBranchStrategy(model)
-        {}
+        : BcpsBranchStrategy(model) {
+	type_ = static_cast<int>(BlisBranchingStrategyStrong);
+    }
     
     /** Destructor. */
     virtual ~BlisBranchStrategyStrong() {}

@@ -62,36 +62,56 @@
 AlpsTreeNode*
 BlisTreeNode::createNewTreeNode(AlpsNodeDesc *&desc) const
 {
-    double estimate = solEstimate_;
-
-    // Set solution estimate for this nodes.
-    // double solEstimate = quality_ + sum_i{min{up_i, down_i}}
-    int branchDir = dynamic_cast<BlisNodeDesc *>(desc)->getBranchedDir();
-    int branchInd = dynamic_cast<BlisNodeDesc *>(desc)->getBranchedInd();
-    double lpX = dynamic_cast<BlisNodeDesc *>(desc)->getBranchedVal();
-    double f = lpX - floor(lpX);
-    assert(f > 0.0);
-    
     BlisModel* model = dynamic_cast<BlisModel*>(desc_->getModel());
-    int objInd = model->getIntObjIndices()[branchInd];
-    BlisObjectInt *obj = dynamic_cast<BlisObjectInt *>(model->objects(objInd));
-    
-    if (branchDir == -1) {
-        estimate -= (1.0-f) * obj->pseudocost().getUpCost();
-    }
-    else {
-	estimate -= f * obj->pseudocost().getDownCost();
-    }
-    
+    BcpsBranchStrategy *strategy = model->branchStrategy();
+
+    BlisBranchingStrategy type = 
+	static_cast<BlisBranchingStrategy>(strategy->getType());
+
+    switch(type){
+	
+     case BlisBranchingStrategyMaxInfeasibility:
+     case BlisBranchingStrategyPseudoCost:
+     case BlisBranchingStrategyReliability:
+     case BlisBranchingStrategyStrong:
+	 {
+	     double estimate = solEstimate_;
+
+	     // Set solution estimate for this nodes.
+	     // double solEstimate = quality_ + sum_i{min{up_i, down_i}}
+	     int branchDir=dynamic_cast<BlisNodeDesc *>(desc)->getBranchedDir();
+	     int branchInd=dynamic_cast<BlisNodeDesc *>(desc)->getBranchedInd();
+	     double lpX = dynamic_cast<BlisNodeDesc *>(desc)->getBranchedVal();
+	     double f = lpX - floor(lpX);
+	     assert(f > 0.0);
+	     
+	     int objInd = model->getIntObjIndices()[branchInd];
+	     BlisObjectInt *obj = dynamic_cast<BlisObjectInt *>(model->objects(objInd));
+	     
+	     if (branchDir == -1) {
+		 estimate -= (1.0-f) * obj->pseudocost().getUpCost();
+	     }
+	     else {
+		 estimate -= f * obj->pseudocost().getDownCost();
+	     }
+	     
 #ifdef BLIS_DEBUG_MORE
-    printf("BLIS:createNewTreeNode: quality=%g, solEstimate=%g\n",
-           quality_, solEstimate_);
+	     printf("BLIS:createNewTreeNode: quality=%g, solEstimate=%g\n",
+		    quality_, solEstimate_);
 #endif
+	     break;
+	 }
+
+     case BlisBranchingStrategyBilevel:
+
+	break;
+
+    }
 
     // Create a new tree node
     BlisTreeNode *node = new BlisTreeNode(desc);    
     desc = NULL;
-    
+	
     return node;
 }
 
@@ -199,7 +219,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
               << "cutoff = " << cutoff << std::endl;
 #endif
 
-    if (parentObjValue > cutoff) {
+    if (parentObjValue > cutoff && !isRoot) {
 	setStatus(AlpsNodeStatusFathomed);
         //std::cout << "fathom!" <<std::endl;
 	goto TERM_PROCESS;
@@ -1980,7 +2000,7 @@ BlisTreeNode::branch()
 	     int *indices = new int[size];
 	     double *values = new double[size];
 	     values[0] = 1;
-		   int i;
+	     int i;
 	     for (i = 0, ptr1 = branchingSet.begin(); 
 		  ptr1 != branchingSet.end(); i++, ptr1++){
 		 indices[i] = *ptr1;
@@ -1999,6 +2019,8 @@ BlisTreeNode::branch()
 	     delete[] indices;
 	     delete[] values;
 	 }
+
+	 break;
 	 
      default :
 	

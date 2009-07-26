@@ -48,14 +48,17 @@ class BlisBranchStrategyRel : public BcpsBranchStrategy {
  public:
 
     /** Default Constructor. */
-    BlisBranchStrategyRel() : relibility_(1) {}
+    BlisBranchStrategyRel() {
+	relibility_ = 1;
+	type_ = static_cast<int>(BlisBranchingStrategyReliability);
+    }
 
     /** Useful Constructor. */
     BlisBranchStrategyRel(BlisModel *model, int rel)
-        : 
-        BcpsBranchStrategy(model), 
-        relibility_(rel)
-        {}
+        : BcpsBranchStrategy(model) {
+	relibility_ = 1;
+	type_ = static_cast<int>(BlisBranchingStrategyReliability);
+    }
 
     /** Destructor. */
     virtual ~BlisBranchStrategyRel() {}
