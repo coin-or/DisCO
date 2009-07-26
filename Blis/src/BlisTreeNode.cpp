@@ -198,7 +198,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
               << "cutoff = " << cutoff << std::endl;
 #endif
 
-    if (parentObjValue > cutoff) {
+    if (parentObjValue > cutoff && !isRoot) {
 	setStatus(AlpsNodeStatusFathomed);
         //std::cout << "fathom!" <<std::endl;
 	goto TERM_PROCESS;
