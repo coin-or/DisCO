@@ -55,7 +55,8 @@ BlisBranchStrategyBilevel::BlisBranchStrategyBilevel (
 
 /** Create a set of candidate branching objects. */
 int 
-BlisBranchStrategyBilevel::createCandBranchObjects(int numPassesLeft)
+BlisBranchStrategyBilevel::createCandBranchObjects(int numPassesLeft,
+						   double ub)
 {
     int i(0);
     std::deque<int> branchingSet;
@@ -86,6 +87,9 @@ BlisBranchStrategyBilevel::createCandBranchObjects(int numPassesLeft)
 	solver->setColBounds(sortedRedCosts[i].second, 0.0, 0.0);
 	solver->resolve();
 	objVal = solver->getObjValue();
+	if (objVal >= ub){
+	    break;
+	}
     }
     
     numBranchObjects_ = 1;

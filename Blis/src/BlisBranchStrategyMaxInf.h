@@ -58,7 +58,7 @@ class BlisBranchStrategyMaxInf : public BcpsBranchStrategy {
     }
     
     /** Create a set of candidate branching objects. */
-    virtual int createCandBranchObjects(int numPassesLeft);
+    virtual int createCandBranchObjects(int numPassesLeft, double ub);
     
     /** Compare branching object thisOne to bestSoFar. If thisOne is better 
 	than bestObject, return branching direction(1 or -1), otherwise

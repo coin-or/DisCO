@@ -25,7 +25,52 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-EXTRA_DIST = doxydoc/doxygen.conf
+EXTRA_DIST = doxydoc/doxygen.conf \
+	Blis/src/Blis.h\
+	Blis/src/BlisBranchObjectBilevel.cpp\
+	Blis/src/BlisBranchObjectBilevel.h \
+	Blis/src/BlisBranchObjectInt.cpp \
+	Blis/src/BlisBranchObjectInt.h \
+	Blis/src/BlisBranchStrategyBilevel.cpp \
+	Blis/src/BlisBranchStrategyBilevel.h \
+	Blis/src/BlisBranchStrategyMaxInf.cpp \
+	Blis/src/BlisBranchStrategyMaxInf.h \
+	Blis/src/BlisBranchStrategyPseudo.cpp \
+	Blis/src/BlisBranchStrategyPseudo.h \
+	Blis/src/BlisBranchStrategyRel.cpp \
+	Blis/src/BlisBranchStrategyRel.h \
+	Blis/src/BlisBranchStrategyStrong.cpp \
+	Blis/src/BlisBranchStrategyStrong.h \
+	Blis/src/BlisConfig.h \
+	Blis/src/BlisConGenerator.cpp \
+	Blis/src/BlisConGenerator.h \
+	Blis/src/BlisConstraint.cpp \
+	Blis/src/BlisConstraint.h \
+	Blis/src/BlisHelp.cpp \
+	Blis/src/BlisHelp.h \
+	Blis/src/BlisHeuristic.h \
+	Blis/src/BlisHeurRound.cpp \
+	Blis/src/BlisHeurRound.h \
+	Blis/src/BlisLicense.h \
+	Blis/src/BlisMain.cpp \
+	Blis/src/BlisMessage.cpp \
+	Blis/src/BlisMessage.h \
+	Blis/src/BlisModel.cpp \
+	Blis/src/BlisModel.h \
+	Blis/src/BlisNodeDesc.h \
+	Blis/src/BlisObjectInt.cpp \
+	Blis/src/BlisObjectInt.h \
+	Blis/src/BlisParams.cpp \
+	Blis/src/BlisParams.h \
+	Blis/src/BlisPresolve.cpp \
+	Blis/src/BlisPresolve.h \
+	Blis/src/BlisPseudo.cpp \
+	Blis/src/BlisPseudo.h \
+	Blis/src/BlisSolution.h \
+	Blis/src/BlisSubTree.h \
+	Blis/src/BlisTreeNode.cpp \
+	Blis/src/BlisTreeNode.h \
+	Blis/src/BlisVariable.h
 
 ########################################################################
 #                          Subdirectories                              #

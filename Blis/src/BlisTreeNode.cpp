@@ -2046,7 +2046,8 @@ int BlisTreeNode::selectBranchObject(BlisModel *model,
     // Create branching object candidates.
     //-----------------------------------------------------
     
-    bStatus = strategy->createCandBranchObjects(numPassesLeft);   
+    bStatus = strategy->createCandBranchObjects(numPassesLeft,
+						model->getCutoff());   
     
     //------------------------------------------------------
     // Select the best branching objects.

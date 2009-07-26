@@ -99,7 +99,8 @@ enum BlisBranchingStrategy{
    BlisBranchingStrategyMaxInfeasibility,
    BlisBranchingStrategyPseudoCost,
    BlisBranchingStrategyReliability,   
-   BlisBranchingStrategyStrong
+   BlisBranchingStrategyStrong,
+   BlisBranchingStrategyBilevel
 };
 
 

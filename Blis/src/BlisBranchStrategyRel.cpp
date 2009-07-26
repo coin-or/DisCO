@@ -87,7 +87,8 @@ BlisBranchStrategyRel::betterBranchObject(BcpsBranchObject * thisOne,
 
 /** Create a set of candidate branching objects. */
 int 
-BlisBranchStrategyRel::createCandBranchObjects(int numPassesLeft)
+BlisBranchStrategyRel::createCandBranchObjects(int numPassesLeft,
+					       double ub)
 {
     int bStatus = 0;
     int i, pass, colInd;

@@ -44,6 +44,7 @@
 #include "BlisBranchStrategyPseudo.h"
 #include "BlisBranchStrategyRel.h"
 #include "BlisBranchStrategyStrong.h"
+#include "BlisBranchStrategyBilevel.h"
 
 #include "BlisConstraint.h"
 #include "BlisHeurRound.h"
@@ -628,6 +629,10 @@ BlisModel::setupSelf()
         // Strong
         branchStrategy_ = new BlisBranchStrategyStrong(this);
     }
+    else if (brStrategy == BlisBranchingStrategyBilevel) {
+        // Bilevel
+        branchStrategy_ = new BlisBranchStrategyBilevel(this);
+    }
     else {
         throw CoinError("Unknown branch strategy.", "setupSelf","BlisModel");
     }
@@ -649,6 +654,10 @@ BlisModel::setupSelf()
     else if (brStrategy == BlisBranchingStrategyStrong) {
         // Strong
         rampUpBranchStrategy_ = new BlisBranchStrategyStrong(this);
+    }
+    else if (brStrategy == BlisBranchingStrategyBilevel) {
+        // Bilevel
+        rampUpBranchStrategy_ = new BlisBranchStrategyBilevel(this);
     }
     else {
         throw CoinError("Unknown branch strategy.", "setupSelf","BlisModel");

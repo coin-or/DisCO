@@ -52,7 +52,8 @@ BlisBranchStrategyStrong::BlisBranchStrategyStrong (
 
 /** Create a set of candidate branching objects. */
 int 
-BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft)
+BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, 
+						  double ub)
 {
     int bStatus = 0;
     int i, j, pass;

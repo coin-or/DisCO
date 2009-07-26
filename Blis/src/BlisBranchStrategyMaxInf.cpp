@@ -41,7 +41,8 @@ BlisBranchStrategyMaxInf::BlisBranchStrategyMaxInf (
 
 /** Create a set of candidate branching objects. */
 int 
-BlisBranchStrategyMaxInf::createCandBranchObjects(int numPassesLeft)
+BlisBranchStrategyMaxInf::createCandBranchObjects(int numPassesLeft,
+						  double ub)
 {
 
     int numInfs = 0;

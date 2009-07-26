@@ -66,6 +66,7 @@ class BlisParams : public AlpsParameterSet {
           1: pseudocost, 
           2: relibility, 
           3: strong branching.
+	  4: bilevel branching
       */
       branchStrategy,
       branchStrategyRampUp,
