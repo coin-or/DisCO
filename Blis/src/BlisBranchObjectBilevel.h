@@ -72,7 +72,7 @@ class BlisBranchObjectBilevel : public BcpsBranchObject {
     }
 
     /** Destructor. */
-    virtual ~BlisBranchObjectBilevel() {delete[] branchingSet_;}
+    virtual ~BlisBranchObjectBilevel() { delete branchingSet_; }
 
     /** Get a pointer to the branching set */
     std::deque<int> *getBranchingSet() const {return branchingSet_;}
