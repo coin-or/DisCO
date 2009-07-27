@@ -40,7 +40,7 @@ class BlisBranchObjectBilevel : public BcpsBranchObject {
  protected:
 
     /** The indices of variables in the branching set. */
-    std::deque<int> branchingSet_;
+    std::deque<int> *branchingSet_;
     
  public:
     
@@ -48,18 +48,20 @@ class BlisBranchObjectBilevel : public BcpsBranchObject {
     BlisBranchObjectBilevel() : BcpsBranchObject()
     {
 	type_ = BlisBranchingObjectTypeBilevel;
+	branchingSet_ = new std::deque<int>();
     }
 
     /** Another useful constructor. */
-    BlisBranchObjectBilevel(BcpsModel * model, std::deque<int> bs)
-    : BcpsBranchObject(model)
-    {
+    BlisBranchObjectBilevel(BcpsModel * model)
+	: BcpsBranchObject(model) {
 	type_ = BlisBranchingObjectTypeBilevel;
-      	branchingSet_ = bs;
+	branchingSet_ = new std::deque<int>();
     }
     
     /** Copy constructor. */
-    BlisBranchObjectBilevel(const BlisBranchObjectBilevel &);
+    BlisBranchObjectBilevel(const BlisBranchObjectBilevel &rhs)
+    :
+    BcpsBranchObject(rhs), branchingSet_(rhs.branchingSet_) {}
     
     /** Assignment operator. */
     BlisBranchObjectBilevel & operator = (const BlisBranchObjectBilevel& rhs);
@@ -70,10 +72,13 @@ class BlisBranchObjectBilevel : public BcpsBranchObject {
     }
 
     /** Destructor. */
-    virtual ~BlisBranchObjectBilevel() {}
+    virtual ~BlisBranchObjectBilevel() {delete[] branchingSet_;}
 
     /** Get a pointer to the branching set */
-    std::deque<int> getBranchingSet() const {return branchingSet_;}
+    std::deque<int> *getBranchingSet() const {return branchingSet_;}
+    
+    /** Get a pointer to the branching set */
+    void addToBranchingSet(int item) {branchingSet_->push_back(item);}
     
     /** Set the bounds for the variable according to the current arm
 	of the branch and advances the object state to the next arm.

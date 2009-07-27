@@ -70,7 +70,74 @@ EXTRA_DIST = doxydoc/doxygen.conf \
 	Blis/src/BlisSubTree.h \
 	Blis/src/BlisTreeNode.cpp \
 	Blis/src/BlisTreeNode.h \
-	Blis/src/BlisVariable.h
+	Blis/src/BlisVariable.h \
+	Alps/src/Alps.h \
+	Alps/src/AlpsAix43.h \
+	Alps/src/AlpsConfig.h \
+	Alps/src/AlpsCygwin.h \
+	Alps/src/AlpsEncoded.h \
+	Alps/src/AlpsEnumProcessT.h \
+	Alps/src/AlpsHelperFunctions.h \
+	Alps/src/AlpsKnowledge.cpp \
+	Alps/src/AlpsKnowledge.h \
+	Alps/src/AlpsKnowledgeBroker.cpp \
+	Alps/src/AlpsKnowledgeBroker.h \
+	Alps/src/AlpsKnowledgeBrokerMPI.cpp \
+	Alps/src/AlpsKnowledgeBrokerMPI.h \
+	Alps/src/AlpsKnowledgeBrokerSerial.cpp \
+	Alps/src/AlpsKnowledgeBrokerSerial.h \
+	Alps/src/AlpsKnowledgePool.h \
+	Alps/src/AlpsLicense.h \
+	Alps/src/AlpsLinux.h \
+	Alps/src/AlpsMACH.h \
+	Alps/src/AlpsMessage.cpp \
+	Alps/src/AlpsMessage.h \
+	Alps/src/AlpsMessageTag.h \
+	Alps/src/AlpsModel.cpp \
+	Alps/src/AlpsModel.h \
+	Alps/src/AlpsNodeDesc.h \
+	Alps/src/AlpsNodePool.h \
+	Alps/src/AlpsOs.h \
+	Alps/src/AlpsParameterBase.cpp \
+	Alps/src/AlpsParameterBase.h \
+	Alps/src/AlpsParams.cpp \
+	Alps/src/AlpsParams.h \
+	Alps/src/AlpsPriorityQueue.h \
+	Alps/src/AlpsSearchStrategy.cpp \
+	Alps/src/AlpsSearchStrategy.h \
+	Alps/src/AlpsSearchStrategyBase.h \
+	Alps/src/AlpsSolution.h \
+	Alps/src/AlpsSolutionPool.h \
+	Alps/src/AlpsSubTree.cpp \
+	Alps/src/AlpsSubTree.h \
+	Alps/src/AlpsSubTreePool.h \
+	Alps/src/AlpsSunos.h \
+	Alps/src/AlpsTime.h \
+	Alps/src/AlpsTreeNode.cpp \
+	Alps/src/AlpsTreeNode.h \
+	Bcps/src/Bcps.h \
+	Bcps/src/BcpsBranchObject.cpp \
+	Bcps/src/BcpsBranchObject.h \
+	Bcps/src/BcpsBranchStrategy.cpp \
+	Bcps/src/BcpsBranchStrategy.h \
+	Bcps/src/BcpsConfig.h \
+	Bcps/src/BcpsInterface.h \
+	Bcps/src/BcpsLicense.h \
+	Bcps/src/BcpsMessage.cpp \
+	Bcps/src/BcpsMessage.h \
+	Bcps/src/BcpsModel.cpp \
+	Bcps/src/BcpsModel.h \
+	Bcps/src/BcpsNodeDesc.cpp \
+	Bcps/src/BcpsNodeDesc.h \
+	Bcps/src/BcpsObject.cpp \
+	Bcps/src/BcpsObject.h \
+	Bcps/src/BcpsObjectPool.h \
+	Bcps/src/BcpsSolution.cpp \
+	Bcps/src/BcpsSolution.h \
+	Bcps/src/BcpsSubTree.cpp \
+	Bcps/src/BcpsSubTree.h \
+	Bcps/src/BcpsTreeNode.cpp \
+	Bcps/src/BcpsTreeNode.h
 
 ########################################################################
 #                          Subdirectories                              #

@@ -1992,17 +1992,17 @@ BlisTreeNode::branch()
 	 {
 	     BlisBranchObjectBilevel *branchObject =
 		 dynamic_cast<BlisBranchObjectBilevel *>(branchObject_);
-	     std::deque<int> branchingSet = branchObject->getBranchingSet();
+	     std::deque<int> *branchingSet = branchObject->getBranchingSet();
 
 	     CoinWarmStartBasis *ws = thisDesc->getBasis();
 	     std::deque<int>::iterator ptr1, ptr2;
-	     int size = branchingSet.size();
+	     int size = branchingSet->size();
 	     int *indices = new int[size];
 	     double *values = new double[size];
 	     values[0] = 1;
 	     int i;
-	     for (i = 0, ptr1 = branchingSet.begin(); 
-		  ptr1 != branchingSet.end(); i++, ptr1++){
+	     for (i = 0, ptr1 = branchingSet->begin(); 
+		  ptr1 != branchingSet->end(); i++, ptr1++){
 		 indices[i] = *ptr1;
 		 values[i] = 1;
 		 childDesc = new BlisNodeDesc(model);
@@ -2067,6 +2067,8 @@ int BlisTreeNode::selectBranchObject(BlisModel *model,
     //------------------------------------------------------
     // Create branching object candidates.
     //-----------------------------------------------------
+
+    std::cout << "Now branching on node " << index_;
     
     bStatus = strategy->createCandBranchObjects(numPassesLeft,
 						model->getCutoff());   

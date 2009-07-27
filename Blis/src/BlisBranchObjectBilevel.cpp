@@ -28,17 +28,6 @@
 
 //#############################################################################
 
-// Copy constructor 
-BlisBranchObjectBilevel::
-BlisBranchObjectBilevel(const BlisBranchObjectBilevel & rhs) 
-    :
-    BcpsBranchObject(rhs)
-{
-    branchingSet_ = rhs.branchingSet_;
-}
-
-//#############################################################################
-
 // Assignment operator 
 BlisBranchObjectBilevel & 
 BlisBranchObjectBilevel::operator=(const BlisBranchObjectBilevel& rhs)
@@ -81,7 +70,7 @@ BlisBranchObjectBilevel::print(bool normalBranch)
     std::deque<int>::iterator ptr1;
     std::cout << "Branching set consists of variables";
 
-    for (ptr1 = branchingSet_.begin(); ptr1 != branchingSet_.end(); ptr1++){
+    for (ptr1 = branchingSet_->begin(); ptr1 != branchingSet_->end(); ptr1++){
 	std::cout << " " << *ptr1;
     }
     

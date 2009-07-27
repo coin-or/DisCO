@@ -60,8 +60,10 @@ BlisBranchStrategyBilevel::createCandBranchObjects(int numPassesLeft,
 						   double ub)
 {
     int i(0);
-    std::deque<int> branchingSet;
 
+    BlisBranchObjectBilevel *bb = new BlisBranchObjectBilevel(model_);
+    numBranchObjects_ = 1;
+    
     BlisModel *model = dynamic_cast<BlisModel *>(model_);
     OsiSolverInterface *solver = model->solver();
 
@@ -84,11 +86,13 @@ BlisBranchStrategyBilevel::createCandBranchObjects(int numPassesLeft,
     // Start fixing variables to zero one by one until the threshold is 
     // exceeded
 
+    std::cout << std::endl;
+    std::cout << "Branching set consists of variables:"<< std::endl; 
     double objVal;
     for (i = 0; i < numCols; i++){
 	// FIXME: Is there a better way to determine is a variable is fixed?
 	if (colLower[i] == 0.0 && colUpper[i] == 1.0){
-	    branchingSet.push_back(sortedRedCosts[i].second);
+	    bb->addToBranchingSet(sortedRedCosts[i].second);
 	    solver->setColBounds(sortedRedCosts[i].second, 0.0, 0.0);
 	    solver->resolve();
 	    objVal = solver->getObjValue();
@@ -98,16 +102,19 @@ BlisBranchStrategyBilevel::createCandBranchObjects(int numPassesLeft,
 	}
     }
 
+    std::cout << std::endl << std::endl;
+
     // Set bounds back where they were
     std::deque<int>::iterator ptr1;
-    for (i = 0, ptr1 = branchingSet.begin(); ptr1 != branchingSet.end(); 
-	 i++, ptr1++){
+    for (ptr1 = bb->getBranchingSet()->begin();
+	 ptr1 != bb->getBranchingSet()->end(); ptr1++){
+	std::cout << *ptr1 << std::endl;
 	solver->setColBounds(*ptr1, 0.0, 1.0);
     }
     
     numBranchObjects_ = 1;
     branchObjects_ = new BcpsBranchObject* [1];
-    branchObjects_[0] = new BlisBranchObjectBilevel(model_, branchingSet);
+    branchObjects_[0] = bb;
     
     return 0;
 }
