@@ -31,6 +31,7 @@
 #include <vector>
 
 #include "CoinMpsIO.hpp"
+#include "CoinLpIO.hpp"
 #include "CoinPackedMatrix.hpp"
 
 #include "CglCutGenerator.hpp"

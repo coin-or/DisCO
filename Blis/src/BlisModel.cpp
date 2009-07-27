@@ -200,84 +200,176 @@ BlisModel::readInstance(const char* dataFile)
     
     int msgLevel =  AlpsPar_->entry(AlpsParams::msgLevel);
 
+    char ext[5];
+ 
     //------------------------------------------------------
-    // Read in data from MPS file.
+    // Read in data from file.
     //------------------------------------------------------
     
-    CoinMpsIO *mps = new CoinMpsIO;
-    mps->messageHandler()->setLogLevel(msgLevel);
+    int last_dot(0);
+    for (j = 0;; j++){
+	if (dataFile[j] == '\0')
+	    break;
+	if (dataFile[j] == '.') {
+	    last_dot = j;
+	}
+    }
+    if(last_dot){
+	strcpy(ext, dataFile + last_dot + 1);
+    }else{
+	strcpy(ext, "");
+    }
+
+    int rc = 1;
+    if (strcmp(ext, "mps") == 0){
+	CoinMpsIO *reader = new CoinMpsIO;
+
+	reader->messageHandler()->setLogLevel(msgLevel);
     
-    int rc = mps->readMps(dataFile, "");
+	rc = reader->readMps(dataFile, "");
+
+	//------------------------------------------------------
+	// Get problem data.
+	//------------------------------------------------------
+	
+	numCols_ = reader->getNumCols();
+	numRows_ = reader->getNumRows();
+	numElems_ = reader->getNumElements();
+	
+	colMatrix_ = new CoinPackedMatrix();    
+	*colMatrix_ = *(reader->getMatrixByCol());
+	
+	varLB_ = new double [numCols_];
+	varUB_ = new double [numCols_];
+	
+	conLB_ = new double [numRows_];
+	conUB_ = new double [numRows_];
+	
+	memcpy(varLB_, reader->getColLower(), sizeof(double) * numCols_);
+	memcpy(varUB_, reader->getColUpper(), sizeof(double) * numCols_);
+	
+	memcpy(conLB_, reader->getRowLower(), sizeof(double) * numRows_);
+	memcpy(conUB_, reader->getRowUpper(), sizeof(double) * numRows_);
+	
+	objSense_ = BlisPar_->entry(BlisParams::objSense);
+	
+	objCoef_ = new double [numCols_];
+	if (objSense_ > 0.0) {
+	    memcpy(objCoef_, reader->getObjCoefficients(), 
+		   sizeof(double) * numCols_);
+	}
+	else {
+	    const double *readerObj =  reader->getObjCoefficients();
+	    for (j = 0; j < numCols_; ++j) {
+		objCoef_[j] = - readerObj[j];
+	    }
+	}    
+	
+	//------------------------------------------------------
+	// Set colType_
+	//------------------------------------------------------
+	
+	colType_ = new char [numCols_];   
+	
+	for(j = 0; j < numCols_; ++j) {
+	    if (reader->isContinuous(j)) {
+		colType_[j] = 'C';
+	    }
+	    else {
+		if (varLB_[j] == 0 && varUB_[j] == 1.0) {
+		    colType_[j] = 'B';
+		}
+		else {
+		    colType_[j] = 'I';
+		}
+	    }
+	}
+	
+	delete reader;
+	
+    }else if (strcmp(ext, "lp") == 0 || strcmp(ext, "lpt") == 0){
+	CoinLpIO *reader = new CoinLpIO;
+
+	//reader->messageHandler()->setLogLevel(msgLevel);
+    
+	reader->readLp(dataFile);
+
+      	//reader doesn't return error codes'
+        rc = 0;
+      
+	//------------------------------------------------------
+	// Get problem data.
+	//------------------------------------------------------
+	
+	numCols_ = reader->getNumCols();
+	numRows_ = reader->getNumRows();
+	numElems_ = reader->getNumElements();
+	
+	colMatrix_ = new CoinPackedMatrix();    
+	*colMatrix_ = *(reader->getMatrixByCol());
+	
+	varLB_ = new double [numCols_];
+	varUB_ = new double [numCols_];
+	
+	conLB_ = new double [numRows_];
+	conUB_ = new double [numRows_];
+	
+	memcpy(varLB_, reader->getColLower(), sizeof(double) * numCols_);
+	memcpy(varUB_, reader->getColUpper(), sizeof(double) * numCols_);
+	
+	memcpy(conLB_, reader->getRowLower(), sizeof(double) * numRows_);
+	memcpy(conUB_, reader->getRowUpper(), sizeof(double) * numRows_);
+	
+	objSense_ = BlisPar_->entry(BlisParams::objSense);
+	
+	objCoef_ = new double [numCols_];
+	if (objSense_ > 0.0) {
+	    memcpy(objCoef_, reader->getObjCoefficients(), 
+		   sizeof(double) * numCols_);
+	}
+	else {
+	    const double *readerObj =  reader->getObjCoefficients();
+	    for (j = 0; j < numCols_; ++j) {
+		objCoef_[j] = - readerObj[j];
+	    }
+	}    
+	
+	//------------------------------------------------------
+	// Set colType_
+	//------------------------------------------------------
+	
+	colType_ = new char [numCols_];   
+	
+	for(j = 0; j < numCols_; ++j) {
+	    if (reader->isInteger(j)) {
+		if (varLB_[j] == 0 && varUB_[j] == 1.0) {
+		    colType_[j] = 'B';
+		}
+		else {
+		    colType_[j] = 'I';
+		}
+	    }
+	    else {
+		colType_[j] = 'C';
+	    }
+	}
+	
+	delete reader;
+
+    }
+
     if(rc) {
-        delete mps;
         throw CoinError("Unable to read in instance",
                         "readInstance",
                         "BlisModel");
     }
 
-    //------------------------------------------------------
-    // Get problem data.
-    //------------------------------------------------------
-
-    numCols_ = mps->getNumCols();
-    numRows_ = mps->getNumRows();
-    numElems_ = mps->getNumElements();
-
-    colMatrix_ = new CoinPackedMatrix();    
-    *colMatrix_ = *(mps->getMatrixByCol());
-    
-    varLB_ = new double [numCols_];
-    varUB_ = new double [numCols_];
-
-    conLB_ = new double [numRows_];
-    conUB_ = new double [numRows_];
-    
-    memcpy(varLB_, mps->getColLower(), sizeof(double) * numCols_);
-    memcpy(varUB_, mps->getColUpper(), sizeof(double) * numCols_);
-    
-    memcpy(conLB_, mps->getRowLower(), sizeof(double) * numRows_);
-    memcpy(conUB_, mps->getRowUpper(), sizeof(double) * numRows_);
-    
-    objSense_ = BlisPar_->entry(BlisParams::objSense);
-    
-    objCoef_ = new double [numCols_];
-    if (objSense_ > 0.0) {
-        memcpy(objCoef_, mps->getObjCoefficients(), sizeof(double) * numCols_);
-    }
-    else {
-        const double *mpsObj =  mps->getObjCoefficients();
-        for (j = 0; j < numCols_; ++j) {
-            objCoef_[j] = - mpsObj[j];
-        }
-    }    
-
-    //------------------------------------------------------
-    // Set colType_
-    //------------------------------------------------------
-    
-    colType_ = new char [numCols_];   
-
-    for(j = 0; j < numCols_; ++j) {
-	if (mps->isContinuous(j)) {
-            colType_[j] = 'C';
-	}
-        else {
-            if (varLB_[j] == 0 && varUB_[j] == 1.0) {
-		colType_[j] = 'B';
-	    }
-            else {
-                colType_[j] = 'I';
-            }
-        }
-    }
-
     //-------------------------------------------------------------
     // Create variables and constraints.
     //-------------------------------------------------------------
-
+	
     createObjects();
-    
-    delete mps;
+
 }
 
 //############################################################################ 
