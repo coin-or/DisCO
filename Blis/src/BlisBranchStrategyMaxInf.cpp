@@ -48,7 +48,7 @@ BlisBranchStrategyMaxInf::createCandBranchObjects(int numPassesLeft,
 
     int numInfs = 0;
     
-    int i, col, preferDir, maxInfDir, maxScoreDir;
+    int i, col, preferDir, maxInfDir = 0, maxScoreDir = 0;
     
     double score, maxScore = 0.0;
     double infeasibility, maxInf = 0.0;
