@@ -87,11 +87,12 @@ BlisBranchStrategyBilevel::createCandBranchObjects(int numPassesLeft,
     // exceeded
 
     std::cout << std::endl;
-    std::cout << "Branching set consists of variables:"<< std::endl; 
+    std::cout << "Branching set consists of variables: "; 
     double objVal;
     for (i = 0; i < numCols; i++){
 	// FIXME: Is there a better way to determine is a variable is fixed?
-	if (colLower[i] == 0.0 && colUpper[i] == 1.0){
+	if (colLower[sortedRedCosts[i].second] == 0.0 && 
+	    colUpper[sortedRedCosts[i].second] == 1.0){
 	    bb->addToBranchingSet(sortedRedCosts[i].second);
 	    solver->setColBounds(sortedRedCosts[i].second, 0.0, 0.0);
 	    solver->resolve();
@@ -101,16 +102,15 @@ BlisBranchStrategyBilevel::createCandBranchObjects(int numPassesLeft,
 	    }
 	}
     }
-
-    std::cout << std::endl << std::endl;
-
     // Set bounds back where they were
     std::deque<int>::iterator ptr1;
     for (ptr1 = bb->getBranchingSet()->begin();
 	 ptr1 != bb->getBranchingSet()->end(); ptr1++){
-	std::cout << *ptr1 << std::endl;
+	std::cout << *ptr1 << " ";
 	solver->setColBounds(*ptr1, 0.0, 1.0);
     }
+
+    std::cout << std::endl << std::endl;
     
     numBranchObjects_ = 1;
     branchObjects_ = new BcpsBranchObject* [1];

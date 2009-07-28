@@ -68,7 +68,7 @@ void
 BlisBranchObjectBilevel::print(bool normalBranch)
 {
     std::deque<int>::iterator ptr1;
-    std::cout << "Branching set consists of variables";
+    std::cout << "Branching set consists of variables ";
 
     for (ptr1 = branchingSet_->begin(); ptr1 != branchingSet_->end(); ptr1++){
 	std::cout << " " << *ptr1;
