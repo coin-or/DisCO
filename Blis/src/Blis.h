@@ -103,7 +103,6 @@ enum BlisBranchingStrategy{
    BlisBranchingStrategyBilevel
 };
 
-
 //#############################################################################
 
 enum BlisSolutionType {

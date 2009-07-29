@@ -40,6 +40,7 @@
 #include "BcpsObject.h"
 
 #include "BlisBranchObjectInt.h"
+#include "BlisBranchObjectBilevel.h"
 #include "BlisBranchStrategyMaxInf.h"
 #include "BlisBranchStrategyPseudo.h"
 #include "BlisBranchStrategyRel.h"
