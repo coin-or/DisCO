@@ -95,6 +95,10 @@ public:
     inline int getv1() { return ends_[1]; }
     /**@}*/
 
+    virtual void printDesc() {
+	std::cout << "(" << getv0() << ", " << getv1() << ")";
+    }
+    
     /** Pack to a encode object. */
     virtual AlpsReturnStatus encode(AlpsEncoded *encoded){
 	AlpsReturnStatus status;

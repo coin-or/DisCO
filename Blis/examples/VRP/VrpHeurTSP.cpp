@@ -237,11 +237,13 @@ VrpHeurTSP::searchSolution(double & objectiveValue, double * newSolution)
 	currV = nextV;
     }
 
-    if (msgLevel > 0 && foundSolution && numNodes < 2) {
+#if 0
+    if (msgLevel > 10 && foundSolution && numNodes < 2) {
 	std::cout << "***** "<< name_ 
 		  << " heuristic found a solution, quality " 
 		  << objectiveValue << std::endl;
     }
+#endif
     
     if (msgLevel > 200 && foundSolution) {
 

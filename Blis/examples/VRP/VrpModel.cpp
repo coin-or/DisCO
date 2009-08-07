@@ -906,33 +906,36 @@ VrpModel::readParameters(const int argnum, const char * const * arglist)
 //#############################################################################
 
 /** Register knowledge. */
+//FIXME: Should the user have to register knowledge knowledge types of Alps, 
+//Bcps, and Blis?
 void 
 VrpModel::registerKnowledge() {
     // Register model, solution, and tree node
     assert(broker_);
-    broker_->registerClass(AlpsKnowledgeTypeModel, new VrpModel);
-    if (broker_->getMsgLevel() > 5) {
-	std::cout << "BLIS: Register Alps model." << std::endl;
-    }
     
     broker_->registerClass(AlpsKnowledgeTypeNode, new BlisTreeNode(this));
-    if (broker_->getMsgLevel() > 5) {
-	std::cout << "BLIS: Register Alps node." << std::endl;
-    }
-    
-    broker_->registerClass(AlpsKnowledgeTypeSolution, new VrpSolution);
-    if (broker_->getMsgLevel() > 5) {
-	std::cout << "BLIS: Register Alps solution." << std::endl;
+    if (broker_->getMsgLevel() > 100) {
+	std::cout << "VRP: Register Blis tree node." << std::endl;
     }
     
     broker_->registerClass(BcpsKnowledgeTypeConstraint, new BlisConstraint);
-    if (broker_->getMsgLevel() > 5) {
-	std::cout << "BLIS: Register Bcps constraint." << std::endl;
+    if (broker_->getMsgLevel() > 100) {
+	std::cout << "VRP: Register Blis constraint." << std::endl;
+    }
+    
+    broker_->registerClass(AlpsKnowledgeTypeModel, new VrpModel);
+    if (broker_->getMsgLevel() > 100) {
+	std::cout << "VRP: Register Vrp model." << std::endl;
+    }
+
+    broker_->registerClass(AlpsKnowledgeTypeSolution, new VrpSolution);
+    if (broker_->getMsgLevel() > 100) {
+	std::cout << "VRP: Register Vrp solution." << std::endl;
     }
     
     broker_->registerClass(BcpsKnowledgeTypeVariable, new VrpVariable);
-    if (broker_->getMsgLevel() > 5) {
-	std::cout << "BLIS: Register Bcps variable." << std::endl;
+    if (broker_->getMsgLevel() > 100) {
+	std::cout << "VRP: Register Vrp variable." << std::endl;
     }
 }
 

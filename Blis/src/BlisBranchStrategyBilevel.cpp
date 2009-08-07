@@ -66,7 +66,7 @@ BlisBranchStrategyBilevel::createCandBranchObjects(int numPassesLeft,
     
     BlisModel *model = dynamic_cast<BlisModel *>(model_);
     OsiSolverInterface *solver = model->solver();
-
+    int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
     int numCols = model->getNumCols();
     
     const double *redCosts = solver->getReducedCost();
@@ -86,11 +86,13 @@ BlisBranchStrategyBilevel::createCandBranchObjects(int numPassesLeft,
     // Start fixing variables to zero one by one until the threshold is 
     // exceeded
 
-    std::cout << std::endl;
-    std::cout << "Branching set consists of variables: "; 
+    if (msgLevel >= 100){
+	std::cout << std::endl;
+	std::cout << "Branching set consists of variables:"; 
+    }
     double objVal;
     for (i = 0; i < numCols; i++){
-	// FIXME: Is there a better way to determine is a variable is fixed?
+	// FIXME: Is there a better way to determine if a variable is fixed?
 	if (colLower[sortedRedCosts[i].second] == 0.0 && 
 	    colUpper[sortedRedCosts[i].second] == 1.0){
 	    bb->addToBranchingSet(sortedRedCosts[i].second);
@@ -104,9 +106,16 @@ BlisBranchStrategyBilevel::createCandBranchObjects(int numPassesLeft,
     }
     // Set bounds back where they were
     std::deque<int>::iterator ptr1;
-    for (ptr1 = bb->getBranchingSet()->begin();
-	 ptr1 != bb->getBranchingSet()->end(); ptr1++){
-	std::cout << *ptr1 << " ";
+    for (i = 0, ptr1 = bb->getBranchingSet()->begin();
+	 ptr1 != bb->getBranchingSet()->end(); i++, ptr1++){
+	if (msgLevel >= 100){
+	    //std::cout << *ptr1 << " ";
+	    if (i%10 == 0){
+		std::cout << std::endl;
+	    }
+	    std::cout << " ";
+	    model->getVariables()[*ptr1]->printDesc();
+	}
 	solver->setColBounds(*ptr1, 0.0, 1.0);
     }
 
@@ -125,7 +134,7 @@ BlisBranchStrategyBilevel::createCandBranchObjects(int numPassesLeft,
     than bestObject, return branching direction(1 or -1), otherwise
     return 0. 
     If bestSoFar is NULL, then always return branching direction(1 or -1).
-    This should not be called for this class.
+    This should not be called for this (derived) class.
 */
 int
 BlisBranchStrategyBilevel::betterBranchObject(BcpsBranchObject * thisOne,

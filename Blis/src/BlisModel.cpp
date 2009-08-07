@@ -2035,27 +2035,27 @@ BlisModel::registerKnowledge() {
     // Register model, solution, and tree node
     assert(broker_);
     broker_->registerClass(AlpsKnowledgeTypeModel, new BlisModel);
-    if (broker_->getMsgLevel() > 5) {
+    if (broker_->getMsgLevel() > 100) {
 	std::cout << "BLIS: Register Alps model." << std::endl;
     }
     
     broker_->registerClass(AlpsKnowledgeTypeNode, new BlisTreeNode(this));
-    if (broker_->getMsgLevel() > 5) {
+    if (broker_->getMsgLevel() > 100) {
 	std::cout << "BLIS: Register Alps node." << std::endl;
     }
     
     broker_->registerClass(AlpsKnowledgeTypeSolution, new BlisSolution);
-    if (broker_->getMsgLevel() > 5) {
+    if (broker_->getMsgLevel() > 100) {
 	std::cout << "BLIS: Register Alps solution." << std::endl;
     }
     
     broker_->registerClass(BcpsKnowledgeTypeConstraint, new BlisConstraint);
-    if (broker_->getMsgLevel() > 5) {
+    if (broker_->getMsgLevel() > 100) {
 	std::cout << "BLIS: Register Bcps constraint." << std::endl;
     }
     
     broker_->registerClass(BcpsKnowledgeTypeVariable, new BlisVariable);
-    if (broker_->getMsgLevel() > 5) {
+    if (broker_->getMsgLevel() > 100) {
 	std::cout << "BLIS: Register Bcps variable." << std::endl;
     }
 }
@@ -2181,22 +2181,26 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
         }
             
         // print node log
-        if ((msgLevel > 1) && (force||(numNodesProcessed % nodeInterval == 0))) {
+        if ((msgLevel >= 1) && (force||(numNodesProcessed % nodeInterval == 0))) {
             printLog = true;
         }
         if (msgLevel > 200) {
             printLog = true;
         }
         if (printLog) {
+#if 0
             int numCols = getNumCols();
             int numRows = getNumRows();
+#endif
             
             // Print header
             if (numNodesProcessed == 0 ||
-                (numNodesProcessed % (nodeInterval * 30)) == 0) {
+                (numNodesProcessed % (nodeInterval * 30)) == 0 ||
+		msgLevel >= 10) {
                 /* Print header. */
-                std::cout << "\n";
-                std::cout << "    Node";         /*8 spaces*/
+                std::cout << std::endl;
+                std::cout << "Nodes Done";         /*8 spaces*/
+#if 0
                 std::cout << "      ObjValue";   /*14 spaces*/
                 if (msgLevel > 2) {
                     std::cout << "     Row";    /*8 Spaces*/
@@ -2205,31 +2209,32 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
                     std::cout << "  Parent";     /*8 spaces*/
                     std::cout << "   Depth";     /*8 spaces*/
                 }
-                
-                std::cout << "  BestFeasible";
-                std::cout << "     BestBound";
+#endif                
+                std::cout << "   Upper Bound";
+                std::cout << "   Lower Bound";
                 std::cout << "      Gap";         /*9 spaces*/
                 std::cout << "   Time";
-                std::cout << "    Left";
+                std::cout << " Nodes Left";
                 std::cout << std::endl;
             }
 
             // Print log
             if (numNodesProcessed < 10000000) {
-                printf("%8d", numNodesProcessed);
+                printf("%10d", numNodesProcessed);
             }
             else {
-                printf("%7dK", numNodesProcessed/1000);
+                printf("%9dK", numNodesProcessed/1000);
             }
             
             /* Quality */
+#if 0
             if (node->getStatus() == AlpsNodeStatusFathomed) {
                 printf("      Fathomed");
             }
             else {
                 printf(" %13g", node->getQuality());
             }
-            
+
             if (msgLevel > 2) {
                 if (numRows < 10000000) {
                     printf("%8d", numRows);
@@ -2255,6 +2260,7 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
                 /* Depth */
                 printf(" %7d", node->getDepth());
             }
+#endif
             
             if (feasBound > ALPS_OBJ_MAX_LESS) {
                 printf("              ");
@@ -2295,13 +2301,16 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
             
             /* Number of left nodes */
             if (numNodesLeft < 10000000) {
-                printf(" %7d", numNodesLeft);
+                printf(" %10d", numNodesLeft);
             }
             else {
-                printf(" %6dK", numNodesLeft/1000);
+                printf(" %8dK", numNodesLeft/1000);
             }
             
-            printf("\n");
+	    std::cout << std::endl;
+	    if (msgLevel >= 10){
+		std::cout << std::endl;
+	    }
         }
     }
     else if (broker_->getProcType() == AlpsProcessTypeMaster){

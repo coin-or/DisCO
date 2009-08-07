@@ -68,7 +68,7 @@ VrpSolution::VrpSolution(int s, const double *values, double objValue,
 
    /* Display the solution (tours). */
    if (msgLevel > 4) {
-       std::cout << std::endl << "Found a solution, cost: " << cost << std::endl << std::endl;
+       std::cout << "**** Found a better solution! Cost: " << cost << std::endl;
    }
    if (msgLevel > 200) {
        print(std::cout);

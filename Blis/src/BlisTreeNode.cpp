@@ -191,6 +191,14 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 
     double tailOffTol = BlisPar->entry(BlisParams::tailOff);
 
+    if (msgLevel >= 100){
+	std::cout << std::endl;
+	std::cout << "**********************************" << std::endl;
+	std::cout << "* NOW PROCESSING NODE " << index_ << std::endl;
+	std::cout << "**********************************" << std::endl;
+	printf("Initial Bound:  %.3f\n", quality_);
+    }
+
     //if ( (quickCutPass > 0 ) && (phase == AlpsPhaseRampup) ) {
     if (quickCutPass > 0) {
         std::cout << "+++ Quick branching; pass is "<<quickCutPass<<std::endl;
@@ -360,7 +368,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
         if ( ((knowledgeBroker_->getProcType() == AlpsProcessTypeMaster) || 
               (knowledgeBroker_->getProcType() == AlpsProcessTypeSerial)) && 
              isRoot && (model->boundingPass_ == 1) ) {
-            if (msgLevel > 0) {
+            if (msgLevel >= 50) {
                 model->blisMessageHandler()->message(BLIS_ROOT_PROCESS, 
                                                      model->blisMessages())
                     << model->getNumRows()
@@ -384,7 +392,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                 getKnowledgeBroker()->tempTimer().stop();
                 if (((knowledgeBroker_->getProcType()==AlpsProcessTypeMaster)||
                      (knowledgeBroker_->getProcType()==AlpsProcessTypeSerial))
-		    && (msgLevel > 0)) {
+		    && (msgLevel >= 50)) {
                     model->solver()->messageHandler()->setLogLevel(0);
                     model->blisMessageHandler()->message(BLIS_ROOT_TIME, 
 							 model->blisMessages())
@@ -819,16 +827,18 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     //------------------------------------------------------
     // Select branching object
     //------------------------------------------------------
-    
+
+ //FIXME: Turn this into a function
  TERM_BRANCH:
 
 #ifdef BLIS_DEBUG_MORE
     printf("needBranch = %d\n", needBranch);
 #endif
-    
+
+    //FIXME: Isn't needBranch always true here?
     if (needBranch) { 
 	
-        bStatus = -1;
+	bStatus = -1;
         
         while (bStatus == -1) { 
             foundSolution = false;
@@ -853,8 +863,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 #endif
                 if (lpFeasible) {
 		    // Update new quality.
-                    setQuality(model->solver()->getObjValue());
-                    if (getQuality() > cutoff) {
+                    quality_ = model->solver()->getObjValue();
+                    if (quality_ > cutoff) {
                         bStatus = -2;
                     }
                     // Check if feasible at the other branch due to random LP 
@@ -867,6 +877,9 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                         setStatus(AlpsNodeStatusFathomed);
                         goto TERM_PROCESS;
                     }
+		    if (msgLevel >= 100){
+			printf("Final Bound:  %.3f\n", quality_);
+		    }
                 }
                 else {
                     // Should not happen. No, it will happen when other
@@ -1443,7 +1456,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     if (genConsHere) {
         if ( ((getKnowledgeBroker()->getProcType()==AlpsProcessTypeMaster)||
               (getKnowledgeBroker()->getProcType()==AlpsProcessTypeSerial)) &&
-             (msgLevel > 0) ) {
+             (msgLevel >= 10) ) {
             printCutStat = true;
             //std::cout << "+++++master print cut stats"<< std::endl;
         }
@@ -1459,7 +1472,7 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 
     if (printCutStat == true) {
         printCutStat = false;
-        if ( (msgLevel > 100) || (index_ == 0) ) {
+        if ( (msgLevel >= 200) || (index_ == 0 && msgLevel >= 50) ) {
             printCutStat = true;
         }
     }
@@ -1497,6 +1510,10 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
     }
 
     delete [] currLpSolution;
+
+    if (msgLevel >= 100){
+	printf("Final Bound:  %.3f\n", model->solver()->getObjValue());
+    }
 
     if (status_ == AlpsNodeStatusFathomed) {
 	// Delete new cuts since no use anymore.
@@ -1538,7 +1555,7 @@ BlisTreeNode::branch()
 
     AlpsPhase phase = knowledgeBroker_->getPhase();
 
-    double objVal = getQuality();
+    double objVal = quality_;
 
     BlisNodeDesc* childDesc = NULL;  
       
@@ -2013,7 +2030,7 @@ BlisTreeNode::branch()
 		 childNodeDescs.push_back(CoinMakeTriple(
                                        static_cast<AlpsNodeDesc *>(childDesc), 
 				       AlpsNodeStatusCandidate,
-				       getQuality()));
+				       quality_));
 		 values[i] = 0;
 	     }
 	     delete[] indices;
@@ -2038,6 +2055,7 @@ int BlisTreeNode::selectBranchObject(BlisModel *model,
                                      bool& foundSol, 
                                      int numPassesLeft) 
 {
+    int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
     int bStatus = 0;
     BcpsBranchStrategy *strategy = 0;
 
@@ -2068,8 +2086,6 @@ int BlisTreeNode::selectBranchObject(BlisModel *model,
     // Create branching object candidates.
     //-----------------------------------------------------
 
-    std::cout << "Now branching on node " << index_ << std::endl;
-    
     bStatus = strategy->createCandBranchObjects(numPassesLeft,
 						model->getCutoff());   
     
