@@ -138,6 +138,7 @@ Blis/test/blis.par -text
 /Makefile.am -text
 /Makefile.in -text
 /README -text
+/TODO -text
 /config.guess -text
 /config.sub -text
 /configure -text

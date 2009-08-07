@@ -1,0 +1,12 @@
+1. Improve branching mechanism---use CoinBranchObject
+
+2. Look at installSubProblem: seems inefficient.
+   --when branching, modifies both bounds even when only one needs to be 
+     modified
+   --sets bounds one at a time instead of all at once
+
+3. Get rid of TERM_BRANCH in BlisTreeNode.cpp (only called from one place)
+
+4. Get rid of TERM_PROCESS in BlisTreeNode.cpp 
+
+5. Convert to using CoinParam mechanism
