@@ -130,6 +130,7 @@ Blis/test/Makefile.am -text
 Blis/test/Makefile.in -text
 Blis/test/blis.par -text
 /Dependencies -text
+/Externals -text
 /LICENSE -text
 /Makefile.am -text
 /Makefile.in -text

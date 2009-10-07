@@ -3036,10 +3036,9 @@ BlisTreeNode::reducedCostFix(BlisModel *model)
     const double *solution = model->solver()->getColSolution();
     const double *reducedCost = model->solver()->getReducedCost();
     
-    double cutup = getKnowledgeBroker()->getIncumbentValue() *
-        model->solver()->getObjSense();
+    double cutoff = model->getCutoff();
     
-    if (cutup >= ALPS_OBJ_MAX) return status;
+    if (cutoff >= ALPS_OBJ_MAX) return status;
     
     double lpObjValue = model->solver()->getObjValue() * 
         model->solver()->getObjSense();
@@ -3058,7 +3057,7 @@ BlisTreeNode::reducedCostFix(BlisModel *model)
         boundDistance = ub[var] - lb[var];
 	if (boundDistance < epInt) continue;
 	
-        movement = floor((cutup - lpObjValue) / fabs(dj));
+        movement = floor((cutoff - lpObjValue) / fabs(dj));
         
         if (solution[var] > ub[var] - epInt) {
             /* At upper bound */
