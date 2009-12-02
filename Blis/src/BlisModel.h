@@ -127,6 +127,10 @@ protected:
     //------------------------------------------------------
 
     BlisPresolve *presolve_;
+    // AT - Begin
+    bool presolved;
+    bool problemSetup;
+    // AT - End
     
     //------------------------------------------------------
     // SOLUTION.
@@ -885,6 +889,10 @@ protected:
     
     /** Unpack and store shared knowledge from an encoded object. */
     virtual void unpackSharedKnowledge(AlpsEncoded&);
+
+    //AT - Begin
+    virtual void presolveForTheWholeTree();
+    //AT - end
 };
 
 #endif /* End of file */

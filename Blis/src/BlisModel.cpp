@@ -188,6 +188,11 @@ BlisModel::init()
     conRandoms_ = NULL;
 
     sharedObjectMark_ = NULL;
+
+    // AT - Begin - Set flags for presolve
+    presolved=false;
+    problemSetup=false;
+    // AT - End
 }
 
 //#############################################################################
@@ -364,6 +369,23 @@ BlisModel::readInstance(const char* dataFile)
                         "readInstance",
                         "BlisModel");
     }
+
+    //+++++++++++++++++++++++++++++++++++++++++++++
+    // AT Data read. Now we must 
+    // 1) check if presolve
+    // 2) if presolve, create lp : lpSolver_->loadProblem(*colMatrix_,
+    //    varLB_, varUB_, 	   objCoef_,  conLB_, conUB_);
+    // 3) call presolve
+    // 4) post solve the presolvedLP. (not blis postprocess)
+    // 5) update data so that we use use the presolved problem: numcol, 
+    //    var bounds, obj coef and conLB, conUP;
+    //+++++++++++++++++++++++++++++++++++++++++++++
+    
+    //AT 
+    std::cout<<" About to presolve for the whole tree"<<std::endl;
+    presolveForTheWholeTree();
+    //AT 
+    std::cout<<" Model presolved for the whole tree"<<std::endl;
 
     //-------------------------------------------------------------
     // Create variables and constraints.
@@ -640,13 +662,19 @@ BlisModel::setupSelf()
         lpSolver_ = origLpSolver_;
     }
     
-    lpSolver_->loadProblem(*colMatrix_,
-			   varLB_, varUB_, 
-			   objCoef_,
-			   conLB_, conUB_);
+    //AT here problem is set for first time for lp solver -> should be moved to read problem??
+    if(!presolved)
+        lpSolver_->loadProblem(*colMatrix_,
+                               varLB_, varUB_, 
+                               objCoef_,
+                               conLB_, conUB_);
     
     lpSolver_->setObjSense(1.0);
     lpSolver_->setInteger(intColIndices_, numIntObjects_);
+
+    // AT - Begin - solver ready, in principle we could presolve here	
+    problemSetup=true;
+    // AT - End
 
     //------------------------------------------------------
     // Create integer objects and analyze objective coef.
@@ -1141,40 +1169,156 @@ BlisModel::setupSelf()
 
 //############################################################################ 
 
-void 
-BlisModel::preprocess()
-{
-    int numPasses = 10;
-    double feaTol = 1.0e-6;
+// AT - Begin
+void BlisModel::presolveForTheWholeTree() {
+ 	 //if (!lpSolver_) {
+        // preprocessing causes this check.
+     //   lpSolver_ = origLpSolver_;
+    //}
+    int numPasses = 50;
+    double feaTol = 1.0e-3;
     bool keepIntegers = true;
     char *prohibited = 0;
+    bool doPresolve = BlisPar_->entry(BlisParams::presolve);    
+#ifdef BLIS_DEBUG
+	std::cout << "Presolve = "<< doPresolve<<" problem setup " <<problemSetup << std::endl;    
+#endif
 
-    bool doPresolve = BlisPar_->entry(BlisParams::presolve);
+	if (doPresolve) {
+		// Initialize solver with original data
+		//AT 
+		std::cout<<" About to initialize problem with original data"<<std::endl;
+		origLpSolver_->loadProblem(*colMatrix_,varLB_, varUB_,objCoef_,  conLB_,conUB_);
+		//AT 
+		std::cout<<" Problem initialized "<<std::endl;
+		std::cout<<" Preprocessing "<<std::endl;
+		presolvedLpSolver_ = presolve_->preprocess( *origLpSolver_, 
+			feaTol,
+			keepIntegers,
+			numPasses,
+			prohibited);
+//AT DEBUG
+		#ifdef BLIS_DEBUG
+		for(int i =0;i<presolvedLpSolver_->getNumCols();i++)
+			if(presolvedLpSolver_->isInteger(i)) {
+				std::cout<<" Variable "<<i<<" Is still Integer"<<std::endl;
+			}
+		#endif
+
+		std::cout<<" Preprocessing  done"<<std::endl;
+		presolvedLpSolver_->initialSolve();
+		std::cout<<" Solved "<<std::endl;
+		
+		colMatrix_=presolvedLpSolver_->getMutableMatrixByCol();
+		numCols_=presolvedLpSolver_->getNumCols();
+		numRows_=presolvedLpSolver_->getNumRows();
+		  memcpy(varLB_, presolvedLpSolver_->getColLower(), sizeof(double) * numCols_);
+    memcpy(varUB_, presolvedLpSolver_->getColUpper(), sizeof(double) * numCols_);    
+    memcpy(conLB_, presolvedLpSolver_->getRowLower(), sizeof(double) * numRows_);
+    memcpy(conUB_, presolvedLpSolver_->getRowUpper(), sizeof(double) * numRows_);
+  
+		 if (objSense_ > 0.0) {
+        memcpy(objCoef_, presolvedLpSolver_->getObjCoefficients(), sizeof(double) * numCols_);
+    }
+    else {
+        const double *mpsObj =  presolvedLpSolver_->getObjCoefficients();
+        for (int j = 0; j < numCols_; ++j) {
+            objCoef_[j] = - mpsObj[j];
+		
+		}
+    }   
+	
+
+		lpSolver_ = presolvedLpSolver_->clone(true);//->clone();
+		setSolver(lpSolver_);		
+		
+		presolved=true;
+   }
     
-    //std::cout << "Presolve = "<< doPresolve << std::endl;
-    
-    doPresolve = false;
-    
-    if (doPresolve) {
-	presolvedLpSolver_ = presolve_->preprocess(*lpSolver_,
+}
+// AT - End
+
+//############################################################################ 
+// AT - Begin -- not used
+void BlisModel::preprocess()
+{
+    int numPasses = 50;
+    double feaTol = 1.0e-3;
+    bool keepIntegers = true;
+    char *prohibited = 0;
+	// Do presolve only if problem already setup - In Alp preprocess is called before...
+    bool doPresolve = BlisPar_->entry(BlisParams::presolve) && problemSetup;    
+#ifdef BLIS_DEBUG
+	std::cout << "Presolve = "<< doPresolve<<" problem setup " <<problemSetup << std::endl;    
+#endif
+//AT disabled for now
+	if(true) return;
+	if (doPresolve) {
+		presolvedLpSolver_ = presolve_->preprocess( *origLpSolver_, 
 						   feaTol,
 						   keepIntegers,
 						   numPasses,
 						   prohibited);
-	lpSolver_ = presolvedLpSolver_->clone();
-    }
+		presolvedLpSolver_->initialSolve();
+		lpSolver_ = presolvedLpSolver_->clone();
+		#ifdef BLIS_DEBUG
+			std::cout << "Presolve done  "<< presolvedLpSolver_->isProvenOptimal() << std::endl;
+		#endif
+		presolved=true;
+   }
     else {
 	lpSolver_ = origLpSolver_;
     }
 }
+// AT - End
 
 //############################################################################ 
 
-void 
-BlisModel::postprocess()
+
+// AT - Begin - not used before, do postsolve
+void BlisModel::postprocess()
 {
-    
+	
+//std::cout<<" Lp before post  col "<<lpSolver_->getNumCols()<<" Rows "<<lpSolver_->getNumRows()<<std::endl; 
+  if(!BlisPar_->entry(BlisParams::presolve))    
+    return;
+  std::cout<<" POST SOLVING "<<std::endl;
+  std::cout<<" Original Model  col "<<origLpSolver_->getNumCols()<<" Rows "<<origLpSolver_->getNumRows()<<std::endl; 
+  
+  numCols_=origLpSolver_->getNumCols();
+  BlisSolution * sol =dynamic_cast<BlisSolution*>(getKnowledgeBroker()->getBestKnowledge(AlpsKnowledgeTypeSolution).first);
+  presolve_->model()->setColSolution(sol->getValues());
+  presolve_->postprocess();		
+  std::cout<<" Sol size "<<sol->getSize()<< " Quality "<<sol->getQuality() <<std::endl;
+  std::cout<< " Original model val: "<<presolve_->originalModel()->getObjValue()<<std::endl;
+  const double * values = presolve_->originalModel()->getColSolution();
+  
+  BlisSolution *  currentSol = new BlisSolution(presolve_->originalModel()->getNumCols(),values,presolve_->originalModel()->getObjValue());
+  sol->setQuality(currentSol->getQuality());
+  sol->setSize(currentSol->getSize()); 
+  sol->setValues(currentSol->getValues(),currentSol->getSize());
+  /*std::cout<<"Num Knowledge " << getKnowledgeBroker()->getKnowledgePool(AlpsKnowledgeTypeSolution)->getNumKnowledges()<<std::endl;
+ 
+  getKnowledgeBroker()->addKnowledge(AlpsKnowledgeTypeSolution, 
+		currentSol,
+		objSense_ * currentSol->getQuality());
+  getKnowledgeBroker()->getKnowledgePool(AlpsKnowledgeTypeSolution)->cl;	
+  std::cout<<"Num Knowledge " << getKnowledgeBroker()->getKnowledgePool(AlpsKnowledgeTypeSolution)->getNumKnowledges()<<std::endl;
+	*/
+
+ // lpSolver_=presolve_->model();//->clone();
+//  std::cout<<" Lp after post  col "<<lpSolver_->getNumCols()<<" Rows "<<lpSolver_->getNumRows()<<std::endl; 
+ // std::cout<<" Presolved after post  col "<<presolvedLpSolver_ ->getNumCols()<<" Rows "<<presolvedLpSolver_ ->getNumRows()<<std::endl; 
+  //setSolver(lpSolver_);
+
+ // lpSolver_=origLpSolver_->clone();
+#ifdef BLIS_DEBUG
+  std::cout<<"POST process\n Num col "<<numCols_<<" Presolved "<<lpSolver_->getNumCols()
+	   <<"\nNum row "<<numRows_<<" Presolved "<<lpSolver_->getNumRows()
+	   <<std::endl;			
+#endif
 }
+// AT - End
 
 //#############################################################################
 
@@ -1472,8 +1616,10 @@ BlisModel::gutsOfDestructor()
     
     delete BlisPar_;
     delete blisMessageHandler_;
-    if (doPresolve) {
-	delete presolvedLpSolver_;
+    // AT  - delete structure only if problem has been really presolved, for parallel code
+    //	std::cout<<" DEleteing "<<std::endl;
+    if (doPresolve && presolved) {
+	//delete presolvedLpSolver_;
 	delete lpSolver_;
     }
 
