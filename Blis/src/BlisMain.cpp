@@ -55,11 +55,9 @@ int main(int argc, char *argv[])
 
 	try{
 		// Set up lp solver
-#ifdef  COIN_HAS_CLP
 		OsiClpSolverInterface lpSolver;
 		lpSolver.getModelPtr()->setDualBound(1.0e10);
 		lpSolver.messageHandler()->setLogLevel(0);
-#endif
 	
 		// Create BLIS model 
 		BlisModel model;

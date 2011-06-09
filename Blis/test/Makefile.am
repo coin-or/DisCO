@@ -23,8 +23,6 @@
 
 ## $Id: $
 
-# Author:  Yan Xu                 Lehigh     2006-04-13
-
 AUTOMAKE_OPTIONS = foreign
 
 ########################################################################
@@ -37,54 +35,16 @@ nodist_unitTest_SOURCES = \
 	BlisMain.cpp 
 
 # List libraries of COIN projects
-unitTest_LDADD = \
-	../src/libBlis.la \
-	$(BCPSOBJDIR)/src/libBcps.la \
-	$(ALPSOBJDIR)/src/libAlps.la \
-	$(CGLOBJDIR)/src/libCgl.la \
-	$(OSIOBJDIR)/src/OsiClp/libOsiClp.la \
-	$(OSIOBJDIR)/src/libOsi.la \
-	$(CLPOBJDIR)/src/libClp.la \
-	$(COINUTILSOBJDIR)/src/libCoinUtils.la
-
-# List additional libraries
-LIBS += $(ADDLIBS) \
-	`cat $(BCPSOBJDIR)/bcps_addlibs.txt` \
-	`cat $(ALPSOBJDIR)/alps_addlibs.txt` \
-	`cat $(CGLOBJDIR)/cgl_addlibs.txt` \
-	`cat $(OSIOBJDIR)/osi_addlibs.txt` \
-	`cat $(CLPOBJDIR)/clp_addlibs.txt` \
-	`cat $(COINUTILSOBJDIR)/coinutils_addlibs.txt`
+unitTest_LDADD = ../src/libBlis.la $(BLISLIB_LIBS)
+unitTest_DEPENDENCIES = ../src/libBlis.la $(BLISLIB_DEPENDENCIES)
 
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Cygwin
-AM_CPPFLAGS = \
-	-I`$(CYGPATH_W) $(ALPSSRCDIR)/src` \
-	-I`$(CYGPATH_W) $(ALPSOBJDIR)/inc` \
-	-I`$(CYGPATH_W) $(BCPSSRCDIR)/src` \
-	-I`$(CYGPATH_W) $(BCPSOBJDIR)/inc` \
-	-I`$(CYGPATH_W) $(BLISSRCDIR)/src` \
-	-I`$(CYGPATH_W) $(BLISOBJDIR)/inc` \
-	-I`$(CYGPATH_W) $(CGLSRCDIR)/src` \
-	-I`$(CYGPATH_W) $(CGLSRCDIR)/src/CglClique` \
-	-I`$(CYGPATH_W) $(CGLSRCDIR)/src/CglFlowCover` \
-	-I`$(CYGPATH_W) $(CGLSRCDIR)/src/CglGomory` \
-	-I`$(CYGPATH_W) $(CGLSRCDIR)/src/CglKnapsackCover` \
-	-I`$(CYGPATH_W) $(CGLSRCDIR)/src/CglMixedIntegerRounding` \
-	-I`$(CYGPATH_W) $(CGLSRCDIR)/src/CglMixedIntegerRounding2` \
-	-I`$(CYGPATH_W) $(CGLSRCDIR)/src/CglOddHole` \
-	-I`$(CYGPATH_W) $(CGLSRCDIR)/src/CglProbing` \
-	-I`$(CYGPATH_W) $(CGLSRCDIR)/src/CglTwomir` \
-	-I`$(CYGPATH_W) $(OSISRCDIR)/src` \
-	-I`$(CYGPATH_W) $(OSISRCDIR)/src/OsiClp` \
-	-I`$(CYGPATH_W) $(CLPSRCDIR)/src` \
-	-I`$(CYGPATH_W) $(CLPOBJDIR)/inc` \
-        -I`$(CYGPATH_W) $(COINUTILSSRCDIR)/src` \
-        -I`$(CYGPATH_W) $(COINUTILSOBJDIR)/inc`
+AM_CPPFLAGS = -I`$(CYGPATH_W) $(srcdir)/../src` $(BLISLIB_CFLAGS)
 
 # This line is necessary to allow VPATH compilation with MS compilers
 # on Cygwin
-DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/inc
+DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
 
 test: unitTest$(EXEEXT)
 	./unitTest$(EXEEXT) -Alps_instance ../../Data/Sample/p0033.mps

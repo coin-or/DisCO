@@ -23,9 +23,6 @@
 
 ## $Id$
 
-# Author:  Andreas Waechter           IBM    2006-04-13
-#          Yan Xu                     Lehigh    2006-08-27
-
 AUTOMAKE_OPTIONS = foreign
 
 ########################################################################
@@ -89,26 +86,14 @@ libBlis_la_LDFLAGS = $(LT_LDFLAGS)
 #                        blis binary                                   #
 ########################################################################
 
-LDADD = $(BCPSOBJDIR)/src/libBcps.la \
-	$(ALPSOBJDIR)/src/libAlps.la \
-	$(CGLOBJDIR)/src/libCgl.la \
-	$(OSIOBJDIR)/src/OsiClp/libOsiClp.la \
-	$(OSIOBJDIR)/src/libOsi.la \
-	$(CLPOBJDIR)/src/libClp.la \
-	$(COINUTILSOBJDIR)/src/libCoinUtils.la 
-
 bin_PROGRAMS = blis
 blis_SOURCES = BlisMain.cpp 
-blis_LDADD = libBlis.la $(LDADD)
+blis_LDADD = libBlis.la $(BLISLIB_LIBS)
+blis_DEPENDENCIES = libBlis.la $(BLISLIB_DEPENDENCIES)
 
-LIBS += $(ADDLIBS) \
-	`cat $(BCPSOBJDIR)/bcps_addlibs.txt` \
-	`cat $(ALPSOBJDIR)/alps_addlibs.txt` \
-	`cat $(CGLOBJDIR)/cgl_addlibs.txt` \
-	`cat $(OSIOBJDIR)/osi_addlibs.txt` \
-	`cat $(CLPOBJDIR)/clp_addlibs.txt` \
-	`cat $(COINUTILSOBJDIR)/coinutils_addlibs.txt`
-
+# Finally, the -rpath flag is used by libtool to make sure that the shared
+# library is found (in the lib install directory) when we are using dynamic
+# libraries.
 blis_LDFLAGS = -rpath $(libdir)
 
 ########################################################################
@@ -117,32 +102,7 @@ blis_LDFLAGS = -rpath $(libdir)
 
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Windows.
-AM_CPPFLAGS = \
-        -I`$(CYGPATH_W) $(COINUTILSSRCDIR)/src` \
-        -I`$(CYGPATH_W) $(COINUTILSOBJDIR)/inc` \
-	-I`$(CYGPATH_W) $(CGLSRCDIR)/src` \
-	-I`$(CYGPATH_W) $(CGLSRCDIR)/src/CglClique` \
-	-I`$(CYGPATH_W) $(CGLSRCDIR)/src/CglFlowCover` \
-	-I`$(CYGPATH_W) $(CGLSRCDIR)/src/CglGomory` \
-	-I`$(CYGPATH_W) $(CGLSRCDIR)/src/CglKnapsackCover` \
-	-I`$(CYGPATH_W) $(CGLSRCDIR)/src/CglMixedIntegerRounding` \
-	-I`$(CYGPATH_W) $(CGLSRCDIR)/src/CglMixedIntegerRounding2` \
-	-I`$(CYGPATH_W) $(CGLSRCDIR)/src/CglOddHole` \
-	-I`$(CYGPATH_W) $(CGLSRCDIR)/src/CglProbing` \
-	-I`$(CYGPATH_W) $(CGLSRCDIR)/src/CglTwomir` \
-	-I`$(CYGPATH_W) $(OSISRCDIR)/src` \
-	-I`$(CYGPATH_W) $(OSISRCDIR)/src/OsiClp` \
-	-I`$(CYGPATH_W) $(CLPSRCDIR)/src` \
-	-I`$(CYGPATH_W) $(CLPOBJDIR)/inc` \
-	-I`$(CYGPATH_W) $(ALPSSRCDIR)/src` \
-	-I`$(CYGPATH_W) $(ALPSOBJDIR)/inc` \
-	-I`$(CYGPATH_W) $(BCPSSRCDIR)/src` \
-	-I`$(CYGPATH_W) $(BCPSOBJDIR)/inc`
-
-# Include MPI header directory if MPI is used
-if COIN_HAS_MPI
-AM_CPPFLAGS +=  -I`$(CYGPATH_W) $(MPIINCDIR)`
-endif
+AM_CPPFLAGS = $(BLISLIB_CFLAGS)
 
 # This line is necessary to allow VPATH compilation with MS compilers
 # on Cygwin
@@ -156,7 +116,6 @@ DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/inc
 # and that therefore should be installed in 'install/coin'
 includecoindir = $(includedir)/coin
 includecoin_HEADERS = \
-	../inc/config_blis.h \
 	BlisBranchObjectInt.h \
 	BlisBranchStrategyMaxInf.h \
 	BlisBranchStrategyPseudo.h \
@@ -185,16 +144,8 @@ includecoin_HEADERS = \
 # Create the Config.h file that always defines HAVE_CONFIG_H and install it #
 #############################################################################
 
-# You only need to adapt the following line
-ConfigHeader = BlisConfig.h
-
 install-exec-local:
-	echo "#ifndef HAVE_CONFIG_H" >bla
-	echo "#define HAVE_CONFIG_H" >>bla
-	echo "#endif" >> bla
-	cat $(srcdir)/$(ConfigHeader) >> bla
-	$(install_sh_DATA) bla $(DESTDIR)$(includecoindir)/$(ConfigHeader)
-	rm -f bla
+	$(install_sh_DATA) config_blis.h $(DESTDIR)$(includecoindir)/BlisConfig.h
 
 uninstall-local:
-	rm -f $(DESTDIR)$(includecoindir)/$(ConfigHeader)
+	rm -f $(DESTDIR)$(includecoindir)/BlisConfig.h

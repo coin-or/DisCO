@@ -76,24 +76,20 @@ AC_PREFIX_DEFAULT([`pwd`])
 AC_COIN_CREATE_LIBTOOL
 
 #############################################################################
-#             Check which ThirdParty sources are available                  #
-#############################################################################
-
-AC_COIN_THIRDPARTY_SUBDIRS([Blas],[ThirdParty/Blas],[daxpy.f])
-AC_COIN_THIRDPARTY_SUBDIRS([Lapack],[ThirdParty/Lapack],[LAPACK/SRC/dlarf.f])
-
-#############################################################################
 #                  Check which subprojects are there                        #
 #############################################################################
 
-AC_COIN_MAIN_SUBDIRS(Data/Sample)
-AC_COIN_MAIN_SUBDIRS(CoinUtils)
-AC_COIN_MAIN_SUBDIRS(Clp)
-AC_COIN_MAIN_SUBDIRS(Osi)
-AC_COIN_MAIN_SUBDIRS(Cgl)
-AC_COIN_MAIN_SUBDIRS(Alps)
-AC_COIN_MAIN_SUBDIRS(Bcps)
-AC_COIN_MAIN_SUBDIRS(Blis)
+AC_COIN_MAIN_PACKAGEDIR(CoinUtils)
+AC_COIN_MAIN_PACKAGEDIR(Blas,ThirdParty,daxpy.f)
+AC_COIN_MAIN_PACKAGEDIR(Lapack,ThirdParty,[LAPACK/SRC/dlarf.f])
+AC_COIN_MAIN_PACKAGEDIR(Glpk, ThirdParty,[glpk/src/glplpx01.c])
+AC_COIN_MAIN_PACKAGEDIR(Sample,Data)
+AC_COIN_MAIN_PACKAGEDIR(Osi)
+AC_COIN_MAIN_PACKAGEDIR(Clp)
+AC_COIN_MAIN_PACKAGEDIR(Cgl)
+AC_COIN_MAIN_PACKAGEDIR(Alps)
+AC_COIN_MAIN_PACKAGEDIR(Bcps)
+AC_COIN_MAIN_PACKAGEDIR(Blis)
 
 ##############################################################################
 #                   Finishing up by writing all the output                   #
