@@ -1,7 +1,7 @@
 #==========================================================================#
 # This file is part of the BiCePS Linear Integer Solver (BLIS).            #
 #                                                                          #
-# BLIS is distributed under the Common Public License as part of the       #
+# BLIS is distributed under the Eclipse Public License as part of the      #
 # COIN-OR repository (http://www.coin-or.org).                             #
 #                                                                          #
 # Authors:                                                                 #
@@ -29,13 +29,13 @@
 
 AC_PREREQ(2.59)
 
-AC_INIT([Blis],[0.91],[https://projects.coin-or.org/Blis/newticket])
+AC_INIT([Blis],[trunk],[https://projects.coin-or.org/Blis/newticket])
 
 AC_COPYRIGHT([
 #==========================================================================#
 # This file is part of the BiCePS Linear Integer Solver (BLIS).            #
 #                                                                          #
-# BLIS is distributed under the Common Public License as part of the       #
+# BLIS is distributed under the Eclipse Public License as part of the      #
 # COIN-OR repository (http://www.coin-or.org).                             #
 #                                                                          #
 # Authors:                                                                 #
@@ -51,7 +51,7 @@ AC_COPYRIGHT([
 #          Matthew Saltzman, Clemson University                            #
 #                                                                          #
 #                                                                          #
-# Copyright (C) 2001-2009, Lehigh University, Yan Xu, and Ted Ralphs.      #
+# Copyright (C) 2001-2011, Lehigh University, Yan Xu, and Ted Ralphs.      #
 # All Rights Reserved.                                                     #
 #==========================================================================#
 ])

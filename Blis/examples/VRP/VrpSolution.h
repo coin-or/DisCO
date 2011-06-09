@@ -2,7 +2,7 @@
  * This file is part of a solver for the Vehicle Routing Problem             *
  * developed using the BiCePS Linear Integer Solver (BLIS).                  *
  *                                                                           *
- * This solver is distributed under the Common Public License as part of     * 
+ * This solver is distributed under the Eclipse Public License as part of    * 
  * the COIN-OR repository (http://www.coin-or.org).                          *
  *                                                                           *
  * Authors: Yan Xu, Lehigh University                                        *
