@@ -12,6 +12,8 @@ Blis/MSVisualStudio/v9/libBlis.vcproj -text
 Blis/Makefile.am -text
 Blis/Makefile.in -text
 Blis/README -text
+Blis/blis-uninstalled.pc.in -text
+Blis/blis.pc.in -text
 Blis/configure -text
 Blis/configure.ac -text
 Blis/examples/VRP/AUTHORS -text
