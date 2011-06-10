@@ -128,7 +128,7 @@ Blis/src/BlisTreeNode.h -text
 Blis/src/BlisVariable.h -text
 Blis/src/Makefile.am -text
 Blis/src/Makefile.in -text
-Blis/src/blis.par -text
+Blis/src/blis.par.in -text
 Blis/test/Makefile.am -text
 Blis/test/Makefile.in -text
 Blis/test/blis.par -text

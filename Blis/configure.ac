@@ -130,6 +130,7 @@ AC_CONFIG_LINKS(test/BlisMain.cpp:src/BlisMain.cpp)
 AC_CONFIG_FILES([Makefile
 		 examples/VRP/Makefile
                  src/Makefile
+		 src/blis.par
                  test/Makefile
 		 blis.pc
 		 blis-uninstalled.pc])
