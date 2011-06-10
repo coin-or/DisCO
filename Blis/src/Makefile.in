@@ -346,11 +346,6 @@ blis_SOURCES = BlisMain.cpp
 blis_LDADD = libBlis.la $(BLISLIB_LIBS)
 blis_DEPENDENCIES = libBlis.la $(BLISLIB_DEPENDENCIES)
 
-# Finally, the -rpath flag is used by libtool to make sure that the shared
-# library is found (in the lib install directory) when we are using dynamic
-# libraries.
-blis_LDFLAGS = -rpath $(libdir)
-
 ########################################################################
 #                            Additional flags                          #
 ########################################################################
