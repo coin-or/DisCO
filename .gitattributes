@@ -131,6 +131,10 @@ Blis/src/BlisVariable.h -text
 Blis/src/Makefile.am -text
 Blis/src/Makefile.in -text
 Blis/src/blis.par.in -text
+Blis/src/config.h.in -text
+Blis/src/config_blis.h.in -text
+Blis/src/config_blis_default.h -text
+Blis/src/config_default.h -text
 Blis/test/Makefile.am -text
 Blis/test/Makefile.in -text
 Blis/test/blis.par -text
