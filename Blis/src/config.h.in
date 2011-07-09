@@ -24,6 +24,9 @@
 /* Define to 1 if the CoinDepend package is available */
 #undef COIN_HAS_COINDEPEND
 
+/* Define to 1 if the Sample package is available */
+#undef COIN_HAS_SAMPLE
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 

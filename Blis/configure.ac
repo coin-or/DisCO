@@ -105,6 +105,8 @@ if test $coin_has_coindepend != yes ; then
   AC_MSG_ERROR([Required packages not available.])
 fi
 
+AC_COIN_CHECK_PACKAGE(Sample, [coindatasample])
+
 ##############################################################################
 #                   VPATH links for example input files                      #
 ##############################################################################

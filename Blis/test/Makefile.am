@@ -42,12 +42,16 @@ unitTest_DEPENDENCIES = ../src/libBlis.la $(BLISLIB_DEPENDENCIES)
 # "cygpath" stuff is necessary to compile with native compilers on Cygwin
 AM_CPPFLAGS = -I`$(CYGPATH_W) $(srcdir)/../src` $(BLISLIB_CFLAGS)
 
-# This line is necessary to allow VPATH compilation with MS compilers
-# on Cygwin
-DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
+# This line is necessary to allow VPATH compilation
+DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/src
 
+if COIN_HAS_SAMPLE
 test: unitTest$(EXEEXT)
-	./unitTest$(EXEEXT) -Alps_instance ../../Data/Sample/p0033.mps
+	./unitTest$(EXEEXT) -Alps_instance `$(CYGPATH_W) $(SAMPLE_DATA)/`p0033.mps
+else
+test:
+	echo "Required Data/Sample for test not available."
+endif
 
 .PHONY: test
 
