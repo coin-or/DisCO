@@ -1,6 +1,10 @@
 * text=auto !eol
 Blis/AUTHORS -text
 Blis/LICENSE -text
+Blis/MSVisualStudio/v10/Blis.sln -text
+Blis/MSVisualStudio/v10/Blis.suo -text
+Blis/MSVisualStudio/v10/Blis.vcxproj -text
+Blis/MSVisualStudio/v10/libBlis.vcxproj -text
 Blis/MSVisualStudio/v8/Blis.sln -text
 Blis/MSVisualStudio/v8/Blis.suo -text
 Blis/MSVisualStudio/v8/Blis.vcproj -text
