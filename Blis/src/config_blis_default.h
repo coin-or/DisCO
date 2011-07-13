@@ -27,14 +27,14 @@
 /***************************************************************************/
 
 /* Version number of project */
-#undef BLIS_VERSION       "0.92"
+#define BLIS_VERSION       "0.92"
 
 /* Major Version number of project */
-#undef BLIS_VERSION_MAJOR      0
+#define BLIS_VERSION_MAJOR      0
 
 /* Minor Version number of project */
-#undef BLIS_VERSION_MINOR     92
+#define BLIS_VERSION_MINOR     92
 
 /* Release Version number of project */
-#undef BLIS_VERSION_RELEASE 9999
+#define BLIS_VERSION_RELEASE 9999
 

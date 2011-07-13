@@ -1,6 +1,10 @@
 * text=auto !eol
 Blis/AUTHORS -text
 Blis/LICENSE -text
+Blis/MSVisualStudio/v10/Blis.sln -text
+Blis/MSVisualStudio/v10/Blis.suo -text
+Blis/MSVisualStudio/v10/Blis.vcxproj -text
+Blis/MSVisualStudio/v10/libBlis.vcxproj -text
 Blis/MSVisualStudio/v8/Blis.sln -text
 Blis/MSVisualStudio/v8/Blis.suo -text
 Blis/MSVisualStudio/v8/Blis.vcproj -text
@@ -19,6 +23,8 @@ Blis/configure.ac -text
 Blis/examples/VRP/AUTHORS -text
 Blis/examples/VRP/INSTALL -text
 Blis/examples/VRP/LICENSE -text
+Blis/examples/VRP/MSVisualStudio/v10/Vrp.sln -text
+Blis/examples/VRP/MSVisualStudio/v10/Vrp.vcxproj -text
 Blis/examples/VRP/MSVisualStudio/v8/Vrp.sln -text
 Blis/examples/VRP/MSVisualStudio/v8/Vrp.suo -text
 Blis/examples/VRP/MSVisualStudio/v8/Vrp.vcproj -text
