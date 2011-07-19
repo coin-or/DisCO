@@ -1,10 +1,10 @@
-BLIS Version 0.9 README
+BLIS Version 0.92 README
 =========================
 
-Welcome to BLIS. BLIS is distributed under the Common Public License
-Version 1.0 and is freely redistributable. All source code and documentation
-is Copyright 2001-2009 by Lehigh University, Yan Xu, and Ted Ralphs. This
-README may be distributed freely.
+Welcome to BLIS. BLIS is distributed under the Eclipse Public License and is
+freely redistributable. All source code and documentation is Copyright
+2001-2011 by Lehigh University, Yan Xu, and Ted Ralphs. This README may be
+distributed freely.
 
 WHAT IS BLIS?
 =============
@@ -49,7 +49,7 @@ Matt Saltzman (mjs@clemson.edu)
 
 2. List Serve
 
-CHiPPS users should use the Coin-Discuss mailing list. To subscribe, go to 
+BLIS users should use the Coin-Discuss mailing list. To subscribe, go to 
 http://list.coin-or.org/mailman/listinfo/chipps
 
 3. Bug Reports
