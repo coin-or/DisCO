@@ -108,7 +108,7 @@ if COIN_HAS_PKGCONFIG
 	$(PKG_CONFIG) --libs blis > $(addlibsdir)/blis_addlibs.txt
 else
 if COIN_CXX_IS_CL
-	echo "/libpath:`$(CYGPATH_W) @abs_lib_dir@` libBlis.lib @BLISLIB_LIBS_INSTALLED@" > $(addlibsdir)/blis_addlibs_cpp.txt
+	echo "-libpath:`$(CYGPATH_W) @abs_lib_dir@` libBlis.lib @BLISLIB_LIBS_INSTALLED@" > $(addlibsdir)/blis_addlibs_cpp.txt
 else
 	echo -L@abs_lib_dir@ -lBlis @BLISLIB_LIBS_INSTALLED@ > $(addlibsdir)/blis_addlibs.txt
 endif

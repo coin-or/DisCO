@@ -363,9 +363,8 @@ blis_DEPENDENCIES = libBlis.la $(BLISLIB_DEPENDENCIES)
 # "cygpath" stuff is necessary to compile with native compilers on Windows.
 AM_CPPFLAGS = $(BLISLIB_CFLAGS)
 
-# This line is necessary to allow VPATH compilation with MS compilers
-# on Cygwin
-DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/inc
+# This line is necessary to allow VPATH compilation
+DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
 
 ########################################################################
 #                Headers that need to be installed                     #
