@@ -36,4 +36,7 @@
 /* Release Version number of project */
 #undef BLIS_VERSION_RELEASE
 
+/* SVN revision of project */
+#undef BLIS_SVN_REV
+
 #endif

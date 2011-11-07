@@ -26,6 +26,10 @@
 #ifndef Blis_h_
 #define Blis_h_
 
+#include "AlpsConfig.h"
+#include "BcpsConfig.h"
+#include "BlisConfig.h"
+
 //#############################################################################
 
 enum BlisLpStatus{
