@@ -25,7 +25,7 @@
 #include "configall_system.h"
 
 /* include the public project specific macros */
-#include "config_bcps_default.h"
+#include "config_blis_default.h"
 
 /***************************************************************************/
 /*             HERE DEFINE THE PROJECT SPECIFIC MACROS                     */
