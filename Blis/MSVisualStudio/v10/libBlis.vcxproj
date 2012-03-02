@@ -146,6 +146,8 @@
     <ClInclude Include="..\..\src\BlisSubTree.h" />
     <ClInclude Include="..\..\src\BlisTreeNode.h" />
     <ClInclude Include="..\..\src\BlisVariable.h" />
+    <ClInclude Include="..\..\src\config_blis_default.h" />
+    <ClInclude Include="..\..\src\config_default.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\BlisBranchObjectBilevel.cpp" />
