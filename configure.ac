@@ -29,7 +29,7 @@
 
 AC_PREREQ(2.59)
 
-AC_INIT([Blis],[0.93.3],[https://projects.coin-or.org/Blis/newticket])
+AC_INIT([Blis],[0.93],[https://projects.coin-or.org/Blis/newticket])
 
 AC_COPYRIGHT([
 #==========================================================================#
