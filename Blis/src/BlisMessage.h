@@ -48,7 +48,6 @@ enum BLIS_Message
     BLIS_HEUR_STAT_NODE,
     BLIS_ROOT_PROCESS,
     BLIS_ROOT_TIME,
-    BLIS_S_VERSION,
     BLIS_W_LP,
     ///
     BLIS_DUMMY_END

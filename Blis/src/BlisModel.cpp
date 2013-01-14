@@ -623,10 +623,23 @@ BlisModel::setupSelf()
 
     if (broker_->getMsgLevel() > 0) {
         if (broker_->getProcRank() == broker_->getMasterRank()) {
-            bcpsMessageHandler_->message(BCPS_S_VERSION, bcpsMessages())
-                << CoinMessageEol;
-            blisMessageHandler()->message(BLIS_S_VERSION, blisMessages())
-                << CoinMessageEol;
+	   if (strcmp(BCPS_VERSION, "trunk")){
+	      std::cout << "Bcps Version: " << BCPS_VERSION << std::endl;
+	   }else{
+	      std::cout << "Bcps Version: Trunk (unstable) \n";
+	   }
+#ifdef BCPS_SVN_REV
+	   std::cout << "\nBcps Revision Number: " << BCPS_SVN_REV;
+#endif
+	   if (strcmp(BLIS_VERSION, "trunk")){
+	      std::cout << "Blis Version: " << BLIS_VERSION << std::endl;
+	   }else{
+	      std::cout << "Blis Version: Trunk (unstable) \n";
+	   }
+#ifdef BLIS_SVN_REV
+	   std::cout << "\nBlis Revision Number: " << BLIS_SVN_REV;
+#endif
+	   std::cout << std::endl;
         }
     }
     
