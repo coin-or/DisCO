@@ -30,7 +30,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -74,7 +73,6 @@
       <MinimalRebuild>true</MinimalRebuild>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
@@ -93,7 +91,6 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
@@ -108,13 +105,11 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <AdditionalIncludeDirectories>..\..\..\BuildTools\headers;..\..\..\CoinUtils\src;..\..\..\Osi\src\Osi;..\..\..\Osi\src\OsiCbc;..\..\..\Osi\src\OsiSpx;..\..\..\Osi\src\OsiVol;..\..\..\Osi\src\OsiOsl;..\..\..\Osi\src\OsiXpr;..\..\..\Osi\src\OsiCpx;..\..\..\Clp\src\OsiClp;..\..\..\Cgl\src;..\..\..\Cgl\src\CglTwomir;..\..\..\Cgl\src\CglMixedIntegerRounding;..\..\..\Cgl\src\CglMixedIntegerRounding2;..\..\..\Cgl\src\CglFlowCover;..\..\..\Cgl\src\CglClique;..\..\..\Cgl\src\CglOddHole;..\..\..\Cgl\src\CglKnapsackCover;..\..\..\Cgl\src\CglGomory;..\..\..\Cgl\src\CglPreProcess;..\..\..\Cgl\src\CglProbing;..\..\..\Clp\src;..\..\..\Bcps\src;..\..\..\Alps\src;..\..\..\Blis\src\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>
       </DebugInformationFormat>
     </ClCompile>
@@ -128,13 +123,10 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <AdditionalIncludeDirectories>..\..\..\BuildTools\headers;..\..\..\CoinUtils\src;..\..\..\Osi\src\Osi;..\..\..\Osi\src\OsiCbc;..\..\..\Osi\src\OsiSpx;..\..\..\Osi\src\OsiVol;..\..\..\Osi\src\OsiOsl;..\..\..\Osi\src\OsiXpr;..\..\..\Osi\src\OsiCpx;..\..\..\Clp\src\OsiClp;..\..\..\Cgl\src;..\..\..\Cgl\src\CglTwomir;..\..\..\Cgl\src\CglMixedIntegerRounding;..\..\..\Cgl\src\CglMixedIntegerRounding2;..\..\..\Cgl\src\CglFlowCover;..\..\..\Cgl\src\CglClique;..\..\..\Cgl\src\CglOddHole;..\..\..\Cgl\src\CglKnapsackCover;..\..\..\Cgl\src\CglGomory;..\..\..\Cgl\src\CglPreProcess;..\..\..\Cgl\src\CglProbing;..\..\..\Clp\src;..\..\..\Bcps\src;..\..\..\Alps\src;..\..\..\Blis\src\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MinimalRebuild>false</MinimalRebuild>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>
       </DebugInformationFormat>
     </ClCompile>
