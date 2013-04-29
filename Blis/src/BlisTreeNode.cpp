@@ -2733,7 +2733,7 @@ BlisTreeNode::getViolatedConstraints(BlisModel *model,
     if ((int)conVector.size() != numCons) {
 	// There violated constraints. Remove them from conPool.
 	conPool.clear();
-	numCons = static_cast<int(conVector.size());
+	numCons = static_cast<int>(conVector.size());
 	for (k = 0; k < numCons; ++k) {
 	    conPool.addConstraint(conVector[k]);
 	}
