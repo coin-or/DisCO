@@ -2013,7 +2013,7 @@ BlisTreeNode::branch()
 
 	     CoinWarmStartBasis *ws = thisDesc->getBasis();
 	     std::deque<int>::iterator ptr1, ptr2;
-	     int size = branchingSet->size();
+	     int size = static_cast<int>(branchingSet->size());
 	     int *indices = new int[size];
 	     double *values = new double[size];
 	     values[0] = 1;
@@ -2055,7 +2055,6 @@ int BlisTreeNode::selectBranchObject(BlisModel *model,
                                      bool& foundSol, 
                                      int numPassesLeft) 
 {
-    int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
     int bStatus = 0;
     BcpsBranchStrategy *strategy = 0;
 
@@ -2734,7 +2733,7 @@ BlisTreeNode::getViolatedConstraints(BlisModel *model,
     if ((int)conVector.size() != numCons) {
 	// There violated constraints. Remove them from conPool.
 	conPool.clear();
-	numCons = conVector.size();
+	numCons = static_cast<int>(conVector.size());
 	for (k = 0; k < numCons; ++k) {
 	    conPool.addConstraint(conVector[k]);
 	}
