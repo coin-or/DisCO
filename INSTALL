@@ -25,13 +25,13 @@ BLIS in two ways:
    (recommended). For this, you need a subversion client installed. For a
    command-line client, check out the code with
 
-   svn co https://projects.coin-or.org/svn/CHiPPS/Blis/stable/0.92 Blis-0.92
+   svn co https://projects.coin-or.org/svn/CHiPPS/Blis/stable/0.93 Blis-0.93
 
 2. Download the source in a compressed file from from
    http://www.coin-or.org/download/source/Blis and
    extract it, for example, with
 
-   tar -xzvf Blis-0.92.0.tgz
+   tar -xzvf Blis-0.93.0.tgz
 
    More detailed download instructions can be found at
 
@@ -45,7 +45,7 @@ BLIS in two ways:
 ----------------
 
 Switch to the directory in which you just downloaded or extracted the source
-(e.g., Blis-0.92) and execute the following commands:
+(e.g., Blis-0.93) and execute the following commands:
 
   1) ./configure
   2) make
@@ -54,7 +54,7 @@ Switch to the directory in which you just downloaded or extracted the source
 
 To run Blis, type
 
-  Blis-0.92/bin/blis -param blis.par
+  Blis-0.93/bin/blis -param blis.par
 
 Blis can also read in parameters from command line, for instance
 
@@ -78,7 +78,7 @@ for more information.
 For configuration and and compilation of the MPI parallel solver, the user has
 to specify the location of MPI with options --with-mpi-incdir, --with-mpi-lib,
 MPICC, and MPICXX. Switch to the directory that you just downloaded or
-extracted (e.g. Blis-0.92) and execute the following commands (substituting the
+extracted (e.g. Blis-0.93) and execute the following commands (substituting the
 correct paths and command names).
 
   1) ./configure --enable-static --disable-shared --with-mpi-incdir=/usr/local/mpich/include --with-mpi-lib='-L/usr/local/mpich/lib  -lmpich' MPICC=mpicc MPICXX=mpiCC
