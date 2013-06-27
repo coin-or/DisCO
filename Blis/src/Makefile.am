@@ -134,6 +134,15 @@ includecoin_HEADERS = \
 	BlisTreeNode.h \
 	BlisVariable.h
 
+########################################################################
+#                     Installing manifest (MSVC++)                     #
+########################################################################
+
+install-exec-hook:
+	test -s blis.exe.manifest && \
+	mt -manifest blis.exe.manifest -outputresource:blis.exe;\
+	cp blis.exe $(bindir)/blis.exe
+
 #############################################################################
 # Create the Config.h file that always defines HAVE_CONFIG_H and install it #
 #############################################################################
