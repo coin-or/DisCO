@@ -79,6 +79,11 @@ libBlis_la_SOURCES = \
 	BlisTreeNode.h \
 	BlisVariable.h
 
+# List all additionally required libraries
+if DEPENDENCY_LINKING
+libBlis_la_LIBADD = $(BLISLIB_LIBS)
+endif
+
 # This is for libtool (on Windows)
 libBlis_la_LDFLAGS = $(LT_LDFLAGS)
 
