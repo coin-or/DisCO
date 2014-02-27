@@ -21776,6 +21776,9 @@ fi
                                                                       ac_config_files="$ac_config_files Makefile examples/VRP/Makefile src/Makefile src/blis.par test/Makefile blis.pc blis-uninstalled.pc"
 
 
+          ac_config_files="$ac_config_files doxydoc/doxygen.conf"
+
+
 # Here put the location and name of the configuration header file
                     ac_config_headers="$ac_config_headers src/config.h src/config_blis.h"
 
@@ -22486,6 +22489,7 @@ do
   "test/Makefile" ) CONFIG_FILES="$CONFIG_FILES test/Makefile" ;;
   "blis.pc" ) CONFIG_FILES="$CONFIG_FILES blis.pc" ;;
   "blis-uninstalled.pc" ) CONFIG_FILES="$CONFIG_FILES blis-uninstalled.pc" ;;
+  "doxydoc/doxygen.conf" ) CONFIG_FILES="$CONFIG_FILES doxydoc/doxygen.conf" ;;
   "test/BlisMain.cpp" ) CONFIG_LINKS="$CONFIG_LINKS test/BlisMain.cpp:src/BlisMain.cpp" ;;
   "depfiles" ) CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
   "src/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS src/config.h" ;;

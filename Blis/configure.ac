@@ -137,6 +137,8 @@ AC_CONFIG_FILES([Makefile
 		 blis.pc
 		 blis-uninstalled.pc])
 
+AC_CONFIG_FILES([doxydoc/doxygen.conf])
+
 # Here put the location and name of the configuration header file
 AC_CONFIG_HEADER([src/config.h src/config_blis.h])
 
