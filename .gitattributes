@@ -16,6 +16,7 @@ Blis/blis-uninstalled.pc.in -text
 Blis/blis.pc.in -text
 Blis/configure -text
 Blis/configure.ac -text
+Blis/doxydoc/doxygen.conf.in -text
 Blis/examples/VRP/AUTHORS -text
 Blis/examples/VRP/INSTALL -text
 Blis/examples/VRP/LICENSE -text
