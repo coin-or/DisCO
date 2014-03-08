@@ -14,8 +14,11 @@ Blis/Makefile.in -text
 Blis/README -text
 Blis/blis-uninstalled.pc.in -text
 Blis/blis.pc.in -text
+Blis/config.guess -text
+Blis/config.sub -text
 Blis/configure -text
 Blis/configure.ac -text
+Blis/depcomp -text
 Blis/doxydoc/doxygen.conf.in -text
 Blis/examples/VRP/AUTHORS -text
 Blis/examples/VRP/INSTALL -text
@@ -85,6 +88,9 @@ Blis/examples/data/stats -text
 Blis/examples/data/stein45.mps.gz -text
 Blis/examples/data/swath2.mps.gz -text
 Blis/examples/data/vpm2.mps.gz -text
+Blis/install-sh -text
+Blis/ltmain.sh -text
+Blis/missing -text
 Blis/src/Blis.h -text
 Blis/src/BlisBranchObjectBilevel.cpp -text
 Blis/src/BlisBranchObjectBilevel.h -text
