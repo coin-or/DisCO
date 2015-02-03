@@ -100,7 +100,7 @@ binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am_blis_OBJECTS = BlisMain.$(OBJEXT)
 blis_OBJECTS = $(am_blis_OBJECTS)
-depcomp = $(SHELL) $(top_srcdir)/../depcomp
+depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
