@@ -123,6 +123,12 @@ AC_CONFIG_LINKS(test/BlisMain.cpp:src/BlisMain.cpp)
 #AC_COIN_VPATH_LINK(examples/blis.par)
 #AC_COIN_VPATH_LINK(examples/flugpl.mps)
 
+#############################################################################
+#                  Check for doxygen                                        #
+#############################################################################
+
+AC_COIN_DOXYGEN(CoinUtils Osi Clp Cgl Alps Bcps)
+
 ##############################################################################
 #                   Finishing up by writing all the output                   #
 ##############################################################################
