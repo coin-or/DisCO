@@ -629,7 +629,7 @@ BlisModel::setupSelf()
 	      std::cout << "Bcps Version: Trunk (unstable) \n";
 	   }
 #ifdef BCPS_SVN_REV
-	   std::cout << "\nBcps Revision Number: " << BCPS_SVN_REV;
+	   std::cout << "Bcps Revision Number: " << BCPS_SVN_REV << std::endl;
 #endif
 	   if (strcmp(BLIS_VERSION, "trunk")){
 	      std::cout << "Blis Version: " << BLIS_VERSION << std::endl;
@@ -637,9 +637,8 @@ BlisModel::setupSelf()
 	      std::cout << "Blis Version: Trunk (unstable) \n";
 	   }
 #ifdef BLIS_SVN_REV
-	   std::cout << "\nBlis Revision Number: " << BLIS_SVN_REV;
+	   std::cout << "Blis Revision Number: " << BLIS_SVN_REV << std::endl;
 #endif
-	   std::cout << std::endl;
         }
     }
     
