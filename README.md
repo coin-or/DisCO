@@ -1,0 +1,2 @@
+# DisCO
+Discrete Conic Optimization
