@@ -1,0 +1,5 @@
+This package contains a serial and parallel solver that can be used
+to solve the Vehicle Routing Problem and Traveling Salesman Problem.
+
+To install and run this package, please look at the INSTALL file.
+
