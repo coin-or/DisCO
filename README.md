@@ -6,6 +6,6 @@ Solves discrete conic optimization problems. Depends on other COIN-OR tools. Dis
 ## Install
 To install "../configure && make && make install" should work. Uses pkg-config to find dependencies.
 
-## USe
+## Use
 To solve problems call DisCO with mps file input. "./disco input.mps" should work. For now we support Mosek type mps files only.
 
