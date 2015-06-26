@@ -37,7 +37,7 @@
 #include "CglCutGenerator.hpp"
 
 #include "OsiCuts.hpp"
-#include "OsiSolverInterface.hpp"
+#include "OsiConicSolverInterface.hpp"
 
 #include "AlpsEnumProcessT.h"
 #include "AlpsParams.h"
@@ -75,12 +75,12 @@ protected:
     //------------------------------------------------------
     
     /** Input by user. */
-    OsiSolverInterface *origLpSolver_;
+    OsiConicSolverInterface *origLpSolver_;
     /** Presolved. */
-    OsiSolverInterface *presolvedLpSolver_;
+    OsiConicSolverInterface *presolvedLpSolver_;
     /** Actually used. If using presolve, then it is presolved;
 	otherwise it is the original. */
-    OsiSolverInterface *lpSolver_;
+    OsiConicSolverInterface *lpSolver_;
     
     //------------------------------------------------------
     // PROBLEM DATA. Populate when loadProblem(),
@@ -437,13 +437,13 @@ protected:
     virtual void postprocess();
     
     /** Set lp solver. */
-    virtual void setSolver(OsiSolverInterface *si) { origLpSolver_ = si; }
+    virtual void setSolver(OsiConicSolverInterface *si) { origLpSolver_ = si; }
     
     /** Get lp solver. */
-    virtual OsiSolverInterface *getSolver() { return origLpSolver_; }
+    virtual OsiConicSolverInterface *getSolver() { return origLpSolver_; }
 
     /** Get lp solver. */
-    virtual OsiSolverInterface *solver() { return lpSolver_; }
+    virtual OsiConicSolverInterface *solver() { return lpSolver_; }
 
     /** Resolving a lp. */
     bool resolve();

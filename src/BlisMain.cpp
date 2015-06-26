@@ -27,6 +27,9 @@
 #include "CoinTime.hpp"
 
 #include "OsiConicSolverInterface.hpp"
+#include "OsiMosekSolverInterface.hpp"
+#include "OsiCplexSolverInterface.hpp"
+#include "ColaModel.hpp"
 //#ifdef COIN_HAS_CLP
 #include "OsiClpSolverInterface.hpp"
 //#endif
@@ -54,14 +57,15 @@ int main(int argc, char *argv[])
 {
 
 	try{
-		// Set up lp solver
-		OsiClpSolverInterface lpSolver;
-		lpSolver.getModelPtr()->setDualBound(1.0e10);
-		lpSolver.messageHandler()->setLogLevel(0);
+	  //Set up lp solver
+	  // OsiConicSolverInterface * solver = new ColaModel();
+	  // solver.getModelPtr()->setDualBound(1.0e10);
+	  // solver.messageHandler()->setLogLevel(0);
+	  OsiConicSolverInterface * solver = new OsiMosekSolverInterface();
 
-		// Create BLIS model
-		BlisModel model;
-		model.setSolver(&lpSolver);
+	  // Create DIETCOLA model
+	  BlisModel model;
+	  model.setSolver(solver);
 
 #ifdef  COIN_HAS_MPI
 		AlpsKnowledgeBrokerMPI broker(argc, argv, model);

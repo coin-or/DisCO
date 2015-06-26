@@ -30,6 +30,7 @@
 #endif
 
 #include "OsiPresolve.hpp"
+#include <OsiConicSolverInterface.hpp>
 
 //#############################################################################
 

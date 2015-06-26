@@ -54,7 +54,7 @@
 #include "BlisSolution.h"
 //#include "BlisVariable.h"
 
-#define REMOVE_SLACK 1
+#define REMOVE_SLACK 0
 #define BLIS_SLACK_MAX 4
 
 //#############################################################################
@@ -478,14 +478,15 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                     if ( (numStartRows + newNumCons != numRows) ||
                          (numCoreRows+currNumOldCons +newNumCons != numRows) ){
                         
-                        std::cout << "ERROR: numRows=" << numRows
-                                  << "; numCoreRows=" << numCoreRows
-                                  << "; numStartRows=" << numStartRows
-                                  << "; newNumCons=" << newNumCons
-                                  << "; currNumOldCons=" << currNumOldCons
-                                  << std::endl;
+			// // todo(aykut) this is done blindly and will create future problems
+                        // std::cout << "ERROR: numRows=" << numRows
+                        //           << "; numCoreRows=" << numCoreRows
+                        //           << "; numStartRows=" << numStartRows
+                        //           << "; newNumCons=" << newNumCons
+                        //           << "; currNumOldCons=" << currNumOldCons
+                        //           << std::endl;
                         
-                        assert(numRows - numStartRows == newNumCons);
+                        // assert(numRows - numStartRows == newNumCons);
                     }
 #endif
                     

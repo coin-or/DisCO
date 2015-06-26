@@ -25,18 +25,21 @@
 
 //#############################################################################
 
-OsiSolverInterface *
-BlisPresolve::preprocess(OsiSolverInterface & origModel,
+OsiConicSolverInterface *
+BlisPresolve::preprocess(OsiConicSolverInterface & origModel,
                          double feasibilityTolerance,
                          bool keepIntegers,
                          int numberPasses,
                          const char * prohibited)
 {
-    return presolvedModel(origModel,
-                          feasibilityTolerance,
-                          keepIntegers,
-                          numberPasses,
-                          prohibited);
+  OsiSolverInterface * om = dynamic_cast<OsiSolverInterface*>(&origModel);
+  OsiSolverInterface * si = presolvedModel(*om,
+					   feasibilityTolerance,
+					   keepIntegers,
+					   numberPasses,
+					   prohibited);
+  OsiConicSolverInterface * si_conic = dynamic_cast<OsiConicSolverInterface*>(si);
+  return si_conic;
 }
 
 //#############################################################################
