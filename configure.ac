@@ -1,13 +1,13 @@
 #==========================================================================#
-# This file is part of the BiCePS Linear Integer Solver (BLIS).            #
+# This file is part of the Discrete Conic Optimization (DisCO) solver.     #
 #                                                                          #
-# BLIS is distributed under the Eclipse Public License as part of the      #
-# COIN-OR repository (http://www.coin-or.org).                             #
+# DisCO is distributed under the Eclipse Public License.                   #
 #                                                                          #
 # Authors:                                                                 #
 #                                                                          #
 #          Yan Xu, Lehigh University                                       #
 #          Ted Ralphs, Lehigh University                                   #
+#          Aykut Bulut, Lehigh University                                  #
 #                                                                          #
 # Conceptual Design:                                                       #
 #                                                                          #
@@ -15,13 +15,12 @@
 #          Ted Ralphs, Lehigh University                                   #
 #          Laszlo Ladanyi, IBM T.J. Watson Research Center                 #
 #          Matthew Saltzman, Clemson University                            #
+#          Aykut Bulut, Lehigh University                                  #
 #                                                                          #
 #                                                                          #
-# Copyright (C) 2001-2015, Lehigh University, Yan Xu, and Ted Ralphs.      #
-# All Rights Reserved.                                                     #
+# Copyright (C) 2001-2015, Lehigh University, Yan Xu, Ted Ralphs and       #
+# Aykut Bulut. All Rights Reserved.                                        #
 #==========================================================================#
-
-## $Id$
 
 #############################################################################
 #                       Names and other basic things                        #
@@ -29,19 +28,19 @@
 
 AC_PREREQ(2.59)
 
-AC_INIT([Blis],[trunk],[https://projects.coin-or.org/Alps/newticket])
+AC_INIT([Disco],[trunk],[https://github.com/aykutbulut/DisCO/issues/new])
 
 AC_COPYRIGHT([
 #==========================================================================#
-# This file is part of the BiCePS Linear Integer Solver (BLIS).            #
+# This file is part of the Discrete Conic Optimization (DisCO) solver.     #
 #                                                                          #
-# BLIS is distributed under the Eclipse Public License as part of the      #
-# COIN-OR repository (http://www.coin-or.org).                             #
+# DisCO is distributed under the Eclipse Public License.                   #
 #                                                                          #
 # Authors:                                                                 #
 #                                                                          #
 #          Yan Xu, Lehigh University                                       #
 #          Ted Ralphs, Lehigh University                                   #
+#          Aykut Bulut, Lehigh University                                  #
 #                                                                          #
 # Conceptual Design:                                                       #
 #                                                                          #
@@ -49,10 +48,11 @@ AC_COPYRIGHT([
 #          Ted Ralphs, Lehigh University                                   #
 #          Laszlo Ladanyi, IBM T.J. Watson Research Center                 #
 #          Matthew Saltzman, Clemson University                            #
+#          Aykut Bulut, Lehigh University                                  #
 #                                                                          #
 #                                                                          #
-# Copyright (C) 2001-2015, Lehigh University, Yan Xu, and Ted Ralphs.      #
-# All Rights Reserved.                                                     #
+# Copyright (C) 2001-2015, Lehigh University, Yan Xu, Ted Ralphs and       #
+# Aykut Bulut. All Rights Reserved.                                        #
 #==========================================================================#
 ])
 
@@ -77,10 +77,10 @@ AC_CANONICAL_BUILD
 # the source root directory contains definition of where to find those
 # externals.  The following macro ensures that those externals are
 # retrieved by svn if they are not there yet.
-AC_COIN_PROJECTDIR_INIT(Blis)
+AC_COIN_PROJECTDIR_INIT(Disco)
 
 # Check if user wants to produce debugging code
-AC_COIN_DEBUG_COMPILE(Blis)
+AC_COIN_DEBUG_COMPILE(Disco)
 
 # Get the name of the C++ compiler and appropriate compiler options
 AC_COIN_PROG_CXX
@@ -100,7 +100,7 @@ AC_COIN_INIT_AUTO_TOOLS
 #                              COIN components                              #
 #############################################################################
 
-AC_COIN_CHECK_PACKAGE(CoinDepend, [bcps cgl osi-clp], [BlisLib])
+AC_COIN_CHECK_PACKAGE(CoinDepend, [alps bcps cgl cglconic clp coinutils osi-clp osimosek osicplex cola osiconic], [DiscoLib])
 if test $coin_has_coindepend != yes ; then
   AC_MSG_ERROR([Required packages not available.])
 fi
@@ -113,7 +113,7 @@ AC_COIN_CHECK_PACKAGE(Sample, [coindatasample])
 
 # In this case, the source code is taken from the Blis examples directory
 
-AC_CONFIG_LINKS(test/BlisMain.cpp:src/BlisMain.cpp)
+AC_CONFIG_LINKS(test/blis.par:src/BlisMain.cpp)
 
 # In case this is a VPATH configuration we need to make sure that the
 # input files for the examples are available in the VPATH directory.
@@ -127,7 +127,7 @@ AC_CONFIG_LINKS(test/BlisMain.cpp:src/BlisMain.cpp)
 #                  Check for doxygen                                        #
 #############################################################################
 
-AC_COIN_DOXYGEN(CoinUtils Osi Clp Cgl Alps Bcps)
+AC_COIN_DOXYGEN(CoinUtils Osi Clp Cgl Alps Bcps CglConic Cola OsiConic OsiCplex OsiMosek)
 
 ##############################################################################
 #                   Finishing up by writing all the output                   #
@@ -140,8 +140,8 @@ AC_CONFIG_FILES([Makefile
                  src/Makefile
 		 src/blis.par
                  test/Makefile
-		 blis.pc
-		 blis-uninstalled.pc])
+		 disco.pc
+		 disco-uninstalled.pc])
 
 AC_CONFIG_FILES([doxydoc/doxygen.conf])
 

@@ -15,15 +15,15 @@
 @SET_MAKE@
 
 #==========================================================================#
-# This file is part of the BiCePS Linear Integer Solver (BLIS).            #
+# This file is part of the Discrete Conic Optimization (DisCO) solver.     #
 #                                                                          #
-# BLIS is distributed under the Eclipse Public License as part of the      #
-# COIN-OR repository (http://www.coin-or.org).                             #
+# DisCO is distributed under the Eclipse Public License.                   #
 #                                                                          #
 # Authors:                                                                 #
 #                                                                          #
 #          Yan Xu, Lehigh University                                       #
 #          Ted Ralphs, Lehigh University                                   #
+#          Aykut Bulut, Lehigh University                                  #
 #                                                                          #
 # Conceptual Design:                                                       #
 #                                                                          #
@@ -31,10 +31,11 @@
 #          Ted Ralphs, Lehigh University                                   #
 #          Laszlo Ladanyi, IBM T.J. Watson Research Center                 #
 #          Matthew Saltzman, Clemson University                            #
+#          Aykut Bulut, Lehigh University                                  #
 #                                                                          #
 #                                                                          #
-# Copyright (C) 2006-2013, Lehigh University, Yan Xu, and Ted Ralphs.      #
-# All Rights Reserved.                                                     #
+# Copyright (C) 2001-2015, Lehigh University, Yan Xu, Ted Ralphs and       #
+# Aykut Bulut. All Rights Reserved.                                        #
 #==========================================================================#
 
 
@@ -61,7 +62,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = blis$(EXEEXT)
+bin_PROGRAMS = disco$(EXEEXT)
 subdir = src
 DIST_COMMON = $(includecoin_HEADERS) $(srcdir)/BlisMain.cpp \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
@@ -86,20 +87,20 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
-@DEPENDENCY_LINKING_TRUE@libBlis_la_DEPENDENCIES =  \
+@DEPENDENCY_LINKING_TRUE@libDisco_la_DEPENDENCIES =  \
 @DEPENDENCY_LINKING_TRUE@	$(am__DEPENDENCIES_1)
-am_libBlis_la_OBJECTS = BlisBranchObjectInt.lo \
+am_libDisco_la_OBJECTS = BlisBranchObjectInt.lo \
 	BlisBranchObjectBilevel.lo BlisBranchStrategyMaxInf.lo \
 	BlisBranchStrategyPseudo.lo BlisBranchStrategyRel.lo \
 	BlisBranchStrategyStrong.lo BlisBranchStrategyBilevel.lo \
 	BlisConGenerator.lo BlisConstraint.lo BlisHelp.lo \
 	BlisHeurRound.lo BlisMessage.lo BlisModel.lo BlisObjectInt.lo \
 	BlisParams.lo BlisPresolve.lo BlisPseudo.lo BlisTreeNode.lo
-libBlis_la_OBJECTS = $(am_libBlis_la_OBJECTS)
+libDisco_la_OBJECTS = $(am_libDisco_la_OBJECTS)
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_blis_OBJECTS = BlisMain.$(OBJEXT)
-blis_OBJECTS = $(am_blis_OBJECTS)
+am_disco_OBJECTS = BlisMain.$(OBJEXT)
+disco_OBJECTS = $(am_disco_OBJECTS)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -118,8 +119,8 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(libBlis_la_SOURCES) $(blis_SOURCES)
-DIST_SOURCES = $(libBlis_la_SOURCES) $(blis_SOURCES)
+SOURCES = $(libDisco_la_SOURCES) $(disco_SOURCES)
+DIST_SOURCES = $(libDisco_la_SOURCES) $(disco_SOURCES)
 includecoinHEADERS_INSTALL = $(INSTALL_HEADER)
 HEADERS = $(includecoin_HEADERS)
 ETAGS = etags
@@ -140,14 +141,6 @@ AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AUX_DIR = @AUX_DIR@
 AWK = @AWK@
-BLISLIB_CFLAGS = @BLISLIB_CFLAGS@
-BLISLIB_CFLAGS_INSTALLED = @BLISLIB_CFLAGS_INSTALLED@
-BLISLIB_DEPENDENCIES = @BLISLIB_DEPENDENCIES@
-BLISLIB_LIBS = @BLISLIB_LIBS@
-BLISLIB_LIBS_INSTALLED = @BLISLIB_LIBS_INSTALLED@
-BLISLIB_PCLIBS = @BLISLIB_PCLIBS@
-BLISLIB_PCREQUIRES = @BLISLIB_PCREQUIRES@
-BLIS_SVN_REV = @BLIS_SVN_REV@
 BUILDTOOLSDIR = @BUILDTOOLSDIR@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
@@ -190,6 +183,14 @@ DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DEPENDENCY_LINKING_FALSE = @DEPENDENCY_LINKING_FALSE@
 DEPENDENCY_LINKING_TRUE = @DEPENDENCY_LINKING_TRUE@
+DISCOLIB_CFLAGS = @DISCOLIB_CFLAGS@
+DISCOLIB_CFLAGS_INSTALLED = @DISCOLIB_CFLAGS_INSTALLED@
+DISCOLIB_DEPENDENCIES = @DISCOLIB_DEPENDENCIES@
+DISCOLIB_LIBS = @DISCOLIB_LIBS@
+DISCOLIB_LIBS_INSTALLED = @DISCOLIB_LIBS_INSTALLED@
+DISCOLIB_PCLIBS = @DISCOLIB_PCLIBS@
+DISCOLIB_PCREQUIRES = @DISCOLIB_PCREQUIRES@
+DISCO_SVN_REV = @DISCO_SVN_REV@
 ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
@@ -309,15 +310,15 @@ target_alias = @target_alias@
 AUTOMAKE_OPTIONS = foreign
 
 ########################################################################
-#                               libBlis                                #
+#                               libDisco                                #
 ########################################################################
 
 # Name of the library compiled in this directory.  We want it to be installed
 # in the 'lib' directory
-lib_LTLIBRARIES = libBlis.la
+lib_LTLIBRARIES = libDisco.la
 
 # List all source files for this library, including headers
-libBlis_la_SOURCES = \
+libDisco_la_SOURCES = \
 	BlisBranchObjectInt.cpp \
 	BlisBranchObjectInt.h \
 	BlisBranchObjectBilevel.cpp \
@@ -364,13 +365,13 @@ libBlis_la_SOURCES = \
 
 
 # List all additionally required libraries
-@DEPENDENCY_LINKING_TRUE@libBlis_la_LIBADD = $(BLISLIB_LIBS)
+@DEPENDENCY_LINKING_TRUE@libDisco_la_LIBADD = $(DISCOLIB_LIBS)
 
 # This is for libtool (on Windows)
-libBlis_la_LDFLAGS = $(LT_LDFLAGS)
-blis_SOURCES = BlisMain.cpp 
-blis_LDADD = libBlis.la $(BLISLIB_LIBS)
-blis_DEPENDENCIES = libBlis.la $(BLISLIB_DEPENDENCIES)
+libDisco_la_LDFLAGS = $(LT_LDFLAGS)
+disco_SOURCES = BlisMain.cpp 
+disco_LDADD = libDisco.la $(DISCOLIB_LIBS)
+disco_DEPENDENCIES = libDisco.la $(DISCOLIB_DEPENDENCIES)
 
 ########################################################################
 #                            Additional flags                          #
@@ -378,7 +379,7 @@ blis_DEPENDENCIES = libBlis.la $(BLISLIB_DEPENDENCIES)
 
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Windows.
-AM_CPPFLAGS = $(BLISLIB_CFLAGS)
+AM_CPPFLAGS = $(DISCOLIB_CFLAGS)
 
 # This line is necessary to allow VPATH compilation
 DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
@@ -505,8 +506,8 @@ clean-libLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
-libBlis.la: $(libBlis_la_OBJECTS) $(libBlis_la_DEPENDENCIES) 
-	$(CXXLINK) -rpath $(libdir) $(libBlis_la_LDFLAGS) $(libBlis_la_OBJECTS) $(libBlis_la_LIBADD) $(LIBS)
+libDisco.la: $(libDisco_la_OBJECTS) $(libDisco_la_DEPENDENCIES) 
+	$(CXXLINK) -rpath $(libdir) $(libDisco_la_LDFLAGS) $(libDisco_la_OBJECTS) $(libDisco_la_LIBADD) $(LIBS)
 install-binPROGRAMS: $(bin_PROGRAMS)
 	@$(NORMAL_INSTALL)
 	test -z "$(bindir)" || $(mkdir_p) "$(DESTDIR)$(bindir)"
@@ -535,9 +536,9 @@ clean-binPROGRAMS:
 	  echo " rm -f $$p $$f"; \
 	  rm -f $$p $$f ; \
 	done
-blis$(EXEEXT): $(blis_OBJECTS) $(blis_DEPENDENCIES) 
-	@rm -f blis$(EXEEXT)
-	$(CXXLINK) $(blis_LDFLAGS) $(blis_OBJECTS) $(blis_LDADD) $(LIBS)
+disco$(EXEEXT): $(disco_OBJECTS) $(disco_DEPENDENCIES) 
+	@rm -f disco$(EXEEXT)
+	$(CXXLINK) $(disco_LDFLAGS) $(disco_OBJECTS) $(disco_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -800,9 +801,9 @@ uninstall-am: uninstall-binPROGRAMS uninstall-includecoinHEADERS \
 ########################################################################
 
 @COIN_CXX_IS_CL_TRUE@install-exec-hook:
-@COIN_CXX_IS_CL_TRUE@	test -s blis.exe.manifest && \
-@COIN_CXX_IS_CL_TRUE@	mt -manifest blis.exe.manifest -outputresource:blis.exe;\
-@COIN_CXX_IS_CL_TRUE@	cp blis.exe $(bindir)/blis.exe
+@COIN_CXX_IS_CL_TRUE@	test -s disco.exe.manifest && \
+@COIN_CXX_IS_CL_TRUE@	mt -manifest disco.exe.manifest -outputresource:disco.exe;\
+@COIN_CXX_IS_CL_TRUE@	cp disco.exe $(bindir)/disco.exe
 
 #############################################################################
 # Create the Config.h file that always defines HAVE_CONFIG_H and install it #

@@ -1,13 +1,13 @@
 #==========================================================================#
-# This file is part of the BiCePS Linear Integer Solver (BLIS).            #
+# This file is part of the Discrete Conic Optimization (DisCO) solver.     #
 #                                                                          #
-# BLIS is distributed under the Eclipse Public License as part of the      #
-# COIN-OR repository (http://www.coin-or.org).                             #
+# DisCO is distributed under the Eclipse Public License.                   #
 #                                                                          #
 # Authors:                                                                 #
 #                                                                          #
 #          Yan Xu, Lehigh University                                       #
 #          Ted Ralphs, Lehigh University                                   #
+#          Aykut Bulut, Lehigh University                                  #
 #                                                                          #
 # Conceptual Design:                                                       #
 #                                                                          #
@@ -15,26 +15,25 @@
 #          Ted Ralphs, Lehigh University                                   #
 #          Laszlo Ladanyi, IBM T.J. Watson Research Center                 #
 #          Matthew Saltzman, Clemson University                            #
+#          Aykut Bulut, Lehigh University                                  #
 #                                                                          #
 #                                                                          #
-# Copyright (C) 2006-2013, Lehigh University, Yan Xu, and Ted Ralphs.      #
-# All Rights Reserved.                                                     #
+# Copyright (C) 2001-2015, Lehigh University, Yan Xu, Ted Ralphs and       #
+# Aykut Bulut. All Rights Reserved.                                        #
 #==========================================================================#
-
-## $Id$
 
 AUTOMAKE_OPTIONS = foreign
 
 ########################################################################
-#                               libBlis                                #
+#                               libDisco                                #
 ########################################################################
 
 # Name of the library compiled in this directory.  We want it to be installed
 # in the 'lib' directory
-lib_LTLIBRARIES = libBlis.la
+lib_LTLIBRARIES = libDisco.la
 
 # List all source files for this library, including headers
-libBlis_la_SOURCES = \
+libDisco_la_SOURCES = \
 	BlisBranchObjectInt.cpp \
 	BlisBranchObjectInt.h \
 	BlisBranchObjectBilevel.cpp \
@@ -81,20 +80,20 @@ libBlis_la_SOURCES = \
 
 # List all additionally required libraries
 if DEPENDENCY_LINKING
-libBlis_la_LIBADD = $(BLISLIB_LIBS)
+libDisco_la_LIBADD = $(DISCOLIB_LIBS)
 endif
 
 # This is for libtool (on Windows)
-libBlis_la_LDFLAGS = $(LT_LDFLAGS)
+libDisco_la_LDFLAGS = $(LT_LDFLAGS)
 
 ########################################################################
 #                        blis binary                                   #
 ########################################################################
 
-bin_PROGRAMS = blis
-blis_SOURCES = BlisMain.cpp 
-blis_LDADD = libBlis.la $(BLISLIB_LIBS)
-blis_DEPENDENCIES = libBlis.la $(BLISLIB_DEPENDENCIES)
+bin_PROGRAMS = disco
+disco_SOURCES = BlisMain.cpp 
+disco_LDADD = libDisco.la $(DISCOLIB_LIBS)
+disco_DEPENDENCIES = libDisco.la $(DISCOLIB_DEPENDENCIES)
 
 ########################################################################
 #                            Additional flags                          #
@@ -102,7 +101,7 @@ blis_DEPENDENCIES = libBlis.la $(BLISLIB_DEPENDENCIES)
 
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Windows.
-AM_CPPFLAGS = $(BLISLIB_CFLAGS)
+AM_CPPFLAGS = $(DISCOLIB_CFLAGS)
 
 # This line is necessary to allow VPATH compilation
 DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
@@ -145,9 +144,9 @@ includecoin_HEADERS = \
 
 if COIN_CXX_IS_CL
 install-exec-hook:
-	test -s blis.exe.manifest && \
-	mt -manifest blis.exe.manifest -outputresource:blis.exe;\
-	cp blis.exe $(bindir)/blis.exe
+	test -s disco.exe.manifest && \
+	mt -manifest disco.exe.manifest -outputresource:disco.exe;\
+	cp disco.exe $(bindir)/disco.exe
 endif
 
 #############################################################################

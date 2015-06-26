@@ -1,13 +1,13 @@
 #==========================================================================#
-# This file is part of the BiCePS Linear Integer Solver (BLIS).            #
+# This file is part of the Discrete Conic Optimization (DisCO) solver.     #
 #                                                                          #
-# BLIS is distributed under the Eclipse Public License as part of the      #
-# COIN-OR repository (http://www.coin-or.org).                             #
+# DisCO is distributed under the Eclipse Public License.                   #
 #                                                                          #
 # Authors:                                                                 #
 #                                                                          #
 #          Yan Xu, Lehigh University                                       #
 #          Ted Ralphs, Lehigh University                                   #
+#          Aykut Bulut, Lehigh University                                  #
 #                                                                          #
 # Conceptual Design:                                                       #
 #                                                                          #
@@ -15,13 +15,12 @@
 #          Ted Ralphs, Lehigh University                                   #
 #          Laszlo Ladanyi, IBM T.J. Watson Research Center                 #
 #          Matthew Saltzman, Clemson University                            #
+#          Aykut Bulut, Lehigh University                                  #
 #                                                                          #
 #                                                                          #
-# Copyright (C) 2001-2015, Lehigh University, Yan Xu, and Ted Ralphs.      #
-# All Rights Reserved.                                                     #
+# Copyright (C) 2001-2015, Lehigh University, Yan Xu, Ted Ralphs and       #
+# Aykut Bulut. All Rights Reserved.                                        #
 #==========================================================================#
-
-## $Id$
 
 AUTOMAKE_OPTIONS = foreign
 
@@ -108,25 +107,25 @@ uninstall-local: uninstall-doc
 ########################################################################
 
 pkgconfiglibdir = $(libdir)/pkgconfig
-pkgconfiglib_DATA = blis.pc
+pkgconfiglib_DATA = disco.pc
 
-addlibsdir = $(DESTDIR)$(datadir)/coin/doc/Blis
+addlibsdir = $(DESTDIR)$(datadir)/coin/doc/DisCO
 
 install-data-hook:
 	@$(mkdir_p) "$(addlibsdir)"
 if COIN_HAS_PKGCONFIG
 	PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@:$(DESTDIR)$(pkgconfiglibdir) \
-	$(PKG_CONFIG) --libs blis > $(addlibsdir)/blis_addlibs.txt
+	$(PKG_CONFIG) --libs disco > $(addlibsdir)/disco_addlibs.txt
 else
 if COIN_CXX_IS_CL
-	echo "-libpath:`$(CYGPATH_W) @abs_lib_dir@` libBlis.lib @BLISLIB_LIBS_INSTALLED@" > $(addlibsdir)/blis_addlibs.txt
+	echo "-libpath:`$(CYGPATH_W) @abs_lib_dir@` libDisco.lib @DISCOLIB_LIBS_INSTALLED@" > $(addlibsdir)/disco_addlibs.txt
 else
-	echo -L@abs_lib_dir@ -lBlis @BLISLIB_LIBS_INSTALLED@ > $(addlibsdir)/blis_addlibs.txt
+	echo -L@abs_lib_dir@ -lDisco @DISCOLIB_LIBS_INSTALLED@ > $(addlibsdir)/disco_addlibs.txt
 endif
 endif
 
 uninstall-hook:
-	rm -f $(addlibsdir)/blis_addlibs.txt
+	rm -f $(addlibsdir)/disco_addlibs.txt
 
 ########################################################################
 #                         Maintainer Stuff                             #

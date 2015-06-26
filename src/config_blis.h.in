@@ -1,7 +1,7 @@
 /*===========================================================================*
- * This file is part of the BiCePS Linear Integer Solver (BLIS).             *
+ * This file is part of the BiCePS Linear Integer Solver (DISCO).             *
  *                                                                           *
- * BLIS is distributed under the Eclipse Public License as part of the       *
+ * DISCO is distributed under the Eclipse Public License as part of the       *
  * COIN-OR repository (http://www.coin-or.org).                              *
  *                                                                           *
  * Authors:                                                                  *
@@ -21,22 +21,22 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
-#ifndef __CONFIG_BLIS_H__
-#define __CONFIG_BLIS_H__
+#ifndef __CONFIG_DISCO_H__
+#define __CONFIG_DISCO_H__
 
 /* Version number of project */
-#undef BLIS_VERSION
+#undef DISCO_VERSION
 
 /* Major Version number of project */
-#undef BLIS_VERSION_MAJOR
+#undef DISCO_VERSION_MAJOR
 
 /* Minor Version number of project */
-#undef BLIS_VERSION_MINOR
+#undef DISCO_VERSION_MINOR
 
 /* Release Version number of project */
-#undef BLIS_VERSION_RELEASE
+#undef DISCO_VERSION_RELEASE
 
 /* SVN revision of project */
-#undef BLIS_SVN_REV
+#undef DISCO_SVN_REV
 
 #endif

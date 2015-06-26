@@ -1,31 +1,31 @@
 /* src/config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* SVN revision number of project */
-#undef BLIS_SVN_REV
-
-/* Version number of project */
-#undef BLIS_VERSION
-
-/* Major Version number of project */
-#undef BLIS_VERSION_MAJOR
-
-/* Minor Version number of project */
-#undef BLIS_VERSION_MINOR
-
-/* Release Version number of project */
-#undef BLIS_VERSION_RELEASE
-
 /* Define to the debug sanity check level (0 is no test) */
-#undef COIN_BLIS_CHECKLEVEL
+#undef COIN_DISCO_CHECKLEVEL
 
 /* Define to the debug verbosity level (0 is no output) */
-#undef COIN_BLIS_VERBOSITY
+#undef COIN_DISCO_VERBOSITY
 
 /* Define to 1 if the CoinDepend package is available */
 #undef COIN_HAS_COINDEPEND
 
 /* Define to 1 if the Sample package is available */
 #undef COIN_HAS_SAMPLE
+
+/* SVN revision number of project */
+#undef DISCO_SVN_REV
+
+/* Version number of project */
+#undef DISCO_VERSION
+
+/* Major Version number of project */
+#undef DISCO_VERSION_MAJOR
+
+/* Minor Version number of project */
+#undef DISCO_VERSION_MINOR
+
+/* Release Version number of project */
+#undef DISCO_VERSION_RELEASE
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H

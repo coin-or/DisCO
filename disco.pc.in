@@ -3,10 +3,10 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@/coin
 
-Name: BLIS
-Description: BiCePS Linear Integer Solver
-URL: https://projects.coin-or.org/CHiPPS
+Name: DisCO
+Description: Discrete Conic Optimization Solver
+URL: https://github.com/aykutbulut/DisCO
 Version: @PACKAGE_VERSION@
-Libs: -L${libdir} -lBlis @BLISLIB_PCLIBS@
+Libs: -L${libdir} -lDisco @DISCOLIB_PCLIBS@
 Cflags: -I${includedir}
-Requires: @BLISLIB_PCREQUIRES@
+Requires: @DISCOLIB_PCREQUIRES@
