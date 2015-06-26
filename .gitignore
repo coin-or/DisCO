@@ -26,3 +26,26 @@
 *.exe
 *.out
 *.app
+
+# dependencies
+Alps/*
+Bcps/*
+BuildTools/*
+Cgl/*
+CglConic/*
+Clp/*
+CoinUtils/*
+Cola/*
+Data/*
+Osi/*
+OsiConic/*
+OsiCplex/*
+OsiMosek/*
+ThirdParty/*
+acinclude.m4
+aclocal.m4
+autom4te.cache/*
+build/*
+
+# emacs backup files
+*~
