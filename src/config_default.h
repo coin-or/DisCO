@@ -45,7 +45,7 @@
 #define COIN_HAS_BCPS 1
 
 /* Define to 1 if the Blis package is used */
-#define COIN_HAS_BLIS 1
+#define COIN_HAS_DISCO 1
 
 /* Define to 1 if the CoinUtils package is used */
 #define COIN_HAS_COINUTILS 1
