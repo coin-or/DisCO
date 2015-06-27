@@ -55,10 +55,10 @@
 #include "DcoTreeNode.hpp"
 #include "DcoVariable.hpp"
 
-#define BLIS_MIN_SHARE_CON 5
-#define BLIS_MAX_SHARE_CON 25
-#define BLIS_MIN_SHARE_VAR 5
-#define BLIS_MAX_SHARE_VAR 25
+#define DISCO_MIN_SHARE_CON 5
+#define DISCO_MAX_SHARE_CON 25
+#define DISCO_MIN_SHARE_VAR 5
+#define DISCO_MAX_SHARE_VAR 25
 
 //#############################################################################
 
@@ -94,7 +94,7 @@ static int gcd(int a, int b)
 //#############################################################################
 
 void
-BlisModel::init()
+DcoModel::init()
 {
     origLpSolver_ = NULL;
     presolvedLpSolver_ = NULL;
@@ -129,7 +129,7 @@ BlisModel::init()
     intColIndices_ = NULL;
     intObjIndices_ = NULL;
 
-    presolve_ = new BlisPresolve();
+    presolve_ = new DcoPresolve();
 
     numSolutions_ = 0;
     numHeurSolutions_ = 0;
@@ -143,7 +143,7 @@ BlisModel::init()
     cutoff_ = COIN_DBL_MAX;
     incObjValue_ = COIN_DBL_MAX;
     blisMessageHandler_ = new CoinMessageHandler();
-    blisMessages_ = BlisMessage();
+    blisMessages_ = DcoMessage();
 
     objects_ = NULL;
     numObjects_ = 0;
@@ -159,7 +159,7 @@ BlisModel::init()
 
     isRoot_ = true;
     boundingPass_ = 0;
-    BlisPar_ = new BlisParams;
+    DcoPar_ = new DcoParams;
 
     // Tolerance
     integerTol_ = 1.0e-5;
@@ -169,13 +169,13 @@ BlisModel::init()
     currAbsGap_ = ALPS_OBJ_MAX;
 
     // Heuristic
-    heurStrategy_ = BlisHeurStrategyAuto;
+    heurStrategy_ = DcoHeurStrategyAuto;
     heurCallFrequency_ = 1;
     numHeuristics_ = 0;
     heuristics_ = NULL;
 
     // Cons related
-    cutStrategy_ = BlisCutStrategyRoot;
+    cutStrategy_ = DcoCutStrategyRoot;
     cutGenerationFrequency_ = 1;
     numCutGenerators_ = 0;
     generators_ = NULL;
@@ -199,7 +199,7 @@ BlisModel::init()
 
 // Read from file (currently MPS format. TODO: LP format).
 
-void BlisModel::readInstance(const char* dataFile) {
+void DcoModel::readInstance(const char* dataFile) {
   int j;
   int msgLevel =  AlpsPar_->entry(AlpsParams::msgLevel);
   char ext[5];
@@ -250,7 +250,7 @@ void BlisModel::readInstance(const char* dataFile) {
   memcpy(conLB_, reader->getRowLower(), sizeof(double) * numRows_);
   memcpy(conUB_, reader->getRowUpper(), sizeof(double) * numRows_);
 
-  objSense_ = BlisPar_->entry(BlisParams::objSense);
+  objSense_ = DcoPar_->entry(DcoParams::objSense);
 
   objCoef_ = new double [numCols_];
   if (objSense_ > 0.0) {
@@ -384,7 +384,7 @@ void BlisModel::readInstance(const char* dataFile) {
 //############################################################################
 
 void
-BlisModel::createObjects()
+DcoModel::createObjects()
 {
     int j;
 
@@ -392,7 +392,7 @@ BlisModel::createObjects()
     // Create variables and constraints.
     //------------------------------------------------------
 
-#ifdef BLIS_DEBUG
+#ifdef DISCO_DEBUG
     std::cout << "createObjects: numCols_ " << numCols_
 	      << ", numRows_" << numRows_
 	      << std::endl;
@@ -409,7 +409,7 @@ BlisModel::createObjects()
 
         beg = starts[j];
 
-	BlisVariable * var = new BlisVariable(varLB_[j],
+	DcoVariable * var = new DcoVariable(varLB_[j],
 					      varUB_[j],
 					      varLB_[j],
 					      varUB_[j],
@@ -427,7 +427,7 @@ BlisModel::createObjects()
     }
 
     for (j = 0; j < numRows_; ++j) {
-        BlisConstraint *con = new BlisConstraint(conLB_[j],
+        DcoConstraint *con = new DcoConstraint(conLB_[j],
                                                  conUB_[j],
                                                  conLB_[j],
                                                  conUB_[j]);
@@ -451,12 +451,12 @@ BlisModel::createObjects()
  *  2) Set objCoef_ and objSense_
  *  3) Set colType_ ('C', 'I', or 'B')
  *  4) Set variables_ and constraints_
- *  NOTE: Blis takes over the memory ownship of vars and cons, which
+ *  NOTE: Dco takes over the memory ownship of vars and cons, which
  *        means users must NOT free vars or cons.
  */
 void
-BlisModel::importModel(std::vector<BlisVariable *> vars,
-                       std::vector<BlisConstraint *> cons)
+DcoModel::importModel(std::vector<DcoVariable *> vars,
+                       std::vector<DcoConstraint *> cons)
 {
 
     CoinBigIndex i, j;
@@ -564,25 +564,25 @@ BlisModel::importModel(std::vector<BlisVariable *> vars,
 
 /** Read in parameters. */
 void
-BlisModel::readParameters(const int argnum, const char * const * arglist)
+DcoModel::readParameters(const int argnum, const char * const * arglist)
 {
     AlpsPar_->readFromArglist(argnum, arglist);
 
     int msgLevel = AlpsPar_->entry(AlpsParams::msgLevel);
     if (msgLevel > 0) {
 	std::cout << "Reading in ALPS parameters ..." << std::endl;
-	std::cout << "Reading in BLIS parameters ..." << std::endl;
+	std::cout << "Reading in DISCO parameters ..." << std::endl;
     }
     bcpsMessageHandler_->setLogLevel(msgLevel);
     blisMessageHandler_->setLogLevel(msgLevel);
-    BlisPar_->readFromArglist(argnum, arglist);
+    DcoPar_->readFromArglist(argnum, arglist);
 }
 
 //##############################################################################
 
 /** Write out parameters. */
 void
-BlisModel::writeParameters(std::ostream& outstream) const
+DcoModel::writeParameters(std::ostream& outstream) const
 {
     outstream << "\n================================================"
               <<std::endl;
@@ -590,8 +590,8 @@ BlisModel::writeParameters(std::ostream& outstream) const
     AlpsPar_->writeToStream(outstream);
     outstream << "\n================================================"
               <<std::endl;
-    outstream << "BLIS Parameters: " << std::endl;
-    BlisPar_->writeToStream(outstream);
+    outstream << "DISCO Parameters: " << std::endl;
+    DcoPar_->writeToStream(outstream);
 }
 
 //############################################################################
@@ -600,7 +600,7 @@ BlisModel::writeParameters(std::ostream& outstream) const
     Return success or not.
     This function is called when constructing knowledge broker. */
 bool
-BlisModel::setupSelf()
+DcoModel::setupSelf()
 {
     int j;
 
@@ -617,13 +617,13 @@ BlisModel::setupSelf()
 #ifdef BCPS_SVN_REV
 	   std::cout << "Bcps Revision Number: " << BCPS_SVN_REV << std::endl;
 #endif
-	   if (strcmp(BLIS_VERSION, "trunk")){
-	      std::cout << "Blis Version: " << BLIS_VERSION << std::endl;
+	   if (strcmp(DISCO_VERSION, "trunk")){
+	      std::cout << "Dco Version: " << DISCO_VERSION << std::endl;
 	   }else{
-	      std::cout << "Blis Version: Trunk (unstable) \n";
+	      std::cout << "Dco Version: Trunk (unstable) \n";
 	   }
-#ifdef BLIS_SVN_REV
-	   std::cout << "Blis Revision Number: " << BLIS_SVN_REV << std::endl;
+#ifdef DISCO_SVN_REV
+	   std::cout << "Dco Revision Number: " << DISCO_SVN_REV << std::endl;
 #endif
         }
     }
@@ -646,7 +646,7 @@ BlisModel::setupSelf()
     }
     if (numIntObjects_ == 0) {
         if (broker_->getMsgLevel() > 0) {
-            bcpsMessageHandler_->message(BLIS_W_LP, blisMessages())
+            bcpsMessageHandler_->message(DISCO_W_LP, blisMessages())
                 << CoinMessageEol;
         }
     }
@@ -703,12 +703,12 @@ BlisModel::setupSelf()
     // Get parameters.
     //------------------------------------------------------
 
-    integerTol_ = BlisPar_->entry(BlisParams::integerTol);
-    optimalRelGap_ = BlisPar_->entry(BlisParams::optimalRelGap);
-    optimalAbsGap_ = BlisPar_->entry(BlisParams::optimalAbsGap);
+    integerTol_ = DcoPar_->entry(DcoParams::integerTol);
+    optimalRelGap_ = DcoPar_->entry(DcoParams::optimalRelGap);
+    optimalAbsGap_ = DcoPar_->entry(DcoParams::optimalAbsGap);
 
-    int relibility = BlisPar_->entry(BlisParams::pseudoRelibility);
-    cutoff_ =  BlisPar_->entry(BlisParams::cutoff);
+    int relibility = DcoPar_->entry(DcoParams::pseudoRelibility);
+    cutoff_ =  DcoPar_->entry(DcoParams::cutoff);
 
     //------------------------------------------------------
     // Modify parameters.
@@ -719,10 +719,10 @@ BlisModel::setupSelf()
 
     AlpsPar()->setEntry(AlpsParams::printSystemStatus, 0);
 
-#ifdef BLIS_DEBUG_MORE
+#ifdef DISCO_DEBUG_MORE
     std::string problemName;
     lpSolver_->getStrParam(OsiProbName, problemName);
-    printf("BLIS: setupSelf: Problem name - %s\n", problemName.c_str());
+    printf("DISCO: setupSelf: Problem name - %s\n", problemName.c_str());
     lpSolver_->setHintParam(OsiDoReducePrint, false, OsiHintDo, 0);
 #endif
 
@@ -730,56 +730,56 @@ BlisModel::setupSelf()
     // Set branch strategy.
     //------------------------------------------------------
 
-    int brStrategy = BlisPar_->entry(BlisParams::branchStrategy);
+    int brStrategy = DcoPar_->entry(DcoParams::branchStrategy);
 
-    if (brStrategy == BlisBranchingStrategyMaxInfeasibility) {
+    if (brStrategy == DcoBranchingStrategyMaxInfeasibility) {
         // Max inf
-        branchStrategy_ = new BlisBranchStrategyMaxInf(this);
+        branchStrategy_ = new DcoBranchStrategyMaxInf(this);
     }
-    else if (brStrategy == BlisBranchingStrategyPseudoCost) {
+    else if (brStrategy == DcoBranchingStrategyPseudoCost) {
         // Pseudocost
-        branchStrategy_ = new BlisBranchStrategyPseudo(this, 1);
+        branchStrategy_ = new DcoBranchStrategyPseudo(this, 1);
     }
-    else if (brStrategy == BlisBranchingStrategyReliability) {
+    else if (brStrategy == DcoBranchingStrategyReliability) {
         // Relibility
-        branchStrategy_ = new BlisBranchStrategyRel(this, relibility);
+        branchStrategy_ = new DcoBranchStrategyRel(this, relibility);
     }
-    else if (brStrategy == BlisBranchingStrategyStrong) {
+    else if (brStrategy == DcoBranchingStrategyStrong) {
         // Strong
-        branchStrategy_ = new BlisBranchStrategyStrong(this);
+        branchStrategy_ = new DcoBranchStrategyStrong(this);
     }
-    else if (brStrategy == BlisBranchingStrategyBilevel) {
+    else if (brStrategy == DcoBranchingStrategyBilevel) {
         // Bilevel
-        branchStrategy_ = new BlisBranchStrategyBilevel(this);
+        branchStrategy_ = new DcoBranchStrategyBilevel(this);
     }
     else {
-        throw CoinError("Unknown branch strategy.", "setupSelf","BlisModel");
+        throw CoinError("Unknown branch strategy.", "setupSelf","DcoModel");
     }
 
-    brStrategy = BlisPar_->entry(BlisParams::branchStrategyRampUp);
+    brStrategy = DcoPar_->entry(DcoParams::branchStrategyRampUp);
 
-    if (brStrategy == BlisBranchingStrategyMaxInfeasibility) {
+    if (brStrategy == DcoBranchingStrategyMaxInfeasibility) {
         // Max inf
-      rampUpBranchStrategy_ = new BlisBranchStrategyMaxInf(this);
+      rampUpBranchStrategy_ = new DcoBranchStrategyMaxInf(this);
     }
-    else if (brStrategy == BlisBranchingStrategyPseudoCost) {
+    else if (brStrategy == DcoBranchingStrategyPseudoCost) {
         // Pseudocost
-        rampUpBranchStrategy_ = new BlisBranchStrategyPseudo(this, 1);
+        rampUpBranchStrategy_ = new DcoBranchStrategyPseudo(this, 1);
     }
-    else if (brStrategy == BlisBranchingStrategyReliability) {
+    else if (brStrategy == DcoBranchingStrategyReliability) {
         // Relibility
-        rampUpBranchStrategy_ = new BlisBranchStrategyRel(this, relibility);
+        rampUpBranchStrategy_ = new DcoBranchStrategyRel(this, relibility);
     }
-    else if (brStrategy == BlisBranchingStrategyStrong) {
+    else if (brStrategy == DcoBranchingStrategyStrong) {
         // Strong
-        rampUpBranchStrategy_ = new BlisBranchStrategyStrong(this);
+        rampUpBranchStrategy_ = new DcoBranchStrategyStrong(this);
     }
-    else if (brStrategy == BlisBranchingStrategyBilevel) {
+    else if (brStrategy == DcoBranchingStrategyBilevel) {
         // Bilevel
-        rampUpBranchStrategy_ = new BlisBranchStrategyBilevel(this);
+        rampUpBranchStrategy_ = new DcoBranchStrategyBilevel(this);
     }
     else {
-        throw CoinError("Unknown branch strategy.", "setupSelf","BlisModel");
+        throw CoinError("Unknown branch strategy.", "setupSelf","DcoModel");
     }
 
     //------------------------------------------------------
@@ -787,21 +787,21 @@ BlisModel::setupSelf()
     //------------------------------------------------------
 
     heurStrategy_ =
-       static_cast<BlisHeurStrategy> (BlisPar_->entry(BlisParams::heurStrategy));
+       static_cast<DcoHeurStrategy> (DcoPar_->entry(DcoParams::heurStrategy));
     heurCallFrequency_ =
-       static_cast<BlisHeurStrategy> (BlisPar_->entry(BlisParams::heurCallFrequency));
-    BlisHeurStrategy heurRoundStrategy =
-       static_cast<BlisHeurStrategy> (BlisPar_->entry(BlisParams::heurRoundStrategy));
+       static_cast<DcoHeurStrategy> (DcoPar_->entry(DcoParams::heurCallFrequency));
+    DcoHeurStrategy heurRoundStrategy =
+       static_cast<DcoHeurStrategy> (DcoPar_->entry(DcoParams::heurRoundStrategy));
     int callFreq = 1;
 
-    if (heurRoundStrategy == BlisHeurStrategyNotSet) {
+    if (heurRoundStrategy == DcoHeurStrategyNotSet) {
         heurRoundStrategy = heurStrategy_;
 	callFreq = heurCallFrequency_;
     }
-    if (heurRoundStrategy != BlisHeurStrategyNone &&
-	heurRoundStrategy != BlisHeurStrategyNotSet) {
+    if (heurRoundStrategy != DcoHeurStrategyNone &&
+	heurRoundStrategy != DcoHeurStrategyNotSet) {
         // Add rounding heuristic
-        BlisHeurRound *heurRound = new BlisHeurRound(this,
+        DcoHeurRound *heurRound = new DcoHeurRound(this,
                                                      "Rounding",
                                                      heurRoundStrategy,
 						     callFreq);
@@ -810,10 +810,10 @@ BlisModel::setupSelf()
 
     // Adjust heurStrategy
     for (j = 0; j < numHeuristics_; ++j) {
-        if (heuristics_[j]->strategy() != BlisHeurStrategyNone) {
+        if (heuristics_[j]->strategy() != DcoHeurStrategyNone) {
             // Doesn't matter what's the strategy, we just want to
             // call heuristics.
-            heurStrategy_ = BlisHeurStrategyAuto;
+            heurStrategy_ = DcoHeurStrategyAuto;
             break;
         }
     }
@@ -828,7 +828,7 @@ BlisModel::setupSelf()
     const int * rowLen = rowMatrix->getVectorLengths();
     double maxLen = 0.0, minLen = ALPS_DBL_MAX, sumLen = 0.0;
     double aveLen, diffLen, stdLen;
-    double denseConFactor = BlisPar_->entry(BlisParams::denseConFactor);
+    double denseConFactor = DcoPar_->entry(DcoParams::denseConFactor);
 
     for (j = 0; j < numRows_; ++j) {
 	if (rowLen[j] > maxLen) maxLen = rowLen[j];
@@ -854,14 +854,14 @@ BlisModel::setupSelf()
         denseConCutoff_ = ALPS_MAX(100, denseConCutoff_);
     }
 
-#ifdef BLIS_DEBUG
+#ifdef DISCO_DEBUG
     std::cout << "aveLen=" << aveLen << ", minLen=" << minLen
 	      << ", maxLen=" << maxLen << ", stdLen=" << stdLen
 	      << ", denseConCutoff_=" << denseConCutoff_ << std::endl;
 #endif
 
     // NOTE: maxNumCons is valid only for automatic strategy.
-    double cutFactor = BlisPar_->entry(BlisParams::cutFactor);
+    double cutFactor = DcoPar_->entry(DcoParams::cutFactor);
 
     if (cutFactor > 1.0e5) {
         maxNumCons_ = ALPS_INT_MAX;
@@ -876,12 +876,12 @@ BlisModel::setupSelf()
     constraintPool_ = new BcpsConstraintPool();
     constraintPoolReceive_ = new BcpsConstraintPool();
     constraintPoolSend_ = new BcpsConstraintPool();
-    oldConstraints_ = new BlisConstraint* [oldConstraintsSize_];
+    oldConstraints_ = new DcoConstraint* [oldConstraintsSize_];
 
-    cutStrategy_ = static_cast<BlisCutStrategy>
-	(BlisPar_->entry(BlisParams::cutStrategy));
-    cutGenerationFrequency_ = static_cast<BlisCutStrategy>
-	(BlisPar_->entry(BlisParams::cutGenerationFrequency));
+    cutStrategy_ = static_cast<DcoCutStrategy>
+	(DcoPar_->entry(DcoParams::cutStrategy));
+    cutGenerationFrequency_ = static_cast<DcoCutStrategy>
+	(DcoPar_->entry(DcoParams::cutGenerationFrequency));
 
     if (cutGenerationFrequency_ < 1) {
 	std::cout << "WARNING: Input cut generation frequency is "
@@ -895,31 +895,31 @@ BlisModel::setupSelf()
 	      << std::endl;
 #endif
 
-    BlisCutStrategy cliqueStrategy = static_cast<BlisCutStrategy>
-       (BlisPar_->entry(BlisParams::cutCliqueStrategy));
-    BlisCutStrategy fCoverStrategy = static_cast<BlisCutStrategy>
-       (BlisPar_->entry(BlisParams::cutFlowCoverStrategy));
-    BlisCutStrategy gomoryStrategy = static_cast<BlisCutStrategy>
-       (BlisPar_->entry(BlisParams::cutGomoryStrategy));
-    BlisCutStrategy knapStrategy = static_cast<BlisCutStrategy>
-       (BlisPar_->entry(BlisParams::cutKnapsackStrategy));
-    BlisCutStrategy mirStrategy = static_cast<BlisCutStrategy>
-       (BlisPar_->entry(BlisParams::cutMirStrategy));
-    BlisCutStrategy oddHoleStrategy = static_cast<BlisCutStrategy>
-       (BlisPar_->entry(BlisParams::cutOddHoleStrategy));
-    BlisCutStrategy probeStrategy = static_cast<BlisCutStrategy>
-       (BlisPar_->entry(BlisParams::cutProbingStrategy));
-    BlisCutStrategy twoMirStrategy = static_cast<BlisCutStrategy>
-       (BlisPar_->entry(BlisParams::cutTwoMirStrategy));
+    DcoCutStrategy cliqueStrategy = static_cast<DcoCutStrategy>
+       (DcoPar_->entry(DcoParams::cutCliqueStrategy));
+    DcoCutStrategy fCoverStrategy = static_cast<DcoCutStrategy>
+       (DcoPar_->entry(DcoParams::cutFlowCoverStrategy));
+    DcoCutStrategy gomoryStrategy = static_cast<DcoCutStrategy>
+       (DcoPar_->entry(DcoParams::cutGomoryStrategy));
+    DcoCutStrategy knapStrategy = static_cast<DcoCutStrategy>
+       (DcoPar_->entry(DcoParams::cutKnapsackStrategy));
+    DcoCutStrategy mirStrategy = static_cast<DcoCutStrategy>
+       (DcoPar_->entry(DcoParams::cutMirStrategy));
+    DcoCutStrategy oddHoleStrategy = static_cast<DcoCutStrategy>
+       (DcoPar_->entry(DcoParams::cutOddHoleStrategy));
+    DcoCutStrategy probeStrategy = static_cast<DcoCutStrategy>
+       (DcoPar_->entry(DcoParams::cutProbingStrategy));
+    DcoCutStrategy twoMirStrategy = static_cast<DcoCutStrategy>
+       (DcoPar_->entry(DcoParams::cutTwoMirStrategy));
 
-    int cliqueFreq = BlisPar_->entry(BlisParams::cutCliqueFreq);
-    int fCoverFreq = BlisPar_->entry(BlisParams::cutFlowCoverFreq);
-    int gomoryFreq = BlisPar_->entry(BlisParams::cutGomoryFreq);
-    int knapFreq = BlisPar_->entry(BlisParams::cutKnapsackFreq);
-    int mirFreq = BlisPar_->entry(BlisParams::cutMirFreq);
-    int oddHoleFreq = BlisPar_->entry(BlisParams::cutOddHoleFreq);
-    int probeFreq = BlisPar_->entry(BlisParams::cutProbingFreq);
-    int twoMirFreq = BlisPar_->entry(BlisParams::cutTwoMirFreq);
+    int cliqueFreq = DcoPar_->entry(DcoParams::cutCliqueFreq);
+    int fCoverFreq = DcoPar_->entry(DcoParams::cutFlowCoverFreq);
+    int gomoryFreq = DcoPar_->entry(DcoParams::cutGomoryFreq);
+    int knapFreq = DcoPar_->entry(DcoParams::cutKnapsackFreq);
+    int mirFreq = DcoPar_->entry(DcoParams::cutMirFreq);
+    int oddHoleFreq = DcoPar_->entry(DcoParams::cutOddHoleFreq);
+    int probeFreq = DcoPar_->entry(DcoParams::cutProbingFreq);
+    int twoMirFreq = DcoPar_->entry(DcoParams::cutTwoMirFreq);
 
     //------------------------------------------------------
     // Add cut generators.
@@ -930,12 +930,12 @@ BlisModel::setupSelf()
     // Add probe cut generator.
     //----------------------------------
 
-    if (probeStrategy == BlisCutStrategyNotSet) {
+    if (probeStrategy == DcoCutStrategyNotSet) {
         // Disable by default
-	if (cutStrategy_ == BlisCutStrategyNotSet) {
-	    probeStrategy = BlisCutStrategyNone;
+	if (cutStrategy_ == DcoCutStrategyNotSet) {
+	    probeStrategy = DcoCutStrategyNone;
 	}
-	else if (cutStrategy_ == BlisCutStrategyPeriodic) {
+	else if (cutStrategy_ == DcoCutStrategyPeriodic) {
 	    probeStrategy = cutStrategy_;
 	    probeFreq = cutGenerationFrequency_;
 	}
@@ -943,7 +943,7 @@ BlisModel::setupSelf()
 	    probeStrategy = cutStrategy_;
 	}
     }
-    if (probeStrategy != BlisCutStrategyNone) {
+    if (probeStrategy != DcoCutStrategyNone) {
         CglProbing *probing = new CglProbing;
         probing->setUsingObjective(true);
         probing->setMaxPass(1);
@@ -964,20 +964,20 @@ BlisModel::setupSelf()
     // Add clique cut generator.
     //----------------------------------
 
-    if (cliqueStrategy == BlisCutStrategyNotSet) {
+    if (cliqueStrategy == DcoCutStrategyNotSet) {
         // Only at root by default
-	if (cutStrategy_ == BlisCutStrategyNotSet) {
-	    cliqueStrategy = BlisCutStrategyRoot;
+	if (cutStrategy_ == DcoCutStrategyNotSet) {
+	    cliqueStrategy = DcoCutStrategyRoot;
 	}
-	else if (cutStrategy_ == BlisCutStrategyPeriodic) {
+	else if (cutStrategy_ == DcoCutStrategyPeriodic) {
 	    cliqueFreq = cutGenerationFrequency_;
-	    cliqueStrategy = BlisCutStrategyPeriodic;
+	    cliqueStrategy = DcoCutStrategyPeriodic;
 	}
 	else { // Root or Auto
 	    cliqueStrategy = cutStrategy_;
 	}
     }
-    if (cliqueStrategy != BlisCutStrategyNone) {
+    if (cliqueStrategy != DcoCutStrategyNone) {
         CglClique *cliqueCut = new CglClique ;
         cliqueCut->setStarCliqueReport(false);
         cliqueCut->setRowCliqueReport(false);
@@ -988,20 +988,20 @@ BlisModel::setupSelf()
     // Add odd hole cut generator.
     //----------------------------------
 
-    if (oddHoleStrategy == BlisCutStrategyNotSet) {
-	if (cutStrategy_ == BlisCutStrategyNotSet) {
+    if (oddHoleStrategy == DcoCutStrategyNotSet) {
+	if (cutStrategy_ == DcoCutStrategyNotSet) {
 	    // Disable by default
-	    oddHoleStrategy = BlisCutStrategyNone;
+	    oddHoleStrategy = DcoCutStrategyNone;
 	}
-	else if (cutStrategy_ == BlisCutStrategyPeriodic) {
-	    oddHoleStrategy = BlisCutStrategyPeriodic;
+	else if (cutStrategy_ == DcoCutStrategyPeriodic) {
+	    oddHoleStrategy = DcoCutStrategyPeriodic;
 	    oddHoleFreq = cutGenerationFrequency_;
 	}
 	else {
 	    oddHoleStrategy = cutStrategy_;
 	}
     }
-    if (oddHoleStrategy != BlisCutStrategyNone) {
+    if (oddHoleStrategy != DcoCutStrategyNone) {
         CglOddHole *oldHoleCut = new CglOddHole;
         oldHoleCut->setMinimumViolation(0.005);
         oldHoleCut->setMinimumViolationPer(0.00002);
@@ -1014,12 +1014,12 @@ BlisModel::setupSelf()
     // Add flow cover cut generator.
     //----------------------------------
 
-    if (fCoverStrategy == BlisCutStrategyNotSet) {
-	if (cutStrategy_ == BlisCutStrategyNotSet) {
-	    fCoverStrategy = BlisCutStrategyAuto;
+    if (fCoverStrategy == DcoCutStrategyNotSet) {
+	if (cutStrategy_ == DcoCutStrategyNotSet) {
+	    fCoverStrategy = DcoCutStrategyAuto;
 	    fCoverFreq = cutGenerationFrequency_;
 	}
-	else if (cutStrategy_ == BlisCutStrategyPeriodic) {
+	else if (cutStrategy_ == DcoCutStrategyPeriodic) {
 	    fCoverStrategy = cutStrategy_;
 	    fCoverFreq = cutGenerationFrequency_;
 	}
@@ -1027,7 +1027,7 @@ BlisModel::setupSelf()
 	    fCoverStrategy = cutStrategy_;
 	}
     }
-    if (fCoverStrategy != BlisCutStrategyNone) {
+    if (fCoverStrategy != DcoCutStrategyNone) {
         CglFlowCover *flowGen = new CglFlowCover;
 	addCutGenerator(flowGen, "Flow Cover", fCoverStrategy, fCoverFreq);
     }
@@ -1036,12 +1036,12 @@ BlisModel::setupSelf()
     // Add knapsack cut generator.
     //----------------------------------
 
-    if (knapStrategy == BlisCutStrategyNotSet) {
-	if (cutStrategy_ == BlisCutStrategyNotSet) {
+    if (knapStrategy == DcoCutStrategyNotSet) {
+	if (cutStrategy_ == DcoCutStrategyNotSet) {
 	    // Only at root by default
-	    knapStrategy = BlisCutStrategyRoot;
+	    knapStrategy = DcoCutStrategyRoot;
 	}
-	else if (cutStrategy_ == BlisCutStrategyPeriodic) {
+	else if (cutStrategy_ == DcoCutStrategyPeriodic) {
 	    knapStrategy = cutStrategy_;
 	    knapFreq = cutGenerationFrequency_;
 	}
@@ -1049,7 +1049,7 @@ BlisModel::setupSelf()
 	    knapStrategy = cutStrategy_;
 	}
     }
-    if (knapStrategy != BlisCutStrategyNone) {
+    if (knapStrategy != DcoCutStrategyNone) {
         CglKnapsackCover *knapCut = new CglKnapsackCover;
 	addCutGenerator(knapCut, "Knapsack", knapStrategy, knapFreq);
     }
@@ -1058,12 +1058,12 @@ BlisModel::setupSelf()
     // Add MIR cut generator.
     //----------------------------------
 
-    if (mirStrategy == BlisCutStrategyNotSet) {
-	if (cutStrategy_ == BlisCutStrategyNotSet) {
+    if (mirStrategy == DcoCutStrategyNotSet) {
+	if (cutStrategy_ == DcoCutStrategyNotSet) {
 	    // Disable by default
-	    mirStrategy = BlisCutStrategyNone;
+	    mirStrategy = DcoCutStrategyNone;
 	}
-	else if (cutStrategy_ == BlisCutStrategyPeriodic) {
+	else if (cutStrategy_ == DcoCutStrategyPeriodic) {
 	    mirStrategy = cutStrategy_;
 	    mirFreq = cutGenerationFrequency_;
 	}
@@ -1071,7 +1071,7 @@ BlisModel::setupSelf()
 	    mirStrategy = cutStrategy_;
 	}
     }
-    if (mirStrategy != BlisCutStrategyNone) {
+    if (mirStrategy != DcoCutStrategyNone) {
         CglMixedIntegerRounding2 *mixedGen = new CglMixedIntegerRounding2;
 	addCutGenerator(mixedGen, "MIR", mirStrategy, mirFreq);
     }
@@ -1080,12 +1080,12 @@ BlisModel::setupSelf()
     // Add Gomory cut generator.
     //----------------------------------
 
-    if (gomoryStrategy == BlisCutStrategyNotSet) {
-	if (cutStrategy_ == BlisCutStrategyNotSet) {
+    if (gomoryStrategy == DcoCutStrategyNotSet) {
+	if (cutStrategy_ == DcoCutStrategyNotSet) {
 	    // Only at root by default
-	    gomoryStrategy = BlisCutStrategyRoot;
+	    gomoryStrategy = DcoCutStrategyRoot;
 	}
-	else if (cutStrategy_ == BlisCutStrategyPeriodic) {
+	else if (cutStrategy_ == DcoCutStrategyPeriodic) {
 	    gomoryStrategy = cutStrategy_;
 	    gomoryFreq = cutGenerationFrequency_;
 	}
@@ -1093,7 +1093,7 @@ BlisModel::setupSelf()
 	    gomoryStrategy = cutStrategy_;
 	}
     }
-    if (gomoryStrategy != BlisCutStrategyNone) {
+    if (gomoryStrategy != DcoCutStrategyNone) {
         CglGomory *gomoryCut = new CglGomory;
         // try larger limit
         gomoryCut->setLimit(300);
@@ -1105,8 +1105,8 @@ BlisModel::setupSelf()
     //----------------------------------
 
     // Disable forever, not useful.
-    twoMirStrategy = BlisCutStrategyNone;
-    if (twoMirStrategy != BlisCutStrategyNone) {
+    twoMirStrategy = DcoCutStrategyNone;
+    if (twoMirStrategy != DcoCutStrategyNone) {
         CglTwomir *twoMirCut =  new CglTwomir;
 	addCutGenerator(twoMirCut, "Two MIR", twoMirStrategy, twoMirFreq);
     }
@@ -1117,8 +1117,8 @@ BlisModel::setupSelf()
     //--------------------------------------------
 
     if (numCutGenerators_ > 0) {
-	BlisCutStrategy strategy0 = cutGenerators(0)->strategy();
-	BlisCutStrategy strategy1;
+	DcoCutStrategy strategy0 = cutGenerators(0)->strategy();
+	DcoCutStrategy strategy1;
 	for (j = 1; j < numCutGenerators_; ++j) {
 	    strategy1 = cutGenerators(j)->strategy();
 	    if (strategy1 != strategy0) {
@@ -1133,7 +1133,7 @@ BlisModel::setupSelf()
         else {
             // Assume to generate cons at each node since generators
 	    // has various strategies.
-            cutStrategy_ = BlisCutStrategyPeriodic;
+            cutStrategy_ = DcoCutStrategyPeriodic;
 	    cutGenerationFrequency_ = 1;
         }
     }
@@ -1168,7 +1168,7 @@ BlisModel::setupSelf()
 //############################################################################
 
 // AT - Begin
-void BlisModel::presolveForTheWholeTree() {
+void DcoModel::presolveForTheWholeTree() {
  	 //if (!lpSolver_) {
         // preprocessing causes this check.
      //   lpSolver_ = origLpSolver_;
@@ -1177,8 +1177,8 @@ void BlisModel::presolveForTheWholeTree() {
     double feaTol = 1.0e-3;
     bool keepIntegers = true;
     char *prohibited = 0;
-    bool doPresolve = BlisPar_->entry(BlisParams::presolve);
-#ifdef BLIS_DEBUG
+    bool doPresolve = DcoPar_->entry(DcoParams::presolve);
+#ifdef DISCO_DEBUG
 	std::cout << "Presolve = "<< doPresolve<<" problem setup " <<problemSetup << std::endl;
 #endif
 
@@ -1196,7 +1196,7 @@ void BlisModel::presolveForTheWholeTree() {
 			numPasses,
 			prohibited);
 //AT DEBUG
-		#ifdef BLIS_DEBUG
+		#ifdef DISCO_DEBUG
 		for(int i =0;i<presolvedLpSolver_->getNumCols();i++)
 			if(presolvedLpSolver_->isInteger(i)) {
 				std::cout<<" Variable "<<i<<" Is still Integer"<<std::endl;
@@ -1238,15 +1238,15 @@ void BlisModel::presolveForTheWholeTree() {
 
 //############################################################################
 // AT - Begin -- not used
-void BlisModel::preprocess()
+void DcoModel::preprocess()
 {
     int numPasses = 50;
     double feaTol = 1.0e-3;
     bool keepIntegers = true;
     char *prohibited = 0;
 	// Do presolve only if problem already setup - In Alp preprocess is called before...
-    bool doPresolve = BlisPar_->entry(BlisParams::presolve) && problemSetup;
-#ifdef BLIS_DEBUG
+    bool doPresolve = DcoPar_->entry(DcoParams::presolve) && problemSetup;
+#ifdef DISCO_DEBUG
 	std::cout << "Presolve = "<< doPresolve<<" problem setup " <<problemSetup << std::endl;
 #endif
 //AT disabled for now
@@ -1259,7 +1259,7 @@ void BlisModel::preprocess()
 						   prohibited);
 		presolvedLpSolver_->initialSolve();
 		lpSolver_ = presolvedLpSolver_->clone();
-		#ifdef BLIS_DEBUG
+		#ifdef DISCO_DEBUG
 			std::cout << "Presolve done  "<< presolvedLpSolver_->isProvenOptimal() << std::endl;
 		#endif
 		presolved=true;
@@ -1274,24 +1274,24 @@ void BlisModel::preprocess()
 
 
 // AT - Begin - not used before, do postsolve
-void BlisModel::postprocess()
+void DcoModel::postprocess()
 {
 
 //std::cout<<" Lp before post  col "<<lpSolver_->getNumCols()<<" Rows "<<lpSolver_->getNumRows()<<std::endl;
-  if(!BlisPar_->entry(BlisParams::presolve))
+  if(!DcoPar_->entry(DcoParams::presolve))
     return;
   std::cout<<" POST SOLVING "<<std::endl;
   std::cout<<" Original Model  col "<<origLpSolver_->getNumCols()<<" Rows "<<origLpSolver_->getNumRows()<<std::endl;
 
   numCols_=origLpSolver_->getNumCols();
-  BlisSolution * sol =dynamic_cast<BlisSolution*>(getKnowledgeBroker()->getBestKnowledge(AlpsKnowledgeTypeSolution).first);
+  DcoSolution * sol =dynamic_cast<DcoSolution*>(getKnowledgeBroker()->getBestKnowledge(AlpsKnowledgeTypeSolution).first);
   presolve_->model()->setColSolution(sol->getValues());
   presolve_->postprocess();
   std::cout<<" Sol size "<<sol->getSize()<< " Quality "<<sol->getQuality() <<std::endl;
   std::cout<< " Original model val: "<<presolve_->originalModel()->getObjValue()<<std::endl;
   const double * values = presolve_->originalModel()->getColSolution();
 
-  BlisSolution *  currentSol = new BlisSolution(presolve_->originalModel()->getNumCols(),values,presolve_->originalModel()->getObjValue());
+  DcoSolution *  currentSol = new DcoSolution(presolve_->originalModel()->getNumCols(),values,presolve_->originalModel()->getObjValue());
   sol->setQuality(currentSol->getQuality());
   sol->setSize(currentSol->getSize());
   sol->setValues(currentSol->getValues(),currentSol->getSize());
@@ -1310,7 +1310,7 @@ void BlisModel::postprocess()
   //setSolver(lpSolver_);
 
  // lpSolver_=origLpSolver_->clone();
-#ifdef BLIS_DEBUG
+#ifdef DISCO_DEBUG
   std::cout<<"POST process\n Num col "<<numCols_<<" Presolved "<<lpSolver_->getNumCols()
 	   <<"\nNum row "<<numRows_<<" Presolved "<<lpSolver_->getNumRows()
 	   <<std::endl;
@@ -1321,7 +1321,7 @@ void BlisModel::postprocess()
 //#############################################################################
 
 int
-BlisModel::storeSolution(BlisSolutionType how, BlisSolution* sol)
+DcoModel::storeSolution(DcoSolutionType how, DcoSolution* sol)
 {
     double quality = sol->getQuality();
 
@@ -1344,29 +1344,29 @@ BlisModel::storeSolution(BlisSolutionType how, BlisSolution* sol)
 
     // Record how the solution was found
     switch (how) {
-    case BlisSolutionTypeBounding:
-#ifdef BLIS_DEBUG
+    case DcoSolutionTypeBounding:
+#ifdef DISCO_DEBUG
         std::cout << "Rounding heuristics found a better solution"
                   <<", old cutoff = " << cutoff
                   << ", new cutoff = " << getCutoff()  << std::endl;
 #endif
         break;
-    case BlisSolutionTypeBranching:
-#ifdef BLIS_DEBUG
+    case DcoSolutionTypeBranching:
+#ifdef DISCO_DEBUG
         std::cout << "Branching found a better solution"
                   <<", old cutoff = " << cutoff
                   << ", new cutoff = " << getCutoff()  << std::endl;
 #endif
         break;
-    case BlisSolutionTypeDiving:
+    case DcoSolutionTypeDiving:
         ++numHeurSolutions_;
-#ifdef BLIS_DEBUG
+#ifdef DISCO_DEBUG
         std::cout << "Branching found a better solution"
                   <<", old cutoff = " << cutoff
                   << ", new cutoff = " << getCutoff()  << std::endl;
 #endif
         break;
-    case BlisSolutionTypeHeuristic:
+    case DcoSolutionTypeHeuristic:
         ++numHeurSolutions_;
         if (broker_->getMsgLevel() > 200) {
             std::cout << "Heuristics found a better solution"
@@ -1374,15 +1374,15 @@ BlisModel::storeSolution(BlisSolutionType how, BlisSolution* sol)
                       << ", new cutoff = " << getCutoff()  << std::endl;
         }
         break;
-    case BlisSolutionTypeStrong:
-#ifdef BLIS_DEBUG
+    case DcoSolutionTypeStrong:
+#ifdef DISCO_DEBUG
         std::cout << "Strong branching found a better solution"
                   <<", old cutoff = " << cutoff
                   << ", new cutoff = " << getCutoff()  << std::endl;
 #endif
         break;
     default:
-#ifdef BLIS_DEBUG
+#ifdef DISCO_DEBUG
         std::cout << "Nowhere found a better solution"
                   <<", old cutoff = " << cutoff
                   << ", new cutoff = " << getCutoff()  << std::endl;
@@ -1396,7 +1396,7 @@ BlisModel::storeSolution(BlisSolutionType how, BlisSolution* sol)
 //############################################################################
 
 void
-BlisModel::createIntgerObjects(bool startAgain)
+DcoModel::createIntgerObjects(bool startAgain)
 {
     assert(lpSolver_);
 
@@ -1407,7 +1407,7 @@ BlisModel::createIntgerObjects(bool startAgain)
 
     const double *colLB = lpSolver_->getColLower();
     const double *colUB = lpSolver_->getColUpper();
-    BlisObjectInt *intObject = NULL;
+    DcoObjectInt *intObject = NULL;
 
     if (intColIndices_) {
         delete [] intColIndices_;
@@ -1423,15 +1423,15 @@ BlisModel::createIntgerObjects(bool startAgain)
               << numIntObjects_ << std::endl;
 #endif
 
-    double weight = BlisPar_->entry(BlisParams::pseudoWeight);
+    double weight = DcoPar_->entry(DcoParams::pseudoWeight);
 
     int numObjects = 0;
     int iObject;
     BcpsObject ** oldObject = objects_;
 
     for (iObject = 0; iObject < numObjects_; ++iObject) {
-	BlisObjectInt * obj =
-	    dynamic_cast <BlisObjectInt *>(oldObject[iObject]) ;
+	DcoObjectInt * obj =
+	    dynamic_cast <DcoObjectInt *>(oldObject[iObject]) ;
 
 	if (obj) {
 	    delete oldObject[iObject];
@@ -1457,7 +1457,7 @@ BlisModel::createIntgerObjects(bool startAgain)
     for (iCol = 0; iCol < numCols; ++iCol) {
 	if(lpSolver_->isInteger(iCol)) {
 
-	    intObject = new BlisObjectInt(numIntObjects_,
+	    intObject = new DcoObjectInt(numIntObjects_,
                                           iCol,
                                           colLB[iCol],
                                           colUB[iCol]);
@@ -1484,7 +1484,7 @@ BlisModel::createIntgerObjects(bool startAgain)
 //#############################################################################
 
 bool
-BlisModel::resolve()
+DcoModel::resolve()
 {
     lpSolver_->resolve();
     numIterations_ += lpSolver_->getIterationCount();
@@ -1498,7 +1498,7 @@ BlisModel::resolve()
 
 // Delete all object information
 void
-BlisModel::deleteObjects()
+DcoModel::deleteObjects()
 {
     delete [] priority_;
     priority_ = NULL;
@@ -1512,7 +1512,7 @@ BlisModel::deleteObjects()
 
 //#############################################################################
 
-BlisModel::~BlisModel()
+DcoModel::~DcoModel()
 {
     gutsOfDestructor();
 }
@@ -1520,10 +1520,10 @@ BlisModel::~BlisModel()
 //#############################################################################
 
 void
-BlisModel::gutsOfDestructor()
+DcoModel::gutsOfDestructor()
 {
     int i;
-    bool doPresolve = BlisPar_->entry(BlisParams::presolve);
+    bool doPresolve = DcoPar_->entry(DcoParams::presolve);
 
 
 //    delete [] savedLpSolution_;
@@ -1569,11 +1569,11 @@ BlisModel::gutsOfDestructor()
     delete presolve_;
 
     if (numHeuristics_ > 0) {
-#ifdef BLIS_DEBUG
+#ifdef DISCO_DEBUG
         std::cout << "MODEL: distructor: numHeuristics =  "
                   << numHeuristics_ << std::endl;
 #endif
-        BlisHeuristic *tempH = NULL;
+        DcoHeuristic *tempH = NULL;
 
         for (i = 0; i < numHeuristics_; ++i) {
             tempH = heuristics_[i];
@@ -1585,11 +1585,11 @@ BlisModel::gutsOfDestructor()
     }
 
     if (generators_ != NULL) {
-#ifdef BLIS_DEBUG
+#ifdef DISCO_DEBUG
         std::cout << "MODEL: distructor: numCutGenerators = "
                   << numCutGenerators_ << std::endl;
 #endif
-        BlisConGenerator *temp = NULL;
+        DcoConGenerator *temp = NULL;
         for (i = 0; i < numCutGenerators_; ++i) {
             temp = generators_[i];
             delete temp;
@@ -1607,7 +1607,7 @@ BlisModel::gutsOfDestructor()
 
     delete [] conRandoms_;
 
-    delete BlisPar_;
+    delete DcoPar_;
     delete blisMessageHandler_;
     // AT  - delete structure only if problem has been really presolved, for parallel code
     //	std::cout<<" DEleteing "<<std::endl;
@@ -1622,8 +1622,8 @@ BlisModel::gutsOfDestructor()
 
 //#############################################################################
 
-BlisSolution *
-BlisModel::feasibleSolutionHeur(const double *solution)
+DcoSolution *
+DcoModel::feasibleSolutionHeur(const double *solution)
 {
     int j, ind;
 
@@ -1634,7 +1634,7 @@ BlisModel::feasibleSolutionHeur(const double *solution)
     double value, nearest, objValue = 0.0;
     double *rowAct = NULL;
 
-    BlisSolution *blisSol = NULL;
+    DcoSolution *blisSol = NULL;
 
     // Check if within column bounds
     for (j = 0; j < numCols_; ++j) {
@@ -1719,7 +1719,7 @@ TERM_FEAS_HEUR:
 
     if (feasible && userFeasible && !blisSol) {
         // User doesn't overload feasible solution function.
-        blisSol = new BlisSolution(getNumCols(), solution, objValue);
+        blisSol = new DcoSolution(getNumCols(), solution, objValue);
     }
 
     if (rowAct) delete [] rowAct;
@@ -1728,8 +1728,8 @@ TERM_FEAS_HEUR:
 
 //#############################################################################
 
-BlisSolution *
-BlisModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
+DcoSolution *
+DcoModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
 {
     int preferredWay, j;
     int numUnsatisfied = 0;
@@ -1737,7 +1737,7 @@ BlisModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
     bool userFeasible = true;
     double sumUnsatisfied = 0.0;
 
-    BlisSolution* sol = NULL;
+    DcoSolution* sol = NULL;
 
     for (j = 0; j < numIntObjects_; ++j) {
 	const BcpsObject * object = objects_[j];
@@ -1780,7 +1780,7 @@ BlisModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
 
     if (!numUnsatisfied && userFeasible && !sol) {
         // User doesn't overload feasible solution function.
-        sol = new BlisSolution(getNumCols(),
+        sol = new DcoSolution(getNumCols(),
                                getLpSolution(),
                                objSense_ * getLpObjValue());
     }
@@ -1798,7 +1798,7 @@ BlisModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
   quietly fail in several directions.
 */
 void
-BlisModel::passInPriorities (const int * priorities,
+DcoModel::passInPriorities (const int * priorities,
 			     bool ifObject,
 			     int defaultValue)
 {
@@ -1830,14 +1830,14 @@ BlisModel::passInPriorities (const int * priorities,
 //#############################################################################
 
 AlpsTreeNode *
-BlisModel::createRoot() {
+DcoModel::createRoot() {
 
     //-------------------------------------------------------------
     // NOTE: Root will be deleted by ALPS. Root is an explicit node.
     //-------------------------------------------------------------
 
-    BlisTreeNode* root = new BlisTreeNode;
-    BlisNodeDesc* desc = new BlisNodeDesc(this);
+    DcoTreeNode* root = new DcoTreeNode;
+    DcoNodeDesc* desc = new DcoNodeDesc(this);
     root->setDesc(desc);
 
     //-------------------------------------------------------------
@@ -1855,8 +1855,8 @@ BlisModel::createRoot() {
     int numVars = static_cast<int> (vars.size());
     int numCons = static_cast<int> (cons.size());
 
-#ifdef BLIS_DEBUG
-    std::cout << "BLIS: createRoot(): numVars=" << numVars
+#ifdef DISCO_DEBUG
+    std::cout << "DISCO: createRoot(): numVars=" << numVars
               << ", numCons=" << numCons
               << "; numCoreVariables_=" << numCoreVariables_
               << ", numCoreConstraints_=" << numCoreConstraints_ << std::endl;
@@ -1890,8 +1890,8 @@ BlisModel::createRoot() {
         varIndices1[k] = k;
         varIndices2[k] = k;
 
-#ifdef BLIS_DEBUG_MORE
-        std::cout << "BLIS: createRoot(): var "<< k << ": hard: lb=" << vlhe[k]
+#ifdef DISCO_DEBUG_MORE
+        std::cout << "DISCO: createRoot(): var "<< k << ": hard: lb=" << vlhe[k]
                   << ", ub=" << vuhe[k] << std::endl;
 #endif
     }
@@ -1935,12 +1935,12 @@ BlisModel::createRoot() {
 //#############################################################################
 
 void
-BlisModel::addHeuristic(BlisHeuristic * heuristic)
+DcoModel::addHeuristic(DcoHeuristic * heuristic)
 {
-    BlisHeuristic ** temp = heuristics_;
-    heuristics_ = new BlisHeuristic * [numHeuristics_ + 1];
+    DcoHeuristic ** temp = heuristics_;
+    heuristics_ = new DcoHeuristic * [numHeuristics_ + 1];
 
-    memcpy(heuristics_, temp, numHeuristics_ * sizeof(BlisHeuristic *));
+    memcpy(heuristics_, temp, numHeuristics_ * sizeof(DcoHeuristic *));
     delete [] temp;
 
     heuristics_[numHeuristics_++] = heuristic;
@@ -1949,21 +1949,21 @@ BlisModel::addHeuristic(BlisHeuristic * heuristic)
 //#############################################################################
 
 void
-BlisModel::addCutGenerator(CglCutGenerator * generator,
+DcoModel::addCutGenerator(CglCutGenerator * generator,
 			   const char * name,
-			   BlisCutStrategy strategy,
+			   DcoCutStrategy strategy,
 			   int freq,
 			   bool normal,
 			   bool atSolution,
 			   bool whenInfeasible)
 {
-    BlisConGenerator ** temp = generators_;
+    DcoConGenerator ** temp = generators_;
 
-    generators_ = new BlisConGenerator * [(numCutGenerators_ + 1)];
-    memcpy(generators_, temp, numCutGenerators_ * sizeof(BlisConGenerator *));
+    generators_ = new DcoConGenerator * [(numCutGenerators_ + 1)];
+    memcpy(generators_, temp, numCutGenerators_ * sizeof(DcoConGenerator *));
 
     generators_[numCutGenerators_++] =
-        new BlisConGenerator(this, generator, name, strategy, freq,
+        new DcoConGenerator(this, generator, name, strategy, freq,
                              normal, atSolution, whenInfeasible);
     delete [] temp;
     temp = NULL;
@@ -1976,12 +1976,12 @@ BlisModel::addCutGenerator(CglCutGenerator * generator,
 //#############################################################################
 
 void
-BlisModel::addCutGenerator(BlisConGenerator * generator)
+DcoModel::addCutGenerator(DcoConGenerator * generator)
 {
-    BlisConGenerator ** temp = generators_;
+    DcoConGenerator ** temp = generators_;
 
-    generators_ = new BlisConGenerator * [(numCutGenerators_ + 1)];
-    memcpy(generators_, temp, numCutGenerators_ * sizeof(BlisConGenerator *));
+    generators_ = new DcoConGenerator * [(numCutGenerators_ + 1)];
+    memcpy(generators_, temp, numCutGenerators_ * sizeof(DcoConGenerator *));
 
     generators_[numCutGenerators_++] = generator;
 
@@ -1992,11 +1992,11 @@ BlisModel::addCutGenerator(BlisConGenerator * generator)
 //#############################################################################
 
 AlpsReturnStatus
-BlisModel::encodeBlis(AlpsEncoded *encoded) const
+DcoModel::encodeDco(AlpsEncoded *encoded) const
 {
     AlpsReturnStatus status = AlpsReturnStatusOk;
 
-    BlisPar_->pack(*encoded);
+    DcoPar_->pack(*encoded);
 
     encoded->writeRep(objSense_);
 
@@ -2006,11 +2006,11 @@ BlisModel::encodeBlis(AlpsEncoded *encoded) const
 //#############################################################################
 
 AlpsReturnStatus
-BlisModel::decodeBlis(AlpsEncoded &encoded)
+DcoModel::decodeDco(AlpsEncoded &encoded)
 {
     AlpsReturnStatus status = AlpsReturnStatusOk;
 
-    BlisPar_->unpack(encoded);
+    DcoPar_->unpack(encoded);
 
     encoded.readRep(objSense_);
 
@@ -2018,19 +2018,19 @@ BlisModel::decodeBlis(AlpsEncoded &encoded)
     // Load problem to LP solver.
     //------------------------------------------------------
 
-    std::vector<BlisVariable *> vars;
-    std::vector<BlisConstraint *> cons;
+    std::vector<DcoVariable *> vars;
+    std::vector<DcoConstraint *> cons;
 
     int k;
     int size = static_cast<int> (variables_.size());
     for (k = 0; k < size; ++k) {
-        BlisVariable * aVar = dynamic_cast<BlisVariable *>(variables_[k]);
+        DcoVariable * aVar = dynamic_cast<DcoVariable *>(variables_[k]);
         vars.push_back(aVar);
     }
 
     size = static_cast<int> (constraints_.size());
     for (k = 0; k < size; ++k) {
-        BlisConstraint * aCon = dynamic_cast<BlisConstraint *>(constraints_[k]);
+        DcoConstraint * aCon = dynamic_cast<DcoConstraint *>(constraints_[k]);
         cons.push_back(aCon);
     }
 
@@ -2046,7 +2046,7 @@ BlisModel::decodeBlis(AlpsEncoded &encoded)
 //#############################################################################
 
 AlpsEncoded*
-BlisModel::encode() const
+DcoModel::encode() const
 {
     AlpsReturnStatus status = AlpsReturnStatusOk;
 
@@ -2055,7 +2055,7 @@ BlisModel::encode() const
 
     status = encodeAlps(encoded);
     status = encodeBcps(encoded);
-    status = encodeBlis(encoded);
+    status = encodeDco(encoded);
 
     return encoded;
 }
@@ -2063,19 +2063,19 @@ BlisModel::encode() const
 //#############################################################################
 
 void
-BlisModel::decodeToSelf(AlpsEncoded& encoded)
+DcoModel::decodeToSelf(AlpsEncoded& encoded)
 {
     AlpsReturnStatus status = AlpsReturnStatusOk;
 
     status = decodeAlps(encoded);
     status = decodeBcps(encoded);
-    status = decodeBlis(encoded);
+    status = decodeDco(encoded);
 }
 
 //#############################################################################
 
 AlpsEncoded*
-BlisModel::packSharedKnowlege()
+DcoModel::packSharedKnowlege()
 {
     AlpsEncoded* encoded = NULL;
 
@@ -2096,14 +2096,14 @@ BlisModel::packSharedKnowlege()
     //------------------------------------------------------
 
     if (phase == AlpsPhaseRampup) {
-        sharePseudo = BlisPar_->entry(BlisParams::sharePseudocostRampUp);
+        sharePseudo = DcoPar_->entry(DcoParams::sharePseudocostRampUp);
     }
     else if (phase == AlpsPhaseSearch) {
-        sharePseudo = BlisPar_->entry(BlisParams::sharePseudocostSearch);
+        sharePseudo = DcoPar_->entry(DcoParams::sharePseudocostSearch);
         if (sharePseudo) {
             // Depth and frequency
-            depth = BlisPar_->entry(BlisParams::sharePcostDepth);
-            frequency =  BlisPar_->entry(BlisParams::sharePcostFrequency);
+            depth = DcoPar_->entry(DcoParams::sharePcostDepth);
+            frequency =  DcoPar_->entry(DcoParams::sharePcostFrequency);
             if ( /*(numNodes_ % frequency != 0) ||*/
 		(broker_->getTreeDepth() >  depth) ) {
                 sharePseudo = false;
@@ -2124,13 +2124,13 @@ BlisModel::packSharedKnowlege()
     // TODO: constraints, and variables, etc.
     //------------------------------------------------------
 
-    shareCon = BlisPar_->entry(BlisParams::shareConstraints);
+    shareCon = DcoPar_->entry(DcoParams::shareConstraints);
     numCons = constraintPoolSend_->getNumConstraints();
-    if (shareCon && numCons >= BLIS_MIN_SHARE_CON) {
+    if (shareCon && numCons >= DISCO_MIN_SHARE_CON) {
 	share = true;
     }
 
-    shareVar = BlisPar_->entry(BlisParams::shareVariables);
+    shareVar = DcoPar_->entry(DcoParams::shareVariables);
     //numVars = constraintPoolSend_->getNumVariables();
     //if (shareVar && numVars > 10) share = true;
 
@@ -2159,7 +2159,7 @@ BlisModel::packSharedKnowlege()
 //#############################################################################
 
 void
-BlisModel::unpackSharedKnowledge(AlpsEncoded& encoded)
+DcoModel::unpackSharedKnowledge(AlpsEncoded& encoded)
 {
     unpackSharedPseudocost(encoded);
     unpackSharedConstraints(encoded);
@@ -2170,32 +2170,32 @@ BlisModel::unpackSharedKnowledge(AlpsEncoded& encoded)
 
 /** Register knowledge. */
 void
-BlisModel::registerKnowledge() {
+DcoModel::registerKnowledge() {
     // Register model, solution, and tree node
     assert(broker_);
-    broker_->registerClass(AlpsKnowledgeTypeModel, new BlisModel);
+    broker_->registerClass(AlpsKnowledgeTypeModel, new DcoModel);
     if (broker_->getMsgLevel() > 100) {
-	std::cout << "BLIS: Register Alps model." << std::endl;
+	std::cout << "DISCO: Register Alps model." << std::endl;
     }
 
-    broker_->registerClass(AlpsKnowledgeTypeNode, new BlisTreeNode(this));
+    broker_->registerClass(AlpsKnowledgeTypeNode, new DcoTreeNode(this));
     if (broker_->getMsgLevel() > 100) {
-	std::cout << "BLIS: Register Alps node." << std::endl;
+	std::cout << "DISCO: Register Alps node." << std::endl;
     }
 
-    broker_->registerClass(AlpsKnowledgeTypeSolution, new BlisSolution);
+    broker_->registerClass(AlpsKnowledgeTypeSolution, new DcoSolution);
     if (broker_->getMsgLevel() > 100) {
-	std::cout << "BLIS: Register Alps solution." << std::endl;
+	std::cout << "DISCO: Register Alps solution." << std::endl;
     }
 
-    broker_->registerClass(BcpsKnowledgeTypeConstraint, new BlisConstraint);
+    broker_->registerClass(BcpsKnowledgeTypeConstraint, new DcoConstraint);
     if (broker_->getMsgLevel() > 100) {
-	std::cout << "BLIS: Register Bcps constraint." << std::endl;
+	std::cout << "DISCO: Register Bcps constraint." << std::endl;
     }
 
-    broker_->registerClass(BcpsKnowledgeTypeVariable, new BlisVariable);
+    broker_->registerClass(BcpsKnowledgeTypeVariable, new DcoVariable);
     if (broker_->getMsgLevel() > 100) {
-	std::cout << "BLIS: Register Bcps variable." << std::endl;
+	std::cout << "DISCO: Register Bcps variable." << std::endl;
     }
 }
 
@@ -2203,7 +2203,7 @@ BlisModel::registerKnowledge() {
 
 /** Log of specific models. */
 void
-BlisModel::modelLog()
+DcoModel::modelLog()
 {
     int logFileLevel = AlpsPar_->entry(AlpsParams::logFileLevel);
     int msgLevel = AlpsPar_->entry(AlpsParams::msgLevel);
@@ -2220,7 +2220,7 @@ BlisModel::modelLog()
             int k;
             for (k = 0; k < numCutGenerators_; ++k) {
                 if (cutGenerators(k)->calls() > 0) {
-                    blisMessageHandler()->message(BLIS_CUT_STAT_FINAL,
+                    blisMessageHandler()->message(DISCO_CUT_STAT_FINAL,
                                                   blisMessages())
                         << cutGenerators(k)->name()
                         << cutGenerators(k)->calls()
@@ -2232,7 +2232,7 @@ BlisModel::modelLog()
             }
             for (k = 0; k < numHeuristics_; ++k) {
                 if (heuristics(k)->calls() > 0) {
-                    blisMessageHandler()->message(BLIS_HEUR_STAT_FINAL,
+                    blisMessageHandler()->message(DISCO_HEUR_STAT_FINAL,
                                                   blisMessages())
                         << heuristics(k)->name()
                         << heuristics(k)->calls()
@@ -2245,11 +2245,11 @@ BlisModel::modelLog()
 
             // Print gap
             if (currRelGap_ > ALPS_OBJ_MAX_LESS) {
-                blisMessageHandler()->message(BLIS_GAP_NO, blisMessages())
+                blisMessageHandler()->message(DISCO_GAP_NO, blisMessages())
                     << CoinMessageEol;
             }
             else {
-                blisMessageHandler()->message(BLIS_GAP_YES, blisMessages())
+                blisMessageHandler()->message(DISCO_GAP_YES, blisMessages())
                     << currRelGap_ << CoinMessageEol;
             }
 
@@ -2259,11 +2259,11 @@ BlisModel::modelLog()
         if (msgLevel > 0) {
             // Print gap
             if (currRelGap_ > ALPS_OBJ_MAX_LESS) {
-                blisMessageHandler()->message(BLIS_GAP_NO, blisMessages())
+                blisMessageHandler()->message(DISCO_GAP_NO, blisMessages())
                     << CoinMessageEol;
             }
             else {
-                blisMessageHandler()->message(BLIS_GAP_YES, blisMessages())
+                blisMessageHandler()->message(DISCO_GAP_YES, blisMessages())
                     << currRelGap_ << CoinMessageEol;
             }
         }
@@ -2273,7 +2273,7 @@ BlisModel::modelLog()
 //#############################################################################
 
 void
-BlisModel::nodeLog(AlpsTreeNode *node, bool force)
+DcoModel::nodeLog(AlpsTreeNode *node, bool force)
 {
     int nodeInterval =
 	broker_->getModel()->AlpsPar()->entry(AlpsParams::nodeLogInterval);
@@ -2558,7 +2558,7 @@ BlisModel::nodeLog(AlpsTreeNode *node, bool force)
 //#############################################################################
 
 bool
-BlisModel::fathomAllNodes()
+DcoModel::fathomAllNodes()
 {
     double feasBound = ALPS_OBJ_MAX;
     double relBound = ALPS_OBJ_MAX;
@@ -2600,7 +2600,7 @@ BlisModel::fathomAllNodes()
 
 // Borrow from CBC
 void
-BlisModel::analyzeObjective()
+DcoModel::analyzeObjective()
 {
     const double *objective = getObjCoef();
     const double *lower = getColLower();
@@ -2676,16 +2676,16 @@ BlisModel::analyzeObjective()
 
 	if (increment) {
 	    double value = increment;
-	    double cutoffInc = BlisPar_->entry(BlisParams::cutoffInc);
+	    double cutoffInc = DcoPar_->entry(DcoParams::cutoffInc);
 
 	    value /= multiplier;
 	    if (value * 0.999 > cutoffInc) {
 		if (broker_->getProcRank() == broker_->getMasterRank()) {
-		    blisMessageHandler()->message(BLIS_CUTOFF_INC,
+		    blisMessageHandler()->message(DISCO_CUTOFF_INC,
 						  blisMessages())
 			<< value << CoinMessageEol;
 		}
-		BlisPar_->setEntry(BlisParams::cutoffInc, -value*0.999);
+		DcoPar_->setEntry(DcoParams::cutoffInc, -value*0.999);
 	    }
 	}
     }
@@ -2694,11 +2694,11 @@ BlisModel::analyzeObjective()
 //#############################################################################
 
 void
-BlisModel::packSharedPseudocost(AlpsEncoded *encoded, int numToShare)
+DcoModel::packSharedPseudocost(AlpsEncoded *encoded, int numToShare)
 {
     int k;
 
-    BlisObjectInt *intObj = NULL;
+    DcoObjectInt *intObj = NULL;
     if (numToShare > 0) {
 	// Record how many can be shared.
 	encoded->writeRep(numToShare);
@@ -2706,7 +2706,7 @@ BlisModel::packSharedPseudocost(AlpsEncoded *encoded, int numToShare)
 	    if (sharedObjectMark_[k]) {
 		// Recored which variable.
 		encoded->writeRep(k);
-		intObj = dynamic_cast<BlisObjectInt*>(objects_[k]);
+		intObj = dynamic_cast<DcoObjectInt*>(objects_[k]);
 		(intObj->pseudocost()).encodeTo(encoded);
 	    }
 	}
@@ -2727,16 +2727,16 @@ BlisModel::packSharedPseudocost(AlpsEncoded *encoded, int numToShare)
 //#############################################################################
 
 void
-BlisModel::unpackSharedPseudocost(AlpsEncoded &encoded)
+DcoModel::unpackSharedPseudocost(AlpsEncoded &encoded)
 {
     int k, objIndex, size = 0;
 
     // Encode and store pseudocost
-    BlisObjectInt *intObj = NULL;
+    DcoObjectInt *intObj = NULL;
     encoded.readRep(size);
     for (k = 0; k < size; ++k) {
         encoded.readRep(objIndex);
-        intObj = dynamic_cast<BlisObjectInt *>(objects_[objIndex]);
+        intObj = dynamic_cast<DcoObjectInt *>(objects_[objIndex]);
         (intObj->pseudocost()).decodeFrom(encoded);
     }
 }
@@ -2745,11 +2745,11 @@ BlisModel::unpackSharedPseudocost(AlpsEncoded &encoded)
 
 // TODO: Limit msg size
 void
-BlisModel::packSharedConstraints(AlpsEncoded *encoded)
+DcoModel::packSharedConstraints(AlpsEncoded *encoded)
 {
     int numCons = constraintPoolSend_->getNumConstraints();
 
-    if (numCons < BLIS_MIN_SHARE_CON) {
+    if (numCons < DISCO_MIN_SHARE_CON) {
 	// Do not send
 	int zero = 0; // Let writeRep know it is an integer.
 	encoded->writeRep(zero);
@@ -2757,8 +2757,8 @@ BlisModel::packSharedConstraints(AlpsEncoded *encoded)
     }
     else {
 	// Send constraints.
-	if (numCons > BLIS_MAX_SHARE_CON) {
-	    numCons = BLIS_MAX_SHARE_CON;
+	if (numCons > DISCO_MAX_SHARE_CON) {
+	    numCons = DISCO_MAX_SHARE_CON;
 	}
 	encoded->writeRep(numCons);
 	for (int k = 0; k < numCons; ++k) {
@@ -2775,7 +2775,7 @@ BlisModel::packSharedConstraints(AlpsEncoded *encoded)
 //#############################################################################
 
 void
-BlisModel::unpackSharedConstraints(AlpsEncoded &encoded)
+DcoModel::unpackSharedConstraints(AlpsEncoded &encoded)
 {
     int numCons = 0;
 
@@ -2796,7 +2796,7 @@ BlisModel::unpackSharedConstraints(AlpsEncoded &encoded)
 //#############################################################################
 
 void
-BlisModel::packSharedVariables(AlpsEncoded *encoded)
+DcoModel::packSharedVariables(AlpsEncoded *encoded)
 {
 
 }
@@ -2804,7 +2804,7 @@ BlisModel::packSharedVariables(AlpsEncoded *encoded)
 //#############################################################################
 
 void
-BlisModel::unpackSharedVariables(AlpsEncoded &encoded)
+DcoModel::unpackSharedVariables(AlpsEncoded &encoded)
 {
 
 }

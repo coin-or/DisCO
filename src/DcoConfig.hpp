@@ -39,24 +39,24 @@
  *
  */
 
-#ifndef __BLISCONFIG_H__
-#define __BLISCONFIG_H__
+#ifndef __DCOCONFIG_H__
+#define __DCOCONFIG_H__
 
 #ifdef HAVE_CONFIG_H
-#ifdef BLIS_BUILD
+#ifdef DISCO_BUILD
 #include "config.h"
 #else
-#include "config_blis.h"
+#include "config_dco.h"
 #endif
 
 #else /* HAVE_CONFIG_H */
 
-#ifdef BLIS_BUILD
+#ifdef DISCO_BUILD
 #include "config_default.h"
 #else
-#include "config_blis_default.h"
+#include "config_dco_default.h"
 #endif
 
 #endif /* HAVE_CONFIG_H */
 
-#endif /*__BLISCONFIG_H__*/
+#endif /*__DCOCONFIG_H__*/

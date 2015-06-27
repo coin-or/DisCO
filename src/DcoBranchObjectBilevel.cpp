@@ -29,8 +29,8 @@
 //#############################################################################
 
 // Assignment operator 
-BlisBranchObjectBilevel & 
-BlisBranchObjectBilevel::operator=(const BlisBranchObjectBilevel& rhs)
+DcoBranchObjectBilevel & 
+DcoBranchObjectBilevel::operator=(const DcoBranchObjectBilevel& rhs)
 {
     if (this != &rhs) {
 	BcpsBranchObject::operator=(rhs);
@@ -56,7 +56,7 @@ BlisBranchObjectBilevel::operator=(const BlisBranchObjectBilevel& rhs)
    implementation*/
 
 double
-BlisBranchObjectBilevel::branch(bool normalBranch)
+DcoBranchObjectBilevel::branch(bool normalBranch)
 {
     return 0.0;
 }
@@ -65,7 +65,7 @@ BlisBranchObjectBilevel::branch(bool normalBranch)
 
 // Print what would happen  
 void
-BlisBranchObjectBilevel::print(bool normalBranch)
+DcoBranchObjectBilevel::print(bool normalBranch)
 {
     std::deque<int>::iterator ptr1;
     std::cout << "Branching set consists of variables ";

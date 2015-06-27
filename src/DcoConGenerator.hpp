@@ -27,14 +27,14 @@
 //#############################################################################
 
 
-#ifndef BlisConGenerator_h_
-#define BlisConGenerator_h_
+#ifndef DcoConGenerator_h_
+#define DcoConGenerator_h_
 
 #include "OsiConicSolverInterface.hpp"
 #include "OsiCuts.hpp"
 
 
-class BlisModel;
+class DcoModel;
 
 class OsiRowCut;
 class OsiRowCutDebugger;
@@ -43,11 +43,11 @@ class CglCutGenerator;
 
 //#############################################################################
 
-/** Interface between Blis and Cut Generation Library.
-    \c BlisConGenerator is intended to provide an intelligent
-    interface between Blis and the cutting plane algorithms in the CGL.
-    A \c BlisConGenerator is bound to a \c CglCutGenerator and
-    to an \c BlisModel. It contains parameters which control when and
+/** Interface between Dco and Cut Generation Library.
+    \c DcoConGenerator is intended to provide an intelligent
+    interface between Dco and the cutting plane algorithms in the CGL.
+    A \c DcoConGenerator is bound to a \c CglCutGenerator and
+    to an \c DcoModel. It contains parameters which control when and
     how the \c generateCuts method of the \c CglCutGenerator will be called.
 
     The builtin decision criteria available to use when deciding whether to
@@ -55,11 +55,11 @@ class CglCutGenerator;
     solution is found, and when a subproblem is found to be infeasible.
 */
 
-class BlisConGenerator  {
+class DcoConGenerator  {
 
 protected:
     /** The client model. */
-    BlisModel *model_;
+    DcoModel *model_;
 
     /** The CglCutGenerator object. */
     CglCutGenerator * generator_;
@@ -69,12 +69,12 @@ protected:
     //------------------------------------------------------
 
     /** When to call CglCutGenerator::generateCuts routine.
-        BlisCutStrategyNone:                    disable
-        BlisCutStrategyRoot:                    just root
-        BlisCutStrategyAuto:                    automatically decided by BLIS
-	BlisCutStrategyPeriodic:                Generate every 't' nodes
+        DcoCutStrategyNone:                    disable
+        DcoCutStrategyRoot:                    just root
+        DcoCutStrategyAuto:                    automatically decided by DISCO
+	DcoCutStrategyPeriodic:                Generate every 't' nodes
     */
-    BlisCutStrategy strategy_;
+    DcoCutStrategy strategy_;
 
     /** The frequency of calls to the cut generator. */
     int cutGenerationFrequency_;
@@ -116,11 +116,11 @@ protected:
     /**@name Constructors and destructors */
     //@{
     /** Default constructor. */
-    BlisConGenerator()
+    DcoConGenerator()
         :
         model_(NULL),
         generator_(NULL),
-        strategy_(BlisCutStrategyAuto),
+        strategy_(DcoCutStrategyAuto),
         cutGenerationFrequency_(1),
         normal_(true),
         atSolution_(false),
@@ -133,23 +133,23 @@ protected:
         { name_ = "UNKNOWN"; }
 
     /** Useful constructor. */
-    BlisConGenerator(BlisModel * model,
+    DcoConGenerator(DcoModel * model,
 		     CglCutGenerator * generator,
 		     const char * name = NULL,
-		     BlisCutStrategy strategy = BlisCutStrategyAuto,
+		     DcoCutStrategy strategy = DcoCutStrategyAuto,
 		     int cutGenerationFrequency_ = 1,
 		     bool normal = true,
 		     bool atSolution = false,
 		     bool infeasible = false);
 
     /** Copy constructor. */
-    BlisConGenerator (const BlisConGenerator &);
+    DcoConGenerator (const DcoConGenerator &);
 
     /** Assignment operator. */
-    BlisConGenerator & operator=(const BlisConGenerator& rhs);
+    DcoConGenerator & operator=(const DcoConGenerator& rhs);
 
     /** Destructor. */
-    virtual ~BlisConGenerator()
+    virtual ~DcoConGenerator()
         {
             if (generator_) {
                 delete generator_;
@@ -179,13 +179,13 @@ protected:
 	the \c refreshSolver method of the CglCutGenerator object.
     */
     /** Get a pointer to the model */
-    inline BlisModel *getModel() { return model_; }
+    inline DcoModel *getModel() { return model_; }
 
     /** Set the model */
-    inline void setModel(BlisModel *m) { model_ = m; }
+    inline void setModel(DcoModel *m) { model_ = m; }
 
     /** Refresh the model */
-    void refreshModel(BlisModel * model);
+    void refreshModel(DcoModel * model);
 
     /** return name of generator. */
     void setName(const char *str) { name_ = str; }
@@ -194,10 +194,10 @@ protected:
     inline std::string name() const { return name_; }
 
     /** Set the con generation strategy. */
-    void setStrategy(BlisCutStrategy value) { strategy_ = value; }
+    void setStrategy(DcoCutStrategy value) { strategy_ = value; }
 
     /** Get the con generation interval. */
-    inline BlisCutStrategy strategy() const { return strategy_; }
+    inline DcoCutStrategy strategy() const { return strategy_; }
 
     /** Set the con generation strategy. */
     void setCutGenerationFreq(int freq) { cutGenerationFrequency_ = freq; }
@@ -227,7 +227,7 @@ protected:
 	found to be infeasible. */
     inline void setWhenInfeasible(bool value) { whenInfeasible_ = value; }
 
-    /** Get the \c CglCutGenerator bound to this \c BlisConGenerator. */
+    /** Get the \c CglCutGenerator bound to this \c DcoConGenerator. */
     inline CglCutGenerator * generator() const { return generator_; }
 
     /** Get number of generated cons. */

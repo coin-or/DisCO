@@ -27,51 +27,51 @@
 //#############################################################################
 
 
-#ifndef BlisBranchStrategyPseudo_h_
-#define BlisBranchStrategyPseudo_h_
+#ifndef DcoBranchStrategyPseudo_h_
+#define DcoBranchStrategyPseudo_h_
 
 #include "BcpsBranchObject.h"
 #include "BcpsBranchStrategy.h"
 #include "DcoModel.hpp"
 
 
-/** Blis branching strategy.
+/** Dco branching strategy.
     This class implements pseudocost branching. */
-class BlisBranchStrategyPseudo : public BcpsBranchStrategy {
+class DcoBranchStrategyPseudo : public BcpsBranchStrategy {
 
  private:
     /** Illegal Assignment operator.*/
-    BlisBranchStrategyPseudo& operator=(const BlisBranchStrategyPseudo& rhs);
+    DcoBranchStrategyPseudo& operator=(const DcoBranchStrategyPseudo& rhs);
 
     int relibility_;
     
  public:
 
     /** Default Constructor. */
-    BlisBranchStrategyPseudo() : relibility_(1) {
+    DcoBranchStrategyPseudo() : relibility_(1) {
 	relibility_ = 1;
-	type_ = static_cast<int>(BlisBranchingStrategyPseudoCost);
+	type_ = static_cast<int>(DcoBranchingStrategyPseudoCost);
     }
 
     /** Useful Constructor. */
-    BlisBranchStrategyPseudo(BlisModel *model, int rel)
+    DcoBranchStrategyPseudo(DcoModel *model, int rel)
 	: BcpsBranchStrategy(model) {
         relibility_ = rel;
-	type_ = static_cast<int>(BlisBranchingStrategyPseudoCost);
+	type_ = static_cast<int>(DcoBranchingStrategyPseudoCost);
     }
 
     /** Destructor. */
-    virtual ~BlisBranchStrategyPseudo() {}
+    virtual ~DcoBranchStrategyPseudo() {}
     
     /** Copy constructor. */
-    BlisBranchStrategyPseudo(const BlisBranchStrategyPseudo &);
+    DcoBranchStrategyPseudo(const DcoBranchStrategyPseudo &);
     
     /** Set relibility. */
     void setRelibility(int rel) { relibility_ = rel; }    
 
     /** Clone a brancing strategy. */
     virtual BcpsBranchStrategy * clone() const {
-	return new BlisBranchStrategyPseudo(*this);
+	return new DcoBranchStrategyPseudo(*this);
     }
     
     /** Compare branching object thisOne to bestSoFar. If thisOne is better 

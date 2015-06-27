@@ -25,8 +25,8 @@
 // This file is modified from CbcHeuristic.hpp
 //#############################################################################
 
-#ifndef BlisHeurRound_h_
-#define BlisHeurRound_h_
+#ifndef DcoHeurRound_h_
+#define DcoHeurRound_h_
 
 #include <string>
 #include <vector>
@@ -36,15 +36,15 @@
 
 #include "DcoHeuristic.hpp"
 
-class BlisModel;
+class DcoModel;
 
 //#############################################################################
 
 /** Rounding Heuristic.  */
-class BlisHeurRound : public BlisHeuristic {
+class DcoHeurRound : public DcoHeuristic {
  private:
     /** Illegal Assignment operator. */ 
-    BlisHeurRound & operator=(const BlisHeurRound& rhs);
+    DcoHeurRound & operator=(const DcoHeurRound& rhs);
 
  protected:
     /** Column majored matrix. */
@@ -58,30 +58,30 @@ class BlisHeurRound : public BlisHeuristic {
     
  public:
     /** Default Constructor. */
-    BlisHeurRound() {}
+    DcoHeurRound() {}
     
     /** Constructor with model - assumed before cuts. */
-    BlisHeurRound(BlisModel * model, const char *name,
-		  BlisHeurStrategy strategy, int freq)
+    DcoHeurRound(DcoModel * model, const char *name,
+		  DcoHeurStrategy strategy, int freq)
         :
-        BlisHeuristic(model, name, strategy, freq)
+        DcoHeuristic(model, name, strategy, freq)
         {
             assert(model->solver());
         }
 
     /** Destructor. */
-    ~BlisHeurRound() {}
+    ~DcoHeurRound() {}
   
     /** Copy constructor. */
-    BlisHeurRound( const BlisHeurRound &);
+    DcoHeurRound( const DcoHeurRound &);
     
     /** Clone a rounding heuristic */
-    virtual BlisHeuristic * clone() const;
+    virtual DcoHeuristic * clone() const;
     
     /** update model (This is needed if cliques update matrix etc). */
-    virtual void setModel(BlisModel * model);
+    virtual void setModel(DcoModel * model);
 
-    //using BlisHeuristic::searchSolution ;
+    //using DcoHeuristic::searchSolution ;
     /** returns 0 if no solution, 1 if valid solution
         with better objective value than one passed in
         Sets solution values if good, sets objective value (only if good)

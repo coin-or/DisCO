@@ -21,42 +21,42 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
-#ifndef BlisBranchStrategyMaxInf_h_
-#define BlisBranchStrategyMaxInf_h_
+#ifndef DcoBranchStrategyMaxInf_h_
+#define DcoBranchStrategyMaxInf_h_
 
 #include "BcpsBranchObject.h"
 #include "BcpsBranchStrategy.h"
 #include "DcoModel.hpp"
 
 /** This class implements maximum infeasibility branching. */
-class BlisBranchStrategyMaxInf : public BcpsBranchStrategy {
+class DcoBranchStrategyMaxInf : public BcpsBranchStrategy {
 
  private:
 
   /** Illegal Assignment operator.*/
-    BlisBranchStrategyMaxInf& operator=(const BlisBranchStrategyMaxInf& rhs);
+    DcoBranchStrategyMaxInf& operator=(const DcoBranchStrategyMaxInf& rhs);
     
  public:
     
     /** MaxInf Constructor. */
-    BlisBranchStrategyMaxInf() {
-	type_ = static_cast<int>(BlisBranchingStrategyMaxInfeasibility);
+    DcoBranchStrategyMaxInf() {
+	type_ = static_cast<int>(DcoBranchingStrategyMaxInfeasibility);
     }
 
     /** MaxInf Constructor. */
-    BlisBranchStrategyMaxInf(BlisModel *model) : BcpsBranchStrategy(model) {
-	type_ = static_cast<int>(BlisBranchingStrategyMaxInfeasibility);
+    DcoBranchStrategyMaxInf(DcoModel *model) : BcpsBranchStrategy(model) {
+	type_ = static_cast<int>(DcoBranchingStrategyMaxInfeasibility);
     }
     
     /** Destructor. */
-    virtual ~BlisBranchStrategyMaxInf() {}
+    virtual ~DcoBranchStrategyMaxInf() {}
     
     /** Copy constructor. */
-    BlisBranchStrategyMaxInf(const BlisBranchStrategyMaxInf &);
+    DcoBranchStrategyMaxInf(const DcoBranchStrategyMaxInf &);
     
     /** Clone a brancing strategy. */
     virtual BcpsBranchStrategy * clone() const {
-	return new BlisBranchStrategyMaxInf(*this);
+	return new DcoBranchStrategyMaxInf(*this);
     }
     
     /** Create a set of candidate branching objects. */

@@ -27,42 +27,42 @@
 //#############################################################################
 
 typedef struct {
-    BLIS_Message internalNumber;
+    DISCO_Message internalNumber;
     int externalNumber;              // or continuation
     char detail;
     const char * message;
-} Blis_message;
+} Dco_message;
 
 //#############################################################################
 
-static Blis_message us_english[]=
+static Dco_message us_english[]=
 {
-    {BLIS_CUTOFF_INC, 43, 1, "Objective coefficients are multiples of %g"},
-    {BLIS_CUT_STAT_FINAL, 53, 1, "Called %s cut generator %d times, generated %d cuts, CPU time %.4f seconds, current strategy %d"},
-    {BLIS_CUT_STAT_NODE, 55, 1, "Node %d, called %s cut generator %d times, generated %d cuts, CPU time %.4f seconds, current strategy %d"},
-    {BLIS_GAP_NO, 57, 1, "Relative optimality gap is infinity because no solution was found"},
-    {BLIS_GAP_YES, 58, 1, "Relative optimality gap is %.2f%%"},
-    {BLIS_HEUR_BEFORE_ROOT, 60, 1, "%s heuristic found a solution; quality is %g"},
-    {BLIS_HEUR_STAT_FINAL, 63, 1, "Called %s heuristic %d times, found %d solutions, CPU time %.4f seconds, current strategy %d"},
-    {BLIS_HEUR_STAT_NODE, 65, 1, "Node %d, called %s heuristic %d times, found %d solutions, CPU time %.4f seconds, current strategy %d"},
-    {BLIS_ROOT_PROCESS, 30, 1, "Processing the root node (%d rows, %d columns)"},
-    {BLIS_ROOT_TIME, 35, 1, "Processing the first root relaxation took CPU time %.4f seconds"},
-    {BLIS_W_LP, 20, 1, "WARNING: The Problem does not have integer variables"},
-    {BLIS_DUMMY_END, 999999, 0, ""}
+    {DISCO_CUTOFF_INC, 43, 1, "Objective coefficients are multiples of %g"},
+    {DISCO_CUT_STAT_FINAL, 53, 1, "Called %s cut generator %d times, generated %d cuts, CPU time %.4f seconds, current strategy %d"},
+    {DISCO_CUT_STAT_NODE, 55, 1, "Node %d, called %s cut generator %d times, generated %d cuts, CPU time %.4f seconds, current strategy %d"},
+    {DISCO_GAP_NO, 57, 1, "Relative optimality gap is infinity because no solution was found"},
+    {DISCO_GAP_YES, 58, 1, "Relative optimality gap is %.2f%%"},
+    {DISCO_HEUR_BEFORE_ROOT, 60, 1, "%s heuristic found a solution; quality is %g"},
+    {DISCO_HEUR_STAT_FINAL, 63, 1, "Called %s heuristic %d times, found %d solutions, CPU time %.4f seconds, current strategy %d"},
+    {DISCO_HEUR_STAT_NODE, 65, 1, "Node %d, called %s heuristic %d times, found %d solutions, CPU time %.4f seconds, current strategy %d"},
+    {DISCO_ROOT_PROCESS, 30, 1, "Processing the root node (%d rows, %d columns)"},
+    {DISCO_ROOT_TIME, 35, 1, "Processing the first root relaxation took CPU time %.4f seconds"},
+    {DISCO_W_LP, 20, 1, "WARNING: The Problem does not have integer variables"},
+    {DISCO_DUMMY_END, 999999, 0, ""}
 };
 
 //#############################################################################
 
 /* Constructor */
-BlisMessage::BlisMessage(Language language) 
+DcoMessage::DcoMessage(Language language) 
     :
-    CoinMessages(sizeof(us_english) / sizeof(Blis_message))
+    CoinMessages(sizeof(us_english) / sizeof(Dco_message))
 {
     language_ = language;
-    strcpy(source_, "Blis");
-    Blis_message * message = us_english;
+    strcpy(source_, "Dco");
+    Dco_message * message = us_english;
 
-    while (message->internalNumber != BLIS_DUMMY_END) {
+    while (message->internalNumber != DISCO_DUMMY_END) {
 	CoinOneMessage oneMessage(message->externalNumber, message->detail,
 				  message->message);
 	addMessage(message->internalNumber, oneMessage);
@@ -80,7 +80,7 @@ BlisMessage::BlisMessage(Language language)
 
     // replace if any found
     if (message) {
-	while (message->internalNumber != BLIS_DUMMY_END) {
+	while (message->internalNumber != DISCO_DUMMY_END) {
 	    replaceMessage(message->internalNumber, message->message);
 	    message++;
 	}

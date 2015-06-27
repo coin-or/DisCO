@@ -21,8 +21,8 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
-#ifndef BlisConstraint_h_
-#define BlisConstraint_h_
+#ifndef DcoConstraint_h_
+#define DcoConstraint_h_
 
 #include "BcpsObject.h"
 
@@ -30,7 +30,7 @@ class OsiRowCut;
 
 //#############################################################################
 
-class BlisConstraint : public BcpsConstraint {
+class DcoConstraint : public BcpsConstraint {
     
  protected:
     /** Number of nonzero coefficients */
@@ -43,22 +43,22 @@ class BlisConstraint : public BcpsConstraint {
  public:
 
     /** Default constructor. */
-    BlisConstraint();
+    DcoConstraint();
 
     /** Useful constructor. */
-    BlisConstraint(int s, const int *ind, const double *val);
+    DcoConstraint(int s, const int *ind, const double *val);
 
     /** Useful constructor. */
-    BlisConstraint(double lbh, double ubh, double lbs, double ubs);
+    DcoConstraint(double lbh, double ubh, double lbs, double ubs);
     
     /** Useful constructor. */
-    BlisConstraint(double lbh, double ubh, double lbs, double ubs,
+    DcoConstraint(double lbh, double ubh, double lbs, double ubs,
                    int size, const int *ind, const double *val);
     /** Destructor. */
-    virtual ~BlisConstraint();
+    virtual ~DcoConstraint();
 
     /** Copy constructor. */
-    BlisConstraint(const BlisConstraint & rhs);
+    DcoConstraint(const DcoConstraint & rhs);
     
     /** Return data  */
     /**@{*/
@@ -84,11 +84,11 @@ class BlisConstraint : public BcpsConstraint {
 
  protected:
 
-    /** Pack Blis part into an encoded object. */
-    AlpsReturnStatus encodeBlis(AlpsEncoded *encoded);
+    /** Pack Dco part into an encoded object. */
+    AlpsReturnStatus encodeDco(AlpsEncoded *encoded);
 
-    /** Unpack Blis part from a encode object. */
-    AlpsReturnStatus decodeBlis(AlpsEncoded &encoded);
+    /** Unpack Dco part from a encode object. */
+    AlpsReturnStatus decodeDco(AlpsEncoded &encoded);
 	    
  public:
 

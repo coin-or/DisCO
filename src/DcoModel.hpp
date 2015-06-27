@@ -23,8 +23,8 @@
 
 //#############################################################################
 
-#ifndef BlisModel_h_
-#define BlisModel_h_
+#ifndef DcoModel_h_
+#define DcoModel_h_
 
 //#############################################################################
 
@@ -58,15 +58,15 @@
 
 //#############################################################################
 
-class BlisConstraint;
-class BlisSolution;
+class DcoConstraint;
+class DcoSolution;
 class BcpsVariable;
-class BlisVariable;
+class DcoVariable;
 
 //#############################################################################
 
-/* Declare a BLIS model */
-class BlisModel : public BcpsModel {
+/* Declare a DISCO model */
+class DcoModel : public BcpsModel {
 
 protected:
     
@@ -126,7 +126,7 @@ protected:
     // PRESOLVE
     //------------------------------------------------------
 
-    BlisPresolve *presolve_;
+    DcoPresolve *presolve_;
     // AT - Begin
     bool presolved;
     bool problemSetup;
@@ -173,7 +173,7 @@ protected:
     // Hotstart strategy 0 = off, 
     // 1 = branch if incorrect,
     // 2 = branch even if correct, ....
-    BlisHotStartStrategy hotstartStrategy_;
+    DcoHotStartStrategy hotstartStrategy_;
     
     /** Number of objects. */
     int numObjects_;
@@ -207,14 +207,14 @@ protected:
     int numHeuristics_;
 
     /** The list of heuristics. */
-    BlisHeuristic **heuristics_;
+    DcoHeuristic **heuristics_;
 
     //------------------------------------------------------
     // CONSTRAINTS.
     //------------------------------------------------------
 
     /** If use cut generators. */
-    BlisCutStrategy cutStrategy_; 
+    DcoCutStrategy cutStrategy_; 
     
     /** Frequency of cut generation */
     int cutGenerationFrequency_; 
@@ -226,13 +226,13 @@ protected:
     int maxNumCons_;
 
     /** The list of cut generators used. */
-    BlisConGenerator **generators_;
+    DcoConGenerator **generators_;
 
     /** Store all the cuts. */
     BcpsConstraintPool *constraintPool_;
     
     /** Temporary store old cuts at a node when installing a node. */
-    BlisConstraint **oldConstraints_;
+    DcoConstraint **oldConstraints_;
     
     /** The memory size allocated for oldConstraints_. */
     int oldConstraintsSize_;
@@ -250,13 +250,13 @@ protected:
     // PARAMETERS, STATISTICS, and MESSAGE
     //------------------------------------------------------
 
-    /** Blis parameters. */
-    BlisParams *BlisPar_;
+    /** Dco parameters. */
+    DcoParams *DcoPar_;
     
     /** Message handler. */
     CoinMessageHandler *blisMessageHandler_;
 
-    /** Blis messages. */
+    /** Dco messages. */
     CoinMessages blisMessages_;
 
     /** Number of processed nodes. */
@@ -314,7 +314,7 @@ protected:
     double currAbsGap_;
 
     /** If use heuristics. */
-    BlisHeurStrategy heurStrategy_;
+    DcoHeurStrategy heurStrategy_;
     
     /** Frequency of using heuristics. */
     int heurCallFrequency_;
@@ -336,13 +336,13 @@ protected:
  public:
 
     /** Default construtor. */
-    BlisModel() 
+    DcoModel() 
     { 
 	init();
     }
 
     /** Destructor. */
-    virtual ~BlisModel();
+    virtual ~DcoModel();
     
     /** Actual destructor. */
     void gutsOfDestructor();
@@ -402,13 +402,13 @@ protected:
      *  3) Set colType_ ('C', 'I', or 'B')
      *  4) Set variables_ and constraints_
      *  5) Set numCoreVariables_ and numCoreConstraints_
-     *  NOTE: Blis takes over the memory ownship of vars and cons, which 
+     *  NOTE: Dco takes over the memory ownship of vars and cons, which 
      *        means users must NOT free vars or cons.
      */
-    virtual void importModel(std::vector<BlisVariable *> vars,
-                             std::vector<BlisConstraint *> cons);
+    virtual void importModel(std::vector<DcoVariable *> vars,
+                             std::vector<DcoConstraint *> cons);
     
-    /** Read in Alps, Blis parameters. */
+    /** Read in Alps, Dco parameters. */
     virtual void readParameters(const int argnum, const char * const *arglist);
 
     /** Write out parameters. */
@@ -531,14 +531,14 @@ protected:
     double * incumbent() { return incumbent_; }
     
     /** Record a new incumbent solution and update objectiveValue. */
-    int storeSolution(BlisSolutionType how, BlisSolution* sol);
+    int storeSolution(DcoSolutionType how, DcoSolution* sol);
     
     /** Get cut off value. */
     inline double getCutoff() const { return cutoff_;  }
 
     /** Set cut off value. */
     inline void setCutoff(double co) { 
-        double inc = BlisPar_->entry(BlisParams::cutoffInc);        
+        double inc = DcoPar_->entry(DcoParams::cutoffInc);        
 #if 0
         std::cout << "3. cutoff_ = "<< cutoff_ 
                   << "; inc = " << inc << std::endl;
@@ -551,13 +551,13 @@ protected:
     }
 
     /** Test if a solution found by heuristic is feasible. */
-    BlisSolution *feasibleSolutionHeur(const double *solution);
+    DcoSolution *feasibleSolutionHeur(const double *solution);
 
     /** Test the current LP solution for feasiblility.
 	Scan all objects for indications of infeasibility. This is broken down
 	into simple integer infeasibility (\p numIntegerInfs)
 	and all other reports of infeasibility(\p numObjectInfs). */
-    virtual BlisSolution *feasibleSolution(int & numIntegerInfs, 
+    virtual DcoSolution *feasibleSolution(int & numIntegerInfs, 
                                            int & numObjectInfs);
     
    /** User's criteria for a feasible solution. 
@@ -568,9 +568,9 @@ protected:
     *     1) set userFeasible to false, and
     *     2) return a null.
     */
-    virtual BlisSolution *userFeasibleSolution(const double * solution, 
+    virtual DcoSolution *userFeasibleSolution(const double * solution, 
                                                bool &feasible) { 
-        BlisSolution *sol = NULL;
+        DcoSolution *sol = NULL;
         feasible = true; // Feasible by default
         return sol; 
     }
@@ -666,10 +666,10 @@ protected:
     //------------------------------------------------------
 
     /** Add a heuristic. */
-    void addHeuristic(BlisHeuristic * heur);
+    void addHeuristic(DcoHeuristic * heur);
     
     /** Get a specific heuristic. */
-    BlisHeuristic * heuristics(int i) const { return heuristics_[i]; }
+    DcoHeuristic * heuristics(int i) const { return heuristics_[i]; }
 
     /** Get the number of heuristics. */
     int numHeuristics() const { return numHeuristics_; }
@@ -678,20 +678,20 @@ protected:
     // CONSTRAINTS.
     //------------------------------------------------------
 
-    /** Add a Blis cut generator. */
-    void addCutGenerator(BlisConGenerator * generator);
+    /** Add a Dco cut generator. */
+    void addCutGenerator(DcoConGenerator * generator);
 
     /** Add a Cgl cut generator. */
     void addCutGenerator(CglCutGenerator * generator,
 			 const char * name = NULL,
-			 BlisCutStrategy strategy = BlisCutStrategyAuto,
+			 DcoCutStrategy strategy = DcoCutStrategyAuto,
 			 int cutGenerationFrequency = 1,
 			 bool normal = true, 
 			 bool atSolution = false,
 			 bool whenInfeasible = false);
     
     /** Get a specific cut generator. */
-    BlisConGenerator *cutGenerators(int i) const { return generators_[i]; }
+    DcoConGenerator *cutGenerators(int i) const { return generators_[i]; }
 
     /** Get the number of cut generators. */    
     int numCutGenerators() const { return numCutGenerators_; }
@@ -726,10 +726,10 @@ protected:
     void setOldConstraintsSize(int num) { oldConstraintsSize_ = num; }
 
     /** Access old constraints. */
-    BlisConstraint **oldConstraints() { return oldConstraints_; }
+    DcoConstraint **oldConstraints() { return oldConstraints_; }
     
     /** set old constraints. */
-    void setOldConstraints(BlisConstraint **old) { oldConstraints_ = old; }
+    void setOldConstraints(DcoConstraint **old) { oldConstraints_ = old; }
 
     /** Set max number of old constraints. */
     void delOldConstraints() {
@@ -739,12 +739,12 @@ protected:
     //@}
     
     /** Query constraint generation strategy. */
-    BlisCutStrategy getCutStrategy() const {
+    DcoCutStrategy getCutStrategy() const {
         return cutStrategy_; 
     }
 
     /** Set constraint generation strategy. */
-    void setCutStrategy(BlisCutStrategy u) { cutStrategy_ = u; }
+    void setCutStrategy(DcoCutStrategy u) { cutStrategy_ = u; }
 
     /** Query constraint generation frequency. */
     int getCutGenerationFrequency() const { return cutGenerationFrequency_; }
@@ -831,7 +831,7 @@ protected:
     
     /** Access parameters. */
     //@{
-    BlisParams * BlisPar() { return BlisPar_; }
+    DcoParams * DcoPar() { return DcoPar_; }
     //@}
 
     /** Node log. */
@@ -846,11 +846,11 @@ protected:
 
  protected:
     
-    /** Pack Blis portion of the model into an encoded object. */
-    AlpsReturnStatus encodeBlis(AlpsEncoded *encoded) const;
+    /** Pack Dco portion of the model into an encoded object. */
+    AlpsReturnStatus encodeDco(AlpsEncoded *encoded) const;
 
-    /** Unpack Blis portion of the model from an encoded object. */
-    AlpsReturnStatus decodeBlis(AlpsEncoded &encoded);  
+    /** Unpack Dco portion of the model from an encoded object. */
+    AlpsReturnStatus decodeDco(AlpsEncoded &encoded);  
 
     /** Retrieve and pack shared pseudocost. */
     void packSharedPseudocost(AlpsEncoded *encoded, int numToShare);

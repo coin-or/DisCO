@@ -33,7 +33,7 @@
 
 //#############################################################################
 
-struct BlisPseuoGreater
+struct DcoPseuoGreater
 {
     bool operator()(double x, double y) const {
         return (x > y);
@@ -43,8 +43,8 @@ struct BlisPseuoGreater
 //#############################################################################
 
 // Copy constructor
-BlisBranchStrategyPseudo::BlisBranchStrategyPseudo (
-    const BlisBranchStrategyPseudo & rhs
+DcoBranchStrategyPseudo::DcoBranchStrategyPseudo (
+    const DcoBranchStrategyPseudo & rhs
     )
     :
     BcpsBranchStrategy()
@@ -62,7 +62,7 @@ BlisBranchStrategyPseudo::BlisBranchStrategyPseudo (
 /** Compare object thisOne to the bestSorFar. The compare is based on
     pseudocost. */
 int
-BlisBranchStrategyPseudo::betterBranchObject(BcpsBranchObject * thisOne,
+DcoBranchStrategyPseudo::betterBranchObject(BcpsBranchObject * thisOne,
 					     BcpsBranchObject * bestSoFar)
 {
     int betterDirection = 0;
@@ -101,7 +101,7 @@ BlisBranchStrategyPseudo::betterBranchObject(BcpsBranchObject * thisOne,
 
 /** Create a set of candidate branching objects. */
 int
-BlisBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft,
+DcoBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft,
 						  double ub)
 {
     int bStatus = 0;
@@ -127,7 +127,7 @@ BlisBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft,
     double *saveLower = NULL;
     double *saveSolution = NULL;
 
-    BlisModel *model = dynamic_cast<BlisModel *>(model_);
+    DcoModel *model = dynamic_cast<DcoModel *>(model_);
     OsiConicSolverInterface *solver = model->solver();
 
     int numCols = model->getNumCols();
@@ -155,13 +155,13 @@ BlisBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft,
     }
 
     // Store first time objects.
-    std::vector<BlisObjectInt *> firstObjects;
+    std::vector<DcoObjectInt *> firstObjects;
 
     // Store infeasible objects.
-    std::vector<BlisObjectInt *> infObjects;
+    std::vector<DcoObjectInt *> infObjects;
 
     // TODO: check if sorting is expensive.
-    std::multimap<double, BcpsBranchObject*, BlisPseuoGreater> candObjects;
+    std::multimap<double, BcpsBranchObject*, DcoPseuoGreater> candObjects;
 
     double objValue = solver->getObjSense() * solver->getObjValue();
 
@@ -181,7 +181,7 @@ BlisBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft,
         numInfs = 0;
 
         BcpsObject * object = NULL;
-        BlisObjectInt * intObject = NULL;
+        DcoObjectInt * intObject = NULL;
 
         infObjects.clear();
         firstObjects.clear();
@@ -194,7 +194,7 @@ BlisBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft,
             if (infeasibility) {
 
                 ++numInfs;
-                intObject = dynamic_cast<BlisObjectInt *>(object);
+                intObject = dynamic_cast<DcoObjectInt *>(object);
 
                 if (intObject) {
                     infObjects.push_back(intObject);
@@ -327,7 +327,7 @@ BlisBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft,
 
             lpX = saveSolution[colInd];
 
-            BlisStrongBranch(model, objValue, colInd, lpX,
+            DcoStrongBranch(model, objValue, colInd, lpX,
                              saveLower, saveUpper,
                              downKeep, downGood, downDeg,
                              upKeep, upGood, upDeg);

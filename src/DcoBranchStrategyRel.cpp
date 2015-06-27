@@ -33,7 +33,7 @@
 
 //#############################################################################
 
-struct BlisPseuoGreater
+struct DcoPseuoGreater
 {
     bool operator()(double x, double y) const {
         return (x > y);
@@ -43,8 +43,8 @@ struct BlisPseuoGreater
 //#############################################################################
 
 // Copy constructor
-BlisBranchStrategyRel::BlisBranchStrategyRel (
-    const BlisBranchStrategyRel & rhs
+DcoBranchStrategyRel::DcoBranchStrategyRel (
+    const DcoBranchStrategyRel & rhs
     )
     :
     BcpsBranchStrategy()
@@ -62,7 +62,7 @@ BlisBranchStrategyRel::BlisBranchStrategyRel (
 /** Compare object thisOne to the bestSorFar. The compare is based on
     pseudocost. */
 int
-BlisBranchStrategyRel::betterBranchObject(BcpsBranchObject * thisOne,
+DcoBranchStrategyRel::betterBranchObject(BcpsBranchObject * thisOne,
 					     BcpsBranchObject * bestSoFar)
 {
     int betterDirection = 0;
@@ -89,7 +89,7 @@ BlisBranchStrategyRel::betterBranchObject(BcpsBranchObject * thisOne,
 
 /** Create a set of candidate branching objects. */
 int
-BlisBranchStrategyRel::createCandBranchObjects(int numPassesLeft,
+DcoBranchStrategyRel::createCandBranchObjects(int numPassesLeft,
 					       double ub)
 {
     int bStatus = 0;
@@ -117,14 +117,14 @@ BlisBranchStrategyRel::createCandBranchObjects(int numPassesLeft,
     double * saveSolution = NULL;
 
 
-    BlisModel *model = dynamic_cast<BlisModel *>(model_);
+    DcoModel *model = dynamic_cast<DcoModel *>(model_);
     OsiConicSolverInterface * solver = model->solver();
 
     int numCols = model->getNumCols();
     int numObjects = model->numObjects();
 
-    //int lookAhead = dynamic_cast<BlisParams*>
-    //  (model->blisPar())->entry(BlisParams::lookAhead);
+    //int lookAhead = dynamic_cast<DcoParams*>
+    //  (model->blisPar())->entry(DcoParams::lookAhead);
 
     //------------------------------------------------------
     // Check if max time is reached or no pass is left.
@@ -145,23 +145,23 @@ BlisBranchStrategyRel::createCandBranchObjects(int numPassesLeft,
 
 
     // Store first time objects.
-    std::vector<BlisObjectInt *> firstObjects;
+    std::vector<DcoObjectInt *> firstObjects;
 
     // Store infeasible objects.
-    std::vector<BlisObjectInt *> infObjects;
+    std::vector<DcoObjectInt *> infObjects;
 
     // TODO: check if sorting is expensive.
-    std::multimap<double, BlisObjectInt*, BlisPseuoGreater> sortedObjects;
+    std::multimap<double, DcoObjectInt*, DcoPseuoGreater> sortedObjects;
 
     double objValue = solver->getObjSense() * solver->getObjValue();
 
     const double * lower = solver->getColLower();
     const double * upper = solver->getColUpper();
 
-    int lookAhead = dynamic_cast<BlisParams*>
-	(model->BlisPar())->entry(BlisParams::lookAhead);
+    int lookAhead = dynamic_cast<DcoParams*>
+	(model->DcoPar())->entry(DcoParams::lookAhead);
 
-    BlisObjectInt * intObject = NULL;
+    DcoObjectInt * intObject = NULL;
 
     //------------------------------------------------------
     // Backup solver status and mark hot start.
@@ -198,7 +198,7 @@ BlisBranchStrategyRel::createCandBranchObjects(int numPassesLeft,
             if (infeasibility) {
 
                 ++numInfs;
-                intObject = dynamic_cast<BlisObjectInt *>(object);
+                intObject = dynamic_cast<DcoObjectInt *>(object);
 
                 if (intObject) {
 
@@ -326,7 +326,7 @@ BlisBranchStrategyRel::createCandBranchObjects(int numPassesLeft,
 
             lpX = saveSolution[colInd];
 
-            BlisStrongBranch(model, objValue, colInd, lpX,
+            DcoStrongBranch(model, objValue, colInd, lpX,
                              saveLower, saveUpper,
                              downKeep, downGood, downDeg,
                              upKeep, upGood, upDeg);
@@ -406,7 +406,7 @@ BlisBranchStrategyRel::createCandBranchObjects(int numPassesLeft,
             score = infObjects[i]->pseudocost().getScore();
             sumDeg += score;
 
-	    std::pair<const double, BlisObjectInt*> sa(score, infObjects[i]);
+	    std::pair<const double, DcoObjectInt*> sa(score, infObjects[i]);
             sortedObjects.insert(sa);
 
 #ifdef BLIS_DEBUG_MORE
@@ -417,7 +417,7 @@ BlisBranchStrategyRel::createCandBranchObjects(int numPassesLeft,
 
         int numNotChange = 0;
 
-        std::multimap< double, BlisObjectInt*, BlisPseuoGreater>::iterator pos;
+        std::multimap< double, DcoObjectInt*, DcoPseuoGreater>::iterator pos;
 
         CoinWarmStart * ws = solver->getWarmStart();
         solver->getIntParam(OsiMaxNumIterationHotStart, saveLimit);
@@ -425,7 +425,7 @@ BlisBranchStrategyRel::createCandBranchObjects(int numPassesLeft,
         solver->setIntParam(OsiMaxNumIterationHotStart, maxIter);
         solver->markHotStart();
 
-        BlisObjectInt *bestObject = NULL;
+        DcoObjectInt *bestObject = NULL;
         double bestScore = -10.0;
 
         for (pos = sortedObjects.begin(); pos != sortedObjects.end(); ++pos) {
@@ -452,7 +452,7 @@ BlisBranchStrategyRel::createCandBranchObjects(int numPassesLeft,
 
                 lpX = saveSolution[colInd];
 
-                BlisStrongBranch(model, objValue, colInd, lpX,
+                DcoStrongBranch(model, objValue, colInd, lpX,
                                  saveLower, saveUpper,
                                  downKeep, downGood, downDeg,
                                  upKeep, upGood, upDeg);

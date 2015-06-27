@@ -29,13 +29,13 @@
 //#############################################################################
 
 /* Default constructor. */
-BlisConstraint::BlisConstraint() 
+DcoConstraint::DcoConstraint() 
     :size_(0), indices_(NULL), values_(NULL) {}
 
 //#############################################################################
 
 /* Useful constructor. */
-BlisConstraint::BlisConstraint(int s, const int *ind, const double *val)
+DcoConstraint::DcoConstraint(int s, const int *ind, const double *val)
 {
     size_ = s;
     indices_ = new int [s];
@@ -47,7 +47,7 @@ BlisConstraint::BlisConstraint(int s, const int *ind, const double *val)
 //#############################################################################
 
 /* Useful constructor. */
-BlisConstraint::BlisConstraint(double lbh, double ubh, double lbs, double ubs) 
+DcoConstraint::DcoConstraint(double lbh, double ubh, double lbs, double ubs) 
     :
     BcpsConstraint(lbh, ubh, lbs, ubs),
     size_(0), indices_(NULL), values_(NULL) {}
@@ -55,7 +55,7 @@ BlisConstraint::BlisConstraint(double lbh, double ubh, double lbs, double ubs)
 //#############################################################################
 
 /* Useful constructor. */
-BlisConstraint::BlisConstraint(double lbh, double ubh, double lbs, double ubs,
+DcoConstraint::DcoConstraint(double lbh, double ubh, double lbs, double ubs,
 			       int s, const int *ind, const double *val)
     : 
     BcpsConstraint(lbh, ubh, lbs, ubs)
@@ -70,7 +70,7 @@ BlisConstraint::BlisConstraint(double lbh, double ubh, double lbs, double ubs,
 //#############################################################################
 
 /** Destructor. */
-BlisConstraint::~BlisConstraint()
+DcoConstraint::~DcoConstraint()
 { 
     delete [] indices_; indices_ = NULL;
     delete [] values_; values_ = NULL;
@@ -79,7 +79,7 @@ BlisConstraint::~BlisConstraint()
 //#############################################################################
 
 /** Copy constructor. */
-BlisConstraint::BlisConstraint(const BlisConstraint & rhs) 
+DcoConstraint::DcoConstraint(const DcoConstraint & rhs) 
     : BcpsConstraint(rhs) 
 {
     size_ = rhs.size_;
@@ -102,17 +102,17 @@ BlisConstraint::BlisConstraint(const BlisConstraint & rhs)
 
 //#############################################################################
    
-/** Pack Blis part into an encoded object. */
+/** Pack Dco part into an encoded object. */
 AlpsReturnStatus 
-BlisConstraint::encodeBlis(AlpsEncoded *encoded) 
+DcoConstraint::encodeDco(AlpsEncoded *encoded) 
 {
     AlpsReturnStatus status = AlpsReturnStatusOk;
     if (size_ < 0) {
-	std::cout << "ERROR: encodeBlis: size_=" << size_<<std::endl;
+	std::cout << "ERROR: encodeDco: size_=" << size_<<std::endl;
 	assert(size_ > 0);
     }
 
-    //std::cout << "encodeBlis: constraint length/size_=" << size_<<std::endl;
+    //std::cout << "encodeDco: constraint length/size_=" << size_<<std::endl;
 
     encoded->writeRep(indices_, size_);
     encoded->writeRep(values_, size_);
@@ -121,36 +121,36 @@ BlisConstraint::encodeBlis(AlpsEncoded *encoded)
 
 //#############################################################################
 
-/** Unpack Blis part from a encode object. */
+/** Unpack Dco part from a encode object. */
 AlpsReturnStatus 
-BlisConstraint::decodeBlis(AlpsEncoded &encoded) 
+DcoConstraint::decodeDco(AlpsEncoded &encoded) 
 {
     AlpsReturnStatus status = AlpsReturnStatusOk;
     encoded.readRep(indices_, size_);
     if (size_ < 0) {
-	std::cout << "ERROR: decodeBlis: con1, size_=" << size_<<std::endl;
+	std::cout << "ERROR: decodeDco: con1, size_=" << size_<<std::endl;
 	assert(size_ > 0);
     }
-    //std::cout << "----- decodeBlis: con1, size_=" << size_<<std::endl;
+    //std::cout << "----- decodeDco: con1, size_=" << size_<<std::endl;
 
     encoded.readRep(values_, size_);
     if (size_ < 0) {
-	std::cout << "ERROR: decodeBlis: con2, size_=" << size_<<std::endl;
+	std::cout << "ERROR: decodeDco: con2, size_=" << size_<<std::endl;
 	assert(size_ > 0);
     }
 
-    //std::cout << "----- decodeBlis: con2, size_=" << size_<<std::endl;
+    //std::cout << "----- decodeDco: con2, size_=" << size_<<std::endl;
     return status;
 }
 
 //#############################################################################
 
 AlpsReturnStatus 
-BlisConstraint::encode(AlpsEncoded *encoded) 
+DcoConstraint::encode(AlpsEncoded *encoded) 
 {
     AlpsReturnStatus status = AlpsReturnStatusOk;
     status = encodeBcpsObject(encoded);
-    status = encodeBlis(encoded);
+    status = encodeDco(encoded);
     return status;
 }
 
@@ -158,25 +158,25 @@ BlisConstraint::encode(AlpsEncoded *encoded)
 
 /** Decode a constraint from an encoded object. */
 AlpsKnowledge* 
-BlisConstraint::decode(AlpsEncoded& encoded) const 
+DcoConstraint::decode(AlpsEncoded& encoded) const 
 {
     AlpsReturnStatus status = AlpsReturnStatusOk;
-    BlisConstraint* con = new BlisConstraint();    
+    DcoConstraint* con = new DcoConstraint();    
     
     // Unpack Bcps object part.
     status = con->decodeBcpsObject(encoded);
     if (status) {
 	throw CoinError("Failed to decode Bcps part",
 			"decode", 
-			"BlisObject");
+			"DcoObject");
     }
     
-    // Unpack Blis part.
-    status = con->decodeBlis(encoded);
+    // Unpack Dco part.
+    status = con->decodeDco(encoded);
     if (status) {
-	throw CoinError("Failed to decode Blis part", 
+	throw CoinError("Failed to decode Dco part", 
 			"decode", 
-			"BlisObject");
+			"DcoObject");
     }
     
     return con;
@@ -186,10 +186,10 @@ BlisConstraint::decode(AlpsEncoded& encoded) const
 
 /** Compute hash value. */
 void 
-BlisConstraint::hashing(BcpsModel *model)
+DcoConstraint::hashing(BcpsModel *model)
 {
     assert(model != NULL);
-    BlisModel *m = dynamic_cast<BlisModel *>(model);
+    DcoModel *m = dynamic_cast<DcoModel *>(model);
     
     int k, ind;
     const double * randoms = m->getConRandoms();
@@ -199,7 +199,7 @@ BlisConstraint::hashing(BcpsModel *model)
 	ind = indices_[k];
 	hashValue_ += randoms[ind] * ind;
     }
-#ifdef BLIS_DEBUG_MORE
+#ifdef DISCO_DEBUG_MORE
     std::cout << "hashValue_=" << hashValue_ << std::endl;
 #endif
 }
@@ -207,7 +207,7 @@ BlisConstraint::hashing(BcpsModel *model)
 //#############################################################################
 
 OsiRowCut *
-BlisConstraint::createOsiRowCut()
+DcoConstraint::createOsiRowCut()
 {
     double lower = CoinMax(getLbHard(), getLbSoft());
     double upper = CoinMin(getUbHard(), getUbSoft());
@@ -215,7 +215,7 @@ BlisConstraint::createOsiRowCut()
     OsiRowCut * cut = new OsiRowCut;
     if (!cut) {
         /* Out of memory. */
-	throw CoinError("Out of Memory", "Blis_constraintToOsiCut", "NONE");
+	throw CoinError("Out of Memory", "Dco_constraintToOsiCut", "NONE");
     }
     
     assert(size_ > 0);
@@ -230,7 +230,7 @@ BlisConstraint::createOsiRowCut()
 //#############################################################################
 
 double
-BlisConstraint::violation(const double *lpSolution)
+DcoConstraint::violation(const double *lpSolution)
 {
     int k, varInd;
     double activity = 0.0;

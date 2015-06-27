@@ -21,42 +21,42 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
-#ifndef BlisBranchStrategyBilevel_h_
-#define BlisBranchStrategyBilevel_h_
+#ifndef DcoBranchStrategyBilevel_h_
+#define DcoBranchStrategyBilevel_h_
 
 #include "BcpsBranchObject.h"
 #include "BcpsBranchStrategy.h"
 #include "DcoModel.hpp"
 
 /** This class implements maximum infeasibility branching. */
-class BlisBranchStrategyBilevel : public BcpsBranchStrategy {
+class DcoBranchStrategyBilevel : public BcpsBranchStrategy {
 
  private:
 
     /** Illegal Assignment operator.*/
-    BlisBranchStrategyBilevel& operator=(const BlisBranchStrategyBilevel& rhs);
+    DcoBranchStrategyBilevel& operator=(const DcoBranchStrategyBilevel& rhs);
     
  public:
     
     /** Bilevel Constructor. */
-    BlisBranchStrategyBilevel(){
-	type_ = static_cast<int>(BlisBranchingStrategyBilevel);
+    DcoBranchStrategyBilevel(){
+	type_ = static_cast<int>(DcoBranchingStrategyBilevel);
     }
   
     /** Bilevel Constructor. */
-    BlisBranchStrategyBilevel(BlisModel *model) : BcpsBranchStrategy(model) {
-	type_ = static_cast<int>(BlisBranchingStrategyBilevel);
+    DcoBranchStrategyBilevel(DcoModel *model) : BcpsBranchStrategy(model) {
+	type_ = static_cast<int>(DcoBranchingStrategyBilevel);
     }
   
     /** Destructor. */
-    virtual ~BlisBranchStrategyBilevel() {}
+    virtual ~DcoBranchStrategyBilevel() {}
   
     /** Copy constructor. */
-    BlisBranchStrategyBilevel(const BlisBranchStrategyBilevel &);
+    DcoBranchStrategyBilevel(const DcoBranchStrategyBilevel &);
     
     /** Clone a brancing strategy. */
     virtual BcpsBranchStrategy * clone() const {
-	return new BlisBranchStrategyBilevel(*this);
+	return new DcoBranchStrategyBilevel(*this);
     }
   
     /** Create a set of candidate branching objects. */

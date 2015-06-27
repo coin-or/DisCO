@@ -27,51 +27,51 @@
 //#############################################################################
 
 
-#ifndef BlisBranchStrategyRel_h_
-#define BlisBranchStrategyRel_h_
+#ifndef DcoBranchStrategyRel_h_
+#define DcoBranchStrategyRel_h_
 
 #include "BcpsBranchObject.h"
 #include "BcpsBranchStrategy.h"
 #include "DcoModel.hpp"
 
 
-/** Blis branching strategy.
+/** Dco branching strategy.
     This class implements reliability branching. */
-class BlisBranchStrategyRel : public BcpsBranchStrategy {
+class DcoBranchStrategyRel : public BcpsBranchStrategy {
 
  private:
     /** Illegal Assignment operator.*/
-    BlisBranchStrategyRel& operator=(const BlisBranchStrategyRel& rhs);
+    DcoBranchStrategyRel& operator=(const DcoBranchStrategyRel& rhs);
 
     int relibility_;
     
  public:
 
     /** Default Constructor. */
-    BlisBranchStrategyRel() {
+    DcoBranchStrategyRel() {
 	relibility_ = 1;
-	type_ = static_cast<int>(BlisBranchingStrategyReliability);
+	type_ = static_cast<int>(DcoBranchingStrategyReliability);
     }
 
     /** Useful Constructor. */
-    BlisBranchStrategyRel(BlisModel *model, int rel)
+    DcoBranchStrategyRel(DcoModel *model, int rel)
         : BcpsBranchStrategy(model) {
 	relibility_ = 1;
-	type_ = static_cast<int>(BlisBranchingStrategyReliability);
+	type_ = static_cast<int>(DcoBranchingStrategyReliability);
     }
 
     /** Destructor. */
-    virtual ~BlisBranchStrategyRel() {}
+    virtual ~DcoBranchStrategyRel() {}
     
     /** Copy constructor. */
-    BlisBranchStrategyRel(const BlisBranchStrategyRel &);
+    DcoBranchStrategyRel(const DcoBranchStrategyRel &);
     
     /** Set relibility. */
     void setRelibility(int rel) { relibility_ = rel; }    
 
     /** Clone a brancing strategy. */
     virtual BcpsBranchStrategy * clone() const {
-	return new BlisBranchStrategyRel(*this);
+	return new DcoBranchStrategyRel(*this);
     }
     
     /** Compare branching object thisOne to bestSoFar. If thisOne is better 

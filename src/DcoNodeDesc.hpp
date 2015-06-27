@@ -21,8 +21,8 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
-#ifndef BlisNodeDesc_h_
-#define BlisNodeDesc_h_
+#ifndef DcoNodeDesc_h_
+#define DcoNodeDesc_h_
 
 //#############################################################################
 
@@ -37,7 +37,7 @@
 //#############################################################################
 
 
-class BlisNodeDesc : public BcpsNodeDesc {
+class DcoNodeDesc : public BcpsNodeDesc {
 
  private:
     
@@ -56,7 +56,7 @@ class BlisNodeDesc : public BcpsNodeDesc {
  public:
 
     /** Default constructor. */
-    BlisNodeDesc() :
+    DcoNodeDesc() :
         BcpsNodeDesc(),
         branchedDir_(0),
         branchedInd_(-1),
@@ -65,7 +65,7 @@ class BlisNodeDesc : public BcpsNodeDesc {
         {}
 
     /** Useful constructor. */
-    BlisNodeDesc(BlisModel* m) 
+    DcoNodeDesc(DcoModel* m) 
 	:
 	BcpsNodeDesc(m),
         branchedDir_(0),
@@ -75,7 +75,7 @@ class BlisNodeDesc : public BcpsNodeDesc {
 	{}
 
     /** Destructor. */
-        virtual ~BlisNodeDesc() { delete basis_; basis_ = NULL;  }
+        virtual ~DcoNodeDesc() { delete basis_; basis_ = NULL;  }
 
     /** Set basis. */ 
     void setBasis(CoinWarmStartBasis *&ws) { 
@@ -107,8 +107,8 @@ class BlisNodeDesc : public BcpsNodeDesc {
 
  protected:
 
-    /** Pack blis portion of node description into an encoded. */
-    AlpsReturnStatus encodeBlis(AlpsEncoded *encoded) const {
+    /** Pack Disco portion of node description into an encoded. */
+    AlpsReturnStatus encodeDco(AlpsEncoded *encoded) const {
 	AlpsReturnStatus status = AlpsReturnStatusOk;
 
 	encoded->writeRep(branchedDir_);
@@ -120,7 +120,7 @@ class BlisNodeDesc : public BcpsNodeDesc {
 	if (basis_) {
 	    ava = 1;
 	    encoded->writeRep(ava);
-	    BlisEncodeWarmStart(encoded, basis_);
+	    DcoEncodeWarmStart(encoded, basis_);
 	}
 	else {
 	    encoded->writeRep(ava);
@@ -129,8 +129,8 @@ class BlisNodeDesc : public BcpsNodeDesc {
 	return status;
     }
 
-    /** Unpack blis portion of node description from an encoded. */
-    AlpsReturnStatus decodeBlis(AlpsEncoded &encoded) {
+    /** Unpack Disco portion of node description from an encoded. */
+    AlpsReturnStatus decodeDco(AlpsEncoded &encoded) {
 	AlpsReturnStatus status = AlpsReturnStatusOk;
 	
 	encoded.readRep(branchedDir_);
@@ -142,7 +142,7 @@ class BlisNodeDesc : public BcpsNodeDesc {
 	encoded.readRep(ava);
 	if (ava == 1) {
             if (basis_) delete basis_;
-	    basis_ = BlisDecodeWarmStart(encoded, &status);
+	    basis_ = DcoDecodeWarmStart(encoded, &status);
 	}
 	else {
 	    basis_ = NULL;
@@ -158,7 +158,7 @@ class BlisNodeDesc : public BcpsNodeDesc {
     	AlpsReturnStatus status = AlpsReturnStatusOk;
 	
 	status = encodeBcps(encoded);
-	status = encodeBlis(encoded);
+	status = encodeDco(encoded);
 	
 	return status;
     }
@@ -169,7 +169,7 @@ class BlisNodeDesc : public BcpsNodeDesc {
     	AlpsReturnStatus status = AlpsReturnStatusOk;
 	
 	status = decodeBcps(encoded);
-	status = decodeBlis(encoded);
+	status = decodeDco(encoded);
 
 	return status;
     }

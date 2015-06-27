@@ -41,8 +41,8 @@ public:
 //#############################################################################
 
 // Copy constructor
-BlisBranchStrategyBilevel::BlisBranchStrategyBilevel (
-    const BlisBranchStrategyBilevel & rhs)
+DcoBranchStrategyBilevel::DcoBranchStrategyBilevel (
+    const DcoBranchStrategyBilevel & rhs)
     : BcpsBranchStrategy()
 {
     bestChangeUp_ = rhs.bestChangeUp_;
@@ -56,15 +56,15 @@ BlisBranchStrategyBilevel::BlisBranchStrategyBilevel (
 
 /** Create a set of candidate branching objects. */
 int
-BlisBranchStrategyBilevel::createCandBranchObjects(int numPassesLeft,
+DcoBranchStrategyBilevel::createCandBranchObjects(int numPassesLeft,
 						   double ub)
 {
     int i(0);
 
-    BlisBranchObjectBilevel *bb = new BlisBranchObjectBilevel(model_);
+    DcoBranchObjectBilevel *bb = new DcoBranchObjectBilevel(model_);
     numBranchObjects_ = 1;
 
-    BlisModel *model = dynamic_cast<BlisModel *>(model_);
+    DcoModel *model = dynamic_cast<DcoModel *>(model_);
     OsiConicSolverInterface *solver = model->solver();
     int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
     int numCols = model->getNumCols();
@@ -137,7 +137,7 @@ BlisBranchStrategyBilevel::createCandBranchObjects(int numPassesLeft,
     This should not be called for this (derived) class.
 */
 int
-BlisBranchStrategyBilevel::betterBranchObject(BcpsBranchObject * thisOne,
+DcoBranchStrategyBilevel::betterBranchObject(BcpsBranchObject * thisOne,
 					     BcpsBranchObject * bestSoFar)
 {
     return 0;

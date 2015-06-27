@@ -21,14 +21,14 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
-#include "BlisBranchStrategyMaxInf.h"
+#include "DcoBranchStrategyMaxInf.hpp"
 #include "DcoObjectInt.hpp"
 
 //#############################################################################
 
 // Copy constructor 
-BlisBranchStrategyMaxInf::BlisBranchStrategyMaxInf (
-    const BlisBranchStrategyMaxInf & rhs)
+DcoBranchStrategyMaxInf::DcoBranchStrategyMaxInf (
+    const DcoBranchStrategyMaxInf & rhs)
     : BcpsBranchStrategy()
 {
     bestChangeUp_ = rhs.bestChangeUp_;
@@ -42,7 +42,7 @@ BlisBranchStrategyMaxInf::BlisBranchStrategyMaxInf (
 
 /** Create a set of candidate branching objects. */
 int 
-BlisBranchStrategyMaxInf::createCandBranchObjects(int numPassesLeft,
+DcoBranchStrategyMaxInf::createCandBranchObjects(int numPassesLeft,
 						  double ub)
 {
 
@@ -53,11 +53,11 @@ BlisBranchStrategyMaxInf::createCandBranchObjects(int numPassesLeft,
     double score, maxScore = 0.0;
     double infeasibility, maxInf = 0.0;
     
-    BlisModel *model = dynamic_cast<BlisModel *>(model_);
+    DcoModel *model = dynamic_cast<DcoModel *>(model_);
     
-    BlisObjectInt * intObject = 0;
-    BlisObjectInt * maxInfIntObject = 0;
-    BlisObjectInt * maxScoreIntObject = 0;
+    DcoObjectInt * intObject = 0;
+    DcoObjectInt * maxInfIntObject = 0;
+    DcoObjectInt * maxScoreIntObject = 0;
     
     int numObjects = model->numObjects();
     
@@ -66,7 +66,7 @@ BlisBranchStrategyMaxInf::createCandBranchObjects(int numPassesLeft,
     for (i = 0; i < numObjects; ++i) {
 	
         // TODO: currently all integer object.
-        intObject = dynamic_cast<BlisObjectInt *>(model->objects(i));
+        intObject = dynamic_cast<DcoObjectInt *>(model->objects(i));
         infeasibility = intObject->infeasibility(model, preferDir);
         
         if (infeasibility) {
@@ -112,7 +112,7 @@ BlisBranchStrategyMaxInf::createCandBranchObjects(int numPassesLeft,
     If bestSorFar is NULL, then always return branching direction(1 or -1).
 */
 int
-BlisBranchStrategyMaxInf::betterBranchObject(BcpsBranchObject * thisOne,
+DcoBranchStrategyMaxInf::betterBranchObject(BcpsBranchObject * thisOne,
 					     BcpsBranchObject * bestSoFar)
 {
     return thisOne->getDirection();

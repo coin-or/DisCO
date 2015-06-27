@@ -21,14 +21,14 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
-#ifndef BlisVariable_h_
-#define BlisVariable_h_
+#ifndef DcoVariable_h_
+#define DcoVariable_h_
 
 #include "BcpsObject.h"
 
 //#############################################################################
 
-class BlisVariable : public BcpsVariable {
+class DcoVariable : public BcpsVariable {
 
  private:
 
@@ -39,9 +39,9 @@ class BlisVariable : public BcpsVariable {
     
  public:
 
-    BlisVariable() : objCoef_(0.0), size_(0), indices_(NULL), values_(NULL) {}
+    DcoVariable() : objCoef_(0.0), size_(0), indices_(NULL), values_(NULL) {}
     
-    BlisVariable(double obj, int s, const int *ind, const double *val)
+    DcoVariable(double obj, int s, const int *ind, const double *val)
 	{
             objCoef_ = obj;
 	    size_ = s;
@@ -51,14 +51,14 @@ class BlisVariable : public BcpsVariable {
 	    memcpy(values_, val, s * sizeof(double));
 	}
     
-    BlisVariable(double lbh, double ubh, double lbs, double ubs) 
+    DcoVariable(double lbh, double ubh, double lbs, double ubs) 
 	:
 	BcpsVariable(lbh, ubh, lbs, ubs),
         objCoef_(0.0),
 	size_(0), indices_(NULL), values_(NULL)
 	{}
 
-    BlisVariable(double lbh, double ubh, double lbs, double ubs,
+    DcoVariable(double lbh, double ubh, double lbs, double ubs,
                  double obj, int s, const int *ind, const double *val)
         : 
         BcpsVariable(lbh, ubh, lbs, ubs)
@@ -71,7 +71,7 @@ class BlisVariable : public BcpsVariable {
             memcpy(values_, val, s * sizeof(double));
         }
     
-    virtual ~BlisVariable(){ 
+    virtual ~DcoVariable(){ 
         delete [] indices_; indices_ = NULL;
         delete [] values_; values_ = NULL;
     }
@@ -102,11 +102,11 @@ class BlisVariable : public BcpsVariable {
 
  protected:
 
-   /** Pack Blis part into an encoded object. */
-    AlpsReturnStatus encodeBlis(AlpsEncoded *encoded) {
+   /** Pack Dco part into an encoded object. */
+    AlpsReturnStatus encodeDco(AlpsEncoded *encoded) {
 	AlpsReturnStatus status = AlpsReturnStatusOk;
 
-        //std::cout << "****** encodeBlis var: size_ = " << size_ << std::endl;
+        //std::cout << "****** encodeDco var: size_ = " << size_ << std::endl;
 
 	encoded->writeRep(objCoef_);
 	encoded->writeRep(indices_, size_);
@@ -115,15 +115,15 @@ class BlisVariable : public BcpsVariable {
 	return status;
     }    
 
-    /** Unpack Blis part from a encode object. */
-    AlpsReturnStatus decodeBlis(AlpsEncoded &encoded) {
+    /** Unpack Dco part from a encode object. */
+    AlpsReturnStatus decodeDco(AlpsEncoded &encoded) {
 	AlpsReturnStatus status = AlpsReturnStatusOk;
 
 	encoded.readRep(objCoef_);
 	encoded.readRep(indices_, size_);
 	encoded.readRep(values_, size_);
         
-        //std::cout << "****** decodeBlis var: size_ = " << size_ << std::endl;
+        //std::cout << "****** decodeDco var: size_ = " << size_ << std::endl;
 
 	return status;
     }
@@ -136,7 +136,7 @@ class BlisVariable : public BcpsVariable {
 	AlpsReturnStatus status;
 
 	status = encodeBcpsObject(encoded);
-	status = encodeBlis(encoded);
+	status = encodeDco(encoded);
 	
 	return status;
     }
@@ -144,22 +144,22 @@ class BlisVariable : public BcpsVariable {
     /** Decode a variable from an encoded object. */
     virtual AlpsKnowledge* decode(AlpsEncoded &encoded) const {
 	AlpsReturnStatus status = AlpsReturnStatusOk;
-	BlisVariable * var = new BlisVariable();    
+	DcoVariable * var = new DcoVariable();    
 	
 	// Unpack Bcps part.
 	status = var->decodeBcpsObject(encoded);
 	if (status) {
 	    throw CoinError("Failed to decode Bcps part of var",
 			    "decode",
-			    "BlisObject");
+			    "DcoObject");
 	}
 	
-	// Unpack Blis part.
-	status = var->decodeBlis(encoded);
+	// Unpack Dco part.
+	status = var->decodeDco(encoded);
 	if (status) {
-	    throw CoinError("Failed to decode Blis part of var", 
+	    throw CoinError("Failed to decode Dco part of var", 
 			    "decode", 
-			    "BlisObject");
+			    "DcoObject");
 	}
 	return var;
     }

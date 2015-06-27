@@ -32,9 +32,9 @@
 //#############################################################################
 
 // Copy constructor
-BlisHeurRound::BlisHeurRound(const BlisHeurRound & rhs)
+DcoHeurRound::DcoHeurRound(const DcoHeurRound & rhs)
     :
-    BlisHeuristic(rhs),
+    DcoHeuristic(rhs),
     matrix_(rhs.matrix_),
     matrixByRow_(rhs.matrixByRow_),
     seed_(rhs.seed_)
@@ -44,16 +44,16 @@ BlisHeurRound::BlisHeurRound(const BlisHeurRound & rhs)
 //#############################################################################
 
 // Clone
-BlisHeuristic *
-BlisHeurRound::clone() const
+DcoHeuristic *
+DcoHeurRound::clone() const
 {
-    return new BlisHeurRound(*this);
+    return new DcoHeurRound(*this);
 }
 
 //#############################################################################
 
 // update model
-void BlisHeurRound::setModel(BlisModel * model)
+void DcoHeurRound::setModel(DcoModel * model)
 {
     model_ = model;
     // Get a copy of original matrix (and by row for rounding);
@@ -72,11 +72,11 @@ void BlisHeurRound::setModel(BlisModel * model)
 // Returns 1 if solution, 0 if not
 
 bool
-BlisHeurRound::searchSolution(double & solutionValue, double * betterSolution)
+DcoHeurRound::searchSolution(double & solutionValue, double * betterSolution)
 {
     bool foundBetter = false;
 
-    if (strategy_ == BlisHeurStrategyNone) {
+    if (strategy_ == DcoHeurStrategyNone) {
         // This heuristic has been disabled.
         return foundBetter;
     }
@@ -102,7 +102,7 @@ BlisHeurRound::searchSolution(double & solutionValue, double * betterSolution)
     const double * solution = solver->getColSolution();
     const double * objective = solver->getObjCoefficients();
     double integerTolerance = 1.0e-5;
-    //model_->getDblParam(BlisModel::BlisIntegerTolerance);
+    //model_->getDblParam(DcoModel::DcoIntegerTolerance);
     double primalTolerance;
     solver->getDblParam(OsiPrimalTolerance, primalTolerance);
 
@@ -303,7 +303,7 @@ BlisHeurRound::searchSolution(double & solutionValue, double * betterSolution)
 	    int i;
 	    for (i = start[iPass]; i < end[iPass]; i++) {
 		int iColumn = integerVariable[i];
-#ifdef BLIS_DEBUG
+#ifdef DISCO_DEBUG
 		double value = newSolution[iColumn];
 		assert(fabs(floor(value + 0.5) - value) < integerTolerance);
 #endif
@@ -387,7 +387,7 @@ BlisHeurRound::searchSolution(double & solutionValue, double * betterSolution)
 
 	    } else {
 		// Can easily happen
-		//printf("Debug BlisHeurRound giving bad solution\n");
+		//printf("Debug DcoHeurRound giving bad solution\n");
 	    }
 	}
     }
@@ -398,14 +398,14 @@ BlisHeurRound::searchSolution(double & solutionValue, double * betterSolution)
     // Adjust strategy
     //------------------------------------------------------
 
-    // Let Blis do this, 12/17/06
+    // Let Dco do this, 12/17/06
     //++calls_;
     //if (foundBetter) ++numSolutions_;
     //time_ += (CoinCpuTime() - start);
 
-    if (noSolsCalls_ > BLIS_HEUR_ROUND_DISABLE) {
-        if (strategy_ == BlisHeurStrategyAuto) {
-            strategy_ = BlisHeurStrategyNone;
+    if (noSolsCalls_ > DISCO_HEUR_ROUND_DISABLE) {
+        if (strategy_ == DcoHeurStrategyAuto) {
+            strategy_ = DcoHeurStrategyNone;
         }
     }
 

@@ -26,7 +26,7 @@
 //#############################################################################
 
 OsiConicSolverInterface *
-BlisPresolve::preprocess(OsiConicSolverInterface & origModel,
+DcoPresolve::preprocess(OsiConicSolverInterface & origModel,
                          double feasibilityTolerance,
                          bool keepIntegers,
                          int numberPasses,
@@ -45,7 +45,7 @@ BlisPresolve::preprocess(OsiConicSolverInterface & origModel,
 //#############################################################################
 
 void 
-BlisPresolve::postprocess(bool updateStatus)
+DcoPresolve::postprocess(bool updateStatus)
 {
     postsolve(updateStatus);
 }

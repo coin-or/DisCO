@@ -37,8 +37,8 @@
 
 //#############################################################################
 
-/** Convert a OsiRowCut to a Blis Contraint. */
-BlisConstraint * BlisOsiCutToConstraint(const OsiRowCut *rowCut)
+/** Convert a OsiRowCut to a Dco Contraint. */
+DcoConstraint * DcoOsiCutToConstraint(const OsiRowCut *rowCut)
 {
     int size = rowCut->row().getNumElements();
     assert(size > 0);
@@ -49,13 +49,13 @@ BlisConstraint * BlisOsiCutToConstraint(const OsiRowCut *rowCut)
     double lower = rowCut->lb();
     double upper = rowCut->ub();
     
-    BlisConstraint *con = new BlisConstraint(lower, upper, 
+    DcoConstraint *con = new DcoConstraint(lower, upper, 
                                              lower, upper,
                                              size, ind, val);
     
     if (!con) {
         // No memory
-        throw CoinError("Out of Memory", "Blis_OsiCutToConstraint", "NONE");
+        throw CoinError("Out of Memory", "Dco_OsiCutToConstraint", "NONE");
     }
     
     return con;
@@ -63,13 +63,13 @@ BlisConstraint * BlisOsiCutToConstraint(const OsiRowCut *rowCut)
 
 //#############################################################################
 
-BlisReturnStatus
-BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
+DcoReturnStatus
+DcoStrongBranch(DcoModel *model, double objValue, int colInd, double x,
 		 const double *saveLower, const double *saveUpper,
 		 bool &downKeep, bool &downFinished, double &downDeg,
 		 bool &upKeep, bool &upFinished, double &upDeg)
 {
-    BlisReturnStatus status = BlisReturnStatusOk;
+    DcoReturnStatus status = DcoReturnStatusOk;
     int lpStatus = 0;
 
     int j, numIntInfDown, numObjInfDown;
@@ -85,12 +85,12 @@ BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
     // Restore bounds
     int numDiff = 0;
 
-    BlisSolution* ksol = NULL;
+    DcoSolution* ksol = NULL;
 
     int ind = model->getIntObjIndices()[colInd];
-    BlisObjectInt *intObj = dynamic_cast<BlisObjectInt *>(model->objects(ind));
+    DcoObjectInt *intObj = dynamic_cast<DcoObjectInt *>(model->objects(ind));
     
-#ifdef BLIS_DEBUG_MORE
+#ifdef DISCO_DEBUG_MORE
     for (j = 0; j < numCols; ++j) {
 	if (saveLower[j] != lower[j]) {
 	    //solver->setColLower(j, saveLower[j]);
@@ -116,7 +116,7 @@ BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
     
     if (solver->isProvenOptimal()) {
 	lpStatus = 0; // optimal
-#ifdef BLIS_DEBUG_MORE
+#ifdef DISCO_DEBUG_MORE
         printf("STRONG: COL[%d]: downDeg=%g, x=%g\n", colInd, downDeg, x);
 #endif
         // Update pseudocost
@@ -126,11 +126,11 @@ BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
         // Check if ip feasible
         ksol = model->feasibleSolution(numIntInfDown, numObjInfDown);
         if (ksol) {
-#ifdef BLIS_DEBUG_MORE
+#ifdef DISCO_DEBUG_MORE
             printf("STRONG:Down:found a feasible solution\n");
 #endif
             
-            model->storeSolution(BlisSolutionTypeStrong, ksol);
+            model->storeSolution(DcoSolutionTypeStrong, ksol);
 	    downKeep = false;
         }
 	else {
@@ -151,7 +151,7 @@ BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
 	downFinished = false;
     }       
             
-#ifdef BLIS_DEBUG_MORE
+#ifdef DISCO_DEBUG_MORE
     std::cout << "Down: lpStatus = " << lpStatus << std::endl;
 #endif
     
@@ -167,7 +167,7 @@ BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
             ++numDiff;
 	}
     }
-#ifdef BLIS_DEBUG
+#ifdef DISCO_DEBUG
     assert(numDiff > 0);
     //std::cout << "numDiff = " << numDiff << std::endl;
 #endif	    
@@ -185,7 +185,7 @@ BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
     if (solver->isProvenOptimal()) {
 	lpStatus = 0; // optimal
 
-#ifdef BLIS_DEBUG_MORE
+#ifdef DISCO_DEBUG_MORE
         printf("STRONG: COL[%d]: upDeg=%g, x=%g\n", colInd, upDeg, x);
 #endif
 
@@ -196,11 +196,11 @@ BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
         // Check if IP feasible
         ksol = model->feasibleSolution(numIntInfDown, numObjInfDown);
         if (ksol) {
-#ifdef BLIS_DEBUG_MORE
+#ifdef DISCO_DEBUG_MORE
             printf("STRONG:Up:found a feasible solution\n");
 #endif
             
-            model->storeSolution(BlisSolutionTypeStrong, ksol);
+            model->storeSolution(DcoSolutionTypeStrong, ksol);
             upKeep = false;
         }
 	else {
@@ -221,7 +221,7 @@ BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
         upDeg = 1.0e20;
     }
     
-#ifdef BLIS_DEBUG_MORE
+#ifdef DISCO_DEBUG_MORE
     std::cout << "STRONG: Up: lpStatus = " << lpStatus << std::endl;
 #endif      
     
@@ -240,10 +240,10 @@ BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
 
 //#############################################################################
 
-int BlisEncodeWarmStart(AlpsEncoded *encoded, const CoinWarmStartBasis *ws)
+int DcoEncodeWarmStart(AlpsEncoded *encoded, const CoinWarmStartBasis *ws)
 {
 
-    BlisReturnStatus status = BlisReturnStatusOk;
+    DcoReturnStatus status = DcoReturnStatusOk;
     int numCols = ws->getNumStructural();
     int numRows = ws->getNumArtificial();
 
@@ -263,7 +263,7 @@ int BlisEncodeWarmStart(AlpsEncoded *encoded, const CoinWarmStartBasis *ws)
 
 //#############################################################################
 
-CoinWarmStartBasis *BlisDecodeWarmStart(AlpsEncoded &encoded,
+CoinWarmStartBasis *DcoDecodeWarmStart(AlpsEncoded &encoded,
 					AlpsReturnStatus *rc) 
 {
     int numCols;
@@ -288,7 +288,7 @@ CoinWarmStartBasis *BlisDecodeWarmStart(AlpsEncoded &encoded,
 
     CoinWarmStartBasis *ws = new CoinWarmStartBasis();
     if (!ws) {
-	throw CoinError("Out of memory", "BlisDecodeWarmStart", "HELP");
+	throw CoinError("Out of memory", "DcoDecodeWarmStart", "HELP");
     }
     
     ws->assignBasisStatus(numCols, numRows, 
@@ -303,8 +303,8 @@ CoinWarmStartBasis *BlisDecodeWarmStart(AlpsEncoded &encoded,
 //#############################################################################
 
 /** Compute and return a hash value of an Osi row cut. */
-double BlisHashingOsiRowCut(const OsiRowCut *rowCut, 
-			    const BlisModel *model)
+double DcoHashingOsiRowCut(const OsiRowCut *rowCut, 
+			    const DcoModel *model)
 {
     int size = rowCut->row().getNumElements();
     assert(size > 0);
@@ -319,7 +319,7 @@ double BlisHashingOsiRowCut(const OsiRowCut *rowCut,
 	ind = indices[k];
 	hashValue_ += randoms[ind] * ind;
     }
-#ifdef BLIS_DEBUG_MORE
+#ifdef DISCO_DEBUG_MORE
     std::cout << "hashValue_=" << hashValue_ << std::endl;
 #endif
     return hashValue_;
@@ -328,7 +328,7 @@ double BlisHashingOsiRowCut(const OsiRowCut *rowCut,
 //#############################################################################
 
 /** Check if a row cut parallel with another row cut. */
-bool BlisParallelCutCut(OsiRowCut * rowCut1,
+bool DcoParallelCutCut(OsiRowCut * rowCut1,
 			OsiRowCut * rowCut2,
 			double threshold) 
 {
@@ -420,8 +420,8 @@ bool BlisParallelCutCut(OsiRowCut * rowCut1,
 //#############################################################################
 
 /** Check if a row cut parallel with a constraint. */
-bool BlisParallelCutCon(OsiRowCut * rowCut,
-			BlisConstraint * con,
+bool DcoParallelCutCon(OsiRowCut * rowCut,
+			DcoConstraint * con,
 			double threshold)
 {
     bool parallel = false;
@@ -429,7 +429,7 @@ bool BlisParallelCutCon(OsiRowCut * rowCut,
     // Convert con to row cut
     OsiRowCut * rowCut2 = con->createOsiRowCut();
     
-    parallel = BlisParallelCutCut(rowCut,
+    parallel = DcoParallelCutCut(rowCut,
 				  rowCut2,
 				  threshold);
     delete rowCut2;
@@ -440,8 +440,8 @@ bool BlisParallelCutCon(OsiRowCut * rowCut,
 //#############################################################################
 
 /** Check if a row cut parallel with a constraint. */
-bool BlisParallelConCon(BlisConstraint * con1,
-			BlisConstraint * con2,
+bool DcoParallelConCon(DcoConstraint * con1,
+			DcoConstraint * con2,
 			double threshold)
 {
     bool parallel = false;
@@ -450,7 +450,7 @@ bool BlisParallelConCon(BlisConstraint * con1,
     OsiRowCut * rowCut1 = con1->createOsiRowCut();
     OsiRowCut * rowCut2 = con2->createOsiRowCut();
     
-    parallel = BlisParallelCutCut(rowCut1,
+    parallel = DcoParallelCutCut(rowCut1,
 				  rowCut2,
 				  threshold);
     delete rowCut1;

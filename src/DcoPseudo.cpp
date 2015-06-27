@@ -32,7 +32,7 @@
 //#############################################################################
 
 void 
-BlisPseudocost::update(const int dir,
+DcoPseudocost::update(const int dir,
                        const double parentObjValue,
                        const double objValue,
                        const double solValue)
@@ -40,7 +40,7 @@ BlisPseudocost::update(const int dir,
     
     double objDiff = objValue - parentObjValue;    
 
-#ifdef BLIS_DEBUG
+#ifdef DISCO_DEBUG
     assert(objDiff/(1.0+objValue) >= -1.0e-5);
 #endif
 
@@ -50,14 +50,14 @@ BlisPseudocost::update(const int dir,
 //#############################################################################
 
 void
-BlisPseudocost::update(int dir,
+DcoPseudocost::update(int dir,
                        double objDiff,
                        double solValue)
 {
     double fraction;
     double cost;
     
-#ifdef BLIS_DEBUG
+#ifdef DISCO_DEBUG
     if (objDiff < -1.0e-1) {
         std::cout << "objDiff=" << objDiff
                   << ", dir="<< dir << ", x=" << solValue <<std::endl;
@@ -77,7 +77,7 @@ BlisPseudocost::update(int dir,
             ++upCount_;
         }
         else {
-#ifdef BLIS_DEBUG
+#ifdef DISCO_DEBUG
             ALPS_PRINTF("WARNING: small fraction %.10g, shouldn't happen.\n",
                         fraction);
             assert(0);
@@ -92,7 +92,7 @@ BlisPseudocost::update(int dir,
             ++downCount_;
         }
         else {
-#ifdef BLIS_DEBUG
+#ifdef DISCO_DEBUG
             ALPS_PRINTF("WARNING: small fraction %.10g, shouldn't happen.\n",
                         fraction);
             assert(0);
@@ -112,7 +112,7 @@ BlisPseudocost::update(int dir,
 //#############################################################################
 
 void 
-BlisPseudocost::update(double upCost, int upCount, 
+DcoPseudocost::update(double upCost, int upCount, 
                        double downCost, int downCount)
 {
     if (upCount) {
@@ -133,7 +133,7 @@ BlisPseudocost::update(double upCost, int upCount,
 
 /** Pack pseudocost to the given object. */
 AlpsReturnStatus 
-BlisPseudocost::encodeTo(AlpsEncoded *encoded) const 
+DcoPseudocost::encodeTo(AlpsEncoded *encoded) const 
 {
     AlpsReturnStatus status = AlpsReturnStatusOk;
     
@@ -161,7 +161,7 @@ BlisPseudocost::encodeTo(AlpsEncoded *encoded) const
 
 /** Unpack pseudocost from the given encode object. */
 AlpsReturnStatus 
-BlisPseudocost::decodeFrom(AlpsEncoded &encoded)
+DcoPseudocost::decodeFrom(AlpsEncoded &encoded)
 {
     AlpsReturnStatus status = AlpsReturnStatusOk;
 
@@ -193,9 +193,9 @@ BlisPseudocost::decodeFrom(AlpsEncoded &encoded)
 //#############################################################################
 
 AlpsEncoded*
-BlisPseudocost::encode() const 
+DcoPseudocost::encode() const 
 {
-    AlpsEncoded* encoded = new AlpsEncoded(BLIS_PSEUDO);
+    AlpsEncoded* encoded = new AlpsEncoded(DISCO_PSEUDO);
     
     encoded->writeRep(weight_);
     encoded->writeRep(upCost_);
@@ -210,7 +210,7 @@ BlisPseudocost::encode() const
 //#############################################################################
 
 AlpsKnowledge* 
-BlisPseudocost::decode(AlpsEncoded& encoded) const 
+DcoPseudocost::decode(AlpsEncoded& encoded) const 
 {
     double weight;
     int upCount;
@@ -226,7 +226,7 @@ BlisPseudocost::decode(AlpsEncoded& encoded) const
     encoded.readRep(downCount);
     encoded.readRep(score);
 
-    BlisPseudocost *pcost = new BlisPseudocost(upCost,
+    DcoPseudocost *pcost = new DcoPseudocost(upCost,
                                                upCount,
                                                downCost,
                                                downCount,

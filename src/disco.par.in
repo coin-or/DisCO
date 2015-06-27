@@ -27,60 +27,60 @@ Alps_timeLimit 720
 #Alps_masterBalancePeriod 0.3
 #Alps_hubReportPeriod 0.5
 
-#Blis_cutRampUp 1       # true(1) or false(0) 
+#Dco_cutRampUp 1       # true(1) or false(0) 
 
-####### Blis_cutStrategy and Blis_cutGenerationFrequency control
+####### Dco_cutStrategy and Dco_cutGenerationFrequency control
 ####### the strategy and frequency of a spefic cut generator only if
 ####### users do not set the strategy for that cut generator.
 
-#Blis_cutStrategy              3   # 0: disable, 1: root, 2: auto, 3: periodic
-#Blis_cutGenerationFrequency   1 
+#Dco_cutStrategy              3   # 0: disable, 1: root, 2: auto, 3: periodic
+#Dco_cutGenerationFrequency   1 
 
-#Blis_cutCliqueStrategy       2    # 0: disable, 1: root, 2: auto, 3: periodic
-#Blis_cutCliqueFreq         100
+#Dco_cutCliqueStrategy       2    # 0: disable, 1: root, 2: auto, 3: periodic
+#Dco_cutCliqueFreq         100
 
-#Blis_cutGomoryStrategy       2
-#Blis_cutGomoryFreq         100
+#Dco_cutGomoryStrategy       2
+#Dco_cutGomoryFreq         100
 
-#Blis_cutFlowCoverStrategy    2
-#Blis_cutFlowCoverFreq      100
+#Dco_cutFlowCoverStrategy    2
+#Dco_cutFlowCoverFreq      100
 
-#Blis_cutKnapsackStrategy     2
-#Blis_cutKnapsackFreq       100
+#Dco_cutKnapsackStrategy     2
+#Dco_cutKnapsackFreq       100
 
 ##---- Following cuts not useful
-#Blis_cutMirStrategy         0
-#Blis_cutMirFreq           100
+#Dco_cutMirStrategy         0
+#Dco_cutMirFreq           100
 
-#Blis_cutOddHoleStrategy     1
-#Blis_cutOddHoleFreq       100
+#Dco_cutOddHoleStrategy     1
+#Dco_cutOddHoleFreq       100
 
-#Blis_cutProbingStrategy     0
-#Blis_cutProbingFreq       100
+#Dco_cutProbingStrategy     0
+#Dco_cutProbingFreq       100
 
-#Blis_cutTwoMirStrategy      0
-#Blis_cutTowMirFreq        100
+#Dco_cutTwoMirStrategy      0
+#Dco_cutTowMirFreq        100
 
-####### Blis_heurStrategy and Blis_heurCallFrequency control
+####### Dco_heurStrategy and Dco_heurCallFrequency control
 ####### the strategy and frequency of a spefic heuristic only if
 ####### users do not set the strategy for that heuristic.
 
-#Blis_heurStrategy         3    # 0: disable, 1: root, 2: auto, 3: periodic
-#Blis_heurCallFrequency  100
+#Dco_heurStrategy         3    # 0: disable, 1: root, 2: auto, 3: periodic
+#Dco_heurCallFrequency  100
 
-#Blis_heurRoundStrategy      3  # 0: disable, 1: root, 2: auto, 3: periodic
-#Blis_heurRoundFreq        100
+#Dco_heurRoundStrategy      3  # 0: disable, 1: root, 2: auto, 3: periodic
+#Dco_heurRoundFreq        100
 
-#Blis_branchStrategy 1   # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
-#Blis_branchStrategyRampUp 0
+#Dco_branchStrategy 1   # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
+#Dco_branchStrategyRampUp 0
 
-#Blis_pseudoWeight          0.8  # [0.0, 1.0]
-#Blis_pseudoRelibility      8
-#Blis_lookAhead             4
-#Blis_denseConFactor        5.0
-#Blis_scaleConFactor        100000000.0
-#Blis_difference            1
+#Dco_pseudoWeight          0.8  # [0.0, 1.0]
+#Dco_pseudoRelibility      8
+#Dco_lookAhead             4
+#Dco_denseConFactor        5.0
+#Dco_scaleConFactor        100000000.0
+#Dco_difference            1
 
-#Blis_sharePseudocostRampUp 1
-#Blis_sharePseudocostSearch 1
-#Blis_checkMemory 1
+#Dco_sharePseudocostRampUp 1
+#Dco_sharePseudocostSearch 1
+#Dco_checkMemory 1
