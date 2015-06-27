@@ -34,49 +34,49 @@ lib_LTLIBRARIES = libDisco.la
 
 # List all source files for this library, including headers
 libDisco_la_SOURCES = \
-	BlisBranchObjectInt.cpp \
-	BlisBranchObjectInt.h \
-	BlisBranchObjectBilevel.cpp \
-	BlisBranchObjectBilevel.h \
-	BlisBranchStrategyMaxInf.cpp \
-	BlisBranchStrategyMaxInf.h \
-	BlisBranchStrategyPseudo.cpp \
-	BlisBranchStrategyPseudo.h \
-	BlisBranchStrategyRel.cpp \
-	BlisBranchStrategyRel.h \
-	BlisBranchStrategyStrong.cpp \
-	BlisBranchStrategyStrong.h \
-	BlisBranchStrategyBilevel.cpp \
-	BlisBranchStrategyBilevel.h \
-	BlisConGenerator.cpp \
-	BlisConGenerator.h \
-	BlisConstraint.cpp \
-	BlisConstraint.h \
-	Blis.h \
-	BlisHelp.cpp \
-	BlisHelp.h \
-	BlisHeuristic.h \
-	BlisHeurRound.cpp \
-	BlisHeurRound.h \
-	BlisLicense.h \
-	BlisMessage.cpp \
-	BlisMessage.h \
-	BlisModel.cpp \
-	BlisModel.h \
-	BlisNodeDesc.h \
-	BlisObjectInt.cpp \
-	BlisObjectInt.h \
-	BlisParams.cpp \
-	BlisParams.h \
-	BlisPresolve.h \
-	BlisPresolve.cpp \
-	BlisPseudo.cpp \
-	BlisPseudo.h \
-	BlisSolution.h \
-	BlisSubTree.h \
-	BlisTreeNode.cpp \
-	BlisTreeNode.h \
-	BlisVariable.h
+	DcoBranchObjectInt.cpp \
+	DcoBranchObjectInt.hpp \
+	DcoBranchObjectBilevel.cpp \
+	DcoBranchObjectBilevel.hpp \
+	DcoBranchStrategyMaxInf.cpp \
+	DcoBranchStrategyMaxInf.hpp \
+	DcoBranchStrategyPseudo.cpp \
+	DcoBranchStrategyPseudo.hpp \
+	DcoBranchStrategyRel.cpp \
+	DcoBranchStrategyRel.hpp \
+	DcoBranchStrategyStrong.cpp \
+	DcoBranchStrategyStrong.hpp \
+	DcoBranchStrategyBilevel.cpp \
+	DcoBranchStrategyBilevel.hpp \
+	DcoConGenerator.cpp \
+	DcoConGenerator.hpp \
+	DcoConstraint.cpp \
+	DcoConstraint.hpp \
+	Dco.hpp \
+	DcoHelp.cpp \
+	DcoHelp.hpp \
+	DcoHeuristic.hpp \
+	DcoHeurRound.cpp \
+	DcoHeurRound.hpp \
+	DcoLicense.hpp \
+	DcoMessage.cpp \
+	DcoMessage.hpp \
+	DcoModel.cpp \
+	DcoModel.hpp \
+	DcoNodeDesc.hpp \
+	DcoObjectInt.cpp \
+	DcoObjectInt.hpp \
+	DcoParams.cpp \
+	DcoParams.hpp \
+	DcoPresolve.hpp \
+	DcoPresolve.cpp \
+	DcoPseudo.cpp \
+	DcoPseudo.hpp \
+	DcoSolution.hpp \
+	DcoSubTree.hpp \
+	DcoTreeNode.cpp \
+	DcoTreeNode.hpp \
+	DcoVariable.hpp
 
 # List all additionally required libraries
 if DEPENDENCY_LINKING
@@ -87,11 +87,11 @@ endif
 libDisco_la_LDFLAGS = $(LT_LDFLAGS)
 
 ########################################################################
-#                        blis binary                                   #
+#                        disco binary                                   #
 ########################################################################
 
 bin_PROGRAMS = disco
-disco_SOURCES = BlisMain.cpp 
+disco_SOURCES = DcoMain.cpp 
 disco_LDADD = libDisco.la $(DISCOLIB_LIBS)
 disco_DEPENDENCIES = libDisco.la $(DISCOLIB_DEPENDENCIES)
 
@@ -114,29 +114,29 @@ DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
 # and that therefore should be installed in 'install/coin'
 includecoindir = $(includedir)/coin
 includecoin_HEADERS = \
-	BlisBranchObjectInt.h \
-	BlisBranchStrategyMaxInf.h \
-	BlisBranchStrategyPseudo.h \
-	BlisBranchStrategyRel.h \
-	BlisBranchStrategyStrong.h \
-	BlisConGenerator.h \
-	BlisConstraint.h \
-	Blis.h \
-	BlisHelp.h \
-	BlisHeuristic.h \
-	BlisHeurRound.h \
-	BlisLicense.h \
-	BlisMessage.h \
-	BlisModel.h \
-	BlisNodeDesc.h \
-	BlisObjectInt.h \
-	BlisParams.h \
-	BlisPresolve.h \
-	BlisPseudo.h \
-	BlisSolution.h \
-	BlisSubTree.h \
-	BlisTreeNode.h \
-	BlisVariable.h
+	DcoBranchObjectInt.hpp \
+	DcoBranchStrategyMaxInf.hpp \
+	DcoBranchStrategyPseudo.hpp \
+	DcoBranchStrategyRel.hpp \
+	DcoBranchStrategyStrong.hpp \
+	DcoConGenerator.hpp \
+	DcoConstraint.hpp \
+	Dco.hpp \
+	DcoHelp.hpp \
+	DcoHeuristic.hpp \
+	DcoHeurRound.hpp \
+	DcoLicense.hpp \
+	DcoMessage.hpp \
+	DcoModel.hpp \
+	DcoNodeDesc.hpp \
+	DcoObjectInt.hpp \
+	DcoParams.hpp \
+	DcoPresolve.hpp \
+	DcoPseudo.hpp \
+	DcoSolution.hpp \
+	DcoSubTree.hpp \
+	DcoTreeNode.hpp \
+	DcoVariable.hpp
 
 ########################################################################
 #                     Installing manifest (MSVC++)                     #
@@ -154,7 +154,7 @@ endif
 #############################################################################
 
 install-exec-local:
-	$(install_sh_DATA) config_blis.h $(DESTDIR)$(includecoindir)/BlisConfig.h
+	$(install_sh_DATA) config_dco.h $(DESTDIR)$(includecoindir)/DcoConfig.h
 
 uninstall-local:
-	rm -f $(DESTDIR)$(includecoindir)/BlisConfig.h
+	rm -f $(DESTDIR)$(includecoindir)/DcoConfig.h

@@ -64,18 +64,18 @@ build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = disco$(EXEEXT)
 subdir = src
-DIST_COMMON = $(includecoin_HEADERS) $(srcdir)/BlisMain.cpp \
+DIST_COMMON = $(includecoin_HEADERS) $(srcdir)/DcoMain.cpp \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/blis.par.in $(srcdir)/config.h.in \
-	$(srcdir)/config_blis.h.in
+	$(srcdir)/config.h.in $(srcdir)/config_dco.h.in \
+	$(srcdir)/disco.par.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = config.h config_blis.h
-CONFIG_CLEAN_FILES = blis.par
+CONFIG_HEADER = config.h config_dco.h
+CONFIG_CLEAN_FILES = disco.par
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -89,17 +89,17 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 @DEPENDENCY_LINKING_TRUE@libDisco_la_DEPENDENCIES =  \
 @DEPENDENCY_LINKING_TRUE@	$(am__DEPENDENCIES_1)
-am_libDisco_la_OBJECTS = BlisBranchObjectInt.lo \
-	BlisBranchObjectBilevel.lo BlisBranchStrategyMaxInf.lo \
-	BlisBranchStrategyPseudo.lo BlisBranchStrategyRel.lo \
-	BlisBranchStrategyStrong.lo BlisBranchStrategyBilevel.lo \
-	BlisConGenerator.lo BlisConstraint.lo BlisHelp.lo \
-	BlisHeurRound.lo BlisMessage.lo BlisModel.lo BlisObjectInt.lo \
-	BlisParams.lo BlisPresolve.lo BlisPseudo.lo BlisTreeNode.lo
+am_libDisco_la_OBJECTS = DcoBranchObjectInt.lo \
+	DcoBranchObjectBilevel.lo DcoBranchStrategyMaxInf.lo \
+	DcoBranchStrategyPseudo.lo DcoBranchStrategyRel.lo \
+	DcoBranchStrategyStrong.lo DcoBranchStrategyBilevel.lo \
+	DcoConGenerator.lo DcoConstraint.lo DcoHelp.lo DcoHeurRound.lo \
+	DcoMessage.lo DcoModel.lo DcoObjectInt.lo DcoParams.lo \
+	DcoPresolve.lo DcoPseudo.lo DcoTreeNode.lo
 libDisco_la_OBJECTS = $(am_libDisco_la_OBJECTS)
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_disco_OBJECTS = BlisMain.$(OBJEXT)
+am_disco_OBJECTS = DcoMain.$(OBJEXT)
 disco_OBJECTS = $(am_disco_OBJECTS)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -319,49 +319,49 @@ lib_LTLIBRARIES = libDisco.la
 
 # List all source files for this library, including headers
 libDisco_la_SOURCES = \
-	BlisBranchObjectInt.cpp \
-	BlisBranchObjectInt.h \
-	BlisBranchObjectBilevel.cpp \
-	BlisBranchObjectBilevel.h \
-	BlisBranchStrategyMaxInf.cpp \
-	BlisBranchStrategyMaxInf.h \
-	BlisBranchStrategyPseudo.cpp \
-	BlisBranchStrategyPseudo.h \
-	BlisBranchStrategyRel.cpp \
-	BlisBranchStrategyRel.h \
-	BlisBranchStrategyStrong.cpp \
-	BlisBranchStrategyStrong.h \
-	BlisBranchStrategyBilevel.cpp \
-	BlisBranchStrategyBilevel.h \
-	BlisConGenerator.cpp \
-	BlisConGenerator.h \
-	BlisConstraint.cpp \
-	BlisConstraint.h \
-	Blis.h \
-	BlisHelp.cpp \
-	BlisHelp.h \
-	BlisHeuristic.h \
-	BlisHeurRound.cpp \
-	BlisHeurRound.h \
-	BlisLicense.h \
-	BlisMessage.cpp \
-	BlisMessage.h \
-	BlisModel.cpp \
-	BlisModel.h \
-	BlisNodeDesc.h \
-	BlisObjectInt.cpp \
-	BlisObjectInt.h \
-	BlisParams.cpp \
-	BlisParams.h \
-	BlisPresolve.h \
-	BlisPresolve.cpp \
-	BlisPseudo.cpp \
-	BlisPseudo.h \
-	BlisSolution.h \
-	BlisSubTree.h \
-	BlisTreeNode.cpp \
-	BlisTreeNode.h \
-	BlisVariable.h
+	DcoBranchObjectInt.cpp \
+	DcoBranchObjectInt.hpp \
+	DcoBranchObjectBilevel.cpp \
+	DcoBranchObjectBilevel.hpp \
+	DcoBranchStrategyMaxInf.cpp \
+	DcoBranchStrategyMaxInf.hpp \
+	DcoBranchStrategyPseudo.cpp \
+	DcoBranchStrategyPseudo.hpp \
+	DcoBranchStrategyRel.cpp \
+	DcoBranchStrategyRel.hpp \
+	DcoBranchStrategyStrong.cpp \
+	DcoBranchStrategyStrong.hpp \
+	DcoBranchStrategyBilevel.cpp \
+	DcoBranchStrategyBilevel.hpp \
+	DcoConGenerator.cpp \
+	DcoConGenerator.hpp \
+	DcoConstraint.cpp \
+	DcoConstraint.hpp \
+	Dco.hpp \
+	DcoHelp.cpp \
+	DcoHelp.hpp \
+	DcoHeuristic.hpp \
+	DcoHeurRound.cpp \
+	DcoHeurRound.hpp \
+	DcoLicense.hpp \
+	DcoMessage.cpp \
+	DcoMessage.hpp \
+	DcoModel.cpp \
+	DcoModel.hpp \
+	DcoNodeDesc.hpp \
+	DcoObjectInt.cpp \
+	DcoObjectInt.hpp \
+	DcoParams.cpp \
+	DcoParams.hpp \
+	DcoPresolve.hpp \
+	DcoPresolve.cpp \
+	DcoPseudo.cpp \
+	DcoPseudo.hpp \
+	DcoSolution.hpp \
+	DcoSubTree.hpp \
+	DcoTreeNode.cpp \
+	DcoTreeNode.hpp \
+	DcoVariable.hpp
 
 
 # List all additionally required libraries
@@ -369,7 +369,7 @@ libDisco_la_SOURCES = \
 
 # This is for libtool (on Windows)
 libDisco_la_LDFLAGS = $(LT_LDFLAGS)
-disco_SOURCES = BlisMain.cpp 
+disco_SOURCES = DcoMain.cpp 
 disco_LDADD = libDisco.la $(DISCOLIB_LIBS)
 disco_DEPENDENCIES = libDisco.la $(DISCOLIB_DEPENDENCIES)
 
@@ -392,31 +392,31 @@ DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
 # and that therefore should be installed in 'install/coin'
 includecoindir = $(includedir)/coin
 includecoin_HEADERS = \
-	BlisBranchObjectInt.h \
-	BlisBranchStrategyMaxInf.h \
-	BlisBranchStrategyPseudo.h \
-	BlisBranchStrategyRel.h \
-	BlisBranchStrategyStrong.h \
-	BlisConGenerator.h \
-	BlisConstraint.h \
-	Blis.h \
-	BlisHelp.h \
-	BlisHeuristic.h \
-	BlisHeurRound.h \
-	BlisLicense.h \
-	BlisMessage.h \
-	BlisModel.h \
-	BlisNodeDesc.h \
-	BlisObjectInt.h \
-	BlisParams.h \
-	BlisPresolve.h \
-	BlisPseudo.h \
-	BlisSolution.h \
-	BlisSubTree.h \
-	BlisTreeNode.h \
-	BlisVariable.h
+	DcoBranchObjectInt.hpp \
+	DcoBranchStrategyMaxInf.hpp \
+	DcoBranchStrategyPseudo.hpp \
+	DcoBranchStrategyRel.hpp \
+	DcoBranchStrategyStrong.hpp \
+	DcoConGenerator.hpp \
+	DcoConstraint.hpp \
+	Dco.hpp \
+	DcoHelp.hpp \
+	DcoHeuristic.hpp \
+	DcoHeurRound.hpp \
+	DcoLicense.hpp \
+	DcoMessage.hpp \
+	DcoModel.hpp \
+	DcoNodeDesc.hpp \
+	DcoObjectInt.hpp \
+	DcoParams.hpp \
+	DcoPresolve.hpp \
+	DcoPseudo.hpp \
+	DcoSolution.hpp \
+	DcoSubTree.hpp \
+	DcoTreeNode.hpp \
+	DcoVariable.hpp
 
-all: config.h config_blis.h
+all: config.h config_dco.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
@@ -465,19 +465,19 @@ $(srcdir)/config.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	rm -f stamp-h1
 	touch $@
 
-config_blis.h: stamp-h2
+config_dco.h: stamp-h2
 	@if test ! -f $@; then \
 	  rm -f stamp-h2; \
 	  $(MAKE) stamp-h2; \
 	else :; fi
 
-stamp-h2: $(srcdir)/config_blis.h.in $(top_builddir)/config.status
+stamp-h2: $(srcdir)/config_dco.h.in $(top_builddir)/config.status
 	@rm -f stamp-h2
-	cd $(top_builddir) && $(SHELL) ./config.status src/config_blis.h
+	cd $(top_builddir) && $(SHELL) ./config.status src/config_dco.h
 
 distclean-hdr:
-	-rm -f config.h stamp-h1 config_blis.h stamp-h2
-blis.par: $(top_builddir)/config.status $(srcdir)/blis.par.in
+	-rm -f config.h stamp-h1 config_dco.h stamp-h2
+disco.par: $(top_builddir)/config.status $(srcdir)/disco.par.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
@@ -546,25 +546,25 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisBranchObjectBilevel.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisBranchObjectInt.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisBranchStrategyBilevel.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisBranchStrategyMaxInf.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisBranchStrategyPseudo.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisBranchStrategyRel.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisBranchStrategyStrong.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisConGenerator.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisConstraint.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisHelp.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisHeurRound.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisMain.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisMessage.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisModel.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisObjectInt.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisParams.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisPresolve.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisPseudo.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisTreeNode.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchObjectBilevel.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchObjectInt.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyBilevel.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyMaxInf.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyPseudo.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyRel.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyStrong.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConGenerator.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConstraint.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoHelp.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoHeurRound.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoMain.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoMessage.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoModel.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoObjectInt.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoParams.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoPresolve.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoPseudo.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoTreeNode.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -624,11 +624,11 @@ ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	mkid -fID $$unique
 tags: TAGS
 
-TAGS:  $(HEADERS) $(SOURCES) config.h.in config_blis.h.in $(TAGS_DEPENDENCIES) \
+TAGS:  $(HEADERS) $(SOURCES) config.h.in config_dco.h.in $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	tags=; \
 	here=`pwd`; \
-	list='$(SOURCES) $(HEADERS) config.h.in config_blis.h.in $(LISP) $(TAGS_FILES)'; \
+	list='$(SOURCES) $(HEADERS) config.h.in config_dco.h.in $(LISP) $(TAGS_FILES)'; \
 	unique=`for i in $$list; do \
 	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
 	  done | \
@@ -640,11 +640,11 @@ TAGS:  $(HEADERS) $(SOURCES) config.h.in config_blis.h.in $(TAGS_DEPENDENCIES) \
 	    $$tags $$unique; \
 	fi
 ctags: CTAGS
-CTAGS:  $(HEADERS) $(SOURCES) config.h.in config_blis.h.in $(TAGS_DEPENDENCIES) \
+CTAGS:  $(HEADERS) $(SOURCES) config.h.in config_dco.h.in $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	tags=; \
 	here=`pwd`; \
-	list='$(SOURCES) $(HEADERS) config.h.in config_blis.h.in $(LISP) $(TAGS_FILES)'; \
+	list='$(SOURCES) $(HEADERS) config.h.in config_dco.h.in $(LISP) $(TAGS_FILES)'; \
 	unique=`for i in $$list; do \
 	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
 	  done | \
@@ -692,7 +692,7 @@ distdir: $(DISTFILES)
 check-am: all-am
 check: check-am
 all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(HEADERS) config.h \
-		config_blis.h
+		config_dco.h
 install-binPROGRAMS: install-libLTLIBRARIES
 
 installdirs:
@@ -810,10 +810,10 @@ uninstall-am: uninstall-binPROGRAMS uninstall-includecoinHEADERS \
 #############################################################################
 
 install-exec-local:
-	$(install_sh_DATA) config_blis.h $(DESTDIR)$(includecoindir)/BlisConfig.h
+	$(install_sh_DATA) config_dco.h $(DESTDIR)$(includecoindir)/DcoConfig.h
 
 uninstall-local:
-	rm -f $(DESTDIR)$(includecoindir)/BlisConfig.h
+	rm -f $(DESTDIR)$(includecoindir)/DcoConfig.h
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
