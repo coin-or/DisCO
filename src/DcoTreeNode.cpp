@@ -1816,7 +1816,14 @@ BlisTreeNode::branch()
 	     
 	     // Copy warm start.
 	     CoinWarmStartBasis *ws = thisDesc->getBasis();
-	     CoinWarmStartBasis *newWs = new CoinWarmStartBasis(*ws);
+	     CoinWarmStartBasis * newWs;
+	     // check whether warm start basis is available
+	     if (ws==0) {
+	       newWs = 0;
+	     }
+	     else {
+	       newWs = new CoinWarmStartBasis(*ws);
+	     }
 	     childDesc->setBasis(newWs);
 	     
 	     childNodeDescs.push_back(CoinMakeTriple(static_cast<AlpsNodeDesc *>
@@ -1996,7 +2003,14 @@ BlisTreeNode::branch()
 	     childDesc->setBranchedVal(bValue);
 	     
 	     // Copy warm start.
-	     CoinWarmStartBasis *newWs2 = new CoinWarmStartBasis(*ws);
+	     CoinWarmStartBasis * newWs2;
+	     // check whether warm start basis is available
+	     if (ws==0) {
+	       newWs2 = 0;
+	     }
+	     else {
+	       newWs2 = new CoinWarmStartBasis(*ws);
+	     }
 	     childDesc->setBasis(newWs2);
 	     childNodeDescs.push_back(CoinMakeTriple(static_cast<AlpsNodeDesc *>
 						     (childDesc),
