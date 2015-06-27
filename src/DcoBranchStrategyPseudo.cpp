@@ -27,9 +27,9 @@
 
 #include "Alps.h"
 
-#include "BlisBranchStrategyPseudo.h"
-#include "BlisHelp.h"
-#include "BlisObjectInt.h"
+#include "DcoBranchStrategyPseudo.hpp"
+#include "DcoHelp.hpp"
+#include "DcoObjectInt.hpp"
 
 //#############################################################################
 

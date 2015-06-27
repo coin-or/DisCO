@@ -34,7 +34,7 @@
 #include "CoinPackedMatrix.hpp"
 #include "OsiCuts.hpp"
 
-#include "BlisHeuristic.h"
+#include "DcoHeuristic.hpp"
 
 class BlisModel;
 

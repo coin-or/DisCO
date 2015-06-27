@@ -48,13 +48,13 @@
 #include "BcpsObjectPool.h"
 #include "BcpsModel.h"
 
-#include "Blis.h"
-#include "BlisConGenerator.h"
-#include "BlisHeuristic.h"
-#include "BlisMessage.h"
-#include "BlisParams.h"
-#include "BlisPseudo.h"
-#include "BlisPresolve.h"
+#include "Dco.hpp"
+#include "DcoConGenerator.hpp"
+#include "DcoHeuristic.hpp"
+#include "DcoMessage.hpp"
+#include "DcoParams.hpp"
+#include "DcoPseudo.hpp"
+#include "DcoPresolve.hpp"
 
 //#############################################################################
 

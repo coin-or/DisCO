@@ -23,7 +23,7 @@
 
 #include "CoinHelperFunctions.hpp"
 
-#include "BlisBranchObjectInt.h"
+#include "DcoBranchObjectInt.hpp"
 
 
 //#############################################################################

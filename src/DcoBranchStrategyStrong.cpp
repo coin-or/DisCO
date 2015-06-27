@@ -28,10 +28,10 @@
 #include "Alps.h"
 #include "AlpsKnowledgeBroker.h"
 
-#include "BlisBranchStrategyStrong.h"
-#include "BlisHelp.h"
-#include "BlisSolution.h"
-#include "BlisObjectInt.h"
+#include "DcoBranchStrategyStrong.hpp"
+#include "DcoHelp.hpp"
+#include "DcoSolution.hpp"
+#include "DcoObjectInt.hpp"
 
 //#############################################################################
 

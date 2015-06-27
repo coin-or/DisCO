@@ -23,8 +23,8 @@
 
 #include "OsiRowCut.hpp"
 
-#include "BlisConstraint.h"
-#include "BlisModel.h"
+#include "DcoConstraint.hpp"
+#include "DcoModel.hpp"
 
 //#############################################################################
 

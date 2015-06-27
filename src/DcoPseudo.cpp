@@ -25,9 +25,9 @@
 #include <cassert>
 
 #include "Alps.h"
-#include "Blis.h"
+#include "Dco.hpp"
 
-#include "BlisPseudo.h"
+#include "DcoPseudo.hpp"
 
 //#############################################################################
 

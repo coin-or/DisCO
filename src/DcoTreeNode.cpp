@@ -40,19 +40,19 @@
 
 #include "BcpsBranchStrategy.h"
 
-#include "Blis.h"
-#include "BlisBranchObjectInt.h"
-#include "BlisBranchObjectBilevel.h"
-#include "BlisConstraint.h"
-#include "BlisHelp.h"
-#include "BlisTreeNode.h"
-#include "BlisModel.h"
-#include "BlisNodeDesc.h"
-#include "BlisModel.h"
-#include "BlisObjectInt.h"
-#include "BlisParams.h"
-#include "BlisSolution.h"
-//#include "BlisVariable.h"
+#include "Dco.hpp"
+#include "DcoBranchObjectInt.hpp"
+#include "DcoBranchObjectBilevel.hpp"
+#include "DcoConstraint.hpp"
+#include "DcoHelp.hpp"
+#include "DcoTreeNode.hpp"
+#include "DcoModel.hpp"
+#include "DcoNodeDesc.hpp"
+#include "DcoModel.hpp"
+#include "DcoObjectInt.hpp"
+#include "DcoParams.hpp"
+#include "DcoSolution.hpp"
+//#include "DcoVariable.hpp"
 
 #define REMOVE_SLACK 0
 #define BLIS_SLACK_MAX 4
@@ -289,6 +289,9 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
 	}
     }
 
+    // todo(aykut) disable cut generation
+    genConsHere = false;
+
     //--------------------------------------------------
     // Call HeurisBounding before solving for the first node.
     //--------------------------------------------------
@@ -500,7 +503,8 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                         newDelMark = new int [newNumCons];
                         CoinZeroN(newDelMark, newNumCons);
                     }
-                    
+
+		    // todo(aykut) disable warm start for now
                     const CoinWarmStartBasis* ws= 
                         dynamic_cast<CoinWarmStartBasis*>
                         (model->solver()->getWarmStart());
@@ -654,7 +658,6 @@ BlisTreeNode::process(bool isRoot, bool rampUp)
                         }
 #endif
                     }
-                    
                     delete ws;
                     delete [] newDelMark;
                     delete [] oldDelMark;

@@ -36,11 +36,11 @@
 
 #include "BcpsObjectPool.h"
 
-#include "BlisHelp.h"
-#include "BlisModel.h"
-#include "BlisMessage.h"
-#include "BlisConGenerator.h"
-#include "BlisConstraint.h"
+#include "DcoHelp.hpp"
+#include "DcoModel.hpp"
+#include "DcoMessage.hpp"
+#include "DcoConGenerator.hpp"
+#include "DcoConstraint.hpp"
 
 //#############################################################################
 

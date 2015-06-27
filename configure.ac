@@ -58,7 +58,7 @@ AC_COPYRIGHT([
 
 # List one file in the package so that the configure script can test
 # whether the package is actually there
-AC_CONFIG_SRCDIR(src/BlisModel.h)
+AC_CONFIG_SRCDIR(src/DcoModel.hpp)
 
 # Where should everything be installed by default?  Here, we want it
 # to be installed directly in 'bin', 'lib', 'include' subdirectories
@@ -111,16 +111,16 @@ AC_COIN_CHECK_PACKAGE(Sample, [coindatasample])
 #                   VPATH links for example input files                      #
 ##############################################################################
 
-# In this case, the source code is taken from the Blis examples directory
+# In this case, the source code is taken from the DisCO examples directory
 
-AC_CONFIG_LINKS(test/blis.par:src/BlisMain.cpp)
+AC_CONFIG_LINKS(test/disco.par:src/DcoMain.cpp)
 
 # In case this is a VPATH configuration we need to make sure that the
 # input files for the examples are available in the VPATH directory.
 
 # ToDo: don't know why didn't work.
-#AC_COIN_VPATH_LINK(examples/BlisMain.cpp)
-#AC_COIN_VPATH_LINK(examples/blis.par)
+#AC_COIN_VPATH_LINK(examples/DcoMain.cpp)
+#AC_COIN_VPATH_LINK(examples/disco.par)
 #AC_COIN_VPATH_LINK(examples/flugpl.mps)
 
 #############################################################################
@@ -138,7 +138,7 @@ AC_COIN_DOXYGEN(CoinUtils Osi Clp Cgl Alps Bcps CglConic Cola OsiConic OsiCplex 
 AC_CONFIG_FILES([Makefile
 		 examples/VRP/Makefile
                  src/Makefile
-		 src/blis.par
+		 src/disco.par
                  test/Makefile
 		 disco.pc
 		 disco-uninstalled.pc])
@@ -146,7 +146,7 @@ AC_CONFIG_FILES([Makefile
 AC_CONFIG_FILES([doxydoc/doxygen.conf])
 
 # Here put the location and name of the configuration header file
-AC_CONFIG_HEADER([src/config.h src/config_blis.h])
+AC_CONFIG_HEADER([src/config.h src/config_dco.h])
 
 # Finally, we let configure write all the output...
 AC_COIN_FINALIZE

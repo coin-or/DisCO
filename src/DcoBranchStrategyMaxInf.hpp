@@ -26,7 +26,7 @@
 
 #include "BcpsBranchObject.h"
 #include "BcpsBranchStrategy.h"
-#include "BlisModel.h"
+#include "DcoModel.hpp"
 
 /** This class implements maximum infeasibility branching. */
 class BlisBranchStrategyMaxInf : public BcpsBranchStrategy {

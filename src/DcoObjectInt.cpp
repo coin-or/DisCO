@@ -24,9 +24,9 @@
 #include "CoinHelperFunctions.hpp"
 
 #include "BcpsBranchObject.h"
-#include "BlisObjectInt.h"
-#include "BlisBranchObjectInt.h"
-#include "BlisModel.h"
+#include "DcoObjectInt.hpp"
+#include "DcoBranchObjectInt.hpp"
+#include "DcoModel.hpp"
 
 
 //#############################################################################

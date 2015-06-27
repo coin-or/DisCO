@@ -453,7 +453,7 @@ PACKAGE_VERSION='trunk'
 PACKAGE_STRING='Disco trunk'
 PACKAGE_BUGREPORT='https://github.com/aykutbulut/DisCO/issues/new'
 
-ac_unique_file="src/BlisModel.h"
+ac_unique_file="src/DcoModel.hpp"
 ac_default_prefix=`pwd`
 # Factoring default headers for most tests.
 ac_includes_default="\
@@ -21742,17 +21742,17 @@ fi
 #                   VPATH links for example input files                      #
 ##############################################################################
 
-# In this case, the source code is taken from the Blis examples directory
+# In this case, the source code is taken from the DisCO examples directory
 
-          ac_config_links="$ac_config_links test/blis.par:src/BlisMain.cpp"
+          ac_config_links="$ac_config_links test/disco.par:src/DcoMain.cpp"
 
 
 # In case this is a VPATH configuration we need to make sure that the
 # input files for the examples are available in the VPATH directory.
 
 # ToDo: don't know why didn't work.
-#AC_COIN_VPATH_LINK(examples/BlisMain.cpp)
-#AC_COIN_VPATH_LINK(examples/blis.par)
+#AC_COIN_VPATH_LINK(examples/DcoMain.cpp)
+#AC_COIN_VPATH_LINK(examples/disco.par)
 #AC_COIN_VPATH_LINK(examples/flugpl.mps)
 
 #############################################################################
@@ -21984,14 +21984,14 @@ done
 
 # Here list all the files that configure should create (except for the
 # configuration header file)
-                                                                      ac_config_files="$ac_config_files Makefile examples/VRP/Makefile src/Makefile src/blis.par test/Makefile disco.pc disco-uninstalled.pc"
+                                                                      ac_config_files="$ac_config_files Makefile examples/VRP/Makefile src/Makefile src/disco.par test/Makefile disco.pc disco-uninstalled.pc"
 
 
           ac_config_files="$ac_config_files doxydoc/doxygen.conf"
 
 
 # Here put the location and name of the configuration header file
-                    ac_config_headers="$ac_config_headers src/config.h src/config_blis.h"
+                    ac_config_headers="$ac_config_headers src/config.h src/config_dco.h"
 
 
 # Finally, we let configure write all the output...
@@ -22710,15 +22710,15 @@ do
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
   "examples/VRP/Makefile" ) CONFIG_FILES="$CONFIG_FILES examples/VRP/Makefile" ;;
   "src/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
-  "src/blis.par" ) CONFIG_FILES="$CONFIG_FILES src/blis.par" ;;
+  "src/disco.par" ) CONFIG_FILES="$CONFIG_FILES src/disco.par" ;;
   "test/Makefile" ) CONFIG_FILES="$CONFIG_FILES test/Makefile" ;;
   "disco.pc" ) CONFIG_FILES="$CONFIG_FILES disco.pc" ;;
   "disco-uninstalled.pc" ) CONFIG_FILES="$CONFIG_FILES disco-uninstalled.pc" ;;
   "doxydoc/doxygen.conf" ) CONFIG_FILES="$CONFIG_FILES doxydoc/doxygen.conf" ;;
-  "test/blis.par" ) CONFIG_LINKS="$CONFIG_LINKS test/blis.par:src/BlisMain.cpp" ;;
+  "test/disco.par" ) CONFIG_LINKS="$CONFIG_LINKS test/disco.par:src/DcoMain.cpp" ;;
   "depfiles" ) CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
   "src/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS src/config.h" ;;
-  "src/config_blis.h" ) CONFIG_HEADERS="$CONFIG_HEADERS src/config_blis.h" ;;
+  "src/config_dco.h" ) CONFIG_HEADERS="$CONFIG_HEADERS src/config_dco.h" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
    { (exit 1); exit 1; }; };;

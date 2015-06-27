@@ -31,8 +31,8 @@
 #include "AlpsNodeDesc.h"
 #include "BcpsNodeDesc.h"
 
-#include "BlisHelp.h"
-#include "BlisModel.h"
+#include "DcoHelp.hpp"
+#include "DcoModel.hpp"
 
 //#############################################################################
 

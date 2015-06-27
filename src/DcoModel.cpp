@@ -39,21 +39,21 @@
 
 #include "BcpsObject.h"
 
-#include "BlisBranchObjectInt.h"
-#include "BlisBranchObjectBilevel.h"
-#include "BlisBranchStrategyMaxInf.h"
-#include "BlisBranchStrategyPseudo.h"
-#include "BlisBranchStrategyRel.h"
-#include "BlisBranchStrategyStrong.h"
-#include "BlisBranchStrategyBilevel.h"
+#include "DcoBranchObjectInt.hpp"
+#include "DcoBranchObjectBilevel.hpp"
+#include "DcoBranchStrategyMaxInf.hpp"
+#include "DcoBranchStrategyPseudo.hpp"
+#include "DcoBranchStrategyRel.hpp"
+#include "DcoBranchStrategyStrong.hpp"
+#include "DcoBranchStrategyBilevel.hpp"
 
-#include "BlisConstraint.h"
-#include "BlisHeurRound.h"
-#include "BlisModel.h"
-#include "BlisObjectInt.h"
-#include "BlisSolution.h"
-#include "BlisTreeNode.h"
-#include "BlisVariable.h"
+#include "DcoConstraint.hpp"
+#include "DcoHeurRound.hpp"
+#include "DcoModel.hpp"
+#include "DcoObjectInt.hpp"
+#include "DcoSolution.hpp"
+#include "DcoTreeNode.hpp"
+#include "DcoVariable.hpp"
 
 #define BLIS_MIN_SHARE_CON 5
 #define BLIS_MAX_SHARE_CON 25

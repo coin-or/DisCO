@@ -25,8 +25,8 @@
 #include "CoinHelperFunctions.hpp"
 #include "CoinTime.hpp"
 
-#include "BlisModel.h"
-#include "BlisHeurRound.h"
+#include "DcoModel.hpp"
+#include "DcoHeurRound.hpp"
 
 
 //#############################################################################

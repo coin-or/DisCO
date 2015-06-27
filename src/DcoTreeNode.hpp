@@ -32,7 +32,7 @@
 #include "BcpsTreeNode.h"
 
 #include "BcpsNodeDesc.h"
-#include "BlisNodeDesc.h"
+#include "DcoNodeDesc.hpp"
 
 class BcpsModel;
 class BlisModel;

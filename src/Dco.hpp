@@ -28,7 +28,7 @@
 
 #include "AlpsConfig.h"
 #include "BcpsConfig.h"
-#include "BlisConfig.h"
+#include "DcoConfig.hpp"
 
 //#############################################################################
 

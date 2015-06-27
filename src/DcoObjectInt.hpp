@@ -27,7 +27,7 @@
 
 
 #include "BcpsObject.h"
-#include "BlisPseudo.h"
+#include "DcoPseudo.hpp"
 
 class BlisModel;
 

@@ -40,8 +40,8 @@
 #include "CglKnapsackCover.hpp"
 #include "CglOddHole.hpp"
 
-#include "BlisConfig.h"
-#include "BlisModel.h"
+#include "DcoConfig.hpp"
+#include "DcoModel.hpp"
 
 #if  COIN_HAS_MPI
 #include "AlpsKnowledgeBrokerMPI.h"
@@ -61,7 +61,8 @@ int main(int argc, char *argv[])
 	  // OsiConicSolverInterface * solver = new ColaModel();
 	  // solver.getModelPtr()->setDualBound(1.0e10);
 	  // solver.messageHandler()->setLogLevel(0);
-	  OsiConicSolverInterface * solver = new OsiMosekSolverInterface();
+	  // OsiConicSolverInterface * solver = new OsiMosekSolverInterface();
+	  OsiConicSolverInterface * solver = new OsiCplexSolverInterface();
 
 	  // Create DIETCOLA model
 	  BlisModel model;

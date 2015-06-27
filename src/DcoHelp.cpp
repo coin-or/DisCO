@@ -29,11 +29,11 @@
 
 #include "AlpsKnowledgeBroker.h"
 
-#include "BlisObjectInt.h"
-#include "BlisConstraint.h"
-#include "BlisHelp.h"
-#include "BlisModel.h"
-#include "BlisSolution.h"
+#include "DcoObjectInt.hpp"
+#include "DcoConstraint.hpp"
+#include "DcoHelp.hpp"
+#include "DcoModel.hpp"
+#include "DcoSolution.hpp"
 
 //#############################################################################
 

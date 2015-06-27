@@ -27,8 +27,8 @@
 #include "CoinHelperFunctions.hpp"
 #include "CoinSort.hpp"
 
-#include "BlisBranchStrategyBilevel.h"
-#include "BlisBranchObjectBilevel.h"
+#include "DcoBranchStrategyBilevel.hpp"
+#include "DcoBranchObjectBilevel.hpp"
 
 class doubleIntCompare {
 public:

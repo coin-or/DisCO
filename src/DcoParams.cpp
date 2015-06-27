@@ -21,7 +21,7 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
-#include "BlisParams.h"
+#include "DcoParams.hpp"
 
 using std::make_pair;
 
