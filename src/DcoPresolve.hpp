@@ -21,8 +21,8 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
-#ifndef BlisPresolve_H_
-#define BlisPresolve_H_
+#ifndef DcoPresolve_H_
+#define DcoPresolve_H_
 
 #if defined(_MSC_VER)
 // Turn off compiler warning about long names
@@ -35,7 +35,7 @@
 //#############################################################################
 
 /** A interface to Osi/Coin Presolve. */
-class BlisPresolve : public OsiPresolve
+class DcoPresolve : public OsiPresolve
 {
 private:
 
@@ -45,12 +45,12 @@ private:
 public:
 
     /** Default constructor (empty object) */
-    BlisPresolve() :
+    DcoPresolve() :
         preMatrix_(0),
         postMatrix_(0) {}
 
     /** Virtual destructor */
-    virtual ~BlisPresolve() {
+    virtual ~DcoPresolve() {
         delete preMatrix_;
         delete postMatrix_;
     }

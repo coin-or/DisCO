@@ -27,8 +27,8 @@
 //#############################################################################
 
 
-#ifndef BlisHeuristic_h_
-#define BlisHeuristic_h_
+#ifndef DcoHeuristic_h_
+#define DcoHeuristic_h_
 
 #include <string>
 #include <vector>
@@ -38,36 +38,36 @@
 
 #include "Dco.hpp"
 
-class BlisModel;
+class DcoModel;
 
 
 //#############################################################################
 
 
 /** Heuristic base class */
-class BlisHeuristic {
+class DcoHeuristic {
 
  private:
 
     /** Illegal Assignment operator */
-    BlisHeuristic & operator = (const BlisHeuristic& rhs);
+    DcoHeuristic & operator = (const DcoHeuristic& rhs);
     
  protected:
 
     /** Pointer to the model */
-    BlisModel *model_;
+    DcoModel *model_;
     
     /** Heuristics name */
     char *name_;
     
     /** When to call findSolution() routine. 
-        BlisHeurStrategyNone:     disable
-        BlisHeurStrategyRoot:     just root
-        BlisHeurStrategyAuto:     automatically decided by BLIS
-        BlisHeurStrategyPeriodic: every 't' nodes
-	BlisHeurStrategyBeforeRoot: before solving first LP
+        DcoHeurStrategyNone:     disable
+        DcoHeurStrategyRoot:     just root
+        DcoHeurStrategyAuto:     automatically decided by DISCO
+        DcoHeurStrategyPeriodic: every 't' nodes
+	DcoHeurStrategyBeforeRoot: before solving first LP
     */
-    BlisHeurStrategy strategy_;
+    DcoHeurStrategy strategy_;
 
     /** The frequency with which to call the heuristic */
     int heurCallFrequency_;
@@ -87,10 +87,10 @@ class BlisHeuristic {
 public:
     
     /** Default Constructor. */
-    BlisHeuristic() {
+    DcoHeuristic() {
         model_ = NULL;
         name_ = strdup("Unknown");
-        strategy_ = BlisHeurStrategyAuto;
+        strategy_ = DcoHeurStrategyAuto;
 	heurCallFrequency_ = 1;
         numSolutions_ = 0;
         time_ = 0.0;
@@ -99,8 +99,8 @@ public:
     }
     
     /** Useful constructor. */
-    BlisHeuristic(BlisModel *model, const char *name,
-		  BlisHeurStrategy strategy, int heurCallFrequency) {
+    DcoHeuristic(DcoModel *model, const char *name,
+		  DcoHeurStrategy strategy, int heurCallFrequency) {
         model_ = model;
         if (name) {
             name_ = strdup(name);
@@ -117,10 +117,10 @@ public:
     }
 
     /** Distructor. */
-    virtual ~BlisHeuristic() { if (name_) free(name_); }
+    virtual ~DcoHeuristic() { if (name_) free(name_); }
 
     /** Copy constructor. */
-    BlisHeuristic(const BlisHeuristic & rhs) {        
+    DcoHeuristic(const DcoHeuristic & rhs) {        
         model_ = rhs.model_;
         name_ = strdup(rhs.name_);
         strategy_ = rhs.strategy_; // What if disabled?
@@ -132,12 +132,12 @@ public:
     }
  
     /** update model (This is needed if cliques update matrix etc). */
-    virtual void setModel(BlisModel * model) { model_ = model ;}
+    virtual void setModel(DcoModel * model) { model_ = model ;}
     
     /** Get/set strategy. */
     //@{
-    virtual void setStrategy(BlisHeurStrategy strategy) {strategy_ = strategy;}
-    virtual BlisHeurStrategy strategy() const { return strategy_; }
+    virtual void setStrategy(DcoHeurStrategy strategy) {strategy_ = strategy;}
+    virtual DcoHeurStrategy strategy() const { return strategy_; }
     //@]
 
     /** Get/set call frequency. */
@@ -147,8 +147,8 @@ public:
     //@]
 
     /** Clone a heuristic. */
-    virtual BlisHeuristic * clone() const {
-	BlisHeuristic *h = NULL;
+    virtual DcoHeuristic * clone() const {
+	DcoHeuristic *h = NULL;
 	assert(0);
 	return h;
     }

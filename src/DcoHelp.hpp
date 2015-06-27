@@ -23,8 +23,8 @@
 
 //#############################################################################
 
-#ifndef BlisHelp_h_
-#define BlisHelp_h_
+#ifndef DcoHelp_h_
+#define DcoHelp_h_
 
 #include "AlpsEncoded.h"
 
@@ -32,44 +32,44 @@
 
 class CoinWarmStartBasis;
 class OsiRowCut;
-class BlisConstraint;
-class BlisModel;
+class DcoConstraint;
+class DcoModel;
 
 //#############################################################################
 
-/** Convert a OsiRowCut to a Blis Contraint. */
-BlisConstraint * BlisOsiCutToConstraint(const OsiRowCut *rowCut);
+/** Convert a OsiRowCut to a Dco Contraint. */
+DcoConstraint * DcoOsiCutToConstraint(const OsiRowCut *rowCut);
 
 /** Strong branching on a variable colInd. */
-BlisReturnStatus BlisStrongBranch(BlisModel *model, double objValue, int colInd, double x,
+DcoReturnStatus DcoStrongBranch(DcoModel *model, double objValue, int colInd, double x,
                                   const double *saveLower, const double *saveUpper,
 		                          bool &downKeep, bool &downFinished, double &downDeg,
 		                          bool &upKeep, bool &upFinished, double &upDeg);
 
 /** Pack coin warm start into an encoded object. */
-int BlisEncodeWarmStart(AlpsEncoded *encoded, const CoinWarmStartBasis *ws);
+int DcoEncodeWarmStart(AlpsEncoded *encoded, const CoinWarmStartBasis *ws);
 
 /** Unpack coin warm start from an encoded object. */
-CoinWarmStartBasis *BlisDecodeWarmStart(AlpsEncoded &encoded,
+CoinWarmStartBasis *DcoDecodeWarmStart(AlpsEncoded &encoded,
 					AlpsReturnStatus *rc);
 
 /** Compute and return a hash value of an Osi row cut. */
-double BlisHashingOsiRowCut(const OsiRowCut *rowCut, 
-			    const BlisModel *model);
+double DcoHashingOsiRowCut(const OsiRowCut *rowCut, 
+			    const DcoModel *model);
 
 /** Check if a row cut parallel with another row cut. */
-bool BlisParallelCutCut(OsiRowCut * rowCut1,
+bool DcoParallelCutCut(OsiRowCut * rowCut1,
 			OsiRowCut * rowCut2,
 			double threshold = 1.0);
 
 /** Check if a row cut parallel with a constraint. */
-bool BlisParallelCutCon(OsiRowCut * rowCut,
-			BlisConstraint * con,
+bool DcoParallelCutCon(OsiRowCut * rowCut,
+			DcoConstraint * con,
 			double threshold = 1.0);
 
 /** Check if a row cut parallel with a constraint. */
-bool BlisParallelConCon(BlisConstraint * con1,
-			BlisConstraint * con2,
+bool DcoParallelConCon(DcoConstraint * con1,
+			DcoConstraint * con2,
 			double threshold = 1.0);
 
 

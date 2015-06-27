@@ -27,8 +27,8 @@
 //#############################################################################
 
 
-#ifndef BlisBranchStrategyStrong_h_
-#define BlisBranchStrategyStrong_h_
+#ifndef DcoBranchStrategyStrong_h_
+#define DcoBranchStrategyStrong_h_
 
 #include "BcpsBranchObject.h"
 #include "BcpsBranchStrategy.h"
@@ -47,42 +47,42 @@ typedef struct {
     int numIntInfDown;          // without odd ones
     int numObjInfDown;          // just odd ones
     bool finishedDown;          // true if solver finished
-} BlisStrong;
+} DcoStrong;
 
 
 //#############################################################################
 
 
 /** This class implements strong branching. */
-class BlisBranchStrategyStrong : public BcpsBranchStrategy {
+class DcoBranchStrategyStrong : public BcpsBranchStrategy {
 
  private:
 
     /** Illegal Assignment operator.*/
-    BlisBranchStrategyStrong& operator=(const BlisBranchStrategyStrong& rhs);
+    DcoBranchStrategyStrong& operator=(const DcoBranchStrategyStrong& rhs);
     
  public:
     
     /** Strong Constructor. */
-    BlisBranchStrategyStrong() {
-	type_ = static_cast<int>(BlisBranchingStrategyStrong);
+    DcoBranchStrategyStrong() {
+	type_ = static_cast<int>(DcoBranchingStrategyStrong);
     }
 
     /** Strong Constructor. */
-    BlisBranchStrategyStrong(BlisModel *model)
+    DcoBranchStrategyStrong(DcoModel *model)
         : BcpsBranchStrategy(model) {
-	type_ = static_cast<int>(BlisBranchingStrategyStrong);
+	type_ = static_cast<int>(DcoBranchingStrategyStrong);
     }
     
     /** Destructor. */
-    virtual ~BlisBranchStrategyStrong() {}
+    virtual ~DcoBranchStrategyStrong() {}
     
     /** Copy constructor. */
-    BlisBranchStrategyStrong(const BlisBranchStrategyStrong &);
+    DcoBranchStrategyStrong(const DcoBranchStrategyStrong &);
     
     /** Clone a brancing strategy. */
     virtual BcpsBranchStrategy * clone() const {
-	return new BlisBranchStrategyStrong(*this);
+	return new DcoBranchStrategyStrong(*this);
     }
     
     /** Create a set of candidate branching objects. */

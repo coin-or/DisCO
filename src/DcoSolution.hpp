@@ -21,8 +21,8 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
-#ifndef BlisSolution_h_
-#define BlisSolution_h_
+#ifndef DcoSolution_h_
+#define DcoSolution_h_
 
 #include "Alps.h"
 #include "BcpsSolution.h"
@@ -33,26 +33,26 @@
     object generator(s). */ 
 //#############################################################################
 
-class BlisSolution : public BcpsSolution {
+class DcoSolution : public BcpsSolution {
 
  protected:
 
  public:
     
     /** Default constructor. */
-    BlisSolution() 
+    DcoSolution() 
 	: 
 	BcpsSolution()
 	{}
 
     /** Useful constructor. */
-    BlisSolution(int s, const double *values, double objValue)
+    DcoSolution(int s, const double *values, double objValue)
 	:
 	BcpsSolution(s, values, objValue)
 	{}
 
     /** Destructor. */
-    virtual ~BlisSolution() { }
+    virtual ~DcoSolution() { }
 
     /** Print out the solution.*/
     /** Print the solution.*/
@@ -73,20 +73,20 @@ class BlisSolution : public BcpsSolution {
     
     /** Check if IP feasible. If yes, return a IP solution; othersize, 
 	return NULL. */
-    // BlisIpSolution* testIntegrality(const double etol = 1e-5) const; 
+    // DcoIpSolution* testIntegrality(const double etol = 1e-5) const; 
     
     using AlpsKnowledge::encode ;
     /** The method that encodes the solution into a encoded object. */
     virtual AlpsEncoded* encode() const {
 	AlpsEncoded* encoded = new AlpsEncoded(AlpsKnowledgeTypeSolution);
 	encodeBcps(encoded);
-	// Nothing to do for Blis part.
+	// Nothing to do for Dco part.
 	return encoded;
     }
   
     /** The method that decodes the solution from a encoded object. */
     virtual AlpsKnowledge* decode(AlpsEncoded& encoded) const {
-	BlisSolution * sol = new BlisSolution();
+	DcoSolution * sol = new DcoSolution();
 	sol->decodeBcps(encoded);
 	return sol;
     }

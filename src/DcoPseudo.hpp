@@ -21,15 +21,15 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
-#ifndef BlisPseudo_h_
-#define BlisPseudo_h_
+#ifndef DcoPseudo_h_
+#define DcoPseudo_h_
 
 #include "CoinError.hpp"
 #include "AlpsKnowledge.h"
 
 //#############################################################################
 
-class BlisPseudocost : public AlpsKnowledge
+class DcoPseudocost : public AlpsKnowledge
 {
 private:
     /** Use to calculate score. */
@@ -55,7 +55,7 @@ private:
     
 public:
     /** Default constructor. */
-    BlisPseudocost() : 
+    DcoPseudocost() : 
         weight_(1.0),
         upCost_(0.0), 
         upCount_(0),
@@ -65,7 +65,7 @@ public:
         {}
 	
         /** Useful constructor. */
-	BlisPseudocost(double uc, 
+	DcoPseudocost(double uc, 
 		       int un,
 		       double dc, 
                    int dn,
@@ -80,7 +80,7 @@ public:
         {}
 	
 	/** Copy constructor */
-	BlisPseudocost(const BlisPseudocost& cost) {
+	DcoPseudocost(const DcoPseudocost& cost) {
 	    weight_ = cost.weight_;
 	    upCost_ = cost.upCost_;
 	    upCount_ = cost.upCount_;
@@ -90,7 +90,7 @@ public:
 	}
 	
 	/** Overload operator = */
-	BlisPseudocost& operator=(const BlisPseudocost& cost) {
+	DcoPseudocost& operator=(const DcoPseudocost& cost) {
 	    weight_ = cost.weight_;
 	    upCost_ = cost.upCost_;
 	    upCount_ = cost.upCount_;
@@ -104,7 +104,7 @@ public:
     void setWeight(double w) { 
         if (w < 0.0 || w > 1.0) {   
             throw CoinError("weight is not in range [0,1]", "setWeight", 
-                            "BlisPseudo");
+                            "DcoPseudo");
         }
         weight_= w; 
     }

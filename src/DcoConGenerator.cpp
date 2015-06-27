@@ -45,10 +45,10 @@
 //#############################################################################
 
 // Normal constructor
-BlisConGenerator::BlisConGenerator(BlisModel * model,
+DcoConGenerator::DcoConGenerator(DcoModel * model,
 				   CglCutGenerator * generator,
 				   const char * name,
-				   BlisCutStrategy strategy,
+				   DcoCutStrategy strategy,
 				   int cutGenerationFrequency,
 				   bool normal,
 				   bool atSolution,
@@ -80,7 +80,7 @@ BlisConGenerator::BlisConGenerator(BlisModel * model,
 //#############################################################################
 
 // Copy constructor
-BlisConGenerator::BlisConGenerator(const BlisConGenerator & rhs)
+DcoConGenerator::DcoConGenerator(const DcoConGenerator & rhs)
 {
     model_ = rhs.model_;
     generator_ = rhs.generator_;
@@ -101,8 +101,8 @@ BlisConGenerator::BlisConGenerator(const BlisConGenerator & rhs)
 //#############################################################################
 
 // Assignment operator
-BlisConGenerator &
-BlisConGenerator::operator=( const BlisConGenerator& rhs)
+DcoConGenerator &
+DcoConGenerator::operator=( const DcoConGenerator& rhs)
 {
     if (this != &rhs) {
         delete generator_;
@@ -132,7 +132,7 @@ BlisConGenerator::operator=( const BlisConGenerator& rhs)
 // in case generator wants to do some work
 
 void
-BlisConGenerator::refreshModel(BlisModel * model)
+DcoConGenerator::refreshModel(DcoModel * model)
 {
   model_ = model;
   generator_->refreshSolver(model_->solver());
@@ -145,13 +145,13 @@ BlisConGenerator::refreshModel(BlisModel * model)
 // constraint pool.
 // Default implementation use Cgl cut generators.
 bool
-BlisConGenerator::generateConstraints(BcpsConstraintPool &conPool)
+DcoConGenerator::generateConstraints(BcpsConstraintPool &conPool)
 {
     bool status = false;
 
     OsiConicSolverInterface * solver = model_->solver();
 
-#if defined(BLIS_DEBUG_MORE)
+#if defined(DISCO_DEBUG_MORE)
     std::cout << "model_->getNodeCount() = " << model_->getNodeCount()
               << std::endl;
 #endif
@@ -205,22 +205,22 @@ BlisConGenerator::generateConstraints(BcpsConstraintPool &conPool)
 	OsiRowCut & rCut = newOsiCuts.rowCut(j);
 	int len = rCut.row().getNumElements();
 
-#ifdef BLIS_DEBUG_MORE
+#ifdef DISCO_DEBUG_MORE
 	std::cout << "Cut " << j<<": length = " << len << std::endl;
 #endif
 	if (len > 0) {
-	    // Create BlisConstraints from OsiCuts.
-	    BlisConstraint *blisCon = BlisOsiCutToConstraint(&rCut);
+	    // Create DcoConstraints from OsiCuts.
+	    DcoConstraint *blisCon = DcoOsiCutToConstraint(&rCut);
 	    conPool.addConstraint(blisCon);
 	}
 	else if (len == 0) {
 	    // Empty cuts
-#ifdef BLIS_DEBUG
+#ifdef DISCO_DEBUG
 	    std::cout << "WARNING: Empty cut from " << name_ << std::endl;
 #endif
 	}
 	else {
-#ifdef BLIS_DEBUG
+#ifdef DISCO_DEBUG
 	    std::cout << "ERROR: Cut length = " << len << std::endl;
 #endif
 	    // Error
@@ -229,9 +229,9 @@ BlisConGenerator::generateConstraints(BcpsConstraintPool &conPool)
     }
 
     // Adjust cut strategy.
-    if ( (strategy_ == BlisCutStrategyAuto) &&
-	 (noConsCalls_ > BLIS_CUT_DISABLE) ) {
-	strategy_ = BlisCutStrategyNone;
+    if ( (strategy_ == DcoCutStrategyAuto) &&
+	 (noConsCalls_ > DISCO_CUT_DISABLE) ) {
+	strategy_ = DcoCutStrategyNone;
     }
 
     return status;

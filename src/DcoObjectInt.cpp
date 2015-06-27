@@ -33,7 +33,7 @@
 
 /** Useful constructor
     Loads actual upper & lower bounds for the specified variable. */
-BlisObjectInt::BlisObjectInt(int objectIndex,
+DcoObjectInt::DcoObjectInt(int objectIndex,
                              int iColumn,
                              double lb,
                              double ub,
@@ -53,7 +53,7 @@ BlisObjectInt::BlisObjectInt(int objectIndex,
 //#############################################################################
 
 // Copy constructor
-BlisObjectInt::BlisObjectInt( const BlisObjectInt & rhs)
+DcoObjectInt::DcoObjectInt( const DcoObjectInt & rhs)
     :
     BcpsObject(rhs)
 
@@ -68,8 +68,8 @@ BlisObjectInt::BlisObjectInt( const BlisObjectInt & rhs)
 //#############################################################################
 
 // Assignment operator
-BlisObjectInt &
-BlisObjectInt::operator = (const BlisObjectInt& rhs)
+DcoObjectInt &
+DcoObjectInt::operator = (const DcoObjectInt& rhs)
 {
     if (this != &rhs) {
 	BcpsObject::operator=(rhs);
@@ -83,9 +83,9 @@ BlisObjectInt::operator = (const BlisObjectInt& rhs)
 
 // Compute the infeasibility based on currently relax solution.
 double
-BlisObjectInt::infeasibility(BcpsModel *m, int & preferredWay) const
+DcoObjectInt::infeasibility(BcpsModel *m, int & preferredWay) const
 {
-    BlisModel * model = dynamic_cast<BlisModel *>(m);
+    DcoModel * model = dynamic_cast<DcoModel *>(m);
     OsiConicSolverInterface * solver = model->solver();
 
     const double * solution =  solver->getColSolution();
@@ -102,7 +102,7 @@ BlisObjectInt::infeasibility(BcpsModel *m, int & preferredWay) const
     //   solution[columnIndex_],upper[columnIndex_]);
 
     double nearest = floor(value + (1.0 - breakEven_));
-    double integerTolerance = model->BlisPar()->entry(BlisParams::integerTol);
+    double integerTolerance = model->DcoPar()->entry(DcoParams::integerTol);
     if (nearest > value) {
 	preferredWay = 1;
     }
@@ -134,10 +134,10 @@ BlisObjectInt::infeasibility(BcpsModel *m, int & preferredWay) const
 // the nearest integer value. Assume solution value is within tolerance of
 // the nearest integer.
 void
-BlisObjectInt::feasibleRegion(BcpsModel *m)
+DcoObjectInt::feasibleRegion(BcpsModel *m)
 {
 
-    BlisModel *model = dynamic_cast<BlisModel* >(m);
+    DcoModel *model = dynamic_cast<DcoModel* >(m);
     OsiConicSolverInterface * solver = model->solver();
 
     const double * solution =  solver->getColSolution();
@@ -162,12 +162,12 @@ BlisObjectInt::feasibleRegion(BcpsModel *m)
 
 // Creates a branching object from this infeasible object.
 BcpsBranchObject *
-BlisObjectInt::createBranchObject(BcpsModel *m, int direction) const
+DcoObjectInt::createBranchObject(BcpsModel *m, int direction) const
 {
-    BlisModel *model = dynamic_cast<BlisModel* >(m);
+    DcoModel *model = dynamic_cast<DcoModel* >(m);
     OsiConicSolverInterface * solver = model->solver();
 
-    //double integerTolerance = model->BlisPar()->entry(BlisParams::integerTol);
+    //double integerTolerance = model->DcoPar()->entry(DcoParams::integerTol);
 
     const double * solution = solver->getColSolution();
     const double * lower = solver->getColLower();
@@ -180,7 +180,7 @@ BlisObjectInt::createBranchObject(BcpsModel *m, int direction) const
     value = CoinMax(value, lower[columnIndex_]);
     value = CoinMin(value, upper[columnIndex_]);
 
-    return new BlisBranchObjectInt(model, objectIndex_, direction, value);
+    return new DcoBranchObjectInt(model, objectIndex_, direction, value);
 }
 
 //#############################################################################
@@ -191,26 +191,26 @@ BlisObjectInt::createBranchObject(BcpsModel *m, int direction) const
 // return NULL.
 
 BcpsBranchObject *
-BlisObjectInt::preferredNewFeasible(BcpsModel *m) const
+DcoObjectInt::preferredNewFeasible(BcpsModel *m) const
 {
-    BlisModel *model = dynamic_cast<BlisModel* >(m);
+    DcoModel *model = dynamic_cast<DcoModel* >(m);
     OsiConicSolverInterface * solver = model->solver();
 
     double value = solver->getColSolution()[columnIndex_];
 
     double nearest = floor(value + 0.5);
 
-    assert(fabs(value - nearest) <= model->BlisPar()->entry(BlisParams::integerTol));
+    assert(fabs(value - nearest) <= model->DcoPar()->entry(DcoParams::integerTol));
 
     double dj = solver->getObjSense()*solver->getReducedCost()[columnIndex_];
 
-    BlisBranchObjectInt * object = NULL;
+    DcoBranchObjectInt * object = NULL;
 
     if (dj >= 0.0) {
 	// Better go down
 	if (nearest > originalLower_ + 0.5) {
 	    // Has room to go down
-	    object = new BlisBranchObjectInt(model,
+	    object = new DcoBranchObjectInt(model,
                                              objectIndex_,
                                              -1,
                                              nearest - 1.0,
@@ -221,7 +221,7 @@ BlisObjectInt::preferredNewFeasible(BcpsModel *m) const
 	// Better go up
 	if (nearest < originalUpper_ - 0.5) {
 	    // Has room to go up
-	    object = new BlisBranchObjectInt(model,
+	    object = new DcoBranchObjectInt(model,
                                              objectIndex_,
                                              -1,
                                              nearest + 1.0,
@@ -240,23 +240,23 @@ BlisObjectInt::preferredNewFeasible(BcpsModel *m) const
 // return NULL.
 
 BcpsBranchObject *
-BlisObjectInt::notPreferredNewFeasible(BcpsModel *m) const
+DcoObjectInt::notPreferredNewFeasible(BcpsModel *m) const
 {
-    BlisModel *model = dynamic_cast<BlisModel* >(m);
+    DcoModel *model = dynamic_cast<DcoModel* >(m);
     OsiConicSolverInterface * solver = model->solver();
     double value = solver->getColSolution()[columnIndex_];
 
     double nearest = floor(value + 0.5);
 
-    assert (fabs(value-nearest) <= model->BlisPar()->entry(BlisParams::integerTol));
+    assert (fabs(value-nearest) <= model->DcoPar()->entry(DcoParams::integerTol));
     double dj = solver->getObjSense()*solver->getReducedCost()[columnIndex_];
-    BlisBranchObjectInt * object = NULL;
+    DcoBranchObjectInt * object = NULL;
 
     if (dj <= 0.0) {
 	// Worse if go down.
 	if (nearest > originalLower_ + 0.5) {
 	    // Has room to go down.
-	    object = new BlisBranchObjectInt(model,
+	    object = new DcoBranchObjectInt(model,
                                              objectIndex_,
                                              -1,
                                              nearest - 1.0,
@@ -267,7 +267,7 @@ BlisObjectInt::notPreferredNewFeasible(BcpsModel *m) const
 	// Worse if go up.
 	if (nearest < originalUpper_-0.5) {
 	    // Has room to go up.
-	    object = new BlisBranchObjectInt(model,
+	    object = new DcoBranchObjectInt(model,
                                              objectIndex_,
                                              -1,
                                              nearest + 1.0,
@@ -282,11 +282,11 @@ BlisObjectInt::notPreferredNewFeasible(BcpsModel *m) const
 
 // Reset bounds to the ones in LP solver.
 void
-BlisObjectInt::resetBounds(BcpsModel *m)
+DcoObjectInt::resetBounds(BcpsModel *m)
 {
-    originalLower_ = dynamic_cast<BlisModel *>
+    originalLower_ = dynamic_cast<DcoModel *>
 	(m)->solver()->getColLower()[columnIndex_];
-    originalUpper_ = dynamic_cast<BlisModel *>
+    originalUpper_ = dynamic_cast<DcoModel *>
 	(m)->solver()->getColUpper()[columnIndex_];
 }
 

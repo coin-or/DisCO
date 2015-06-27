@@ -21,8 +21,8 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
-#ifndef BlisMessage_H_
-#define BlisMessage_H_
+#ifndef DcoMessage_H_
+#define DcoMessage_H_
 
 //#############################################################################
 
@@ -31,38 +31,38 @@
 #  pragma warning(disable:4786)
 #endif
 
-/** This deals with Blis messages. */
+/** This deals with Dco messages. */
 #include "CoinMessageHandler.hpp"
 
 //#############################################################################
 
-enum BLIS_Message
+enum DISCO_Message
 {
-    BLIS_CUTOFF_INC,
-    BLIS_CUT_STAT_FINAL,
-    BLIS_CUT_STAT_NODE,
-    BLIS_GAP_NO,
-    BLIS_GAP_YES,
-    BLIS_HEUR_BEFORE_ROOT,
-    BLIS_HEUR_STAT_FINAL,
-    BLIS_HEUR_STAT_NODE,
-    BLIS_ROOT_PROCESS,
-    BLIS_ROOT_TIME,
-    BLIS_W_LP,
+    DISCO_CUTOFF_INC,
+    DISCO_CUT_STAT_FINAL,
+    DISCO_CUT_STAT_NODE,
+    DISCO_GAP_NO,
+    DISCO_GAP_YES,
+    DISCO_HEUR_BEFORE_ROOT,
+    DISCO_HEUR_STAT_FINAL,
+    DISCO_HEUR_STAT_NODE,
+    DISCO_ROOT_PROCESS,
+    DISCO_ROOT_TIME,
+    DISCO_W_LP,
     ///
-    BLIS_DUMMY_END
+    DISCO_DUMMY_END
 };
 
 //#############################################################################
 
-class BlisMessage : public CoinMessages 
+class DcoMessage : public CoinMessages 
 {
 public:
     
     /**@name Constructors etc */
     //@{
     /** Constructor */
-    BlisMessage(Language language=us_en);
+    DcoMessage(Language language=us_en);
     //@}
 };
 

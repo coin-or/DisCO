@@ -35,7 +35,7 @@
 //#############################################################################
 
 
-class BlisBranchObjectBilevel : public BcpsBranchObject {
+class DcoBranchObjectBilevel : public BcpsBranchObject {
 
  protected:
 
@@ -45,34 +45,34 @@ class BlisBranchObjectBilevel : public BcpsBranchObject {
  public:
     
     /** Default constructor. */
-    BlisBranchObjectBilevel() : BcpsBranchObject()
+    DcoBranchObjectBilevel() : BcpsBranchObject()
     {
-	type_ = BlisBranchingObjectTypeBilevel;
+	type_ = DcoBranchingObjectTypeBilevel;
 	branchingSet_ = new std::deque<int>();
     }
 
     /** Another useful constructor. */
-    BlisBranchObjectBilevel(BcpsModel * model)
+    DcoBranchObjectBilevel(BcpsModel * model)
 	: BcpsBranchObject(model) {
-	type_ = BlisBranchingObjectTypeBilevel;
+	type_ = DcoBranchingObjectTypeBilevel;
 	branchingSet_ = new std::deque<int>();
     }
     
     /** Copy constructor. */
-    BlisBranchObjectBilevel(const BlisBranchObjectBilevel &rhs)
+    DcoBranchObjectBilevel(const DcoBranchObjectBilevel &rhs)
     :
     BcpsBranchObject(rhs), branchingSet_(rhs.branchingSet_) {}
     
     /** Assignment operator. */
-    BlisBranchObjectBilevel & operator = (const BlisBranchObjectBilevel& rhs);
+    DcoBranchObjectBilevel & operator = (const DcoBranchObjectBilevel& rhs);
     
     /** Clone. */
     virtual BcpsBranchObject * clone() const {
-        return (new BlisBranchObjectBilevel(*this));
+        return (new DcoBranchObjectBilevel(*this));
     }
 
     /** Destructor. */
-    virtual ~BlisBranchObjectBilevel() { delete branchingSet_; }
+    virtual ~DcoBranchObjectBilevel() { delete branchingSet_; }
 
     /** Get a pointer to the branching set */
     std::deque<int> *getBranchingSet() const {return branchingSet_;}
@@ -90,15 +90,15 @@ class BlisBranchObjectBilevel : public BcpsBranchObject {
 
  protected:
 
-    /** Pack Blis portion to an encoded object. */
-    AlpsReturnStatus encodeBlis(AlpsEncoded *encoded) const {
+    /** Pack Disco portion to an encoded object. */
+    AlpsReturnStatus encodeDco(AlpsEncoded *encoded) const {
 	assert(encoded);
 	AlpsReturnStatus status = AlpsReturnStatusOk;
 	return status;
     }
 
-    /** Unpack Blis portion from an encoded object. */
-    AlpsReturnStatus decodeBlis(AlpsEncoded &encoded) {
+    /** Unpack Disco portion from an encoded object. */
+    AlpsReturnStatus decodeDco(AlpsEncoded &encoded) {
 	AlpsReturnStatus status = AlpsReturnStatusOk;
 	return status;
     }
@@ -110,7 +110,7 @@ class BlisBranchObjectBilevel : public BcpsBranchObject {
 	AlpsReturnStatus status = AlpsReturnStatusOk;
 
 	status = encodeBcps(encoded);
-	status = encodeBlis(encoded);
+	status = encodeDco(encoded);
 	
 	return status;
     }
@@ -121,7 +121,7 @@ class BlisBranchObjectBilevel : public BcpsBranchObject {
 	AlpsReturnStatus status = AlpsReturnStatusOk;
 
 	status = decodeBcps(encoded);
-	status = decodeBlis(encoded);
+	status = decodeDco(encoded);
 	
 	return status;
     }

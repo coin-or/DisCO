@@ -21,8 +21,8 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
-#ifndef BlisSubTree_h_
-#define BlisSubTree_h_
+#ifndef DcoSubTree_h_
+#define DcoSubTree_h_
 
 //#############################################################################
 /** This is the class in which we are finally able to concretely define the
@@ -30,7 +30,7 @@
     the objects are cuts and variables, etc. */
 //#############################################################################
 
-class BlisTreeNode : public BcpsTreeNode {
+class DcoTreeNode : public BcpsTreeNode {
 
    virtual void process();
 

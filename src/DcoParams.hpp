@@ -21,8 +21,8 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
-#ifndef BlisParams_h
-#define BlisParams_h
+#ifndef DcoParams_h
+#define DcoParams_h
 
 #include "AlpsKnowledge.h"
 #include "AlpsParameterBase.h"
@@ -31,8 +31,8 @@
 
 //#############################################################################
 
-//** Parameters used in Blis. */
-class BlisParams : public AlpsParameterSet {
+//** Parameters used in Dco. */
+class DcoParams : public AlpsParameterSet {
  public:
   /** Character parameters. All of these variable are used as booleans
       (ture = 1, false = 0). */
@@ -104,10 +104,10 @@ class BlisParams : public AlpsParameterSet {
       difference,
       
       /** Heuristics control.
-          BlisHeurStrategyRoot:     root,
-          BlisHeurStrategyAuto:     auto,
-          BlisHuerStrategyNone:     disable, 
-          BlisHeurStrategyPeriodic: every 't' nodes
+          DcoHeurStrategyRoot:     root,
+          DcoHeurStrategyAuto:     auto,
+          DcoHuerStrategyNone:     disable, 
+          DcoHeurStrategyPeriodic: every 't' nodes
       */
       heurStrategy, /** All heuristics */
       heurCallFrequency,
@@ -190,7 +190,7 @@ class BlisParams : public AlpsParameterSet {
   /** The default constructor creates a parameter set with from the template
       argument structure. The keyword list is created and the defaults are
       set. */
-  BlisParams() :
+  DcoParams() :
     AlpsParameterSet(
 		     static_cast<int>(endOfChrParams),
 		     static_cast<int>(endOfIntParams),

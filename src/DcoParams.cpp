@@ -26,7 +26,7 @@
 using std::make_pair;
 
 void 
-BlisParams::createKeywordList() {
+DcoParams::createKeywordList() {
 
   //--------------------------------------------------------
   // Create the list of keywords for parameter file reading
@@ -36,25 +36,25 @@ BlisParams::createKeywordList() {
   // CharPar
   //--------------------------------------------------------
  
-    keys_.push_back(make_pair(std::string("Blis_cutRampUp"),
+    keys_.push_back(make_pair(std::string("Dco_cutRampUp"),
                               AlpsParameter(AlpsBoolPar, cutRampUp)));
     
-   keys_.push_back(make_pair(std::string("Blis_presolve"),
+   keys_.push_back(make_pair(std::string("Dco_presolve"),
 			     AlpsParameter(AlpsBoolPar, presolve)));
     
-   keys_.push_back(make_pair(std::string("Blis_shareConstraints"),
+   keys_.push_back(make_pair(std::string("Dco_shareConstraints"),
 			     AlpsParameter(AlpsBoolPar,
 					   shareConstraints)));
 
-   keys_.push_back(make_pair(std::string("Blis_shareVariables"),
+   keys_.push_back(make_pair(std::string("Dco_shareVariables"),
 			     AlpsParameter(AlpsBoolPar,
 					   shareVariables)));
 
-   keys_.push_back(make_pair(std::string("Blis_sharePseudocostRampUp"),
+   keys_.push_back(make_pair(std::string("Dco_sharePseudocostRampUp"),
 			     AlpsParameter(AlpsBoolPar,
 					   sharePseudocostRampUp)));
     
-   keys_.push_back(make_pair(std::string("Blis_sharePseudocostSearch"),
+   keys_.push_back(make_pair(std::string("Dco_sharePseudocostSearch"),
 			     AlpsParameter(AlpsBoolPar,
 					   sharePseudocostSearch)));
     
@@ -66,138 +66,138 @@ BlisParams::createKeywordList() {
   // Int Parameters
   //--------------------------------------------------------
 
-  keys_.push_back(make_pair(std::string("Blis_branchStrategy"),
+  keys_.push_back(make_pair(std::string("Dco_branchStrategy"),
 			    AlpsParameter(AlpsIntPar, branchStrategy)));
 
-  keys_.push_back(make_pair(std::string("Blis_branchStrategyRampUp"),
+  keys_.push_back(make_pair(std::string("Dco_branchStrategyRampUp"),
 			    AlpsParameter(AlpsIntPar, branchStrategyRampUp)));
 
-  keys_.push_back(make_pair(std::string("Blis_cutPass"),
+  keys_.push_back(make_pair(std::string("Dco_cutPass"),
 			    AlpsParameter(AlpsIntPar, cutPass)));
 
-  keys_.push_back(make_pair(std::string("Blis_quickCutPass"),
+  keys_.push_back(make_pair(std::string("Dco_quickCutPass"),
 			    AlpsParameter(AlpsIntPar, quickCutPass)));
   
-  keys_.push_back(make_pair(std::string("Blis_cutStrategy"),
+  keys_.push_back(make_pair(std::string("Dco_cutStrategy"),
 			    AlpsParameter(AlpsIntPar, cutStrategy)));
 
-  keys_.push_back(make_pair(std::string("Blis_cutGenerationFrequency"),
+  keys_.push_back(make_pair(std::string("Dco_cutGenerationFrequency"),
 			    AlpsParameter(AlpsIntPar, 
 					  cutGenerationFrequency)));
 
-  keys_.push_back(make_pair(std::string("Blis_cutCliqueStrategy"),
+  keys_.push_back(make_pair(std::string("Dco_cutCliqueStrategy"),
 			    AlpsParameter(AlpsIntPar, cutCliqueStrategy)));
 
-  keys_.push_back(make_pair(std::string("Blis_cutGomoryStrategy"),
+  keys_.push_back(make_pair(std::string("Dco_cutGomoryStrategy"),
 			    AlpsParameter(AlpsIntPar, cutGomoryStrategy)));
 
-  keys_.push_back(make_pair(std::string("Blis_cutFlowCoverStrategy"),
+  keys_.push_back(make_pair(std::string("Dco_cutFlowCoverStrategy"),
 			    AlpsParameter(AlpsIntPar, cutFlowCoverStrategy)));
 
-  keys_.push_back(make_pair(std::string("Blis_cutKnapsackStrategy"),
+  keys_.push_back(make_pair(std::string("Dco_cutKnapsackStrategy"),
 			    AlpsParameter(AlpsIntPar, cutKnapsackStrategy)));
   
-  keys_.push_back(make_pair(std::string("Blis_cutMirStrategy"),
+  keys_.push_back(make_pair(std::string("Dco_cutMirStrategy"),
 			    AlpsParameter(AlpsIntPar, cutMirStrategy)));
   
-  keys_.push_back(make_pair(std::string("Blis_cutOddHoleStrategy"),
+  keys_.push_back(make_pair(std::string("Dco_cutOddHoleStrategy"),
 			    AlpsParameter(AlpsIntPar, cutOddHoleStrategy)));
 
-  keys_.push_back(make_pair(std::string("Blis_cutProbingStrategy"),
+  keys_.push_back(make_pair(std::string("Dco_cutProbingStrategy"),
 			    AlpsParameter(AlpsIntPar, cutProbingStrategy)));
 
-  keys_.push_back(make_pair(std::string("Blis_cutTwoMirStrategy"),
+  keys_.push_back(make_pair(std::string("Dco_cutTwoMirStrategy"),
 			    AlpsParameter(AlpsIntPar, cutTwoMirStrategy)));
 
-  keys_.push_back(make_pair(std::string("Blis_cutCliqueFreq"),
+  keys_.push_back(make_pair(std::string("Dco_cutCliqueFreq"),
 			    AlpsParameter(AlpsIntPar, cutCliqueFreq)));
 
-  keys_.push_back(make_pair(std::string("Blis_cutGomoryFreq"),
+  keys_.push_back(make_pair(std::string("Dco_cutGomoryFreq"),
 			    AlpsParameter(AlpsIntPar, cutGomoryFreq)));
 
-  keys_.push_back(make_pair(std::string("Blis_cutFlowCoverFreq"),
+  keys_.push_back(make_pair(std::string("Dco_cutFlowCoverFreq"),
 			    AlpsParameter(AlpsIntPar, cutFlowCoverFreq)));
 
-  keys_.push_back(make_pair(std::string("Blis_cutKnapsackFreq"),
+  keys_.push_back(make_pair(std::string("Dco_cutKnapsackFreq"),
 			    AlpsParameter(AlpsIntPar, cutKnapsackFreq)));
   
-  keys_.push_back(make_pair(std::string("Blis_cutMirFreq"),
+  keys_.push_back(make_pair(std::string("Dco_cutMirFreq"),
 			    AlpsParameter(AlpsIntPar, cutMirFreq)));
   
-  keys_.push_back(make_pair(std::string("Blis_cutOddHoleFreq"),
+  keys_.push_back(make_pair(std::string("Dco_cutOddHoleFreq"),
 			    AlpsParameter(AlpsIntPar, cutOddHoleFreq)));
 
-  keys_.push_back(make_pair(std::string("Blis_cutProbingFreq"),
+  keys_.push_back(make_pair(std::string("Dco_cutProbingFreq"),
 			    AlpsParameter(AlpsIntPar, cutProbingFreq)));
 
-  keys_.push_back(make_pair(std::string("Blis_cutTwoMirFreq"),
+  keys_.push_back(make_pair(std::string("Dco_cutTwoMirFreq"),
 			    AlpsParameter(AlpsIntPar, cutTwoMirFreq)));
 
-  keys_.push_back(make_pair(std::string("Blis_difference"),
+  keys_.push_back(make_pair(std::string("Dco_difference"),
 			    AlpsParameter(AlpsIntPar, difference)));
   
-  keys_.push_back(make_pair(std::string("Blis_heurStrategy"),
+  keys_.push_back(make_pair(std::string("Dco_heurStrategy"),
                             AlpsParameter(AlpsIntPar, heurStrategy)));
   
-  keys_.push_back(make_pair(std::string("Blis_heurCallFrequencyy"),
+  keys_.push_back(make_pair(std::string("Dco_heurCallFrequencyy"),
                             AlpsParameter(AlpsIntPar, heurCallFrequency)));
   
-  keys_.push_back(make_pair(std::string("Blis_heurRoundStrategy"),
+  keys_.push_back(make_pair(std::string("Dco_heurRoundStrategy"),
 			    AlpsParameter(AlpsIntPar, heurRoundStrategy)));
   
-  keys_.push_back(make_pair(std::string("Blis_heurRoundFreq"),
+  keys_.push_back(make_pair(std::string("Dco_heurRoundFreq"),
 			    AlpsParameter(AlpsIntPar, heurRoundFreq)));
   
-  keys_.push_back(make_pair(std::string("Blis_lookAhead"),
+  keys_.push_back(make_pair(std::string("Dco_lookAhead"),
 			    AlpsParameter(AlpsIntPar, lookAhead)));
   
-  keys_.push_back(make_pair(std::string("Blis_pseudoRelibility"),
+  keys_.push_back(make_pair(std::string("Dco_pseudoRelibility"),
 			    AlpsParameter(AlpsIntPar, pseudoRelibility)));
 
-  keys_.push_back(make_pair(std::string("Blis_sharePcostDepth"),
+  keys_.push_back(make_pair(std::string("Dco_sharePcostDepth"),
 			    AlpsParameter(AlpsIntPar, sharePcostDepth)));
 
-  keys_.push_back(make_pair(std::string("Blis_sharePcostFrequency"),
+  keys_.push_back(make_pair(std::string("Dco_sharePcostFrequency"),
 			    AlpsParameter(AlpsIntPar, sharePcostFrequency)));
 
-  keys_.push_back(make_pair(std::string("Blis_strongCandSize"),
+  keys_.push_back(make_pair(std::string("Dco_strongCandSize"),
 			    AlpsParameter(AlpsIntPar, strongCandSize)));
   
   //--------------------------------------------------------
   // Double Parameters.
   //--------------------------------------------------------
   
-  keys_.push_back(make_pair(std::string("Blis_cutFactor"),
+  keys_.push_back(make_pair(std::string("Dco_cutFactor"),
 			    AlpsParameter(AlpsDoublePar, cutFactor)));
   
-  keys_.push_back(make_pair(std::string("Blis_cutoff"),
+  keys_.push_back(make_pair(std::string("Dco_cutoff"),
 			    AlpsParameter(AlpsDoublePar, cutoff)));
 
-  keys_.push_back(make_pair(std::string("Blis_cutoffInc"),
+  keys_.push_back(make_pair(std::string("Dco_cutoffInc"),
 			    AlpsParameter(AlpsDoublePar, cutoffInc)));
   
-  keys_.push_back(make_pair(std::string("Blis_denseConFactor"),
+  keys_.push_back(make_pair(std::string("Dco_denseConFactor"),
 			    AlpsParameter(AlpsDoublePar, denseConFactor)));
 
-  keys_.push_back(make_pair(std::string("Blis_integerTol"),
+  keys_.push_back(make_pair(std::string("Dco_integerTol"),
 			    AlpsParameter(AlpsDoublePar, integerTol)));
 
-  keys_.push_back(make_pair(std::string("Blis_objSense"),
+  keys_.push_back(make_pair(std::string("Dco_objSense"),
 			    AlpsParameter(AlpsDoublePar, objSense)));
   
-  keys_.push_back(make_pair(std::string("Blis_optimalRelGap"),
+  keys_.push_back(make_pair(std::string("Dco_optimalRelGap"),
 			    AlpsParameter(AlpsDoublePar, optimalRelGap)));
   
-  keys_.push_back(make_pair(std::string("Blis_optimalAbsGap"),
+  keys_.push_back(make_pair(std::string("Dco_optimalAbsGap"),
 			    AlpsParameter(AlpsDoublePar, optimalAbsGap)));
   
-  keys_.push_back(make_pair(std::string("Blis_pseudoWeight"),
+  keys_.push_back(make_pair(std::string("Dco_pseudoWeight"),
 			    AlpsParameter(AlpsDoublePar, pseudoWeight)));
   
-  keys_.push_back(make_pair(std::string("Blis_scaleConFactor"),
+  keys_.push_back(make_pair(std::string("Dco_scaleConFactor"),
 			    AlpsParameter(AlpsDoublePar, scaleConFactor)));
 
-  keys_.push_back(make_pair(std::string("Blis_tailOff"),
+  keys_.push_back(make_pair(std::string("Dco_tailOff"),
                             AlpsParameter(AlpsDoublePar, tailOff)));
   
   //--------------------------------------------------------
@@ -209,7 +209,7 @@ BlisParams::createKeywordList() {
 //#############################################################################
 
 void 
-BlisParams::setDefaultEntries() {
+DcoParams::setDefaultEntries() {
 
   //-------------------------------------------------------------
   // Char Parameters.
@@ -226,20 +226,20 @@ BlisParams::setDefaultEntries() {
   // Int Parameters.
   //-------------------------------------------------------------
 
-  setEntry(branchStrategy, BlisBranchingStrategyPseudoCost);
-  setEntry(branchStrategyRampUp, BlisBranchingStrategyPseudoCost);
-  setEntry(cutStrategy, BlisCutStrategyNotSet);
+  setEntry(branchStrategy, DcoBranchingStrategyPseudoCost);
+  setEntry(branchStrategyRampUp, DcoBranchingStrategyPseudoCost);
+  setEntry(cutStrategy, DcoCutStrategyNotSet);
   setEntry(cutGenerationFrequency, 1);
   setEntry(cutPass, 20);
   setEntry(quickCutPass, 0);
-  setEntry(cutCliqueStrategy, BlisCutStrategyNotSet);
-  setEntry(cutGomoryStrategy, BlisCutStrategyNotSet);
-  setEntry(cutFlowCoverStrategy, BlisCutStrategyNotSet);
-  setEntry(cutKnapsackStrategy, BlisCutStrategyNotSet);
-  setEntry(cutMirStrategy, BlisCutStrategyNotSet);
-  setEntry(cutOddHoleStrategy, BlisCutStrategyNotSet);
-  setEntry(cutProbingStrategy, BlisCutStrategyNotSet);
-  setEntry(cutTwoMirStrategy, BlisCutStrategyNotSet);
+  setEntry(cutCliqueStrategy, DcoCutStrategyNotSet);
+  setEntry(cutGomoryStrategy, DcoCutStrategyNotSet);
+  setEntry(cutFlowCoverStrategy, DcoCutStrategyNotSet);
+  setEntry(cutKnapsackStrategy, DcoCutStrategyNotSet);
+  setEntry(cutMirStrategy, DcoCutStrategyNotSet);
+  setEntry(cutOddHoleStrategy, DcoCutStrategyNotSet);
+  setEntry(cutProbingStrategy, DcoCutStrategyNotSet);
+  setEntry(cutTwoMirStrategy, DcoCutStrategyNotSet);
   setEntry(cutCliqueFreq, 1);
   setEntry(cutGomoryFreq, 1);
   setEntry(cutFlowCoverFreq, 1);
@@ -249,8 +249,8 @@ BlisParams::setDefaultEntries() {
   setEntry(cutProbingFreq, 1);
   setEntry(cutTwoMirFreq, 1);
   setEntry(difference, -1);
-  setEntry(heurStrategy, BlisHeurStrategyAuto);
-  setEntry(heurRoundStrategy, BlisHeurStrategyNotSet);
+  setEntry(heurStrategy, DcoHeurStrategyAuto);
+  setEntry(heurRoundStrategy, DcoHeurStrategyNotSet);
   setEntry(heurRoundFreq, 1);
   setEntry(lookAhead, 4);
   setEntry(pseudoRelibility, 8);

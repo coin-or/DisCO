@@ -35,7 +35,7 @@
 //#############################################################################
 
 
-class BlisBranchObjectInt : public BcpsBranchObject {
+class DcoBranchObjectInt : public BcpsBranchObject {
 
  protected:
 
@@ -50,11 +50,11 @@ class BlisBranchObjectInt : public BcpsBranchObject {
  public:
     
     /** Default constructor. */
-    BlisBranchObjectInt()    
+    DcoBranchObjectInt()    
         : 
         BcpsBranchObject()
         {
-	    type_ = BlisBranchingObjectTypeInt;
+	    type_ = DcoBranchingObjectTypeInt;
             down_[0] = 0.0;
             down_[1] = 0.0;
             up_[0] = 0.0;
@@ -66,14 +66,14 @@ class BlisBranchObjectInt : public BcpsBranchObject {
         \param direction  the direction of first branching: 1(up), -1(down)
         \param value      the fractional solution value of variable varInd 
     */
-    BlisBranchObjectInt(BlisModel * model, 
+    DcoBranchObjectInt(DcoModel * model, 
                         int varInd,
                         int direction,
                         double value)
         : 
         BcpsBranchObject(model, varInd, direction, value)
         {
-	    type_ = BlisBranchingObjectTypeInt;
+	    type_ = DcoBranchingObjectTypeInt;
             int iColumn = model->getIntColIndices()[objectIndex_];
             down_[0] = model->solver()->getColLower()[iColumn];
             down_[1] = floor(value_);
@@ -88,7 +88,7 @@ class BlisBranchObjectInt : public BcpsBranchObject {
         \param direction  the direction of first branching: 1(up), -1(down)
         \param value      the fractional solution value of variable varInd 
     */
-    BlisBranchObjectInt(BlisModel * model,
+    DcoBranchObjectInt(DcoModel * model,
                         int varInd,
                         int intScore,
                         double dblScore,
@@ -97,7 +97,7 @@ class BlisBranchObjectInt : public BcpsBranchObject {
         : 
         BcpsBranchObject(model, varInd, intScore, dblScore, direction, value)
         {
-	    type_ = BlisBranchingObjectTypeInt;
+	    type_ = DcoBranchingObjectTypeInt;
             int iColumn = model->getIntColIndices()[objectIndex_];
             down_[0] = model->solver()->getColLower()[iColumn];
             down_[1] = floor(value_);
@@ -110,7 +110,7 @@ class BlisBranchObjectInt : public BcpsBranchObject {
         object will always result in lowerValue <= x <= upperValue. 
         Used to fix a variable when lowerValue = upperValue.
     */
-    BlisBranchObjectInt(BlisModel * model,
+    DcoBranchObjectInt(DcoModel * model,
                         int varInd, 
                         int direction,
                         double lowerValue, 
@@ -118,7 +118,7 @@ class BlisBranchObjectInt : public BcpsBranchObject {
         :
         BcpsBranchObject(model, varInd, direction, lowerValue)
         {
-	    type_ = BlisBranchingObjectTypeInt;
+	    type_ = DcoBranchingObjectTypeInt;
             numBranchesLeft_ = 1;
             down_[0] = lowerValue;
             down_[1] = upperValue;
@@ -127,18 +127,18 @@ class BlisBranchObjectInt : public BcpsBranchObject {
         }
   
     /** Copy constructor. */
-    BlisBranchObjectInt(const BlisBranchObjectInt &);
+    DcoBranchObjectInt(const DcoBranchObjectInt &);
     
     /** Assignment operator. */
-    BlisBranchObjectInt & operator = (const BlisBranchObjectInt& rhs);
+    DcoBranchObjectInt & operator = (const DcoBranchObjectInt& rhs);
     
     /** Clone. */
     virtual BcpsBranchObject * clone() const {
-        return (new BlisBranchObjectInt(*this));
+        return (new DcoBranchObjectInt(*this));
     }
 
     /** Destructor. */
-    virtual ~BlisBranchObjectInt() {}
+    virtual ~DcoBranchObjectInt() {}
   
     /** Set the bounds for the variable according to the current arm
 	of the branch and advances the object state to the next arm.
@@ -156,8 +156,8 @@ class BlisBranchObjectInt : public BcpsBranchObject {
 
  protected:
 
-    /** Pack Blis portion to an encoded object. */
-    AlpsReturnStatus encodeBlis(AlpsEncoded *encoded) const {
+    /** Pack Disco portion to an encoded object. */
+    AlpsReturnStatus encodeDco(AlpsEncoded *encoded) const {
 	assert(encoded);
 	AlpsReturnStatus status = AlpsReturnStatusOk;
 	int j;
@@ -172,8 +172,8 @@ class BlisBranchObjectInt : public BcpsBranchObject {
 	return status;
     }
 
-    /** Unpack Blis portion from an encoded object. */
-    AlpsReturnStatus decodeBlis(AlpsEncoded &encoded) {
+    /** Unpack Disco portion from an encoded object. */
+    AlpsReturnStatus decodeDco(AlpsEncoded &encoded) {
 	AlpsReturnStatus status = AlpsReturnStatusOk;
 	int j;
 	// TODO: N-way.
@@ -194,7 +194,7 @@ class BlisBranchObjectInt : public BcpsBranchObject {
 	AlpsReturnStatus status = AlpsReturnStatusOk;
 
 	status = encodeBcps(encoded);
-	status = encodeBlis(encoded);
+	status = encodeDco(encoded);
 	
 	return status;
     }
@@ -205,7 +205,7 @@ class BlisBranchObjectInt : public BcpsBranchObject {
 	AlpsReturnStatus status = AlpsReturnStatusOk;
 
 	status = decodeBcps(encoded);
-	status = decodeBlis(encoded);
+	status = decodeDco(encoded);
 	
 	return status;
     }

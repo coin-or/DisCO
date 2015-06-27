@@ -58,14 +58,14 @@ int main(int argc, char *argv[])
 
 	try{
 	  //Set up lp solver
-	  // OsiConicSolverInterface * solver = new ColaModel();
+	  OsiConicSolverInterface * solver = new ColaModel();
 	  // solver.getModelPtr()->setDualBound(1.0e10);
 	  // solver.messageHandler()->setLogLevel(0);
 	  // OsiConicSolverInterface * solver = new OsiMosekSolverInterface();
-	  OsiConicSolverInterface * solver = new OsiCplexSolverInterface();
+	  // OsiConicSolverInterface * solver = new OsiCplexSolverInterface();
 
 	  // Create DIETCOLA model
-	  BlisModel model;
+	  DcoModel model;
 	  model.setSolver(solver);
 
 #ifdef  COIN_HAS_MPI
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
  }
 
 	catch(CoinError& er) {
- 	std::cerr << "\nBLIS ERROR: \"" << er.message()
+ 	std::cerr << "\nDISCO ERROR: \"" << er.message()
 		  << "\""<< std::endl
 		  << "             from function \"" << er.methodName()
 		  << "\""<< std::endl

@@ -21,8 +21,8 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
-#ifndef BlisTreeNode_h_
-#define BlisTreeNode_h_
+#ifndef DcoTreeNode_h_
+#define DcoTreeNode_h_
 
 //#############################################################################
 
@@ -35,7 +35,7 @@
 #include "DcoNodeDesc.hpp"
 
 class BcpsModel;
-class BlisModel;
+class DcoModel;
 
 
 //#############################################################################
@@ -45,13 +45,13 @@ class BlisModel;
 //#############################################################################
 
 
-class BlisTreeNode : public BcpsTreeNode {
+class DcoTreeNode : public BcpsTreeNode {
 private:
     
     /** No copy constructor, assignment operator. */
-    BlisTreeNode(const BlisTreeNode&);
+    DcoTreeNode(const DcoTreeNode&);
     
-    BlisTreeNode& operator=(const BlisTreeNode&);
+    DcoTreeNode& operator=(const DcoTreeNode&);
     
     /** Constraint pool. */
     //BcpsConstraintPool *constraintPool_;
@@ -63,40 +63,40 @@ private:
     //void saveExplicit();
     
     /** Check and remove parallel constraints. */
-    bool parallel(BlisModel *model,
+    bool parallel(DcoModel *model,
 		  BcpsConstraintPool &conPool,
 		  int lastNew,
-		  BlisConstraint *aCon);
+		  DcoConstraint *aCon);
 
     /** Estimate quality of a feasible solution. */
-    double estimateSolution(BlisModel *model,
+    double estimateSolution(DcoModel *model,
                             const double *lpSolution,
                             double lpObjValue) const;
     
 public:
 
     /** Default constructor. */
-    BlisTreeNode() 
+    DcoTreeNode() 
         : 
         BcpsTreeNode() 
         { init(); }
     
     /** Useful constructor. */
-    BlisTreeNode(BlisModel* m) {
+    DcoTreeNode(DcoModel* m) {
         init();
-        desc_ = new BlisNodeDesc(m);
+        desc_ = new DcoNodeDesc(m);
     }
 
     /** Useful constructor. */
-    BlisTreeNode(AlpsNodeDesc *&desc) {
+    DcoTreeNode(AlpsNodeDesc *&desc) {
         init();
         desc_ = desc;
         desc = NULL;
     }
 
     /** Destructor. */
-    virtual ~BlisTreeNode() {
-	//std::cout << "------ Delete blis part of node" << std::endl;
+    virtual ~DcoTreeNode() {
+	//std::cout << "------ Delete disco part of node" << std::endl;
     }
     
     /** Initilize member data when constructing a node. */
@@ -131,7 +131,7 @@ public:
 	branch();
     
     /** Select a branching object based on give branching strategy. */
-    int selectBranchObject(BlisModel *model, 
+    int selectBranchObject(DcoModel *model, 
                            bool& foundSol, 
                            int numPassesLeft);
 
@@ -142,26 +142,26 @@ public:
     //using BcpsTreeNode::generateConstraints ;
 
     /** Generate constraints. */
-    int generateConstraints(BlisModel *model, BcpsConstraintPool &conPool);
+    int generateConstraints(DcoModel *model, BcpsConstraintPool &conPool);
 
     /** Call heuristic to search solutions.
      *  0: no solution; 1: found solutions; 2: fathom this node.
      *  onlyBeforeRoot is for heuristics like feasibility pump.
      */
-    int callHeuristics(BlisModel *model, bool onlyBeforeRoot=false);
+    int callHeuristics(DcoModel *model, bool onlyBeforeRoot=false);
 
     /** Get violated constraints. */
-    void getViolatedConstraints(BlisModel *model, 
+    void getViolatedConstraints(DcoModel *model, 
 				const double *currLpSolution, 
 				BcpsConstraintPool & conPool);
 
     /** Select and apply constraints. */
-    BlisReturnStatus applyConstraints(BlisModel *model,
+    DcoReturnStatus applyConstraints(DcoModel *model,
 				      const double *solution,
                                       BcpsConstraintPool & conPool); 
 
     /** Fix and tighten varaibles based optimality conditions. */
-    BlisReturnStatus reducedCostFix(BlisModel *model);
+    DcoReturnStatus reducedCostFix(DcoModel *model);
 
     /** Return constraint pool. */
     //BcpsConstraintPool * constraintPool() { return constraintPool_; }

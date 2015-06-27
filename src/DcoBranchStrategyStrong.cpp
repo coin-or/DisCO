@@ -36,8 +36,8 @@
 //#############################################################################
 
 // Copy constructor 
-BlisBranchStrategyStrong::BlisBranchStrategyStrong (
-    const BlisBranchStrategyStrong & rhs
+DcoBranchStrategyStrong::DcoBranchStrategyStrong (
+    const DcoBranchStrategyStrong & rhs
     )
     :
     BcpsBranchStrategy()
@@ -53,7 +53,7 @@ BlisBranchStrategyStrong::BlisBranchStrategyStrong (
 
 /** Create a set of candidate branching objects. */
 int 
-BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, 
+DcoBranchStrategyStrong::createCandBranchObjects(int numPassesLeft, 
 						  double ub)
 {
     int bStatus = 0;
@@ -73,21 +73,21 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft,
     double *newLB = NULL;
     double *newUB = NULL;
     
-    BlisObjectInt *intObject = NULL;
+    DcoObjectInt *intObject = NULL;
     
-    BlisModel *model = dynamic_cast<BlisModel *>(model_);
+    DcoModel *model = dynamic_cast<DcoModel *>(model_);
     OsiSolverInterface * solver = model->solver();
     
     int numCols = model->getNumCols();
     int numObjects = model->numObjects();
     bool beforeSolution = (model->getNumSolutions() == 0);
     
-    int givenStrongLen = dynamic_cast<BlisParams*>
-        (model->BlisPar())->entry(BlisParams::strongCandSize);
+    int givenStrongLen = dynamic_cast<DcoParams*>
+        (model->DcoPar())->entry(DcoParams::strongCandSize);
     int strongLen = givenStrongLen;
     int maxStrongLen = CoinMax(CoinMin(givenStrongLen, numObjects), 1);
     
-    BlisStrong * candStrongs = new BlisStrong [maxStrongLen];
+    DcoStrong * candStrongs = new DcoStrong [maxStrongLen];
 
     //------------------------------------------------------
     // Allocate memory and store current solution info.
@@ -140,7 +140,7 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft,
 	for (i = 0; i < numObjects; ++i) {
             
             // TODO: currently all integer object.
-	    intObject = dynamic_cast<BlisObjectInt *>(model->objects(i));
+	    intObject = dynamic_cast<DcoObjectInt *>(model->objects(i));
 	    infeasibility = intObject->infeasibility(model, preferDir);
             
 	    if (infeasibility) {
@@ -335,7 +335,7 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft,
             colInd = model->getIntColIndices()[objInd];
             lpX = saveSolution[colInd];
             
-            BlisStrongBranch(model, objValue, colInd, lpX,
+            DcoStrongBranch(model, objValue, colInd, lpX,
                              saveLower, saveUpper,
                              downKeep, downGood, downDeg,
                              upKeep, upGood, upDeg);
@@ -399,7 +399,7 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft,
 
                 // Update pseudocost
                 ind = candStrongs[i].objectIndex;
-                intObject = dynamic_cast<BlisObjectInt *>(model->objects(ind));
+                intObject = dynamic_cast<DcoObjectInt *>(model->objects(ind));
                 col = intObject->columnIndex();
                 lpX = saveSolution[col];
                 intObject->pseudocost().update(-1, objChange, lpX);
@@ -411,7 +411,7 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft,
 		} 
                 else {    
 		    // See if integer solution
-                    BlisSolution* ksol = 
+                    DcoSolution* ksol = 
                         model->feasibleSolution(candStrongs[i].numIntInfDown,
                                                 candStrongs[i].numObjInfDown);
                     
@@ -420,7 +420,7 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft,
 			printf("STRONG:down:found a feasible solution\n");
 #endif
 			
-			model->storeSolution(BlisSolutionTypeStrong, ksol);
+			model->storeSolution(DcoSolutionTypeStrong, ksol);
 			objChange = ALPS_DBL_MAX ;
 		    }
 		}
@@ -480,7 +480,7 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft,
 	    if (lpStatus == 0) {
                 // Update pseudocost
                 ind = candStrongs[i].objectIndex;
-                intObject = dynamic_cast<BlisObjectInt *>(model->objects(ind));
+                intObject = dynamic_cast<DcoObjectInt *>(model->objects(ind));
                 col = intObject->columnIndex();
                 lpX = saveSolution[col];
                 intObject->pseudocost().update(1, objChange, lpX);
@@ -492,7 +492,7 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft,
 		} 
 		else {
 		    // See if integer solution
-                    BlisSolution* ksol = 
+                    DcoSolution* ksol = 
                         model->feasibleSolution(candStrongs[i].numIntInfDown,
                                                 candStrongs[i].numObjInfDown);
                     
@@ -501,7 +501,7 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft,
 			printf("STRONG:Up:found a feasible solution\n");
 #endif
                         
-			model->storeSolution(BlisSolutionTypeStrong, ksol);
+			model->storeSolution(DcoSolutionTypeStrong, ksol);
 			objChange = ALPS_DBL_MAX ;
 		    }
 		}
@@ -659,13 +659,13 @@ BlisBranchStrategyStrong::createCandBranchObjects(int numPassesLeft,
     The lesser of the MIN(numInfUp, numInfDown), the better.
     The larger of the MIN(changeUp, changeDown), the better. */
 int
-BlisBranchStrategyStrong::betterBranchObject(BcpsBranchObject * thisOne,
+DcoBranchStrategyStrong::betterBranchObject(BcpsBranchObject * thisOne,
 					     BcpsBranchObject * bestSoFar)
 {
     int betterDirection = 0;
     double bestChange;
     
-    //BlisModel *model = dynamic_cast<BlisModel *>(model_);    
+    //DcoModel *model = dynamic_cast<DcoModel *>(model_);    
 
     if (!bestSoFar) {
 	bestChange = -1.0;

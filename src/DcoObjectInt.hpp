@@ -29,11 +29,11 @@
 #include "BcpsObject.h"
 #include "DcoPseudo.hpp"
 
-class BlisModel;
+class DcoModel;
 
 //#############################################################################
 
-class BlisObjectInt : public BcpsObject {
+class DcoObjectInt : public BcpsObject {
 
 protected:
 
@@ -50,33 +50,33 @@ protected:
     double breakEven_;
     
     /** Pseudo cost. */
-    BlisPseudocost pseudocost_;
+    DcoPseudocost pseudocost_;
     
  public:
 
     /** Default Constructor. */
-    BlisObjectInt();
+    DcoObjectInt();
     
     /** Useful constructor - passed integer index and model index. */
-    BlisObjectInt(int objectIndex, 
+    DcoObjectInt(int objectIndex, 
                   int iColumn, 
                   double lb,
                   double ub,
                   double breakEven = 0.5);
     
     /** Destructor. */
-    virtual ~BlisObjectInt() {}
+    virtual ~DcoObjectInt() {}
   
     /** Copy constructor. */
-    BlisObjectInt( const BlisObjectInt &);
+    DcoObjectInt( const DcoObjectInt &);
     
     /** Clone an object. */
     virtual BcpsObject * clone() const {
-        return new BlisObjectInt(*this);
+        return new DcoObjectInt(*this);
     }
     
     /** Assignment operator. */
-    BlisObjectInt & operator=( const BlisObjectInt& rhs);
+    DcoObjectInt & operator=( const DcoObjectInt& rhs);
     
     /** Infeasibility. Range is [0.0, 0.5]. 
         \param PreferredWay   the direction close to an integer. */
@@ -143,6 +143,6 @@ protected:
     inline void setBreakEven(double value) { breakEven_ = value; }
 
     /** Access pseudocost. */
-    BlisPseudocost & pseudocost() { return pseudocost_; }
+    DcoPseudocost & pseudocost() { return pseudocost_; }
 };
 

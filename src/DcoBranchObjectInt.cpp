@@ -29,8 +29,8 @@
 //#############################################################################
 
 // Copy constructor 
-BlisBranchObjectInt::
-BlisBranchObjectInt(const BlisBranchObjectInt & rhs) 
+DcoBranchObjectInt::
+DcoBranchObjectInt(const DcoBranchObjectInt & rhs) 
     :
     BcpsBranchObject(rhs)
 {
@@ -43,8 +43,8 @@ BlisBranchObjectInt(const BlisBranchObjectInt & rhs)
 //#############################################################################
 
 // Assignment operator 
-BlisBranchObjectInt & 
-BlisBranchObjectInt::operator=(const BlisBranchObjectInt& rhs)
+DcoBranchObjectInt & 
+DcoBranchObjectInt::operator=(const DcoBranchObjectInt& rhs)
 {
     if (this != &rhs) {
 	BcpsBranchObject::operator=(rhs);
@@ -69,9 +69,9 @@ BlisBranchObjectInt::operator=(const BlisBranchObjectInt& rhs)
   Returns change in guessed objective on next branch
 */
 double
-BlisBranchObjectInt::branch(bool normalBranch)
+DcoBranchObjectInt::branch(bool normalBranch)
 {
-    BlisModel *model = dynamic_cast<BlisModel *>(model_);
+    DcoModel *model = dynamic_cast<DcoModel *>(model_);
 
     int iColumn = model->getIntColIndices()[objectIndex_];
     
@@ -79,7 +79,7 @@ BlisBranchObjectInt::branch(bool normalBranch)
     --numBranchesLeft_;
     
     if (direction_<0) {
-#ifdef BLIS_DEBUG_MORE
+#ifdef DISCO_DEBUG_MORE
 	{ 
 	    double olb, oub ;
 	    olb = model->solver()->getColLower()[iColumn];
@@ -93,7 +93,7 @@ BlisBranchObjectInt::branch(bool normalBranch)
 	direction_ = 1;
     } 
     else {
-#ifdef BLIS_DEBUG_MORE
+#ifdef DISCO_DEBUG_MORE
 	{ 
 	    double olb, oub ;
 	    olb = model->solver()->getColLower()[iColumn];
@@ -114,23 +114,23 @@ BlisBranchObjectInt::branch(bool normalBranch)
 
 // Print what would happen  
 void
-BlisBranchObjectInt::print(bool normalBranch)
+DcoBranchObjectInt::print(bool normalBranch)
 {
-    BlisModel *model = dynamic_cast<BlisModel*>(model_);
+    DcoModel *model = dynamic_cast<DcoModel*>(model_);
     int iColumn = model->getIntColIndices()[objectIndex_];
     double olb, oub ;
     
     if (direction_ < 0) {
         olb = model->solver()->getColLower()[iColumn] ;
         oub = model->solver()->getColUpper()[iColumn] ;
-        printf("BlisInteger would branch down on var %d: [%g,%g] => [%g,%g]\n",
+        printf("DcoInteger would branch down on var %d: [%g,%g] => [%g,%g]\n",
                iColumn,olb,oub,down_[0],down_[1]); 
 
     } 
     else {
         olb = model->solver()->getColLower()[iColumn] ;
         oub = model->solver()->getColUpper()[iColumn] ;
-        printf("BlisInteger would branch up on var %d: [%g,%g] => [%g,%g]\n",
+        printf("DcoInteger would branch up on var %d: [%g,%g] => [%g,%g]\n",
                iColumn,olb,oub,up_[0],up_[1]);
     }
 }
