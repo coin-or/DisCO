@@ -1,18 +1,26 @@
-#===========================================================================#
-# This file is part of a solver for the Vehicle Routing Problem             #
-# developed using the BiCePS Linear Integer Solver (BLIS).                  #
-#                                                                           #
-# This solver is distributed under the Eclipse Public License as part of    # 
-# the COIN-OR repository (http://www.coin-or.org).                          #
-#                                                                           #
-# Authors: Yan Xu, Lehigh University                                        #
-#          Ted Ralphs, Lehigh University                                    #
-#                                                                           #
-# Copyright (C) 2007 Yan Xu and Ted Ralphs.                                 #
-# All Rights Reserved.                                                      #
-#===========================================================================#
-
-## $Id$
+#==========================================================================#
+# This file is part of the Discrete Conic Optimization (DisCO) solver.     #
+#                                                                          #
+# DisCO is distributed under the Eclipse Public License.                   #
+#                                                                          #
+# Authors:                                                                 #
+#                                                                          #
+#          Yan Xu, Lehigh University                                       #
+#          Ted Ralphs, Lehigh University                                   #
+#          Aykut Bulut, Lehigh University                                  #
+#                                                                          #
+# Conceptual Design:                                                       #
+#                                                                          #
+#          Yan Xu, Lehigh University                                       #
+#          Ted Ralphs, Lehigh University                                   #
+#          Laszlo Ladanyi, IBM T.J. Watson Research Center                 #
+#          Matthew Saltzman, Clemson University                            #
+#          Aykut Bulut, Lehigh University                                  #
+#                                                                          #
+#                                                                          #
+# Copyright (C) 2001-2015, Lehigh University, Yan Xu, Ted Ralphs and       #
+# Aykut Bulut. All Rights Reserved.                                        #
+#==========================================================================#
 
 ##########################################################################
 #    You can modify this example makefile to fit for your own program.   #
@@ -93,20 +101,20 @@ CXXFLAGS = @CXXFLAGS@
 CXXLINKFLAGS = @RPATH_FLAGS@
 
 ifeq ($(COIN_HAS_PKGCONFIG), TRUE)
-  INCL = `PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@ @PKG_CONFIG@ --cflags blis`
+  INCL = `PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@ @PKG_CONFIG@ --cflags disco`
 else
-  INCL = @BLISLIB_CFLAGS_INSTALLED@
+  INCL = @DISCOLIB_CFLAGS_INSTALLED@
 endif
 INCL += $(ADDINCFLAGS)
 
 # Linker flags
 ifeq ($(COIN_HAS_PKGCONFIG), TRUE)
-  LIBS = `PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@ @PKG_CONFIG@ --libs blis`
+  LIBS = `PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@ @PKG_CONFIG@ --libs disco`
 else
   ifeq ($(COIN_CXX_IS_CL), TRUE)
-    LIBS = -link -libpath:`$(CYGPATH_W) @abs_lib_dir@` libBlis.lib @BLISLIB_LIBS_INSTALLED@
+    LIBS = -link -libpath:`$(CYGPATH_W) @abs_lib_dir@` libDisco.lib @DISCOLIB_LIBS_INSTALLED@
   else
-    LIBS = -L@abs_lib_dir@ -lBlis @BLISLIB_LIBS_INSTALLED@
+    LIBS = -L@abs_lib_dir@ -lDisco @DISCOLIB_LIBS_INSTALLED@
   endif
 endif
 
