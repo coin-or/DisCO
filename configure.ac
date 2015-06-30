@@ -100,12 +100,67 @@ AC_COIN_INIT_AUTO_TOOLS
 #                              COIN components                              #
 #############################################################################
 
-AC_COIN_CHECK_PACKAGE(CoinDepend, [alps bcps cgl cglconic clp coinutils osi-clp osimosek osicplex cola osiconic], [DiscoLib])
+AC_COIN_CHECK_PACKAGE(CoinDepend, [alps bcps cgl cglconic clp coinutils osi-clp osiconic], [DiscoLib])
 if test $coin_has_coindepend != yes ; then
   AC_MSG_ERROR([Required packages not available.])
 fi
-
+AC_COIN_CHECK_PACKAGE(Cola, [cola],     [DiscoLib])
 AC_COIN_CHECK_PACKAGE(Sample, [coindatasample])
+
+#############################################################################
+#                            Third party solvers                            #
+#############################################################################
+
+# Check which third party solvers are available
+AC_COIN_CHECK_PACKAGE(Cplex,  [osicplex],  [DiscoLib])
+AC_COIN_CHECK_PACKAGE(Mosek,  [osimosek],  [DiscoLib])
+
+#############################################################################
+#                      Check for the SOCO solver                            #
+#############################################################################
+AC_MSG_CHECKING([for DisCO default solver])
+AC_ARG_WITH([soco-solver],
+[AC_HELP_STRING([--with-soco-solver@<:@=socosolver@:>@],
+                [specify the SOCO solver in small
+                letters(default socosolver=cola)])],
+		[dco_soco_solver=$withval],[dco_soco_solver=cola])
+
+found_package=true
+case $dco_soco_solver in
+   cola)
+    AC_MSG_RESULT(Cola)
+     if [test $coin_has_cola = unavailable || test $coin_has_cola = skipping]; \
+     then
+         found_package=false
+     fi
+   ;;
+   mosek)
+     AC_MSG_RESULT(Mosek)
+     if test $coin_has_mosek = false; then
+         found_package=false
+     fi
+   ;;
+   cplex)
+     AC_MSG_RESULT(Cplex)
+     if test $coin_has_cplex = false; then
+         found_package=false
+     fi
+   ;;
+  *)
+    AC_MSG_ERROR(Unknown SOCO solver!)
+  ;;
+esac
+
+if test $found_package = false; then
+  AC_MSG_ERROR(Couldn't find the $dco_soco_solver package!)
+fi
+
+AM_CONDITIONAL(COLA_SOCO_SOLVER,[test $dco_soco_solver = cola &&
+test $coin_has_cola = yes])
+AM_CONDITIONAL(MOSEK_SOCO_SOLVER,[test $dco_soco_solver = mosek &&
+test $coin_has_mosek = yes])
+AM_CONDITIONAL(CPLEX_SOCO_SOLVER,[test $dco_soco_solver = cplex &&
+test $coin_has_cplex = yes])
 
 ##############################################################################
 #                   VPATH links for example input files                      #

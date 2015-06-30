@@ -25,6 +25,27 @@
 AUTOMAKE_OPTIONS = foreign
 
 ########################################################################
+#                           Common Flags                               #
+########################################################################
+
+LDADD = $(DISCOLIB_LIBS)
+DEPENDENCIES = $(DISCOLIB_DEPENDENCIES)
+AM_CPPFLAGS = $(DISCOLIB_CFLAGS)
+
+
+if COLA_SOCO_SOLVER
+  AM_CPPFLAGS += -D__COLA__
+endif
+
+if MOSEK_SOCO_SOLVER
+  AM_CPPFLAGS += -D__OSI_MOSEK__
+endif
+
+if CPLEX_SOCO_SOLVER
+  AM_CPPFLAGS += -D__OSI_CPLEX__
+endif
+
+########################################################################
 #                               libDisco                                #
 ########################################################################
 
@@ -91,7 +112,7 @@ libDisco_la_LDFLAGS = $(LT_LDFLAGS)
 ########################################################################
 
 bin_PROGRAMS = disco
-disco_SOURCES = DcoMain.cpp 
+disco_SOURCES = DcoMain.cpp
 disco_LDADD = libDisco.la $(DISCOLIB_LIBS)
 disco_DEPENDENCIES = libDisco.la $(DISCOLIB_DEPENDENCIES)
 
@@ -101,7 +122,7 @@ disco_DEPENDENCIES = libDisco.la $(DISCOLIB_DEPENDENCIES)
 
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Windows.
-AM_CPPFLAGS = $(DISCOLIB_CFLAGS)
+# AM_CPPFLAGS = $(DISCOLIB_CFLAGS)
 
 # This line is necessary to allow VPATH compilation
 DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
