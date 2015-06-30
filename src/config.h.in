@@ -9,6 +9,15 @@
 /* Define to 1 if the CoinDepend package is available */
 #undef COIN_HAS_COINDEPEND
 
+/* Define to 1 if the Cola package is available */
+#undef COIN_HAS_COLA
+
+/* Define to 1 if the Cplex package is available */
+#undef COIN_HAS_CPLEX
+
+/* Define to 1 if the Mosek package is available */
+#undef COIN_HAS_MOSEK
+
 /* Define to 1 if the Sample package is available */
 #undef COIN_HAS_SAMPLE
 
