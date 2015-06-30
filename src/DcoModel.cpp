@@ -121,6 +121,12 @@ DcoModel::init()
     tempConLBPos_ = NULL;
     tempConUBPos_ = NULL;
 
+    // cone data
+    numCoreCones_ = 0;
+    coneMembers_ = NULL;
+    coneTypes_ = NULL;
+    coneSizes_ = NULL;
+
     objSense_ = 1.0;
     objCoef_ = NULL;
 
@@ -335,7 +341,11 @@ void DcoModel::readInstance(const char* dataFile) {
     std::cerr << "OsiConic: readConicMps returned code " << rc << std::endl;
     throw std::exception();
   }
-  int * members;
+  // allocate memory for cone data members of the class
+  numCoreCones_ = nOfCones;
+  coneTypes_ = new int[nOfCones];
+  coneSizes_ = new int[nOfCones];
+  coneMembers_ = new int*[nOfCones];
   for (int i=0; i<nOfCones; ++i) {
     if (coneType[i]!=1 and coneType[i]!=2) {
       std::cerr << "Invalid cone type!" << std::endl;
@@ -347,21 +357,23 @@ void DcoModel::readInstance(const char* dataFile) {
       throw std::exception();
     }
     // get members
-    members = new int[num_members];
+    coneSizes_[i] = num_members;
+    coneMembers_[i] = new int[num_members];
     int k=0;
     for (int j=coneStart[i]; j<coneStart[i+1]; ++j) {
-      members[k] = coneIdx[j];
+      coneMembers_[i][k] = coneIdx[j];
       k++;
     }
     OsiLorentzConeType type;
     if (coneType[i]==1) {
       type = OSI_QUAD;
+      coneTypes_[i] = 0;
     }
     else if (coneType[i]==2) {
       type = OSI_RQUAD;
+      coneTypes_[i] = 1;
     }
-    origLpSolver_->addConicConstraint(type, num_members, members);
-    delete[] members;
+    origLpSolver_->addConicConstraint(type, num_members, coneMembers_[i]);
   }
   // check log level and print ccordingly
   if (nOfCones) {
@@ -378,69 +390,66 @@ void DcoModel::readInstance(const char* dataFile) {
   delete [] coneIdx;
   delete [] coneType;
   delete reader;
-
 }
 
 //############################################################################
-
-void
-DcoModel::createObjects()
-{
-    int j;
-
-    //------------------------------------------------------
-    // Create variables and constraints.
-    //------------------------------------------------------
-
-#ifdef DISCO_DEBUG
-    std::cout << "createObjects: numCols_ " << numCols_
-	      << ", numRows_" << numRows_
-	      << std::endl;
-#endif
-
-    const double *elements = colMatrix_->getElements();
-    const int *indices = colMatrix_->getIndices();
-    const int *lengths = colMatrix_->getVectorLengths();
-    const CoinBigIndex *starts = colMatrix_->getVectorStarts();
-
-    int beg = 0;
-
-    for (j = 0; j < numCols_; ++j) {
-
-        beg = starts[j];
-
-	DcoVariable * var = new DcoVariable(varLB_[j],
-					      varUB_[j],
-					      varLB_[j],
-					      varUB_[j],
-                                              objCoef_[j],
-                                              lengths[j],
-                                              indices + beg,
-                                              elements + beg);
-
-	var->setObjectIndex(j);
-	var->setRepType(BCPS_CORE);
-	var->setStatus(BCPS_NONREMOVALBE);
-	var->setIntType(colType_[j]);
-	variables_.push_back(var);
-        var = NULL;
+void DcoModel::createObjects() {
+  //------------------------------------------------------
+  // Create variables and constraints.
+  //------------------------------------------------------
+  const double *elements = colMatrix_->getElements();
+  const int *indices = colMatrix_->getIndices();
+  const int *lengths = colMatrix_->getVectorLengths();
+  const CoinBigIndex *starts = colMatrix_->getVectorStarts();
+  int beg = 0;
+  for (int j=0; j<numCols_; ++j) {
+    beg = starts[j];
+    DcoVariable * var = new DcoVariable(varLB_[j],
+					varUB_[j],
+					varLB_[j],
+					varUB_[j],
+					objCoef_[j],
+					lengths[j],
+					indices + beg,
+					elements + beg);
+    var->setObjectIndex(j);
+    var->setRepType(BCPS_CORE);
+    var->setStatus(BCPS_NONREMOVALBE);
+    var->setIntType(colType_[j]);
+    variables_.push_back(var);
+    // todo(aykut) it seems memory allocated to var is never released.
+    var = NULL;
+  }
+  for (int j=0; j<numRows_; ++j) {
+    DcoConstraint *con = new DcoConstraint(conLB_[j],
+					   conUB_[j],
+					   conLB_[j],
+					   conUB_[j]);
+    con->setObjectIndex(j);
+    con->setRepType(BCPS_CORE);
+    con->setStatus(BCPS_NONREMOVALBE);
+    constraints_.push_back(con);
+    // todo(aykut) it seems memory allocated to con is never released.
+    con = NULL;
+  }
+  // Initialize the cone information
+  numCoreCones_ = origLpSolver_->getNumCones();
+  coneMembers_ = new int*[numCoreCones_];
+  coneTypes_ = new int[numCoreCones_];
+  coneSizes_ = new int[numCoreCones_];
+  for(int j=0; j<numCoreCones_; j++) {
+    OsiLorentzConeType type;
+    origLpSolver_->getConicConstraint(j, type, coneSizes_[j], coneMembers_[j]);
+    if (type==OSI_QUAD) {
+      coneTypes_[j] = 0;
     }
-
-    for (j = 0; j < numRows_; ++j) {
-        DcoConstraint *con = new DcoConstraint(conLB_[j],
-                                                 conUB_[j],
-                                                 conLB_[j],
-                                                 conUB_[j]);
-        con->setObjectIndex(j);
-        con->setRepType(BCPS_CORE);
-        con->setStatus(BCPS_NONREMOVALBE);
-        constraints_.push_back(con);
-        con = NULL;
+    else {
+      coneTypes_[j] = 1;
     }
-
-    // Set all objects as core by default.
-    numCoreVariables_ = numCols_;
-    numCoreConstraints_ = numRows_;
+  }
+  // Set all objects as core by default.
+  numCoreVariables_ = numCols_;
+  numCoreConstraints_ = numRows_;
 }
 
 //#############################################################################
@@ -1566,6 +1575,20 @@ DcoModel::gutsOfDestructor()
     delete [] objCoef_;
     delete [] incumbent_;
 
+    // free cone data
+    for (int i=0; i<numCoreCones_; ++i) {
+      delete[] coneMembers_[i];
+    }
+    if (coneMembers_) {
+      delete[] coneMembers_;
+    }
+    if (coneTypes_) {
+      delete[] coneTypes_;
+    }
+    if (coneSizes_) {
+      delete[] coneSizes_;
+    }
+
     delete presolve_;
 
     if (numHeuristics_ > 0) {
@@ -1829,6 +1852,8 @@ DcoModel::passInPriorities (const int * priorities,
 
 //#############################################################################
 
+// todo(aykut) we need conic constraints here.
+// a node should track of conic constraints
 AlpsTreeNode *
 DcoModel::createRoot() {
 
