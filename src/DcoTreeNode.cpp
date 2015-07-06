@@ -289,9 +289,6 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
     }
   }
 
-  // todo(aykut) disable cut generation
-  genConsHere = false;
-
   //--------------------------------------------------
   // Call HeurisBounding before solving for the first node.
   //--------------------------------------------------
