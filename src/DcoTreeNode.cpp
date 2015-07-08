@@ -33,6 +33,8 @@
 #include "OsiRowCutDebugger.hpp"
 #include "OsiCuts.hpp"
 
+#include <CglConicGD1.hpp>
+
 #include "AlpsKnowledge.h"
 #include "AlpsEnumProcessT.h"
 #include "AlpsKnowledgeBroker.h"
@@ -142,6 +144,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 
   int numAppliedCons = 0;
   int cutStrategy;
+  int conicCutStrategy;
 
   // Only autmatic stategy has depth limit.
   int maxConstraintDepth = 20;
@@ -161,6 +164,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
   bool lpFeasible = false;
   bool foundSolution = false;
   bool genConsHere = false;
+  bool genConicCutsHere = false;
   bool shareCon = false;
   bool shareVar = false;
 
@@ -259,10 +263,13 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
   model->isRoot_ = isRoot;
 
   genConsHere = false;
+  genConicCutsHere = false;
 
   cutStrategy = model->getCutStrategy();
+  conicCutStrategy = model->getConicCutStrategy();
 
   assert(cutStrategy != DcoCutStrategyNotSet);
+  assert(conicCutStrategy != DcoConicCutStrategyNotSet);
 
   if (cutStrategy == DcoCutStrategyNone) {
     genConsHere = false;
@@ -286,6 +293,33 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
   if (genConsHere && (phase == AlpsPhaseRampup)) {
     if (!(DcoPar->entry(DcoParams::cutRampUp))) {
       genConsHere = false;
+    }
+  }
+
+  // will we generate conic cuts
+  if (conicCutStrategy == DcoConicCutStrategyNone) {
+    genConicCutsHere = false;
+  }
+  else if (conicCutStrategy == DcoConicCutStrategyRoot) {
+    // The original root only
+    if (isRoot && (index_ == 0)) genConicCutsHere = true;
+  }
+  else if (conicCutStrategy == DcoConicCutStrategyAuto) {
+    // what does maxConstraintDepth mean for conic cut case?
+    if (depth_ < maxConstraintDepth) {
+      if (!diving_ || isRoot) genConicCutsHere = true;
+    }
+  }
+  else if (conicCutStrategy == DcoConicCutStrategyPeriodic) {
+    genConicCutsHere = true;
+  }
+  else {
+    genConicCutsHere = true;
+  }
+
+  if (genConicCutsHere && (phase == AlpsPhaseRampup)) {
+    if (!(DcoPar->entry(DcoParams::cutRampUp))) {
+      genConicCutsHere = false;
     }
   }
 
@@ -502,7 +536,6 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 	    CoinZeroN(newDelMark, newNumCons);
 	  }
 
-	  // todo(aykut) disable warm start for now
 	  const CoinWarmStartBasis* ws=
 	    dynamic_cast<CoinWarmStartBasis*>
 	    (model->solver()->getWarmStart());
@@ -702,6 +735,8 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
       break;
     }
 
+
+#if defined(__COLA__) // run generation/heuristics when solver is cola.
     //--------------------------------------------------
     // Call heuristics.
     //--------------------------------------------------
@@ -737,7 +772,6 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 	      << std::endl;
 #endif
 
-#if defined(__COLA__) // run generation/heuristics when solver is cola.
     if ( keepOn && genConsHere &&
 	 (numAppliedCons < maxNumCons) &&
 	 (model->boundingPass_ < maxPass) ) {
@@ -811,7 +845,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 #if 0
 	    std::cout << "+++ Num of send new constraint = "
 		      << model->constraintPoolSend()->getNumConstraints()
-		      << std::endl;
+radii		      << std::endl;
 #endif
 	  }
 	}
@@ -828,6 +862,9 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
     }
 #endif // end of __COLA__ defined block
    } // EOF bounding/cutting/heuristics loop
+
+
+  // todo(aykut) This is the proper place to generate and add conic cuts
 
     //------------------------------------------------------
     // Select branching object
@@ -2320,9 +2357,9 @@ int DcoTreeNode::installSubProblem(BcpsModel *m) {
   // Remove old conic constraints
   // todo(aykut) remove old conic constraints
   // I am not sure whether we need this for now.
-  for (i=numCoreCones; i<numCones; ++i) {
-    model->solver()->removeConicConstraint(i);
-  }
+  // for (i=numCoreCones; i<numCones; ++i) {
+  //   model->solver()->removeConicConstraint(i);
+  // }
   //--------------------------------------------------------
   // Travel back to a full node, then collect diff (add/rem col/row,
   // hard/soft col/row bounds) from the node full to this node.

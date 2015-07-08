@@ -15,7 +15,7 @@
  *          Ted Ralphs, Lehigh University                                    *
  *          Laszlo Ladanyi, IBM T.J. Watson Research Center                  *
  *          Matthew Saltzman, Clemson University                             *
- *                                                                           * 
+ *                                                                           *
  *                                                                           *
  * Copyright (C) 2001-2015, Lehigh University, Yan Xu, and Ted Ralphs.       *
  * All Rights Reserved.                                                      *
@@ -37,7 +37,7 @@ class DcoParams : public AlpsParameterSet {
   /** Character parameters. All of these variable are used as booleans
       (ture = 1, false = 0). */
   enum chrParams{
-      /** Generate cuts during rampup. 
+      /** Generate cuts during rampup.
 	  Default: true */
       cutRampUp,
       /** Presolve or not */
@@ -57,29 +57,29 @@ class DcoParams : public AlpsParameterSet {
       //
       endOfChrParams
   };
-  
+
   /** Integer paramters. */
   enum intParams{
 
       /** Branching strategy.
-          0: max infeasibilty, 
-          1: pseudocost, 
-          2: relibility, 
+          0: max infeasibilty,
+          1: pseudocost,
+          2: relibility,
           3: strong branching.
 	  4: bilevel branching
       */
       branchStrategy,
       branchStrategyRampUp,
 
-      /** Cut generators control. 
+      /** Cut generators control.
           -2: root,
-          -1: auto, 
+          -1: auto,
           0: disable,
           any positive frequency
       */
       cutStrategy, /** All constraint generators */
       cutGenerationFrequency,
-      
+
       cutPass,      /** The pass to generate cuts */
       quickCutPass, /** The pass to generate cuts for quick branching */
 
@@ -99,21 +99,21 @@ class DcoParams : public AlpsParameterSet {
       cutOddHoleFreq,
       cutProbingFreq,
       cutTwoMirFreq,
-      
+
       /** -1 auto, 0, no, any integer frequency */
       difference,
-      
+
       /** Heuristics control.
           DcoHeurStrategyRoot:     root,
           DcoHeurStrategyAuto:     auto,
-          DcoHuerStrategyNone:     disable, 
+          DcoHuerStrategyNone:     disable,
           DcoHeurStrategyPeriodic: every 't' nodes
       */
       heurStrategy, /** All heuristics */
       heurCallFrequency,
       heurRoundStrategy,
       heurRoundFreq,
-      
+
       /** The look ahead of pseudocost. */
       lookAhead,
       /** The relibility of pseudocost. */
@@ -125,25 +125,44 @@ class DcoParams : public AlpsParameterSet {
       sharePcostFrequency,
       /** The number of candidate used in strong branching. Default: 10. */
       strongCandSize,
+
+      /** conic cut parameters **/
+      /** Cut generators control.
+          -2: root,
+          -1: auto,
+          0: disable,
+          any positive frequency
+      */
+      conicCutStrategy, /** All constraint generators */
+      conicCutGenerationFrequency,
+      conicCutPass,      /** The pass to generate cuts */
+      quickConicCutPass, /** The pass to generate cuts for quick branching */
+      conicCutMirStrategy,
+      conicCutGD1Strategy,
+      conicCutGD2Strategy,
+      conicCutMirFreq,
+      conicCutGD1Freq,
+      conicCutGD2Freq,
+
       ///
       endOfIntParams
   };
 
   /** Double parameters. */
   enum dblParams{
-      /** Limit the max number cuts applied at a node. 
+      /** Limit the max number cuts applied at a node.
           maxNumCons = (CutFactor - 1) * numCoreConstraints. */
       cutFactor,
-      
+
       /** Cutoff any nodes whose objective value is higher than it. */
       cutoff,
-      /** The value added to relaxation value when deciding fathom. 
+      /** The value added to relaxation value when deciding fathom.
           Default:1.0e-6 */
       cutoffInc,
 
-      /** Dense constraint factor.*/    
+      /** Dense constraint factor.*/
       denseConFactor,
-      
+
       /** Tolerance to treat as an integer. Default: 1.0e-5 */
       integerTol,
 
@@ -153,15 +172,15 @@ class DcoParams : public AlpsParameterSet {
       /** If the relative gap between best feasible and best relaxed fall into
           this gap, search stops. Default: 1.0e-6 */
       optimalRelGap,
-      
+
       /** If the absolute gap between best feasible and best relaxed fall into
           this gap, search stops. Default: 1.0e-4 */
       optimalAbsGap,
-      
+
       /** Weight used to calculate pseudocost. */
       pseudoWeight,
 
-      /** Scaling indicator of a constraint.*/    
+      /** Scaling indicator of a constraint.*/
       scaleConFactor,
 
       /** Tail off */
@@ -214,18 +233,18 @@ class DcoParams : public AlpsParameterSet {
 
  public:
   //===========================================================================
-  /** For user application: 
-   *   Following code are do NOT need to change. 
-   *   The reason can not put following functions in base class 
+  /** For user application:
+   *   Following code are do NOT need to change.
+   *   The reason can not put following functions in base class
    *   <CODE> AlpsParameterSet </CODE> is that <CODE> chrParams </CODE>
    *   and <CODE> endOfChrParams </CODE> etc., are NOT the same as those
    *   declared in base class.
    */
   //===========================================================================
 
-  
-  /**@name Query methods 
-      
+
+  /**@name Query methods
+
      The members of the parameter set can be queried for using the overloaded
      entry() method. Using the example in the class
      documentation the user can get a parameter with the
@@ -279,7 +298,7 @@ class DcoParams : public AlpsParameterSet {
 
   /**@name Packing/unpacking methods */
   /*@{*/
-  /** Pack the parameter set into the buffer (AlpsEncoded is used 
+  /** Pack the parameter set into the buffer (AlpsEncoded is used
       as buffer Here). */
   void pack(AlpsEncoded& buf) {
     buf.writeRep(bpar_, endOfChrParams)

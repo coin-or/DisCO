@@ -228,6 +228,12 @@ protected:
   /** Frequency of cut generation */
   int cutGenerationFrequency_;
 
+  /** If use conic cut generators. */
+  DcoConicCutStrategy conicCutStrategy_;
+
+  /** Frequency of conic cut generation */
+  int conicCutGenerationFrequency_;
+
   /** Number of cut generators used. */
   int numCutGenerators_;
 
@@ -764,11 +770,19 @@ public:
     return cutStrategy_;
   }
 
+  /** Query conic cut generation strategy. */
+  DcoConicCutStrategy getConicCutStrategy() const {
+    return conicCutStrategy_;
+  }
+
   /** Set constraint generation strategy. */
   void setCutStrategy(DcoCutStrategy u) { cutStrategy_ = u; }
 
   /** Query constraint generation frequency. */
   int getCutGenerationFrequency() const { return cutGenerationFrequency_; }
+
+  /** Query conic cut generation frequency. */
+  int getConicCutGenerationFrequency() const { return conicCutGenerationFrequency_; }
 
   /** Set constraint generation frequency. */
   void setCutStrategy(int f) { cutGenerationFrequency_ = f; }
