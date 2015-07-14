@@ -15,7 +15,7 @@
  *          Ted Ralphs, Lehigh University                                    *
  *          Laszlo Ladanyi, IBM T.J. Watson Research Center                  *
  *          Matthew Saltzman, Clemson University                             *
- *                                                                           * 
+ *                                                                           *
  *                                                                           *
  * Copyright (C) 2001-2015, Lehigh University, Yan Xu, and Ted Ralphs.       *
  * All Rights Reserved.                                                      *
@@ -65,11 +65,11 @@ DcoTreeNode::createNewTreeNode(AlpsNodeDesc *&desc) const
     DcoModel* model = dynamic_cast<DcoModel*>(desc_->getModel());
     BcpsBranchStrategy *strategy = model->branchStrategy();
 
-    DcoBranchingStrategy type = 
+    DcoBranchingStrategy type =
 	static_cast<DcoBranchingStrategy>(strategy->getType());
 
     switch(type){
-	
+
      case DcoBranchingStrategyMaxInfeasibility:
      case DcoBranchingStrategyPseudoCost:
      case DcoBranchingStrategyReliability:
@@ -84,17 +84,17 @@ DcoTreeNode::createNewTreeNode(AlpsNodeDesc *&desc) const
 	     double lpX = dynamic_cast<DcoNodeDesc *>(desc)->getBranchedVal();
 	     double f = lpX - floor(lpX);
 	     assert(f > 0.0);
-	     
+
 	     int objInd = model->getIntObjIndices()[branchInd];
 	     DcoObjectInt *obj = dynamic_cast<DcoObjectInt *>(model->objects(objInd));
-	     
+
 	     if (branchDir == -1) {
 		 estimate -= (1.0-f) * obj->pseudocost().getUpCost();
 	     }
 	     else {
 		 estimate -= f * obj->pseudocost().getDownCost();
 	     }
-	     
+
 #ifdef DISCO_DEBUG_MORE
 	     printf("DISCO:createNewTreeNode: quality=%g, solEstimate=%g\n",
 		    quality_, solEstimate_);
@@ -109,9 +109,9 @@ DcoTreeNode::createNewTreeNode(AlpsNodeDesc *&desc) const
     }
 
     // Create a new tree node
-    DcoTreeNode *node = new DcoTreeNode(desc);    
+    DcoTreeNode *node = new DcoTreeNode(desc);
     desc = NULL;
-	
+
     return node;
 }
 
@@ -142,13 +142,13 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 
     int numAppliedCons = 0;
     int cutStrategy;
-    
+
     // Only autmatic stategy has depth limit.
     int maxConstraintDepth = 20;
 
-    int numPassesLeft = 0;      
+    int numPassesLeft = 0;
     int bStatus = -1;
- 
+
     double cutoff = ALPS_INC_MAX;
     double parentObjValue = getQuality();
     double preObjValue = -ALPS_OBJ_MAX;
@@ -169,13 +169,13 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
     BcpsObject **newConstraints = NULL;
 
     DcoSolution *ipSol = NULL;
-    
+
     int numDelRows = 0;
     int *delRow = NULL;
     int *oldConsPos = NULL;
-    
+
     std::vector<int> delIndices;
-    
+
     DcoModel* model = dynamic_cast<DcoModel*>(desc_->getModel());
 
     AlpsPhase phase = knowledgeBroker_->getPhase();
@@ -208,22 +208,22 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
         // Add one to solve initial subprolem.
         ++maxPass;
     }
-    
+
     shareCon = DcoPar->entry(DcoParams::shareConstraints);
-    shareVar = DcoPar->entry(DcoParams::shareVariables);    
+    shareVar = DcoPar->entry(DcoParams::shareVariables);
 
     cutoff = model->getCutoff();
 
     numPassesLeft = model->getNumBranchResolve();
-    
+
     // std::cout << "numPassesLeft = " << numPassesLeft << std::endl;
-    
+
     //------------------------------------------------------
     // Check if this can be fathomed by objective cutoff.
     //------------------------------------------------------
-    
+
 #if 0
-    std::cout << "parentObjValue = " << parentObjValue 
+    std::cout << "parentObjValue = " << parentObjValue
               << "cutoff = " << cutoff << std::endl;
 #endif
 
@@ -236,7 +236,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
         model->setActiveNode(this);
         model->addNumNodes();
     }
-    
+
     //------------------------------------------------------
     // Get model information and parameters.
     //------------------------------------------------------
@@ -246,7 +246,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
     numCoreCols = model->getNumCoreVariables();
     numCoreRows = model->getNumCoreConstraints();
     numAppliedCons =  numRows - numCoreRows;
-    
+
     maxNumCons = model->getMaxNumCons();
 
     currLpSolution = new double [numCols];
@@ -263,7 +263,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
     cutStrategy = model->getCutStrategy();
 
     assert(cutStrategy != DcoCutStrategyNotSet);
-    
+
     if (cutStrategy == DcoCutStrategyNone) {
 	genConsHere = false;
     }
@@ -289,13 +289,10 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 	}
     }
 
-    // todo(aykut) disable cut generation
-    genConsHere = false;
-
     //--------------------------------------------------
     // Call HeurisBounding before solving for the first node.
     //--------------------------------------------------
-    
+
     if (model->getNumNodes() == 1) {
 	int heurStatus = callHeuristics(model, true); // before root
 	if (heurStatus == 1) {
@@ -313,14 +310,14 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
     //     a. set status to be fathom.
     // (2) LP feasible
     //     a. MILP feasible. Check whether need update incumbent.
-    //     b. LP feasible but not MIP feasible. Check whether can be 
+    //     b. LP feasible but not MIP feasible. Check whether can be
     //        fathomed, if not, choose a branch variable.
     //======================================================
 
     //------------------------------------------------------
     // Extract info from this node and load subproblem into lp solver.
     //------------------------------------------------------
-    
+
     installSubProblem(model);
 
     //------------------------------------------------------
@@ -332,16 +329,16 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 
     origNumOldCons = numStartRows - numCoreRows;
     currNumOldCons = origNumOldCons;
-    
+
 #if 0
     std::cout << "PROCESS: genConsHere =" << genConsHere
 	      << ", cut strategy =" << model->getCutStrategy()
 	      << ", numCoreRows =" << numCoreRows
 	      << ", numStartRows =" << numStartRows
-	      << ", currNumOldCons =" << currNumOldCons 
+	      << ", currNumOldCons =" << currNumOldCons
               << ", index_ = " << index_ << std::endl;
 #endif
-    
+
     if (currNumOldCons > 0) {
 	oldConsPos = new int [currNumOldCons];
 	for (k = 0; k < currNumOldCons; ++k) {
@@ -356,23 +353,23 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 	else {
 	    maxNewNumCons = maxNumCons;
 	}
-        newConstraints = new BcpsObject* [maxNewNumCons];    
+        newConstraints = new BcpsObject* [maxNewNumCons];
     }
 
     model->boundingPass_ = 0;
     while (keepOn && (model->boundingPass_ < maxPass)) {
         ++(model->boundingPass_);
         keepOn = false;
-        
+
         //--------------------------------------------------
         // Bounding to get the quality of this node.
         //--------------------------------------------------
-        
-        if ( ((knowledgeBroker_->getProcType() == AlpsProcessTypeMaster) || 
-              (knowledgeBroker_->getProcType() == AlpsProcessTypeSerial)) && 
+
+        if ( ((knowledgeBroker_->getProcType() == AlpsProcessTypeMaster) ||
+              (knowledgeBroker_->getProcType() == AlpsProcessTypeSerial)) &&
              isRoot && (model->boundingPass_ == 1) ) {
             if (msgLevel >= 50) {
-                model->blisMessageHandler()->message(DISCO_ROOT_PROCESS, 
+                model->blisMessageHandler()->message(DISCO_ROOT_PROCESS,
                                                      model->blisMessages())
                     << model->getNumRows()
                     << model->getNumCols()
@@ -384,7 +381,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
             }
             getKnowledgeBroker()->tempTimer().start();
         }
-        
+
 	// Get lowe bound.
         lpStatus = static_cast<DcoLpStatus> (bound(model));
 
@@ -397,20 +394,20 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                      (knowledgeBroker_->getProcType()==AlpsProcessTypeSerial))
 		    && (msgLevel >= 50)) {
                     model->solver()->messageHandler()->setLogLevel(0);
-                    model->blisMessageHandler()->message(DISCO_ROOT_TIME, 
+                    model->blisMessageHandler()->message(DISCO_ROOT_TIME,
 							 model->blisMessages())
-                        << getKnowledgeBroker()->tempTimer().getCpuTime() 
+                        << getKnowledgeBroker()->tempTimer().getCpuTime()
                         << CoinMessageEol;
                 }
             }
 	}
-        
+
         switch(lpStatus) {
         case DcoLpStatusOptimal:
-            // Check if IP feasible 
+            // Check if IP feasible
             ipSol = model->feasibleSolution(numIntInfs, numObjInfs);
-            
-            if (ipSol) {         
+
+            if (ipSol) {
                 // IP feasible
                 model->storeSolution(DcoSolutionTypeBounding, ipSol);
                 // Update cutoff
@@ -425,7 +422,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                 }
                 needBranch = true;
                 reducedCostFix(model);
-                
+
                 //------------------------------------------
                 // Check if tailoff or have to keep on.
                 //------------------------------------------
@@ -437,12 +434,12 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                         //       tailoff.
                         keepOn = true;
                     }
-                    
+
 #if 0
                     std::cout << "PROCESS: boundingPass_["
-                              << model->boundingPass_ << "], improvement=" 
+                              << model->boundingPass_ << "], improvement="
                               << improvement << ", tailOffTol=" << tailOffTol
-                              << ", preObj=" << preObjValue 
+                              << ", preObj=" << preObjValue
                               << ", newObj=" << quality_
                               << std::endl;
 #endif
@@ -465,22 +462,22 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                 //------------------------------------------
 
                 preObjValue = quality_;
-                
+
                 //------------------------------------------
-                // Remove non-core slack constraints. 
+                // Remove non-core slack constraints.
                 //------------------------------------------
 
                 numRows = model->getNumRows();
-                
+
                 if ( genConsHere &&
-                     //(improvement > tailOffTol) && 
+                     //(improvement > tailOffTol) &&
                      //(numRows > numStartRows) ) {
-                     (numRows > numCoreRows) ) {   
-                 
-#if 1                  
+                     (numRows > numCoreRows) ) {
+
+#if 1
                     if ( (numStartRows + newNumCons != numRows) ||
                          (numCoreRows+currNumOldCons +newNumCons != numRows) ){
-                        
+
 			// // todo(aykut) this is done blindly and will create future problems
                         // std::cout << "ERROR: numRows=" << numRows
                         //           << "; numCoreRows=" << numCoreRows
@@ -488,11 +485,11 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                         //           << "; newNumCons=" << newNumCons
                         //           << "; currNumOldCons=" << currNumOldCons
                         //           << std::endl;
-                        
+
                         // assert(numRows - numStartRows == newNumCons);
                     }
 #endif
-                    
+
                     int *oldDelMark = NULL;
                     if (currNumOldCons > 0) {
                         oldDelMark = new int [currNumOldCons];
@@ -505,10 +502,10 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                     }
 
 		    // todo(aykut) disable warm start for now
-                    const CoinWarmStartBasis* ws= 
+                    const CoinWarmStartBasis* ws=
                         dynamic_cast<CoinWarmStartBasis*>
                         (model->solver()->getWarmStart());
-                    
+
                     // Make sure delIndices is empty.
                     assert(delIndices.size()==0);
 
@@ -519,7 +516,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                         if (rowStatus == CoinWarmStartBasis::basic) {
 			    int count;
                             if (k < numStartRows) {
-				DcoConstraint *tmpCon = 
+				DcoConstraint *tmpCon =
 				    model->oldConstraints()[(k-numCoreRows)];
 				count = tmpCon->getNumInactive() + 1;
 				tmpCon->setNumInactive(count);
@@ -529,7 +526,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 				}
                             }
                             else {
-				BcpsObject* tmpCon = 
+				BcpsObject* tmpCon =
 				    newConstraints[(k-numStartRows)];
 				count = tmpCon->getNumInactive() + 1;
 				tmpCon->setNumInactive(count);
@@ -542,32 +539,32 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                     }
 #endif
                     numDelRows = static_cast<int> (delIndices.size());
-		    
+
 		    if (msgLevel > 100) {
-			std::cout << "PROCESS: new cuts=" << newNumCons 
-				  << ", delete slack cuts=" << numDelRows 
-				  << ", numRows=" << numRows 
-				  << ", numStartRows=" <<numStartRows 
+			std::cout << "PROCESS: new cuts=" << newNumCons
+				  << ", delete slack cuts=" << numDelRows
+				  << ", numRows=" << numRows
+				  << ", numStartRows=" <<numStartRows
 				  << std::endl;
 		    }
-    
-                    
+
+
                     if (numDelRows > 0) {
                         delRow = new int [numDelRows];
                         for (k = 0; k < numDelRows; ++k) {
                             delRow[k] = delIndices[k];
 #ifdef DISCO_DEBUG
-			    std::cout << "REMOVE: slack row " << delRow[k] 
+			    std::cout << "REMOVE: slack row " << delRow[k]
 				      << std::endl;
 #endif
                         }
-                        
+
                         //----------------------------------
                         // Delete from lp solver.
                         //----------------------------------
-                        
+
                         model->solver()->deleteRows(numDelRows, delRow);
-                        
+
                         delete [] delRow;
                         delRow = NULL;
                         delIndices.clear();
@@ -580,12 +577,12 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                         for (k = 0; k < currNumOldCons; ++k) {
                             if (oldDelMark[k] != 1) {
                                 // Survived
-                                oldConsPos[tempNumCons++] = oldConsPos[k];    
+                                oldConsPos[tempNumCons++] = oldConsPos[k];
                             }
                         }
                         currNumOldCons = tempNumCons;
                         numStartRows = numCoreRows + currNumOldCons;
-                        
+
                         //----------------------------------
                         // Delete from new cut vector.
                         //----------------------------------
@@ -596,12 +593,12 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                             if (newDelMark[k] == 1) {
                                 // Deleted
 #ifdef DISCO_DEBUG_MORE
-                                std::cout << "delete cut " << k 
-                                          << ", size=" 
+                                std::cout << "delete cut " << k
+                                          << ", size="
                                           << dynamic_cast<DcoConstraint*>(newConstraints[k])->getSize()
                                           << std::endl;
 #endif
-                                
+
                                 delete newConstraints[k];
                                 newConstraints[k] = NULL;
                             }
@@ -613,12 +610,12 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                         //assert(tempNumCons + numDelRows == newNumCons);
                         numAppliedCons -= newNumCons;
                         numAppliedCons += tempNumCons;
-                        newNumCons = tempNumCons;                        
-                        
+                        newNumCons = tempNumCons;
+
                         //----------------------------------
                         // Resolve to update solution info in lp solver.
                         //----------------------------------
-                        
+
                         int easy = 2;
                         model->solver()->setHintParam(OsiDoInBranchAndCut,
                                                       true, OsiHintDo, &easy);
@@ -630,7 +627,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                             // TODO: maybe some cuts become slack again
 #ifdef DISCO_DEBUG
                             std::cout << "SLACK: resolve changed solution!"
-                                      << ", iter=" 
+                                      << ", iter="
 				      << model->solver()->getIterationCount()
 				      << std::endl;
 #endif
@@ -641,18 +638,18 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                                      << std::endl;
 #endif
 			}
-			
+
                         double tempOV = model->solver()->getObjValue();
                         double ovDiff = fabs(quality_ - tempOV);
-                        
+
                         if (ovDiff /(1.0 + tempOV) > 1.0e-3) {
-                            std::cout << "ERROR: SLACK: quality_("<<quality_ 
+                            std::cout << "ERROR: SLACK: quality_("<<quality_
                                       << ") != tempOV(" << tempOV
                                       << ")" << std::endl;
                             assert(0);
                         }
                         else {
-                            std::cout << "AFTER SLACK: quality_("<<quality_ 
+                            std::cout << "AFTER SLACK: quality_("<<quality_
                                       << ") == tempOV(" << tempOV
                                       << ")" << std::endl;
                         }
@@ -663,7 +660,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                     delete [] oldDelMark;
                 }
             }
-            
+
             break;
         case DcoLpStatusAbandoned:
             assert(0);
@@ -725,7 +722,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 		goto TERM_PROCESS;
 	    }
         }
-        
+
         //--------------------------------------------------
         // Generate constraints.
         //--------------------------------------------------
@@ -738,41 +735,41 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                   << std::endl;
 #endif
 
-        if ( keepOn && genConsHere && 
-             (numAppliedCons < maxNumCons) && 
+        if ( keepOn && genConsHere &&
+             (numAppliedCons < maxNumCons) &&
              (model->boundingPass_ < maxPass) ) {
-            
+
             //OsiCuts newOsiCuts;
             BcpsConstraintPool newConPool;
 
-            memcpy(currLpSolution, 
+            memcpy(currLpSolution,
                    model->getLpSolution(),
                    numCols * sizeof(double));
-            
+
 	    // Get violated constraints that are from other processes.
             tempNumCons = newConPool.getNumConstraints();
-	    getViolatedConstraints(model, currLpSolution, 
+	    getViolatedConstraints(model, currLpSolution,
 				   *(model->constraintPoolReceive()));
 	    voilatedNumCons = newConPool.getNumConstraints() - tempNumCons;
-	    
+
 	    // Generate constraints (only if no violated).
 	    if (voilatedNumCons == 0) {
-		lpStatus = static_cast<DcoLpStatus> 
+		lpStatus = static_cast<DcoLpStatus>
 		    (generateConstraints(model, newConPool));
-            
+
 		if (lpStatus != DcoLpStatusOptimal) {
 		    setStatus(AlpsNodeStatusFathomed);
 		    quality_ = -ALPS_OBJ_MAX; // Remove it as soon as possilbe
 		    goto TERM_PROCESS;
 		}
 	    }
-            
+
 	    tempNumCons = newConPool.getNumConstraints();
-            
+
             if (tempNumCons > 0) {
 		// Select and install new constraints
 		applyConstraints(model, currLpSolution, newConPool);
-		
+
 		// Some weak/parallel/dense constraints might be discarded.
 		tempNumCons = newConPool.getNumConstraints();
 		if (tempNumCons > 0) {
@@ -790,12 +787,12 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                     if (newNumCons >= maxNewNumCons) {
                         // No space, need resize
 #ifdef DISCO_DEBUG
-                        std::cout << "NEWCUT: resize, maxNewNumCons = " 
+                        std::cout << "NEWCUT: resize, maxNewNumCons = "
                                   << maxNewNumCons << std::endl;
 #endif
                         maxNewNumCons *= 2;
                         BcpsObject **tempNews = new BcpsObject* [maxNewNumCons];
-                        memcpy(tempNews, 
+                        memcpy(tempNews,
                                newConstraints,
                                newNumCons * sizeof(BcpsObject *));
                         delete [] newConstraints;
@@ -809,13 +806,13 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 				addConstraint(new DcoConstraint(*aCon));
 			}
 #if 0
-			std::cout << "+++ Num of send new constraint = " 
+			std::cout << "+++ Num of send new constraint = "
 				  << model->constraintPoolSend()->getNumConstraints()
 				  << std::endl;
 #endif
 		    }
                 }
-		
+
 		newConPool.clear();
                 numAppliedCons += tempNumCons;
             }
@@ -827,7 +824,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
             keepOn = false;
         }
     } // EOF bounding/cutting/heuristics loop
-    
+
     //------------------------------------------------------
     // Select branching object
     //------------------------------------------------------
@@ -840,24 +837,24 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 #endif
 
     //FIXME: Isn't needBranch always true here?
-    if (needBranch) { 
-	
+    if (needBranch) {
+
 	bStatus = -1;
-        
-        while (bStatus == -1) { 
+
+        while (bStatus == -1) {
             foundSolution = false;
             if(getKnowledgeBroker()->getProcRank() == -1) {
-                std::cout << "*** I AM RANK ONE: before choose:bStatus = " 
+                std::cout << "*** I AM RANK ONE: before choose:bStatus = "
                           << bStatus << std::endl;
             }
-            bStatus = selectBranchObject(model, 
-                                         foundSolution, 
+            bStatus = selectBranchObject(model,
+                                         foundSolution,
                                          numPassesLeft);
             --numPassesLeft;
-            
-            if (bStatus == -1) { 
+
+            if (bStatus == -1) {
                 lpFeasible = model->resolve();
-                
+
                 //resolved = true ;
 #ifdef DISCO_DEBUG_MORE
                 printf("Resolve since some col fixed, Obj value %g, numRows %d, cutoff %g\n",
@@ -871,9 +868,9 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                     if (quality_ > cutoff) {
                         bStatus = -2;
                     }
-                    // Check if feasible at the other branch due to random LP 
+                    // Check if feasible at the other branch due to random LP
                     ipSol = model->feasibleSolution(numIntInfs, numObjInfs);
-                    if (ipSol) {         
+                    if (ipSol) {
                         // IP feasible
                         model->storeSolution(DcoSolutionTypeBounding, ipSol);
                         // Update cutoff
@@ -894,30 +891,30 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                     setStatus(AlpsNodeStatusFathomed);
                 }
             }
-            
+
             if(getKnowledgeBroker()->getProcRank() == -1) {
                 std::cout << "*** I AM RANK ONE: bStatus = " << bStatus
                           << std::endl;
             }
         }
-        
+
         assert(bStatus != -1);
-        
+
         //----------------------------------------------------
         // If found a branching object:
         // 1. Record basis
-        // 2. Record soft var bound difference. 
+        // 2. Record soft var bound difference.
         // 3. Record add/del constraints.
         // NOTE: Hard var bound differences have been recorded when branch().
         //       startXXXXX have branching bounds for this node
         //----------------------------------------------------
-        
+
         if (bStatus >= 0) {
-            
+
 #ifdef DISCO_DEBUG_MORE
             DcoBranchObjectInt *branchObject =
                 dynamic_cast<DcoIntegerBranchObject *>(branchObject_);
-            std::cout << "SetPregnant: branchedOn = " 
+            std::cout << "SetPregnant: branchedOn = "
                       << model->getIntVars()[branchObject->variable()]
                       << std::endl;
 #endif
@@ -926,7 +923,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
             //--------------------------------------------------
 
             setStatus(AlpsNodeStatusPregnant);
-	    
+
             //--------------------------------------------------
             // Save basis.
             //--------------------------------------------------
@@ -948,14 +945,14 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 	    int *tempVarUBPos = model->tempVarUBPos();
 	    //int *tempConLBPos = model->tempConLBPos();
 	    //int *tempConUBPos = model->tempConUBPos();
-	    
+
 	    int numModSoftColLB = 0;
 	    int numModSoftColUB = 0;
 	    const double *currColLB = model->solver()->getColLower();
 	    const double *currColUB = model->solver()->getColUpper();
 	    //const double *currRowLB = model->solver()->getRowLower();
 	    //const double *currRowUB = model->solver()->getRowUpper();
-	    
+
 	    double *startColLB = model->startVarLB();
 	    double *startColUB = model->startVarUB();
 	    //double *startRowLB = model->startConLB();
@@ -979,10 +976,10 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 	    //----------------------------------------------
 	    // Decide if save explicit decription.
 	    //----------------------------------------------
-	    
+
             DcoParams * DcoPar = model->DcoPar();
             int difference = DcoPar->entry(DcoParams::difference);
-    
+
             if (difference == -1) {
                 if (depth_ % 30 == 0 || isRoot || (phase == AlpsPhaseRampup)) {
                     explicit_ = 1;
@@ -1001,28 +998,28 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
             else {
                 explicit_ = 0;
             }
-	    
+
 	    //explicit_ = 1;
 
 	    if (explicit_ || (phase == AlpsPhaseRampup) ) {
-		// NOTE: full hard bound has been stored. 
-		
+		// NOTE: full hard bound has been stored.
+
 		int index;
 		int numModify = 0;
 		int numSoftVarLowers = 0;
 		int numSoftVarUppers = 0;
 		double value;
-		
+
 		double *fVarHardLB = new double [numCols];
 		double *fVarHardUB = new double [numCols];
 		int *fVarHardLBInd = new int [numCols];
 		int *fVarHardUBInd = new int [numCols];
-		
+
 		double *fVarSoftLB = new double [numCols];
 		double *fVarSoftUB = new double [numCols];
 		int *fVarSoftLBInd = new int [numCols];
 		int *fVarSoftUBInd = new int [numCols];
-		
+
 		for (k = 0; k < numCols; ++k) {
 		    fVarSoftLB[k] = ALPS_DBL_MAX;
 		    fVarSoftUB[k] = -ALPS_DBL_MAX;
@@ -1035,13 +1032,13 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 		//------------------------------------------
 		// Build the path to an explicit node.
 		//------------------------------------------
-		
+
 		AlpsTreeNode *parent = parent_;
 
 		// First push this node since it has branching hard bounds.
 		model->leafToRootPath.push_back(this);
 		DcoNodeDesc* pathDesc = NULL;
-		
+
 		if (phase != AlpsPhaseRampup) {
 		    while(parent) {
 			model->leafToRootPath.push_back(parent);
@@ -1062,34 +1059,34 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 		//------------------------------------------
 		// Summarize bounds.
 		//------------------------------------------
-		
+
 		for(j = static_cast<int> (model->leafToRootPath.size() - 1); j > -1; --j) {
-		    
+
 		    pathDesc = dynamic_cast<DcoNodeDesc*>
 			((model->leafToRootPath.at(j))->getDesc());
-		    
+
 		    //--------------------------------------
 		    // Full variable hard bounds.
 		    //--------------------------------------
-		    
+
 		    numModify = pathDesc->getVars()->lbHard.numModify;
 		    for (k = 0; k < numModify; ++k) {
 			index = pathDesc->getVars()->lbHard.posModify[k];
 			value = pathDesc->getVars()->lbHard.entries[k];
 			fVarHardLB[index] = value;
 		    }
-		    
+
 		    numModify = pathDesc->getVars()->ubHard.numModify;
 		    for (k = 0; k < numModify; ++k) {
 			index = pathDesc->getVars()->ubHard.posModify[k];
 			value = pathDesc->getVars()->ubHard.entries[k];
 			fVarHardUB[index] = value;
 		    }
-		    
+
 		    //--------------------------------------
 		    // Full variable soft bounds.
 		    //--------------------------------------
-		    
+
 		    numModify = pathDesc->getVars()->lbSoft.numModify;
 #ifdef DISCO_DEBUG_MORE
 		    std::cout << "SAVE: EXP: j=" << j << ", numModify soft lb="
@@ -1100,7 +1097,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 			value = pathDesc->getVars()->lbSoft.entries[k];
 			fVarSoftLB[index] = value;
 		    }
-		    
+
 		    numModify = pathDesc->getVars()->ubSoft.numModify;
 #ifdef DISCO_DEBUG_MORE
 		    std::cout << "SAVE: EXP: j=" << j << ", numModify soft ub="
@@ -1118,7 +1115,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 		// Collect modified soft bounds at this node.
 		// NOTE: Do this after collecting previous soft bounds.
 		//------------------------------------------
-		
+
 		numModSoftColLB = 0;
 		numModSoftColUB = 0;
 		for (k = 0; k < numCoreCols; ++k) {
@@ -1129,30 +1126,30 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 			printf("Col %d, soft lb change, start %g, curr %g\n",
 			       k, startColLB[k], currColLB[k]);
 #endif
-			
+
 		    }
 		    if (currColUB[k] != startColUB[k]) {
 			fVarSoftUB[k] = currColUB[k];
 			++numModSoftColUB;
 		    }
 		}
-		
+
 #ifdef DISCO_DEBUG_MORE
-		std::cout << "SAVE: EXP: THIS: numModSoftColLB = "<<numModSoftColLB 
+		std::cout << "SAVE: EXP: THIS: numModSoftColLB = "<<numModSoftColLB
 			  << ", numModSoftColUB = " << numModSoftColUB << std::endl;
 #endif
-		
+
 		//--------------------------------------
 		// Debug if bounds are consistant.
 		//--------------------------------------
 
 #ifdef DISCO_DEBUG
 		for (k = 0; k < numCols; ++k) {
-		    
-		    //std::cout << "EXP: COL[" << k <<"]: " 
-		    //      <<"hardLB=" << fVarHardLB[k] 
+
+		    //std::cout << "EXP: COL[" << k <<"]: "
+		    //      <<"hardLB=" << fVarHardLB[k]
 		    //      <<", hardUB=" << fVarHardUB[k] << std::endl;
-		    
+
 		    // Hard lower bound should not greater than
 		    // hard upper bound.
 		    if (fVarHardLB[k] > fVarHardUB[k] + ALPS_GEN_TOL) {
@@ -1160,19 +1157,19 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 			       k, fVarHardLB[k], fVarHardUB[k]);
 			assert(0);
 		    }
-		    
+
 		    if (fVarSoftLB[k] < ALPS_BND_MAX) {
-			// Soft lower changed, and should not greater 
+			// Soft lower changed, and should not greater
 			// than its hard upper bound.
 			if (fVarSoftLB[k] > fVarHardUB[k] + ALPS_GEN_TOL) {
 			    printf("ERROR: Col %d, \tlb %g,  \tub %g\n",
 				   k, fVarSoftLB[k], fVarHardUB[k]);
-			    assert(0);	
+			    assert(0);
 			}
 		    }
-		    
+
 		    if (fVarSoftUB[k] > -ALPS_BND_MAX) {
-			// Soft upper changed, and should not less 
+			// Soft upper changed, and should not less
 			// than its hard lower bound.
 			if (fVarSoftUB[k] < fVarHardLB[k] - ALPS_GEN_TOL) {
 			    printf("ERROR: Col %d, \tlb %g,  \tub %g\n",
@@ -1182,22 +1179,22 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 		    }
 		}
 #endif
-		
+
 		//------------------------------------------
 		// Record hard variable bounds. FULL set.
 		//------------------------------------------
-		
+
 		desc->assignVarHardBound(numCols,
 					 fVarHardLBInd,
 					 fVarHardLB,
 					 numCols,
 					 fVarHardUBInd,
 					 fVarHardUB);
-		
+
 		//------------------------------------------
 		// Recode soft variable bound. Modified.
 		//------------------------------------------
-		
+
 		for (k = 0; k < numCols; ++k) {
 		    if (fVarSoftLB[k] < ALPS_BND_MAX) {
 			fVarSoftLBInd[numSoftVarLowers] = k;
@@ -1209,7 +1206,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 		    }
 		}
 
-		
+
 #ifdef DISCO_DEBUG_MORE
 		// Print soft bounds.
 		std::cout << "SAVE: EXP: numSoftVarLowers=" << numSoftVarLowers
@@ -1217,7 +1214,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 			  << std::endl;
 		for (k = 0; k < numSoftVarLowers; ++k) {
 		    std::cout << "Col[" << fVarSoftLBInd[k] << "]: soft lb="
-			      << fVarSoftLB[k] << std::endl;		    
+			      << fVarSoftLB[k] << std::endl;
 		}
 		std::cout << "------------------" << std::endl;
 		for (k = 0; k < numSoftVarUppers; ++k) {
@@ -1228,12 +1225,12 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 #endif
 
 		//if ( (numSoftVarUppers > 0) || (numSoftVarLowers > 0) ) {
-                
+
                 // Assign it anyway so to delete memory(fVarSoftLBInd,etc.)
-                desc->assignVarSoftBound(numSoftVarLowers, 
+                desc->assignVarSoftBound(numSoftVarLowers,
                                          fVarSoftLBInd,
                                          fVarSoftLB,
-                                         numSoftVarUppers, 
+                                         numSoftVarUppers,
                                          fVarSoftUBInd,
                                          fVarSoftUB);
 
@@ -1243,7 +1240,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                 // old constraint: model->oldConstraints_, currNumOldCons.
                 // new constraint: newConstraints, newNumCons.
 
-                BcpsObject **toAddCons = new BcpsObject * [currNumOldCons + 
+                BcpsObject **toAddCons = new BcpsObject * [currNumOldCons +
                                                            newNumCons];
                 if (currNumOldCons > 0) {
                     // Hard copy of the survived old constraints.
@@ -1252,19 +1249,19 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                         DcoConstraint *aCon = model->oldConstraints()[oldPos];
                         assert(aCon);
 #ifdef DISCO_DEBUG
-			std::cout << "SAVE: EXP: currNumOldCons=" << currNumOldCons 
+			std::cout << "SAVE: EXP: currNumOldCons=" << currNumOldCons
 				  << ", k=" << k << ", len=" << aCon->getSize()
                                   << ", node=" << index_ << std::endl;
 #endif
-			
+
                         DcoConstraint *newCon = new DcoConstraint(*aCon);
                         toAddCons[k] = newCon;
                     }
                 }
-                
+
 		if (newNumCons > 0) {
 		    // Include new constraints.
-		    memcpy(toAddCons + currNumOldCons, 
+		    memcpy(toAddCons + currNumOldCons,
 			   newConstraints,
 			   newNumCons * sizeof(BcpsObject *));
 		}
@@ -1273,11 +1270,11 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                 // Save in description. Add first delete exiting, then add.
 		// Pointers in model->oldConstraints_ can be dangling.
 		// It is not safe to use model->oldConstraints_ after adding.
-		
+
 		// If this node is the root of a subtree, and before processing
-		// it has a list of cuts, then model->oldConstraints_ 
+		// it has a list of cuts, then model->oldConstraints_
 		// stores pointer to the cuts when installing.
-		
+
 		// Need update model->constraints_ here OR do not be smart!
 		// 1/6/06: Choose to be dumn.
 		//------------------------------------------
@@ -1289,22 +1286,22 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 
 		int numTotal = currNumOldCons + newNumCons;
                 desc->setAddedConstraints(numTotal, toAddCons);
-                
+
 #ifdef DISCO_DEBUG
 		std::cout << "SAVE: EXP: currNumOldCons=" << currNumOldCons
 			  << ", newNumCons=" << newNumCons
 			  << std::endl;
-#endif	
-		
+#endif
+
                 //------------------------------------------
                 // Full set of active non-core variables.
                 //------------------------------------------
                 // Todo.
-                
+
 		//------------------------------------------
 		// Clear path vector.
 		//------------------------------------------
-		
+
 		model->leafToRootPath.clear();
 		assert(model->leafToRootPath.size() == 0);
 	    }
@@ -1313,7 +1310,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 		// Record soft bound changes for core vars.
 		//------------------------------------------
 
-		// Variable bound change 
+		// Variable bound change
 		numModSoftColLB = 0;
 		numModSoftColUB = 0;
 		for (k = 0; k < numCoreCols; ++k) {
@@ -1321,12 +1318,12 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 			tempVarLBPos[numModSoftColLB] = k;
 			/* startColLB as a temporary storage vector */
 			startColLB[numModSoftColLB] = currColLB[k];
-			
+
 #ifdef DISCO_DEBUG_MORE
 			printf("Col %d, soft lb change, start %g, curr %g\n",
 			       k, startColLB[k], currColLB[k]);
 #endif
-			
+
 			++numModSoftColLB;
 		    }
 		    if (currColUB[k] != startColUB[k]) {
@@ -1337,25 +1334,25 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 		}
 
 #ifdef DISCO_DEBUG_MORE
-		std::cout << "SAVE: REL: numModSoftColLB = " 
-                          << numModSoftColLB 
-			  << ", numModSoftColUB = " 
-                          << numModSoftColUB 
+		std::cout << "SAVE: REL: numModSoftColLB = "
+                          << numModSoftColLB
+			  << ", numModSoftColUB = "
+                          << numModSoftColUB
 			  << std::endl;
 #endif
-            
+
 		if (numModSoftColLB > 0 || numModSoftColUB > 0) {
 #ifdef DISCO_DEBUG
 		    //assert(0);
 #endif
-		    desc->setVarSoftBound(numModSoftColLB, 
+		    desc->setVarSoftBound(numModSoftColLB,
 					  tempVarLBPos,
 					  startColLB,
-					  numModSoftColUB, 
+					  numModSoftColUB,
 					  tempVarUBPos,
 					  startColUB);
 		}
-            
+
 		//------------------------------------------
 		// TODO: Constraint bounds change.
 		//------------------------------------------
@@ -1374,15 +1371,15 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 		    }
 		}
 		if (numModSoftRowLB > 0 || numModSoftRowUB > 0) {
-		    desc->setConSoftBound(numModSoftRowLB, 
+		    desc->setConSoftBound(numModSoftRowLB,
 					  tempConLBPos,
 					  startRowLB,
-					  numModSoftRowUB, 
+					  numModSoftRowUB,
 					  tempConUBPos,
 					  startRowUB);
 		}
-#endif	
-            
+#endif
+
 		if (genConsHere) {
 		    // NOTE: explicit_ can NOT do this if, since genConsHere maybe
 		    //       false here, but there are maybe cons from parents.
@@ -1391,28 +1388,28 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 		    // Record add constraints.
 		    //--------------------------------------
 
-		    // Apend will copy old, then add new. 
-		    // If this node has a list of cuts before pointers in 
+		    // Apend will copy old, then add new.
+		    // If this node has a list of cuts before pointers in
 		    // model->oldConstraints() will be kept. Safe!
 		    if (newNumCons > 0) {
 			desc->appendAddedConstraints(newNumCons,
                                                      newConstraints);
                     }
-		    
+
 		    //--------------------------------------
 		    // Record deleted constraint positions.
 		    //--------------------------------------
-		    
+
 		    int *oldLeft = new int [origNumOldCons];
 		    int leftCon;
 		    CoinZeroN(oldLeft, origNumOldCons);
-		    
+
 		    for (k = 0; k < currNumOldCons; ++k) {
 			leftCon = oldConsPos[k];
 			assert(leftCon >= 0 && leftCon < origNumOldCons);
 			oldLeft[leftCon] = 1;
 		    }
-		    // 
+		    //
 		    leftCon = 0;
 		    for (k = 0; k < origNumOldCons; ++k) {
 			if (oldLeft[k] == 0) {
@@ -1423,37 +1420,37 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                         //assert(k < 15196924);
 		    }
 		    desc->delConstraints(leftCon, oldLeft);
-		    
+
 #ifdef DISCO_DEBUG
-		    std::cout << "PROCESS: ADD: new cuts=" << newNumCons 
-			      << ", numRows=" << model->solver()->getNumRows() 
-			      << ", numStartRows="<< numStartRows 
-                              << ", origNumStartRows="<< origNumStartRows 
-                              << ", num removed=" << leftCon << std::endl;                    
+		    std::cout << "PROCESS: ADD: new cuts=" << newNumCons
+			      << ", numRows=" << model->solver()->getNumRows()
+			      << ", numStartRows="<< numStartRows
+                              << ", origNumStartRows="<< origNumStartRows
+                              << ", num removed=" << leftCon << std::endl;
 #endif
-		    
+
 		}// EOF of if(genConsHere)
 	    } // EOF of relative
         }
         else if (bStatus == -2) {
-            
+
 #if 0
             std::cout << "bStatus = -2, fathom this node!" << std::endl;
 #endif
             //branchObject->getDown()[0], branchObject->getDown()[1]);
-	    
+
             setStatus(AlpsNodeStatusFathomed);
         }
         else {
-            throw CoinError("No branch object found", "process", 
+            throw CoinError("No branch object found", "process",
                             "DcoTreeNode");
         }
     }
-    
+
     //------------------------------------------------------
     // End of process()
     //------------------------------------------------------
-    
+
  TERM_PROCESS:
 
     bool printCutStat = false;
@@ -1494,7 +1491,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                     << model->cutGenerators(k)->time()
                     << model->cutGenerators(k)->strategy()
                     << CoinMessageEol;
-            }   
+            }
         }
 
         numT = model->numHeuristics();
@@ -1509,7 +1506,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
                     << model->heuristics(k)->time()
                     << model->heuristics(k)->strategy()
                     << CoinMessageEol;
-            }   
+            }
         }
     }
 
@@ -1527,7 +1524,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
     }
     delete [] newConstraints;
     delete [] oldConsPos;
-    
+
     model->isRoot_ = false;
 
 #ifdef DISCO_DEBUG_MORE
@@ -1541,7 +1538,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 		  << ", node=" << index_ << std::endl;
     }
 #endif
-    
+
     return returnStatus;
 }
 
@@ -1561,12 +1558,12 @@ DcoTreeNode::branch()
 
     double objVal = quality_;
 
-    DcoNodeDesc* childDesc = NULL;  
-      
-    std::vector< CoinTriple<AlpsNodeDesc*, AlpsNodeStatus, double> > 
+    DcoNodeDesc* childDesc = NULL;
+
+    std::vector< CoinTriple<AlpsNodeDesc*, AlpsNodeStatus, double> >
 	childNodeDescs;
-    
-    DcoModel* model = dynamic_cast<DcoModel*>(desc_->getModel());    
+
+    DcoModel* model = dynamic_cast<DcoModel*>(desc_->getModel());
 
     int numCols = model->getNumCols();
 
@@ -1583,38 +1580,38 @@ DcoTreeNode::branch()
 #endif
 
     //------------------------------------------------------
-    // Get branching object. TODO: Assume integer branching object. 
+    // Get branching object. TODO: Assume integer branching object.
     //------------------------------------------------------
-    
+
     DcoNodeDesc* thisDesc = dynamic_cast<DcoNodeDesc*>(desc_);
 
-    DcoBranchingObjectType type = 
+    DcoBranchingObjectType type =
 	static_cast<DcoBranchingObjectType>(branchObject_->getType());
 
     switch(type){
 
-     case DcoBranchingObjectTypeInt: 
+     case DcoBranchingObjectTypeInt:
 	 {
 	     DcoBranchObjectInt *branchObject =
 		 dynamic_cast<DcoBranchObjectInt *>(branchObject_);
 
 	     int objInd = branchObject->getObjectIndex();
-	     
+
 	     double bValue = branchObject->getValue();
-	     
-	     DcoObjectInt *obj = 
+
+	     DcoObjectInt *obj =
 		 dynamic_cast<DcoObjectInt *>(model->objects(objInd));
 	     int branchVar = obj->columnIndex();
-	     
+
 #ifdef DISCO_DEBUG
 	     if ( (branchVar < 0) || (branchVar >= numCols) ) {
-		 std::cout << "ERROR: BRANCH(): branchVar = " << branchVar 
+		 std::cout << "ERROR: BRANCH(): branchVar = " << branchVar
 			   << "; numCols = " << numCols  << std::endl;
-		 throw CoinError("branch index is out of range", 
+		 throw CoinError("branch index is out of range",
 				 "branch", "DcoTreeNode");
 	     }
 #endif
-	     
+
 #ifdef DISCO_DEBUG
 	     printf("BRANCH(): on %d, phase %d\n", branchVar, phase);
 	     printf("DOWN: lb %g, up %g\n",
@@ -1622,7 +1619,7 @@ DcoTreeNode::branch()
 	     printf("UP  : lb %g, up %g\n",
 		    branchObject->getUp()[0], branchObject->getUp()[1]);
 #endif
-	     
+
 	     //======================================================
 	     //------------------------------------------------------
 	     // Create down-branch node description.
@@ -1630,33 +1627,33 @@ DcoTreeNode::branch()
 	     //======================================================
 
 	     childDesc = new DcoNodeDesc(model);
-	     
+
 	     if (phase == AlpsPhaseRampup) {
-		 
+
 		 //--------------------------------------------------
-		 // Store a full description since each node will be the 
+		 // Store a full description since each node will be the
 		 // root of a subtree.
 		 // NOTE: this desc must be explicit during rampup.
-		 //--------------------------------------------------	
-		 
+		 //--------------------------------------------------
+
 		 int index, k;
 		 int numModify = -1;
 		 double value;
-		 
+
 		 double *fVarHardLB = new double [numCols];
 		 double *fVarHardUB = new double [numCols];
 		 int *fVarHardLBInd = new int [numCols];
 		 int *fVarHardUBInd = new int [numCols];
-		 
+
 		 double *fVarSoftLB = NULL;
 		 double *fVarSoftUB = NULL;
 		 int *fVarSoftLBInd = NULL;
 		 int *fVarSoftUBInd = NULL;
-	    
+
 		 //--------------------------------------------------
 		 // Full hard variable bounds.
 		 //--------------------------------------------------
-		 
+
 		 numModify = thisDesc->getVars()->lbHard.numModify;
 		 assert(numModify == numCols);
 		 for (k = 0; k < numModify; ++k) {
@@ -1666,7 +1663,7 @@ DcoTreeNode::branch()
 		     fVarHardLB[k] = value;
 		     fVarHardLBInd[k] = index;
 		 }
-		 
+
 		 numModify = thisDesc->getVars()->ubHard.numModify;
 		 assert(numModify == numCols);
 		 for (k = 0; k < numModify; ++k) {
@@ -1676,23 +1673,23 @@ DcoTreeNode::branch()
 		     fVarHardUB[k] = value;
 		     fVarHardUBInd[k] = index;
 		 }
-		 
+
 		 // Branching bounds.
 		 fVarHardLB[branchVar] = branchObject->getDown()[0];
 		 fVarHardUB[branchVar] = branchObject->getDown()[1];
-		 
-		 
+
+
 		 childDesc->assignVarHardBound(numCols,
 					       fVarHardLBInd,
 					       fVarHardLB,
 					       numCols,
 					       fVarHardUBInd,
 					       fVarHardUB);
-		 
+
 		 //--------------------------------------------------
 		 // Soft variable bounds.
 		 //--------------------------------------------------
-		 
+
 		 int numSoftVarLowers = thisDesc->getVars()->lbSoft.numModify;
 		 assert(numSoftVarLowers >= 0 && numSoftVarLowers <= numCols);
 		 if (numSoftVarLowers > 0) {
@@ -1705,7 +1702,7 @@ DcoTreeNode::branch()
 			 fVarSoftLBInd[k] = index;
 		     }
 		 }
-		 
+
 		 int numSoftVarUppers = thisDesc->getVars()->ubSoft.numModify;
 		 assert(numSoftVarUppers >= 0 && numSoftVarUppers <= numCols);
 		 if (numSoftVarUppers > 0) {
@@ -1718,7 +1715,7 @@ DcoTreeNode::branch()
 			 fVarSoftUBInd[k] = index;
 		     }
 		 }
-		 
+
 #ifdef DISCO_DEBUG_MORE
 		 // Print soft bounds.
 		 std::cout << "\nBRANCH: numSoftVarLowers=" << numSoftVarLowers
@@ -1726,7 +1723,7 @@ DcoTreeNode::branch()
 			   << std::endl;
 		 for (k = 0; k < numSoftVarLowers; ++k) {
 		     std::cout << "Col[" << fVarSoftLBInd[k] << "]: soft lb="
-			       << fVarSoftLB[k] << std::endl;		    
+			       << fVarSoftLB[k] << std::endl;
 		 }
 		 std::cout << "------------------" << std::endl;
 		 for (k = 0; k < numSoftVarUppers; ++k) {
@@ -1735,32 +1732,32 @@ DcoTreeNode::branch()
 		 }
 		 std::cout << "------------------" << std::endl << std::endl;
 #endif
-		 
-		 // Assign it anyway so to transfer ownership of 
+
+		 // Assign it anyway so to transfer ownership of
 		 // memory(fVarSoftLBInd,etc.)
-		 childDesc->assignVarSoftBound(numSoftVarLowers, 
+		 childDesc->assignVarSoftBound(numSoftVarLowers,
 					       fVarSoftLBInd,
 					       fVarSoftLB,
-					       numSoftVarUppers, 
+					       numSoftVarUppers,
 					       fVarSoftUBInd,
 					       fVarSoftUB);
-		 
+
 		 //--------------------------------------------------
 		 // Full set of non-core constraints.
 		 // NOTE: non-core constraints have been saved in description
 		 //       when process() during ramp-up.
 		 //--------------------------------------------------
-		 
+
 		 BcpsObject **tempCons = NULL;
 		 int tempInt = 0;
-		 
+
 		 tempInt = thisDesc->getCons()->numAdd;
 		 if (tempInt > 0) {
 		     tempCons = new BcpsObject* [tempInt];
 		     for (k = 0; k < tempInt; ++k) {
 			 DcoConstraint *aCon = dynamic_cast<DcoConstraint *>
 			     (thisDesc->getCons()->objects[k]);
-			 
+
 			 assert(aCon);
 			 assert(aCon->getSize() > 0);
 			 assert(aCon->getSize() < numCols);
@@ -1768,18 +1765,18 @@ DcoTreeNode::branch()
 			 tempCons[k] = newCon;
 		     }
 		 }
-		 
-		 
+
+
 #if 0
 		 else {
 		     // No cons or only root cons.
 		     tempInt = model->getNumOldConstraints();
-		     
+
 		     if (tempInt > 0) {
 			 tempCons = new BcpsObject* [tempInt];
 		     }
 		     for (k = 0; k < tempInt; ++k) {
-			 DcoConstraint *aCon = model->oldConstraints()[k];                
+			 DcoConstraint *aCon = model->oldConstraints()[k];
 			 assert(aCon);
 			 assert(aCon->getSize() > 0);
 			 assert(aCon->getSize() < numCols);
@@ -1788,20 +1785,20 @@ DcoTreeNode::branch()
 		     }
 		 }
 #endif
-		 
+
 #ifdef DISCO_DEBUG_MORE
 		 std::cout << "BRANCH: down: tempInt=" << tempInt <<std::endl;
 #endif
 		 // Fresh desc, safely add.
 		 childDesc->setAddedConstraints(tempInt, tempCons);
 	     }else{
-		 
+
 		 //--------------------------------------------------
-		 // Relative: Only need to record hard var bound change. 
-		 // NOTE: soft var bound changes are Record after 
+		 // Relative: Only need to record hard var bound change.
+		 // NOTE: soft var bound changes are Record after
 		 // selectBranchObject.
 		 //--------------------------------------------------
-		 
+
 		 childDesc->setVarHardBound(1,
 					    &branchVar,
 					    &(branchObject->getDown()[0]),
@@ -1809,55 +1806,55 @@ DcoTreeNode::branch()
 					    &branchVar,
 					    &(branchObject->getDown()[1]));
 	     }
-	     
+
 	     childDesc->setBranchedDir(-1);
 	     childDesc->setBranchedInd(objInd);
 	     childDesc->setBranchedVal(bValue);
-	     
+
 	     // Copy warm start.
 	     CoinWarmStartBasis *ws = thisDesc->getBasis();
 	     CoinWarmStartBasis *newWs = new CoinWarmStartBasis(*ws);
 	     childDesc->setBasis(newWs);
-	     
+
 	     childNodeDescs.push_back(CoinMakeTriple(static_cast<AlpsNodeDesc *>
 						     (childDesc),
 						     AlpsNodeStatusCandidate,
 						     objVal));
-	     
+
 	     //======================================================
 	     //------------------------------------------------------
 	     // Create up-branch node description.
 	     //------------------------------------------------------
 	     //======================================================
-	     
+
 	     childDesc = new DcoNodeDesc(model);
-	     
+
 	     if (phase == AlpsPhaseRampup) {
-		 
+
 		 //--------------------------------------------------
-		 // Store a full description since each node will be the 
+		 // Store a full description since each node will be the
 		 // root of a subtree.
 		 // NOTE: parent must be explicit during rampup.
-		 //--------------------------------------------------	
-		 
+		 //--------------------------------------------------
+
 		 int index, k;
 		 int numModify = -1;
 		 double value;
-		 
+
 		 double *fVarHardLB = new double [numCols];
 		 double *fVarHardUB = new double [numCols];
 		 int *fVarHardLBInd = new int [numCols];
 		 int *fVarHardUBInd = new int [numCols];
-		 
+
 		 double *fVarSoftLB = NULL;
 		 double *fVarSoftUB = NULL;
 		 int *fVarSoftLBInd = NULL;
 		 int *fVarSoftUBInd = NULL;
-		 
+
 		 //--------------------------------------------------
 		 // Full hard variable bounds.
 		 //--------------------------------------------------
-		 
+
 		 numModify = thisDesc->getVars()->lbHard.numModify;
 		 assert(numModify == numCols);
 		 for (k = 0; k < numModify; ++k) {
@@ -1867,7 +1864,7 @@ DcoTreeNode::branch()
 		     fVarHardLB[k] = value;
 		     fVarHardLBInd[k] = index;
 		 }
-		 
+
 		 numModify = thisDesc->getVars()->ubHard.numModify;
 		 assert(numModify == numCols);
 		 for (k = 0; k < numModify; ++k) {
@@ -1877,22 +1874,22 @@ DcoTreeNode::branch()
 		     fVarHardUB[k] = value;
 		     fVarHardUBInd[k] = index;
 		 }
-		 
+
 		 // Branching bounds.
 		 fVarHardLB[branchVar] = branchObject->getUp()[0];
 		 fVarHardUB[branchVar] = branchObject->getUp()[1];
-		 
+
 		 childDesc->assignVarHardBound(numCols,
 					       fVarHardLBInd,
 					       fVarHardLB,
 					       numCols,
 					       fVarHardUBInd,
 					       fVarHardUB);
-		 
+
 		 //--------------------------------------------------
 		 // Soft variable bounds.
 		 //--------------------------------------------------
-		 
+
 		 int numSoftVarLowers = thisDesc->getVars()->lbSoft.numModify;
 		 assert(numSoftVarLowers >= 0 && numSoftVarLowers <= numCols);
 		 if (numSoftVarLowers > 0) {
@@ -1905,7 +1902,7 @@ DcoTreeNode::branch()
 			 fVarSoftLBInd[k] = index;
 		     }
 		 }
-		 
+
 		 int numSoftVarUppers = thisDesc->getVars()->ubSoft.numModify;
 		 assert(numSoftVarUppers >= 0 && numSoftVarUppers <= numCols);
 		 if (numSoftVarUppers > 0) {
@@ -1918,33 +1915,33 @@ DcoTreeNode::branch()
 			 fVarSoftUBInd[k] = index;
 		     }
 		 }
-		 
-		 // Assign it anyway so to transfer ownership of 
+
+		 // Assign it anyway so to transfer ownership of
 		 // memory(fVarSoftLBInd,etc.)
-		 childDesc->assignVarSoftBound(numSoftVarLowers, 
+		 childDesc->assignVarSoftBound(numSoftVarLowers,
 					       fVarSoftLBInd,
 					       fVarSoftLB,
-					       numSoftVarUppers, 
+					       numSoftVarUppers,
 					       fVarSoftUBInd,
 					       fVarSoftUB);
-		 
+
 		 //--------------------------------------------------
 		 // Full set of non-core constraints.
 		 // NOTE: non-core constraints have been saved in description
 		 //       when process() during ramp-up.
 		 //--------------------------------------------------
-		 
+
 		 BcpsObject **tempCons = NULL;
 		 int tempInt = 0;
-		 
+
 		 tempInt = thisDesc->getCons()->numAdd;
 		 if (tempInt > 0) {
 		     tempCons = new BcpsObject* [tempInt];
-		     
+
 		     for (k = 0; k < tempInt; ++k) {
 			 DcoConstraint *aCon = dynamic_cast<DcoConstraint *>
 			     (thisDesc->getCons()->objects[k]);
-			 
+
 			 assert(aCon);
 			 assert(aCon->getSize() > 0);
 			 assert(aCon->getSize() <= numCols);
@@ -1952,7 +1949,7 @@ DcoTreeNode::branch()
 			 tempCons[k] = newCon;
 		     }
 		 }
-		 
+
 #if 0
 		 else {
 		     // No cons or only root cons.
@@ -1961,7 +1958,7 @@ DcoTreeNode::branch()
 			 tempCons = new BcpsObject* [tempInt];
 		     }
 		     for (k = 0; k < tempInt; ++k) {
-			 DcoConstraint *aCon = model->oldConstraints()[k];                
+			 DcoConstraint *aCon = model->oldConstraints()[k];
 			 assert(aCon);
 			 assert(aCon->getSize() > 0);
 			 assert(aCon->getSize() <= numCols);
@@ -1970,19 +1967,19 @@ DcoTreeNode::branch()
 		     }
 		 }
 #endif
-		 
+
 #ifdef DISCO_DEBUG_MORE
 		 std::cout << "BRANCH: up: tempInt=" << tempInt <<std::endl;
 #endif
 		 // Fresh desc, safely add.
 		 childDesc->setAddedConstraints(tempInt, tempCons);
 	     }else{
-		 
+
 		 //--------------------------------------------------
-		 // Relative: Only need to record hard var bound change. 
+		 // Relative: Only need to record hard var bound change.
 		 // NOTE: soft var bound changes are Record after selectBranchObject.
 		 //--------------------------------------------------
-		 
+
 		 childDesc->setVarHardBound(1,
 					    &branchVar,
 					    &(branchObject->getUp()[0]),
@@ -1990,23 +1987,23 @@ DcoTreeNode::branch()
 					    &branchVar,
 					    &(branchObject->getUp()[1]));
 	     }
-	     
+
 	     childDesc->setBranchedDir(1);
 	     childDesc->setBranchedInd(objInd);
 	     childDesc->setBranchedVal(bValue);
-	     
+
 	     // Copy warm start.
 	     CoinWarmStartBasis *newWs2 = new CoinWarmStartBasis(*ws);
 	     childDesc->setBasis(newWs2);
 	     childNodeDescs.push_back(CoinMakeTriple(static_cast<AlpsNodeDesc *>
 						     (childDesc),
 						     AlpsNodeStatusCandidate,
-						     objVal));  
-	     
+						     objVal));
+
 	     // Change node status to branched.
-	     status_ = AlpsNodeStatusBranched; 
+	     status_ = AlpsNodeStatusBranched;
 	 }
-	 
+
 	 break;
 
      case DcoBranchingObjectTypeBilevel :
@@ -2022,7 +2019,7 @@ DcoTreeNode::branch()
 	     double *values = new double[size];
 	     values[0] = 1;
 	     int i;
-	     for (i = 0, ptr1 = branchingSet->begin(); 
+	     for (i = 0, ptr1 = branchingSet->begin();
 		  ptr1 != branchingSet->end(); i++, ptr1++){
 		 indices[i] = *ptr1;
 		 values[i] = 1;
@@ -2032,7 +2029,7 @@ DcoTreeNode::branch()
 		 CoinWarmStartBasis *newWs = new CoinWarmStartBasis(*ws);
 		 childDesc->setBasis(newWs);
 		 childNodeDescs.push_back(CoinMakeTriple(
-                                       static_cast<AlpsNodeDesc *>(childDesc), 
+                                       static_cast<AlpsNodeDesc *>(childDesc),
 				       AlpsNodeStatusCandidate,
 				       quality_));
 		 values[i] = 0;
@@ -2042,9 +2039,9 @@ DcoTreeNode::branch()
 	 }
 
 	 break;
-	 
+
      default :
-	
+
 	std::cout << "Unknown branching object type" << std::endl;
     }
     return childNodeDescs;
@@ -2055,21 +2052,21 @@ DcoTreeNode::branch()
 /* FIXME: need rewrite from scratch */
 /* 0: find a branch var, -1 no branch var (should not happen) */
 
-int DcoTreeNode::selectBranchObject(DcoModel *model, 
-                                     bool& foundSol, 
-                                     int numPassesLeft) 
+int DcoTreeNode::selectBranchObject(DcoModel *model,
+                                     bool& foundSol,
+                                     int numPassesLeft)
 {
     int bStatus = 0;
     BcpsBranchStrategy *strategy = 0;
 
     AlpsPhase phase = knowledgeBroker_->getPhase();
-        
+
 
     if(branchObject_) {
         delete branchObject_;
         branchObject_ = NULL;
     }
-    
+
     //------------------------------------------------------
     // Get branching strategy.
     //------------------------------------------------------
@@ -2090,16 +2087,16 @@ int DcoTreeNode::selectBranchObject(DcoModel *model,
     //-----------------------------------------------------
 
     bStatus = strategy->createCandBranchObjects(numPassesLeft,
-						model->getCutoff());   
-    
+						model->getCutoff());
+
     //------------------------------------------------------
     // Select the best branching objects.
     //-----------------------------------------------------
-    
+
     if (bStatus >= 0) {
-        
+
 	branchObject_ = strategy->bestBranchObject();
-        
+
         if (branchObject_) {
             // Move best branching object to node.
 
@@ -2110,14 +2107,14 @@ int DcoTreeNode::selectBranchObject(DcoModel *model,
         else {
 #ifdef DISCO_DEBUG
             std::cout << "ERROR: Can't find branching object" << std::endl;
-#endif      
+#endif
             assert(0);
         }
-        
+
         // Set guessed solution value
         // solEstimate_ = quality_ + sumDeg;
     }
-    
+
     if (!model->branchStrategy()) {
         delete strategy;
     }
@@ -2127,13 +2124,13 @@ int DcoTreeNode::selectBranchObject(DcoModel *model,
 
 //#############################################################################
 
-int 
-DcoTreeNode::bound(BcpsModel *model) 
+int
+DcoTreeNode::bound(BcpsModel *model)
 {
     DcoLpStatus status = DcoLpStatusUnknown;
 
-    DcoModel *m = dynamic_cast<DcoModel *>(model);   
- 
+    DcoModel *m = dynamic_cast<DcoModel *>(model);
+
     // Bounding
     m->solver()->resolve();
 
@@ -2151,7 +2148,7 @@ DcoTreeNode::bound(BcpsModel *model)
     const double * solution = m->solver()->getColSolution();
 
     for (j = 0; j < numCols; ++j) {
-	std::cout << "col"<< j <<": bounds ["<<clb[j]<<", "<< cub[j] << "]" 
+	std::cout << "col"<< j <<": bounds ["<<clb[j]<<", "<< cub[j] << "]"
 		  << ", x = " << solution[j]
 		  << std::endl;
     }
@@ -2172,16 +2169,16 @@ DcoTreeNode::bound(BcpsModel *model)
 
         double objValue = m->solver()->getObjValue() *
             m->solver()->getObjSense();
-        
+
         int dir = desc->getBranchedDir();
         if (dir != 0) {
             double objDeg = objValue - quality_;
             int objInd = desc->getBranchedInd();
             double lpX = desc->getBranchedVal();
-            DcoObjectInt *intObject = 
-                dynamic_cast<DcoObjectInt *>(m->objects(objInd));            
+            DcoObjectInt *intObject =
+                dynamic_cast<DcoObjectInt *>(m->objects(objInd));
 #if 0
-            std::cout << "BOUND: col[" << intObject->columnIndex() 
+            std::cout << "BOUND: col[" << intObject->columnIndex()
                       << "], dir=" << dir << ", objDeg=" << objDeg
                       << ", x=" << lpX
                       << ", up=" << intObject->pseudocost().getUpCost()
@@ -2232,7 +2229,7 @@ DcoTreeNode::bound(BcpsModel *model)
 	std::cout << "UNKNOWN LP STATUS" << std::endl;
 	assert(0);
     }
-    
+
     return status;
 }
 
@@ -2248,7 +2245,7 @@ int DcoTreeNode::installSubProblem(BcpsModel *m)
 
     DcoModel *model = dynamic_cast<DcoModel *>(m);
     assert(model);
-    
+
     DcoNodeDesc *desc = dynamic_cast<DcoNodeDesc*>(desc_);
 
     int numModify = 0;
@@ -2268,12 +2265,12 @@ int DcoTreeNode::installSubProblem(BcpsModel *m)
     //double *conSoftUB = NULL;
     //double *conHardLB = NULL;
     //double *conHardUB = NULL;
-    
+
     double *startColLB = model->startVarLB();
     double *startColUB = model->startVarUB();
     double *startRowLB = model->startConLB();
     double *startRowUB = model->startConUB();
-    
+
     CoinFillN(startColLB, numCoreVars, -ALPS_DBL_MAX);
     CoinFillN(startColUB, numCoreVars, ALPS_DBL_MAX);
     CoinFillN(startRowLB, numCoreCons, -ALPS_DBL_MAX);
@@ -2290,7 +2287,7 @@ int DcoTreeNode::installSubProblem(BcpsModel *m)
     AlpsPhase phase = knowledgeBroker_->getPhase();
 
     //======================================================
-    // Restore subproblem: 
+    // Restore subproblem:
     //  1. Remove noncore var/con
     //  2. Travel back to root and correct differencing to
     //     full var/con bounds into model->startXXX
@@ -2307,26 +2304,26 @@ int DcoTreeNode::installSubProblem(BcpsModel *m)
     //------------------------------------------------------
 
     int numDelCons = numRows - numCoreCons;
-    
+
 #ifdef DISCO_DEBUG
     std::cout << "INSTALL: numDelCons = " << numDelCons << std::endl;
 #endif
-	
+
     if (numDelCons > 0) {
 	int *indices = new int [numDelCons];
 	if (indices == NULL) {
 	    throw CoinError("Out of memory", "installSubProblem", "DcoTreeNode");
 	}
-	
+
 	for (i = 0; i < numDelCons; ++i) {
 	    indices[i] = numCoreCons + i;
 	}
-	
+
 	model->solver()->deleteRows(numDelCons, indices);
 	delete [] indices;
 	indices = NULL;
     }
-    
+
     //--------------------------------------------------------
     // Travel back to a full node, then collect diff (add/rem col/row,
     // hard/soft col/row bounds) from the node full to this node.
@@ -2334,24 +2331,24 @@ int DcoTreeNode::installSubProblem(BcpsModel *m)
     // Note: if we store full set of logic/agorithm col/row, then
     //       no diff are needed for col/row
     //--------------------------------------------------------
-    
+
     //--------------------------------------------------------
     // Collect differencing bounds. Branching bounds of this node
     // are ALSO collected.
     //--------------------------------------------------------
 
     DcoNodeDesc* pathDesc = NULL;
-    AlpsTreeNode *parent = parent_;    
-    
-    /* First push this node since it has branching hard bounds. 
+    AlpsTreeNode *parent = parent_;
+
+    /* First push this node since it has branching hard bounds.
        NOTE: during rampup, this desc has full description when branch(). */
     model->leafToRootPath.push_back(this);
-    
+
     if (phase != AlpsPhaseRampup) {
 	while(parent) {
 #ifdef DISCO_DEBUG_MORE
 	    std::cout << "Parent id = " << parent->getIndex() << std::endl;
-#endif     
+#endif
 	    model->leafToRootPath.push_back(parent);
 	    if (parent->getExplicit()) {
 		// Reach an explicit node, then stop.
@@ -2362,63 +2359,63 @@ int DcoTreeNode::installSubProblem(BcpsModel *m)
 	    }
 	}
     }
-    
+
 #ifdef DISCO_DEBUG_MORE
     std::cout << "INSTALL: path len = " << model->leafToRootPath.size()
 	      << std::endl;
 #endif
-    
+
     //------------------------------------------------------
     // Travel back from this node to the explicit node to
     // collect full description.
     //------------------------------------------------------
-    
+
     for(i = static_cast<int> (model->leafToRootPath.size() - 1); i > -1; --i) {
 
 #ifdef DISCO_DEBUG_MORE
         if (index_ == 3487) {
-            std::cout << "\n----------- NODE ------------" 
+            std::cout << "\n----------- NODE ------------"
                       << model->leafToRootPath.at(i)->getIndex() << std::endl;
         }
 #endif
-	
+
 	//--------------------------------------------------
-	// NOTE: As away from explicit node, bounds become 
+	// NOTE: As away from explicit node, bounds become
 	//       tighter and tighter.
 	//--------------------------------------------------
-        
+
         pathDesc = dynamic_cast<DcoNodeDesc*>((model->leafToRootPath.at(i))->
                                                getDesc());
-        
+
         varHardLB = pathDesc->getVars()->lbHard.entries;
         varHardUB = pathDesc->getVars()->ubHard.entries;
-        
-	//--------------------------------------------------      
+
+	//--------------------------------------------------
         // Adjust bounds according to hard var lb/ub.
 	// If rampup or explicit, collect hard bounds so far.
 	//--------------------------------------------------
-	
+
         numModify = pathDesc->getVars()->lbHard.numModify;
-	
+
 #ifdef DISCO_DEBUG_MORE
 	std::cout << "INSTALL: numModify lb hard = " << numModify << std::endl;
 #endif
-	
+
         for (k = 0; k < numModify; ++k) {
             index = pathDesc->getVars()->lbHard.posModify[k];
             value = pathDesc->getVars()->lbHard.entries[k];
-      
+
 #ifdef DISCO_DEBUG_MORE
-	    printf("INSTALL: 1, col %d, value %g, startColLB %x\n", 
+	    printf("INSTALL: 1, col %d, value %g, startColLB %x\n",
 		   index, value, startColLB);
-#endif      
+#endif
 	    // Hard bounds do NOT change according to soft bounds, so
 	    // here need CoinMax.
             startColLB[index] = CoinMax(startColLB[index], value);
-            
+
 #ifdef DISCO_DEBUG_MORE
             if (index_ == 3487) {
-                printf("INSTALL: 1, col %d, hard lb %g, ub %g\n", 
+                printf("INSTALL: 1, col %d, hard lb %g, ub %g\n",
                        index, startColLB[index], startColUB[index]);
             }
 #endif
@@ -2433,10 +2430,10 @@ int DcoTreeNode::installSubProblem(BcpsModel *m)
             index = pathDesc->getVars()->ubHard.posModify[k];
             value = pathDesc->getVars()->ubHard.entries[k];
             startColUB[index] = CoinMin(startColUB[index], value);
-	    
+
 #ifdef DISCO_DEBUG_MORE
             if (index_ == 3487) {
-                printf("INSTALL: 2, col %d, hard lb %g, ub %g\n", 
+                printf("INSTALL: 2, col %d, hard lb %g, ub %g\n",
                        index, startColLB[index], startColUB[index]);
             }
             if (startColLB[index] > startColUB[index]) {
@@ -2444,7 +2441,7 @@ int DcoTreeNode::installSubProblem(BcpsModel *m)
             }
 #endif
         }
-        
+
         //--------------------------------------------------
         // Adjust bounds according to soft var lb/ub.
 	// If rampup or explicit, collect soft bounds so far.
@@ -2459,20 +2456,20 @@ int DcoTreeNode::installSubProblem(BcpsModel *m)
             index = pathDesc->getVars()->lbSoft.posModify[k];
             value = pathDesc->getVars()->lbSoft.entries[k];
             startColLB[index] = CoinMax(startColLB[index], value);
-            
+
 #ifdef DISCO_DEBUG_MORE
             if (index_ == 3487) {
-                printf("INSTALL: 3, col %d, soft lb %g, ub %g\n", 
+                printf("INSTALL: 3, col %d, soft lb %g, ub %g\n",
                        index, startColLB[index], startColUB[index]);
             }
-            
+
             if (startColLB[index] > startColUB[index]) {
 		//assert(0);
             }
 #endif
         }
         numModify = pathDesc->getVars()->ubSoft.numModify;
-        
+
 #ifdef DISCO_DEBUG_MORE
 	std::cout << "INSTALL: i=" << i << ", numModify soft ub="
 		  << numModify << std::endl;
@@ -2482,19 +2479,19 @@ int DcoTreeNode::installSubProblem(BcpsModel *m)
             index = pathDesc->getVars()->ubSoft.posModify[k];
             value = pathDesc->getVars()->ubSoft.entries[k];
             startColUB[index] = CoinMin(startColUB[index], value);
-            
+
 #ifdef DISCO_DEBUG_MORE
             if (index_ == 3487) {
-                printf("INSTALL: 4, col %d, soft lb %g, ub %g\n", 
+                printf("INSTALL: 4, col %d, soft lb %g, ub %g\n",
                        index, startColLB[index], startColUB[index]);
             }
-            
+
             if (startColLB[index] > startColUB[index]) {
 		//assert(0);
             }
 #endif
         }
-        
+
         //--------------------------------------------------
         // TODO: Modify hard/soft row lb/ub.
         //--------------------------------------------------
@@ -2505,60 +2502,60 @@ int DcoTreeNode::installSubProblem(BcpsModel *m)
         //--------------------------------------------------
 
 	//----------------------------------------------
-	// First collect all generated cuts, then remove 
+	// First collect all generated cuts, then remove
 	// deleted.
 	//----------------------------------------------
-	
+
 	tempInt = pathDesc->getCons()->numAdd;
-	    
+
 #ifdef DISCO_DEBUG_MORE
 	std::cout << "\nINSTALL: numAdd = " << tempInt << std::endl;
 #endif
 
 	int maxOld = model->getOldConstraintsSize();
-	
+
 	for (k = 0; k < tempInt; ++k) {
 	    aCon = dynamic_cast<DcoConstraint *>
 		(pathDesc->getCons()->objects[k]);
-	    
+
 	    assert(aCon);
 	    assert(aCon->getSize() > 0);
 	    assert(aCon->getSize() < 100000);
-	    
+
 #ifdef DISCO_DEBUG_MORE
-	    std::cout << "INSTALL: cut  k=" << k 
-		      << ", len=" <<aCon->getSize() 
+	    std::cout << "INSTALL: cut  k=" << k
+		      << ", len=" <<aCon->getSize()
 		      << ", node="<< index_ << std::endl;
 #endif
 	    (model->oldConstraints())[numOldCons++] = aCon;
-	    
+
 	    if (numOldCons >= maxOld) {
 		// Need resize
 #ifdef DISCO_DEBUG_MORE
-		std::cout << "INSTALL: resize, maxOld = " 
+		std::cout << "INSTALL: resize, maxOld = "
 			  << maxOld << std::endl;
 #endif
 		maxOld *= 2;
 		DcoConstraint **tempCons = new DcoConstraint* [maxOld];
-		
-		memcpy(tempCons, 
-		       model->oldConstraints(), 
+
+		memcpy(tempCons,
+		       model->oldConstraints(),
 		       numOldCons * sizeof(DcoConstraint *));
-		
+
 		model->delOldConstraints();
 		model->setOldConstraints(tempCons);
 		model->setOldConstraintsSize(maxOld);
 	    }
 	}
-	    
+
 	//----------------------------------------------
-	// Remove those deleted. 
-	// NOTE: model->oldConstraints_ stores all previously 
+	// Remove those deleted.
+	// NOTE: model->oldConstraints_ stores all previously
 	// generated active constraints at parent.
 	//----------------------------------------------
-	
+
 	tempInt = pathDesc->getCons()->numRemove;
-            
+
 	if (tempInt > 0) {
 	    int tempPos;
 	    int *tempMark = new int [numOldCons];
@@ -2566,14 +2563,14 @@ int DcoTreeNode::installSubProblem(BcpsModel *m)
 	    for (k = 0; k < tempInt; ++k) {
 		tempPos = pathDesc->getCons()->posRemove[k];
 #ifdef DISCO_DEBUG_MORE
-		std::cout << "tempPos=" << tempPos 
-			  << ", tempInt=" << tempInt 
+		std::cout << "tempPos=" << tempPos
+			  << ", tempInt=" << tempInt
 			  << ", numOldCons=" << numOldCons << std::endl;
 #endif
 		tempMark[tempPos] = 1;
-		
+
 	    }
-	    
+
 	    tempInt = 0;
 	    for (k = 0; k < numOldCons; ++k) {
 		if (tempMark[k] != 1) {
@@ -2586,10 +2583,10 @@ int DcoTreeNode::installSubProblem(BcpsModel *m)
 		std::cout << "INSTALL: tempInt=" << tempInt
 			  <<", numRemove="<<pathDesc->getCons()->numRemove
 			  << ", numOldCons=" << numOldCons << std::endl;
-		
+
 		assert(0);
 	    }
-	    
+
 	    // Update number of old non-core constraints.
 	    numOldCons = tempInt;
 	    delete [] tempMark;
@@ -2607,45 +2604,45 @@ int DcoTreeNode::installSubProblem(BcpsModel *m)
             printf("INSTALL: Col %d, \tlb %g,  \tub %g\n",
                    k, startColLB[k], startColUB[k]);
 	    //}
-        
+
         if (startColLB[k] > startColUB[k] + ALPS_GEN_TOL) {
             printf("INSTALL: Col %d, \tlb %g,  \tub %g\n",
                    k, startColLB[k], startColUB[k]);
             assert(0);
         }
     }
-#endif   
+#endif
 
     //--------------------------------------------------------
     // Clear path vector.
     //--------------------------------------------------------
-    
+
     model->leafToRootPath.clear();
     assert(model->leafToRootPath.size() == 0);
-    
+
     //--------------------------------------------------------
-    // Adjust column bounds in lp solver  
+    // Adjust column bounds in lp solver
     //--------------------------------------------------------
-    
+
     for(i = 0; i < numCols; ++i) {
-	model->solver()->setColBounds(i, startColLB[i], startColUB[i]); 
+	model->solver()->setColBounds(i, startColLB[i], startColUB[i]);
     }
-    
+
     //--------------------------------------------------------
-    // TODO: Set row bounds 
+    // TODO: Set row bounds
     //--------------------------------------------------------
-    
+
 
     //--------------------------------------------------------
     // Add old constraints, which are collect from differencing.
     //--------------------------------------------------------
-    
+
     // If removed cuts due to local cuts.
 
     model->setNumOldConstraints(numOldCons);
-    
+
 #if 0
-    std::cout << "INSTALL: after collecting, numOldCons = " << numOldCons 
+    std::cout << "INSTALL: after collecting, numOldCons = " << numOldCons
 	      << std::endl;
 #endif
 
@@ -2662,11 +2659,11 @@ int DcoTreeNode::installSubProblem(BcpsModel *m)
 	delete [] oldOsiCuts;
 	oldOsiCuts = NULL;
     }
-    
+
     //--------------------------------------------------------
     // Add parent variables, which are collect from differencing.
     //--------------------------------------------------------
-    
+
 
     //--------------------------------------------------------
     // Set basis
@@ -2679,36 +2676,36 @@ int DcoTreeNode::installSubProblem(BcpsModel *m)
 
 #ifdef DISCO_DEBUG
 	printf("NODE %d: set warm start\n", getIndex());
-	
+
 	numCols = model->solver()->getNumCols();
 	numRows = model->solver()->getNumRows();
 	int nStr = pws->getNumStructural();
 	int nArt = pws->getNumArtificial();
-	
+
 	if (numCols != nStr) {
-	    std::cout << "nStr=" << nStr << ", numCols=" << numCols 
+	    std::cout << "nStr=" << nStr << ", numCols=" << numCols
 		      << std::endl;
 	    assert(0);
 	}
-	std::cout << "nArt=" << nArt << ", numRows=" << numRows 
+	std::cout << "nArt=" << nArt << ", numRows=" << numRows
 		  << std::endl;
 	if (numRows != nArt) {
-	    std::cout << "nArt=" << nArt << ", numRows=" << numRows 
+	    std::cout << "nArt=" << nArt << ", numRows=" << numRows
 		      << std::endl;
 	    assert(0);
 	}
 #endif
 
-    }  
+    }
 
     return status;
 }
 
 //#############################################################################
 
-void 
-DcoTreeNode::getViolatedConstraints(DcoModel *model, 
-				     const double *LpSolution, 
+void
+DcoTreeNode::getViolatedConstraints(DcoModel *model,
+				     const double *LpSolution,
 				     BcpsConstraintPool & conPool)
 {
     int k;
@@ -2719,8 +2716,8 @@ DcoTreeNode::getViolatedConstraints(DcoModel *model,
     // Check violation and move voilated constraints to conPool
     for (k = 0; k < numCons; ++k) {
 	blisCon = dynamic_cast<DcoConstraint *>(conPool.getConstraint(k));
-	
-	if (blisCon->violation(LpSolution) > ALPS_SMALL_4) {    
+
+	if (blisCon->violation(LpSolution) > ALPS_SMALL_4) {
 	    conPool.addConstraint(blisCon);
 	}
 	else {
@@ -2729,11 +2726,11 @@ DcoTreeNode::getViolatedConstraints(DcoModel *model,
     }
 
     if (numCons > 0) {
-	std::cout << "Has constraints " << numCons 
+	std::cout << "Has constraints " << numCons
 		  << "; violated " << numCons-conVector.size()
 		  << std::endl;
     }
-    
+
     if ((int)conVector.size() != numCons) {
 	// There violated constraints. Remove them from conPool.
 	conPool.clear();
@@ -2748,7 +2745,7 @@ DcoTreeNode::getViolatedConstraints(DcoModel *model,
 //#############################################################################
 
 int
-DcoTreeNode::generateConstraints(DcoModel *model,BcpsConstraintPool &conPool) 
+DcoTreeNode::generateConstraints(DcoModel *model,BcpsConstraintPool &conPool)
 {
     int i, j, numCGs;
     DcoLpStatus status = DcoLpStatusOptimal;
@@ -2758,21 +2755,21 @@ DcoTreeNode::generateConstraints(DcoModel *model,BcpsConstraintPool &conPool)
 
     // Only autmatic stategy has depth limit.
     int maxConstraintDepth = 20;
-    
+
     bool mustResolve = false;
-    
+
     double genCutTime;
-    
+
     numCGs = model->numCutGenerators();
 
     for (i = 0 ; i < numCGs; ++i) {
-	
+
 	//----------------------------------------------------
 	// Check if call this generator.
 	//----------------------------------------------------
-	
+
 	strategy =  model->cutGenerators(i)->strategy();
-      
+
 	bool useThisCutGenerator = false;
 	if (strategy == DcoCutStrategyNone) {
 	    useThisCutGenerator = false;
@@ -2787,21 +2784,21 @@ DcoTreeNode::generateConstraints(DcoModel *model,BcpsConstraintPool &conPool)
 	}
 	else if (strategy == DcoCutStrategyPeriodic) {
 	    // Num of nodes is set at the beginning of process().
-	    if ((model->getNumNodes()-1) %  
+	    if ((model->getNumNodes()-1) %
 		model->cutGenerators(i)->cutGenerationFreq() == 0) {
 	        useThisCutGenerator = true;
 	    }
 	}
 	else {
-	   throw CoinError("Unknown cut generation strategy", 
+	   throw CoinError("Unknown cut generation strategy",
 			   "generateConstraints", "DcoTreeNode");
 	}
-	   
+
 #if 0
-	std::cout<<"CUTGEN: " << model->cutGenerators(i)->name() 
+	std::cout<<"CUTGEN: " << model->cutGenerators(i)->name()
 		 <<": useThisCutGenerator ="<<useThisCutGenerator
                  <<", diving =" << diving_
-		 << ", strategy =" << strategy 
+		 << ", strategy =" << strategy
 		 << ", num of nodes =" << model->getNumNodes()
 		 <<std::endl;
 #endif
@@ -2813,20 +2810,20 @@ DcoTreeNode::generateConstraints(DcoModel *model,BcpsConstraintPool &conPool)
 	if (useThisCutGenerator) {
 
 	    preNumCons = conPool.getNumConstraints();
-          
+
 	    genCutTime = CoinCpuTime();
 
 	    // Call constraint generator
 	    mustResolve = model->cutGenerators(i)->generateConstraints(conPool);
 
 	    genCutTime = CoinCpuTime() - genCutTime;
-            
+
             // Statistics
             model->cutGenerators(i)->addTime(genCutTime);
             model->cutGenerators(i)->addCalls(1);
 
 	    newNumCons = conPool.getNumConstraints() - preNumCons;
-	    
+
             if (newNumCons == 0) {
                 model->cutGenerators(i)->addNoConsCalls(1);
             }
@@ -2854,12 +2851,12 @@ DcoTreeNode::generateConstraints(DcoModel *model,BcpsConstraintPool &conPool)
 		    break;
 		}
 	    }
-	    
+
 	    //------------------------------------------------
-	    // Modify control. 
+	    // Modify control.
 	    // NOTE: only modify if user choose automatic.
 	    //------------------------------------------------
-	    
+
 	    if (model->getCutStrategy() == DcoCutStrategyNone) {
                 for (j = 0; j < numCGs; ++j) {
                     strategy =  model->cutGenerators(j)->strategy();
@@ -2867,7 +2864,7 @@ DcoTreeNode::generateConstraints(DcoModel *model,BcpsConstraintPool &conPool)
                         break;
                     }
                 }
-                
+
                 if (j == numCGs) {
                     model->setCutStrategy(DcoCutStrategyNone);
                 }
@@ -2880,46 +2877,46 @@ DcoTreeNode::generateConstraints(DcoModel *model,BcpsConstraintPool &conPool)
 
 //#############################################################################
 
-DcoReturnStatus 
-DcoTreeNode::applyConstraints(DcoModel *model, 
+DcoReturnStatus
+DcoTreeNode::applyConstraints(DcoModel *model,
 			       const double *solution,
                                BcpsConstraintPool & conPool)
 {
     DcoReturnStatus status = DcoReturnStatusOk;
     int i, k;
-    
+
     int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
 
     int numRowCuts = conPool.getNumConstraints();
 
     int numToAdd = numRowCuts;
     int numAdded = 0;
-    
+
     if (numRowCuts > 0) {
 	DcoParams * DcoPar = model->DcoPar();
 	double scaleConFactor = DcoPar->entry(DcoParams::scaleConFactor);
-        
-        if (numToAdd > 0) { 
-	    
+
+        if (numToAdd > 0) {
+
             DcoConstraint *blisCon = NULL;
-	    
+
             if (msgLevel > 100) {
                 printf("\nAPPLYCUT: Select cuts to be added in LP from %d candidates\n",
                        numRowCuts);
             }
-            
+
             int numRowsNow = model->solver()->getNumRows();
             int numCols = model->solver()->getNumCols();
             CoinWarmStartBasis *ws = dynamic_cast<CoinWarmStartBasis*>
                 (model->solver()->getWarmStart());
-            
+
 	    // Tranform constraints to Osi cut so that easily add them to LP.
             const OsiRowCut ** addedCuts = new const OsiRowCut * [numToAdd];
-	    
+
             for (i = 0 ; i < numToAdd ; ++i) {
 		bool keep = true;
 		blisCon = dynamic_cast<DcoConstraint *>(conPool.getConstraint(i));
-                
+
 		//------------------------------------------
 		// Remove:
 		//  - empty cuts
@@ -2932,10 +2929,10 @@ DcoTreeNode::applyConstraints(DcoModel *model,
 		int length = blisCon->getSize();
 		const double *elements = blisCon->getValues();
 		const int *indices = blisCon->getIndices();
-		
+
 		bool check = true;
                 while (check) { // while is used to turn off checking.
-                    //--------------------------------------                   
+                    //--------------------------------------
                     // Empty.
                     //--------------------------------------
 
@@ -2955,8 +2952,8 @@ DcoTreeNode::applyConstraints(DcoModel *model,
                     if(length > model->getDenseConCutoff()){
                         keep = false;
                         if (msgLevel > 100) {
-                            std::cout << "APPLYCUT: Discard a dense cut. length = " 
-                                      << length << ", cutoff = " 
+                            std::cout << "APPLYCUT: Discard a dense cut. length = "
+                                      << length << ", cutoff = "
                                       << model->getDenseConCutoff() << std::endl;
                         }
                         break;
@@ -2968,11 +2965,11 @@ DcoTreeNode::applyConstraints(DcoModel *model,
 
                     int index;
                     double activity = 0.0;
-                    
+
                     double maxElem = 0.0;
                     double minElem = ALPS_DBL_MAX;
                     double scaleFactor;
-                    
+
                     for (k = 0; k < length; ++k) {
                         if (fabs(elements[k]) > maxElem) {
                             maxElem = fabs(elements[k]);
@@ -2990,10 +2987,10 @@ DcoTreeNode::applyConstraints(DcoModel *model,
                         assert(0);
                         scaleFactor = ALPS_DBL_MAX;
                     }
-                    
+
 #ifdef DISCO_DEBUG
                     std::cout << "APPLYCUT: scaleFactor=" << scaleFactor
-                              << ", maxElem=" << maxElem 
+                              << ", maxElem=" << maxElem
                               << ", minElem=" << minElem << std::endl;
 #endif
                     if (scaleFactor > scaleConFactor) {
@@ -3004,7 +3001,7 @@ DcoTreeNode::applyConstraints(DcoModel *model,
                         keep = false;
                         break;
                     }
-                    
+
                     //--------------------------------------
                     // Weak.
                     //--------------------------------------
@@ -3021,7 +3018,7 @@ DcoTreeNode::applyConstraints(DcoModel *model,
 		    if (rowUpper < ALPS_INFINITY) {
 			violation = CoinMax(violation, activity-rowUpper);
 		    }
-                    
+
                     if (violation < 1.0e-6) {
                         // Found a weak cuts.
                         if (msgLevel > 100) {
@@ -3035,8 +3032,8 @@ DcoTreeNode::applyConstraints(DcoModel *model,
                     //--------------------------------------
                     // Parallel cuts.
                     //--------------------------------------
-                    
-		    bool paral = parallel(model, 
+
+		    bool paral = parallel(model,
 					  conPool,
 					  i,
 					  blisCon);
@@ -3048,14 +3045,14 @@ DcoTreeNode::applyConstraints(DcoModel *model,
 			keep = false;
 			break;
 		    }
-                    
+
                     //--------------------------------------
                     // Check once and stop.
                     //--------------------------------------
 
                     check = false;
                 }//while
-                
+
 		if (keep) {
                     addedCuts[numAdded++] = blisCon->createOsiRowCut();
                 }
@@ -3065,14 +3062,14 @@ DcoTreeNode::applyConstraints(DcoModel *model,
                     --numToAdd;
                 }
             }
-	    
+
 	    assert(numToAdd == numAdded);
-	    
+
             if (msgLevel > 100) {
                 printf("APPLYCUT: After selecting, added %d cuts to LP and discared %d cuts\n",
                        numAdded, numRowCuts - numAdded);
             }
-            
+
             //----------------------------------------------
             // Add cuts to lp and adjust basis.
             //----------------------------------------------
@@ -3080,13 +3077,13 @@ DcoTreeNode::applyConstraints(DcoModel *model,
 	    if (numAdded > 0) {
 		model->solver()->applyRowCuts(numAdded, addedCuts);
 		ws->resize(numRowsNow + numToAdd, numCols);
-		for (i = 0 ; i < numToAdd; ++i) { 
+		for (i = 0 ; i < numToAdd; ++i) {
 		    ws->setArtifStatus(numRowsNow + i,
-				       CoinWarmStartBasis::basic); 
+				       CoinWarmStartBasis::basic);
 		}
-		if (model->solver()->setWarmStart(ws) == false) { 
+		if (model->solver()->setWarmStart(ws) == false) {
 		    throw CoinError("Fail setWarmStart() after cut installation.",
-				    "applyConstraints","DcoTreeNode"); 
+				    "applyConstraints","DcoTreeNode");
 		}
 
 		for (k = 0; k < numAdded; ++k) {
@@ -3096,17 +3093,17 @@ DcoTreeNode::applyConstraints(DcoModel *model,
 
 	    delete [] addedCuts;
             delete ws;
-        }   
+        }
     }
-    
+
     return status;
 }
 
 //#############################################################################
 
-DcoReturnStatus 
+DcoReturnStatus
 DcoTreeNode::reducedCostFix(DcoModel *model)
-{ 
+{
     int i, var;
     DcoReturnStatus status = DcoReturnStatusOk;
 
@@ -3114,7 +3111,7 @@ DcoTreeNode::reducedCostFix(DcoModel *model)
     int numFixedDown = 0;
     int numTighten = 0;
 
-    double movement;    
+    double movement;
     double newBound;
     double boundDistance;
     double dj;
@@ -3125,30 +3122,30 @@ DcoTreeNode::reducedCostFix(DcoModel *model)
     const double *ub = model->solver()->getColUpper();
     const double *solution = model->solver()->getColSolution();
     const double *reducedCost = model->solver()->getReducedCost();
-    
+
     double cutoff = model->getCutoff();
-    
+
     if (cutoff >= ALPS_OBJ_MAX) return status;
-    
-    double lpObjValue = model->solver()->getObjValue() * 
+
+    double lpObjValue = model->solver()->getObjValue() *
         model->solver()->getObjSense();
     double epInt = 1.0e-5;
-    
+
     int numIntegers = model->getNumIntObjects();
     const int *intIndices = model->getIntColIndices();
-    
-    for (i = 0; i < numIntegers; ++i) { 
+
+    for (i = 0; i < numIntegers; ++i) {
 	var = intIndices[i];
-        
+
         dj = reducedCost[var];
-        
+
         if (fabs(dj) < epInt) continue;
-        
+
         boundDistance = ub[var] - lb[var];
 	if (boundDistance < epInt) continue;
-	
+
         movement = floor((cutoff - lpObjValue) / fabs(dj));
-        
+
         if (solution[var] > ub[var] - epInt) {
             /* At upper bound */
             if (movement < boundDistance) {
@@ -3159,7 +3156,7 @@ DcoTreeNode::reducedCostFix(DcoModel *model)
                 if (msgLevel > 300) {
                     printf("RED-FIX: dj %g, lb %.10g, ub %.10g, newBound %.10g, movement %g\n", dj, lb[var], ub[var], newBound, movement);
                 }
-                
+
                 if (movement <= ALPS_ZERO) {
                     ++numFixedUp;
                 }
@@ -3174,11 +3171,11 @@ DcoTreeNode::reducedCostFix(DcoModel *model)
             if (movement < boundDistance) {
                 newBound = lb[var] + movement;
                 newBound = CoinMax(newBound, lb[var]);
-                
+
                 if (msgLevel > 300) {
                     printf("RED-FIX: dj %g, lb %g, ub %g, newBound %g, movement %g\n", dj, lb[var], ub[var], newBound, movement);
                 }
-		
+
                 if (movement <= ALPS_ZERO) {
                     ++numFixedDown;
                 }
@@ -3190,7 +3187,7 @@ DcoTreeNode::reducedCostFix(DcoModel *model)
             }
         }
     }
-    
+
     //int change = numFixedUp + numFixedDown + numTighten;
     //model->reducedCostFixed_ += change;
 
@@ -3199,14 +3196,14 @@ DcoTreeNode::reducedCostFix(DcoModel *model)
             printf("reducedCostFix: numFixedUp = %d, numFixedDown = %d, numTighten %d\n", numFixedUp, numFixedDown, numTighten);
         }
     }
-    
-    return status; 
+
+    return status;
 }
 
 //#############################################################################
 
 AlpsEncoded*
-DcoTreeNode::encode() const 
+DcoTreeNode::encode() const
 {
 #ifdef DISCO_DEBUG
     std::cout << "DcoTreeNode::encode()--start to encode node "
@@ -3214,54 +3211,54 @@ DcoTreeNode::encode() const
 #endif
 
     AlpsReturnStatus status = AlpsReturnStatusOk;
-    
+
     // NOTE: "AlpsKnowledgeTypeNode" is used as type name.
     AlpsEncoded* encoded = new AlpsEncoded(AlpsKnowledgeTypeNode);
-    
+
     // Encode decription.
     status = desc_->encode(encoded);
-    
+
     // Encode Alps portion.
     status = encodeAlps(encoded);
-    
+
     // Encode Bcps portion.
     status = encodeBcps(encoded);
-    
+
     // Nothing to encode for Dco portion.
-    
+
     return encoded;
 }
 
 //#############################################################################
 
-AlpsKnowledge* 
-DcoTreeNode::decode(AlpsEncoded& encoded) const 
+AlpsKnowledge*
+DcoTreeNode::decode(AlpsEncoded& encoded) const
 {
     AlpsReturnStatus status = AlpsReturnStatusOk;
     DcoTreeNode* treeNode = NULL;
 
     DcoModel *model = dynamic_cast<DcoModel*>(desc_->getModel());
-    
+
     //------------------------------------------------------
     // Unpack decription.
     //------------------------------------------------------
 
     AlpsNodeDesc* nodeDesc = new DcoNodeDesc(model);
     status = nodeDesc->decode(encoded);
-    
+
     //------------------------------------------------------
     // Unpack node.
     //------------------------------------------------------
-    
+
     // Unpack Alps portion.
     treeNode = new DcoTreeNode(nodeDesc);
     nodeDesc = NULL;
 
-    treeNode->decodeAlps(encoded);  
-    
+    treeNode->decodeAlps(encoded);
+
     // Unpack Bcps portion.
     int type = 0;
-    encoded.readRep(type);	
+    encoded.readRep(type);
     if (type == DcoBranchingObjectTypeInt) {
 	// branchObject_ is simple integer.
 	DcoBranchObjectInt *bo = new DcoBranchObjectInt();
@@ -3271,30 +3268,30 @@ DcoTreeNode::decode(AlpsEncoded& encoded) const
 	treeNode->setBranchObject(bo);
         bo = NULL;
     }
-    
+
     // Nothing to unpack for Dco portion.
-    
+
     return treeNode;
 }
 
 //#############################################################################
 
-void 
-DcoTreeNode::convertToExplicit() 
+void
+DcoTreeNode::convertToExplicit()
 {
 #ifdef DISCO_DEBUG
     std::cout << "DISCO: convertToExplicit(); explicit_="<<explicit_ << std::endl;
 #endif
 
     if(!explicit_) {
-	
+
 	// Convert to explicit
 	explicit_ = 1;
-	
+
 	DcoModel* model = dynamic_cast<DcoModel*>(desc_->getModel());
 	DcoNodeDesc *desc = dynamic_cast<DcoNodeDesc *>(desc_);
 	DcoConstraint *aCon = NULL;
-	
+
 	int numCols = model->solver()->getNumCols();
 
 	int i, k, index;
@@ -3305,12 +3302,12 @@ DcoTreeNode::convertToExplicit()
 	int numSoftVarUppers = 0;
 
 	double value;
-		
+
 	double *fVarHardLB = new double [numCols];
 	double *fVarHardUB = new double [numCols];
 	int *fVarHardLBInd = new int [numCols];
 	int *fVarHardUBInd = new int [numCols];
-	
+
 	double *fVarSoftLB = new double [numCols];
 	double *fVarSoftUB = new double [numCols];
 	int *fVarSoftLBInd = new int [numCols];
@@ -3328,21 +3325,21 @@ DcoTreeNode::convertToExplicit()
 	int numOldCons = 0;
 	int maxOld = model->getOldConstraintsSize();
 	BcpsObject ** oldConstraints = new BcpsObject* [maxOld];
-	
+
 	//--------------------------------------------------
 	// Travel back to a full node, then collect diff (add/rem col/row,
 	// hard/soft col/row bounds) from the node full to this node.
 	//--------------------------------------------------------
-    
+
 	DcoNodeDesc* pathDesc = NULL;
-	AlpsTreeNode *parent = parent_;    
-	
+	AlpsTreeNode *parent = parent_;
+
 	model->leafToRootPath.push_back(this);
-	
+
 	while(parent) {
 #ifdef DISCO_DEBUG_MORE
 	    std::cout << "Parent id = " << parent->getIndex() << std::endl;
-#endif     
+#endif
 	    model->leafToRootPath.push_back(parent);
 	    if (parent->getExplicit()) {
 		// Reach an explicit node, then stop.
@@ -3352,16 +3349,16 @@ DcoTreeNode::convertToExplicit()
 		parent = parent->getParent();
 	    }
 	}
-    
+
 #ifdef DISCO_DEBUG
 	std::cout << "CONVERT TO EXP: path len = " << model->leafToRootPath.size()
 		  << std::endl;
 #endif
-	
+
 	//------------------------------------------------------
 	// Travel back from this node to the explicit node to
 	// collect full description.
-	//------------------------------------------------------	
+	//------------------------------------------------------
 
 
 	for(i = static_cast<int> (model->leafToRootPath.size() - 1); i > -1; --i) {
@@ -3372,25 +3369,25 @@ DcoTreeNode::convertToExplicit()
 	    //--------------------------------------
 	    // Full variable hard bounds.
 	    //--------------------------------------
-	    
+
 	    numModify = pathDesc->getVars()->lbHard.numModify;
 	    for (k = 0; k < numModify; ++k) {
 		index = pathDesc->getVars()->lbHard.posModify[k];
 		value = pathDesc->getVars()->lbHard.entries[k];
 		fVarHardLB[index] = value;
 	    }
-		    
+
 	    numModify = pathDesc->getVars()->ubHard.numModify;
 	    for (k = 0; k < numModify; ++k) {
 		index = pathDesc->getVars()->ubHard.posModify[k];
 		value = pathDesc->getVars()->ubHard.entries[k];
 		fVarHardUB[index] = value;
 	    }
-		    
+
 	    //--------------------------------------
 	    // Full variable soft bounds.
 	    //--------------------------------------
-	    
+
 	    numModify = pathDesc->getVars()->lbSoft.numModify;
 #ifdef DISCO_DEBUG
 	    std::cout << "CONVERT: EXP: i=" << i << ", numModify soft lb="
@@ -3401,7 +3398,7 @@ DcoTreeNode::convertToExplicit()
 		value = pathDesc->getVars()->lbSoft.entries[k];
 		fVarSoftLB[index] = value;
 	    }
-		    
+
 	    numModify = pathDesc->getVars()->ubSoft.numModify;
 #ifdef DISCO_DEBUG
 	    std::cout << "CONVERT: EXP: i=" << i << ", numModify soft ub="
@@ -3417,54 +3414,54 @@ DcoTreeNode::convertToExplicit()
             //----------------------------------------------
             // Collect all generated constraints, then remove deleted.
             //----------------------------------------------
-            
+
             tempInt = pathDesc->getCons()->numAdd;
-	    
+
 #ifdef DISCO_DEBUG
             std::cout << "\nCONVERT: EXP: numAdd = " << tempInt << std::endl;
 #endif
-            
+
             for (k = 0; k < tempInt; ++k) {
                 aCon = dynamic_cast<DcoConstraint *>
                     (pathDesc->getCons()->objects[k]);
-                
+
                 assert(aCon);
                 assert(aCon->getSize() > 0);
                 assert(aCon->getSize() < 100000);
-                
+
 #ifdef DISCO_DEBUG
-		std::cout << "CONVERT: EXP: k=" << k 
+		std::cout << "CONVERT: EXP: k=" << k
 			  << ", len=" <<aCon->getSize() << std::endl;
 #endif
                 oldConstraints[numOldCons++] = aCon;
-                
+
                 if (numOldCons >= maxOld) {
                     // Need resize
 #ifdef DISCO_DEBUG
-                    std::cout << "CONVERT: EXP: resize, maxOld = " 
+                    std::cout << "CONVERT: EXP: resize, maxOld = "
                               << maxOld << std::endl;
 #endif
                     maxOld *= 2;
                     BcpsObject **tempCons = new BcpsObject* [maxOld];
-		    
-                    memcpy(tempCons, 
-                           oldConstraints, 
+
+                    memcpy(tempCons,
+                           oldConstraints,
                            numOldCons * sizeof(BcpsObject *));
-		    
+
 		    delete [] oldConstraints;
 		    oldConstraints = tempCons;
 		    tempCons = NULL;
                 }
             }
-	    
+
             //----------------------------------------------
-            // Remove those deleted. 
-	    // NOTE: oldConstraints stores all previously 
+            // Remove those deleted.
+	    // NOTE: oldConstraints stores all previously
 	    // generated active constraints at parent.
             //----------------------------------------------
-	    
+
             tempInt = pathDesc->getCons()->numRemove;
-            
+
             if (tempInt > 0) {
                 int tempPos;
                 int *tempMark = new int [numOldCons];
@@ -3472,13 +3469,13 @@ DcoTreeNode::convertToExplicit()
                 for (k = 0; k < tempInt; ++k) {
                     tempPos = pathDesc->getCons()->posRemove[k];
 #ifdef DISCO_DEBUG_MORE
-		    std::cout << "tempPos=" << tempPos 
-			      << ", tempInt=" << tempInt 
+		    std::cout << "tempPos=" << tempPos
+			      << ", tempInt=" << tempInt
 			      << ", numOldCons=" << numOldCons << std::endl;
 #endif
                     tempMark[tempPos] = 1;
                 }
-		
+
                 tempInt = 0;
                 for (k = 0; k < numOldCons; ++k) {
                     if (tempMark[k] != 1) {
@@ -3490,7 +3487,7 @@ DcoTreeNode::convertToExplicit()
 		    std::cout << "INSTALL: tempInt=" << tempInt
 			      <<", numRemove="<<pathDesc->getCons()->numRemove
 			      << ", numOldCons=" << numOldCons << std::endl;
-		    
+
 		    assert(0);
 		}
 
@@ -3498,13 +3495,13 @@ DcoTreeNode::convertToExplicit()
                 numOldCons = tempInt;
                 delete [] tempMark;
             }
-	    
+
 	} // EOF for (path)
-        
+
 	//------------------------------------------
 	// Record hard variable bounds. FULL set.
 	//------------------------------------------
-	
+
 	desc->assignVarHardBound(numCols,
 				 fVarHardLBInd,
 				 fVarHardLB,
@@ -3515,7 +3512,7 @@ DcoTreeNode::convertToExplicit()
 	//------------------------------------------
 	// Recode soft variable bound. Modified.
 	//------------------------------------------
-	
+
 	for (k = 0; k < numCols; ++k) {
 	    if (fVarSoftLB[k] < ALPS_BND_MAX) {
 		fVarSoftLBInd[numSoftVarLowers] = k;
@@ -3527,13 +3524,13 @@ DcoTreeNode::convertToExplicit()
 	    }
 	}
 	// Assign it anyway so to delete memory(fVarSoftLBInd,etc.)
-	desc->assignVarSoftBound(numSoftVarLowers, 
+	desc->assignVarSoftBound(numSoftVarLowers,
 				 fVarSoftLBInd,
 				 fVarSoftLB,
-				 numSoftVarUppers, 
+				 numSoftVarUppers,
 				 fVarSoftUBInd,
 				 fVarSoftUB);
-	
+
 	//------------------------------------------
 	// Recode added constraints.
 	//------------------------------------------
@@ -3542,7 +3539,7 @@ DcoTreeNode::convertToExplicit()
 	for (k = 0; k < numOldCons; ++k) {
 	    aCon = dynamic_cast<DcoConstraint *>(oldConstraints[k]);
 	    assert(aCon);
-	    
+
 	    DcoConstraint *newCon = new DcoConstraint(*aCon);
 	    oldConstraints[k] = newCon;
 	}
@@ -3552,13 +3549,13 @@ DcoTreeNode::convertToExplicit()
 	//------------------------------------------
 	// Recode deleted constraints.
 	//------------------------------------------
-	
+
 	desc->delConstraints(0, NULL);
-	
+
 	//--------------------------------------------------
 	// Clear path vector.
 	//--------------------------------------------------
-	
+
 	model->leafToRootPath.clear();
 	assert(model->leafToRootPath.size() == 0);
 
@@ -3573,15 +3570,15 @@ void
 DcoTreeNode::convertToRelative()
 {
     if(explicit_) {
-	
+
 
     }
 }
 
 //#############################################################################
 
-bool 
-DcoTreeNode::parallel(DcoModel *model, 
+bool
+DcoTreeNode::parallel(DcoModel *model,
 		       BcpsConstraintPool &conPool,
 		       int lastNew,
 		       DcoConstraint *aCon)
@@ -3589,7 +3586,7 @@ DcoTreeNode::parallel(DcoModel *model,
     bool parallel = false;
     int k;
     double threshold = 0.999;
-    
+
     //------------------------------------------------------
     // Compare with old cuts
     //------------------------------------------------------
@@ -3603,39 +3600,39 @@ DcoTreeNode::parallel(DcoModel *model,
 				      threshold);
 	if (parallel) return parallel;
     }
-#endif    
+#endif
 
     //------------------------------------------------------
     // Compare with new cuts
     //------------------------------------------------------
 
     for (k = 0; k < lastNew; ++k) {
-	DcoConstraint *thisCon = 
+	DcoConstraint *thisCon =
 	    dynamic_cast<DcoConstraint *>(conPool.getConstraint(k));
 	parallel = DcoParallelConCon(aCon,
 				      thisCon,
 				      threshold);
 	if (parallel) return parallel;
     }
-    
+
     return parallel;
 }
 
 //#############################################################################
 
-double 
+double
 DcoTreeNode::estimateSolution(DcoModel *model,
                                const double *lpSolution,
                                double lpObjValue) const
 {
-    // lpObjective + sum_i{downCost_i*f_i + upCost_i*(1-f_i)} 
+    // lpObjective + sum_i{downCost_i*f_i + upCost_i*(1-f_i)}
     int k, col;
     int numInts= model->getNumIntObjects();
 
     double x, f, downC, upC, estimate = lpObjValue;
 
     DcoObjectInt *obj = NULL;
-    
+
     for (k = 0; k < numInts; ++k) {
         obj = dynamic_cast<DcoObjectInt *>(model->objects(k));
         col = obj->columnIndex();
@@ -3673,7 +3670,7 @@ DcoTreeNode::callHeuristics(DcoModel *model, bool onlyBeforeRoot)
 
     for (int k = 0; k < model->numHeuristics(); ++k) {
 	int heurStrategy = model->heuristics(k)->strategy();
-        //std::cout << " call heur " << k << "; strategy = " 
+        //std::cout << " call heur " << k << "; strategy = "
         //        << heurStrategy << std::endl;
 
 	if (heurStrategy != DcoHeurStrategyNone) {
@@ -3689,22 +3686,22 @@ DcoTreeNode::callHeuristics(DcoModel *model, bool onlyBeforeRoot)
 		    continue;
 		}
 	    }
-	    
+
 	    getKnowledgeBroker()->tempTimer().start();
 	    foundSolution = false;
-	    foundSolution = 
+	    foundSolution =
 		model->heuristics(k)->searchSolution(heurObjValue,
 						     heurSolution);
 	    getKnowledgeBroker()->tempTimer().stop();
-	    
+
 	    model->heuristics(k)->
 		addTime(getKnowledgeBroker()->tempTimer().getCpuTime());
-	    
+
 	    if (foundSolution) {
 		// Check if solution from heuristic is feasible.
 		bSol = model->feasibleSolutionHeur(heurSolution);
 	    }
-            
+
 	    if (bSol) {
 		model->heuristics(k)->addNumSolutions(1);
 		int noSols = model->heuristics(k)->noSolCalls();
@@ -3722,9 +3719,9 @@ DcoTreeNode::callHeuristics(DcoModel *model, bool onlyBeforeRoot)
 		else {
 		    status = 1;
 		}
-		if (heurStrategy == DcoHeurStrategyBeforeRoot && 
+		if (heurStrategy == DcoHeurStrategyBeforeRoot &&
 		    msgLevel > 200) {
-		    model->blisMessageHandler()->message(DISCO_HEUR_BEFORE_ROOT, 
+		    model->blisMessageHandler()->message(DISCO_HEUR_BEFORE_ROOT,
 							 model->blisMessages())
 			<< (model->heuristics(k)->name())
 			<< bSol->getQuality()
@@ -3733,8 +3730,8 @@ DcoTreeNode::callHeuristics(DcoModel *model, bool onlyBeforeRoot)
 	    }
 	    else {
 		model->heuristics(k)->addNoSolCalls(1);
-	    }  
-	} 
+	    }
+	}
     }
 
 TERM_HEUR:
