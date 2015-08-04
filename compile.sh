@@ -10,16 +10,39 @@ export CXXFLAGS="-std=c++11 -g"
 # configure and install Blas
 mkdir -p ThirdParty/Blas
 cd ThirdParty/Blas
-../../../Thirdparty/Blas/configure --prefix=$build_dir
+../../../ThirdParty/Blas/configure --prefix=$build_dir
 make -j 10 install
 cd ..
 # configure and install Lapack
 mkdir Lapack
 cd Lapack
-../../../Thirdparty/Lapack/configure --prefix=$build_dir
+../../../ThirdParty/Lapack/configure --prefix=$build_dir
 make -j 10 install
 cd ..
+# configure and install ASL
+mkdir ASL
+cd ASL
+../../../ThirdParty/ASL/configure --prefix=$build_dir
+make -j 10 install
 cd ..
+# configure and install HSL
+mkdir HSL
+cd HSL
+../../../ThirdParty/HSL/configure --prefix=$build_dir
+make -j 10 install
+cd ..
+# configure and install Metis
+mkdir Metis
+cd Metis
+../../../ThirdParty/Metis/configure --prefix=$build_dir
+make -j 10 install
+cd ..
+# configure and install Mumps
+mkdir Mumps
+cd Mumps
+../../../ThirdParty/Mumps/configure --prefix=$build_dir
+make -j 10 install
+cd ../..
 # configure and install CoinUtils
 mkdir CoinUtils
 cd CoinUtils
@@ -29,7 +52,7 @@ cd ..
 # configure and install Osi
 mkdir Osi
 cd Osi
-../../Osi/configure --prefix=$build_dir --with-mosek-incdir=/usr/local/mosek/7/tools/platform/linux64x86/h --with-mosek-lib="-L/usr/local/mosek/7/tools/platform/linux64x86/bin -lmosek64 -lmosekxx7_0 -lmosekjava7_0 -lmosekscopt7_0 -liomp5" --with-cplex-incdir=/usr/local/cplex/include/ilcplex --with-cplex-lib="-L/usr/local/cplex/lib/x86-64_linux/static_pic/ -lcplex -lm -lpthread"
+../../Osi/configure --prefix=$build_dir --with-mosek-incdir=/usr/local/mosek/7.1/tools/platform/linux64x86/h --with-mosek-lib="-L/usr/local/mosek/7.1/tools/platform/linux64x86/bin -lmosek64 -lmosekxx7_1 -lmosekjava7_1 -lmosekscopt7_1 -liomp5" --with-cplex-incdir=/usr/local/cplex/include/ilcplex --with-cplex-lib="-L/usr/local/cplex/lib/x86-64_linux/static_pic/ -lcplex -lm -lpthread"
 make -j 10 install
 cd ..
 # configure and install Clp
@@ -72,6 +95,18 @@ cd ..
 mkdir OsiCplex
 cd OsiCplex
 ../../OsiCplex/configure --prefix=$build_dir
+make -j 10 install
+cd ..
+# configure and install ipopt
+mkdir Ipopt
+cd Ipopt
+../../Ipopt/configure --prefix=$build_dir
+make -j 10 install
+cd ..
+# configure and install OsiIpopt
+mkdir OsiIpopt
+cd OsiIpopt
+../../OsiIpopt/configure --prefix=$build_dir
 make -j 10 install
 cd ..
 # configure and install Cola
