@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
 	try{
 	  //Set up lp solver
-	  OsiConicSolverInterface * solver = new ColaModel();
+	  // OsiConicSolverInterface * solver = new ColaModel();
 	  // solver.getModelPtr()->setDualBound(1.0e10);
 	  // solver.messageHandler()->setLogLevel(0);
 

@@ -25,11 +25,7 @@
 
 using std::make_pair;
 
-<<<<<<< HEAD
-void 
-=======
 void
->>>>>>> conic_cuts
 DcoParams::createKeywordList() {
 
   //--------------------------------------------------------
@@ -39,15 +35,6 @@ DcoParams::createKeywordList() {
   //--------------------------------------------------------
   // CharPar
   //--------------------------------------------------------
-<<<<<<< HEAD
- 
-    keys_.push_back(make_pair(std::string("Dco_cutRampUp"),
-                              AlpsParameter(AlpsBoolPar, cutRampUp)));
-    
-   keys_.push_back(make_pair(std::string("Dco_presolve"),
-			     AlpsParameter(AlpsBoolPar, presolve)));
-    
-=======
 
     keys_.push_back(make_pair(std::string("Dco_cutRampUp"),
                               AlpsParameter(AlpsBoolPar, cutRampUp)));
@@ -55,7 +42,6 @@ DcoParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("Dco_presolve"),
 			     AlpsParameter(AlpsBoolPar, presolve)));
 
->>>>>>> conic_cuts
    keys_.push_back(make_pair(std::string("Dco_shareConstraints"),
 			     AlpsParameter(AlpsBoolPar,
 					   shareConstraints)));
@@ -67,11 +53,6 @@ DcoParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("Dco_sharePseudocostRampUp"),
 			     AlpsParameter(AlpsBoolPar,
 					   sharePseudocostRampUp)));
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> conic_cuts
    keys_.push_back(make_pair(std::string("Dco_sharePseudocostSearch"),
 			     AlpsParameter(AlpsBoolPar,
 					   sharePseudocostSearch)));
@@ -95,20 +76,11 @@ DcoParams::createKeywordList() {
 
   keys_.push_back(make_pair(std::string("Dco_quickCutPass"),
 			    AlpsParameter(AlpsIntPar, quickCutPass)));
-<<<<<<< HEAD
-  
-=======
-
->>>>>>> conic_cuts
   keys_.push_back(make_pair(std::string("Dco_cutStrategy"),
 			    AlpsParameter(AlpsIntPar, cutStrategy)));
 
   keys_.push_back(make_pair(std::string("Dco_cutGenerationFrequency"),
-<<<<<<< HEAD
-			    AlpsParameter(AlpsIntPar, 
-=======
 			    AlpsParameter(AlpsIntPar,
->>>>>>> conic_cuts
 					  cutGenerationFrequency)));
 
   keys_.push_back(make_pair(std::string("Dco_cutCliqueStrategy"),
@@ -122,17 +94,10 @@ DcoParams::createKeywordList() {
 
   keys_.push_back(make_pair(std::string("Dco_cutKnapsackStrategy"),
 			    AlpsParameter(AlpsIntPar, cutKnapsackStrategy)));
-<<<<<<< HEAD
-  
-  keys_.push_back(make_pair(std::string("Dco_cutMirStrategy"),
-			    AlpsParameter(AlpsIntPar, cutMirStrategy)));
-  
-=======
 
   keys_.push_back(make_pair(std::string("Dco_cutMirStrategy"),
 			    AlpsParameter(AlpsIntPar, cutMirStrategy)));
 
->>>>>>> conic_cuts
   keys_.push_back(make_pair(std::string("Dco_cutOddHoleStrategy"),
 			    AlpsParameter(AlpsIntPar, cutOddHoleStrategy)));
 
@@ -153,17 +118,10 @@ DcoParams::createKeywordList() {
 
   keys_.push_back(make_pair(std::string("Dco_cutKnapsackFreq"),
 			    AlpsParameter(AlpsIntPar, cutKnapsackFreq)));
-<<<<<<< HEAD
-  
-  keys_.push_back(make_pair(std::string("Dco_cutMirFreq"),
-			    AlpsParameter(AlpsIntPar, cutMirFreq)));
-  
-=======
 
   keys_.push_back(make_pair(std::string("Dco_cutMirFreq"),
 			    AlpsParameter(AlpsIntPar, cutMirFreq)));
 
->>>>>>> conic_cuts
   keys_.push_back(make_pair(std::string("Dco_cutOddHoleFreq"),
 			    AlpsParameter(AlpsIntPar, cutOddHoleFreq)));
 
@@ -175,24 +133,6 @@ DcoParams::createKeywordList() {
 
   keys_.push_back(make_pair(std::string("Dco_difference"),
 			    AlpsParameter(AlpsIntPar, difference)));
-<<<<<<< HEAD
-  
-  keys_.push_back(make_pair(std::string("Dco_heurStrategy"),
-                            AlpsParameter(AlpsIntPar, heurStrategy)));
-  
-  keys_.push_back(make_pair(std::string("Dco_heurCallFrequencyy"),
-                            AlpsParameter(AlpsIntPar, heurCallFrequency)));
-  
-  keys_.push_back(make_pair(std::string("Dco_heurRoundStrategy"),
-			    AlpsParameter(AlpsIntPar, heurRoundStrategy)));
-  
-  keys_.push_back(make_pair(std::string("Dco_heurRoundFreq"),
-			    AlpsParameter(AlpsIntPar, heurRoundFreq)));
-  
-  keys_.push_back(make_pair(std::string("Dco_lookAhead"),
-			    AlpsParameter(AlpsIntPar, lookAhead)));
-  
-=======
 
   keys_.push_back(make_pair(std::string("Dco_heurStrategy"),
                             AlpsParameter(AlpsIntPar, heurStrategy)));
@@ -209,7 +149,6 @@ DcoParams::createKeywordList() {
   keys_.push_back(make_pair(std::string("Dco_lookAhead"),
 			    AlpsParameter(AlpsIntPar, lookAhead)));
 
->>>>>>> conic_cuts
   keys_.push_back(make_pair(std::string("Dco_pseudoRelibility"),
 			    AlpsParameter(AlpsIntPar, pseudoRelibility)));
 
@@ -247,27 +186,15 @@ DcoParams::createKeywordList() {
   //--------------------------------------------------------
   // Double Parameters.
   //--------------------------------------------------------
-<<<<<<< HEAD
-  
-  keys_.push_back(make_pair(std::string("Dco_cutFactor"),
-			    AlpsParameter(AlpsDoublePar, cutFactor)));
-  
-=======
 
   keys_.push_back(make_pair(std::string("Dco_cutFactor"),
 			    AlpsParameter(AlpsDoublePar, cutFactor)));
 
->>>>>>> conic_cuts
   keys_.push_back(make_pair(std::string("Dco_cutoff"),
 			    AlpsParameter(AlpsDoublePar, cutoff)));
 
   keys_.push_back(make_pair(std::string("Dco_cutoffInc"),
 			    AlpsParameter(AlpsDoublePar, cutoffInc)));
-<<<<<<< HEAD
-  
-=======
-
->>>>>>> conic_cuts
   keys_.push_back(make_pair(std::string("Dco_denseConFactor"),
 			    AlpsParameter(AlpsDoublePar, denseConFactor)));
 
@@ -276,18 +203,6 @@ DcoParams::createKeywordList() {
 
   keys_.push_back(make_pair(std::string("Dco_objSense"),
 			    AlpsParameter(AlpsDoublePar, objSense)));
-<<<<<<< HEAD
-  
-  keys_.push_back(make_pair(std::string("Dco_optimalRelGap"),
-			    AlpsParameter(AlpsDoublePar, optimalRelGap)));
-  
-  keys_.push_back(make_pair(std::string("Dco_optimalAbsGap"),
-			    AlpsParameter(AlpsDoublePar, optimalAbsGap)));
-  
-  keys_.push_back(make_pair(std::string("Dco_pseudoWeight"),
-			    AlpsParameter(AlpsDoublePar, pseudoWeight)));
-  
-=======
 
   keys_.push_back(make_pair(std::string("Dco_optimalRelGap"),
 			    AlpsParameter(AlpsDoublePar, optimalRelGap)));
@@ -298,7 +213,6 @@ DcoParams::createKeywordList() {
   keys_.push_back(make_pair(std::string("Dco_pseudoWeight"),
 			    AlpsParameter(AlpsDoublePar, pseudoWeight)));
 
->>>>>>> conic_cuts
   keys_.push_back(make_pair(std::string("Dco_scaleConFactor"),
 			    AlpsParameter(AlpsDoublePar, scaleConFactor)));
 
@@ -313,11 +227,7 @@ DcoParams::createKeywordList() {
 
 //#############################################################################
 
-<<<<<<< HEAD
-void 
-=======
 void
->>>>>>> conic_cuts
 DcoParams::setDefaultEntries() {
 
   //-------------------------------------------------------------
