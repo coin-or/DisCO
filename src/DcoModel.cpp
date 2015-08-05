@@ -195,6 +195,10 @@ DcoModel::init()
 
     sharedObjectMark_ = NULL;
 
+    // conic cut related
+    conicCutStrategy_ = DcoConicCutStrategyRoot;
+    conicCutGenerationFrequency_ = 1;
+
     // AT - Begin - Set flags for presolve
     presolved=false;
     problemSetup=false;
@@ -390,6 +394,29 @@ void DcoModel::readInstance(const char* dataFile) {
   delete [] coneIdx;
   delete [] coneType;
   delete reader;
+
+
+  // Generate and add conic cuts
+  // if (isRoot) {
+  //   OsiConicSolverInterface * si = model->solver();
+  //   CglConicGD1 cg(si);
+  //   bool equalObj;
+  //   CoinRelFltEq eq(0.0001);
+  //   int num_cut = 0;
+  //   double obj;
+  //   do {
+  //     // Get current solution value
+  //     obj = si->getObjValue();
+  //     // Generate and apply cuts
+  //     cg.generateAndAddCuts(*si);
+  //     //si->writeMps("after_cut");
+  //     si->resolve();
+  //     equalObj = eq(si->getObjValue(), obj);
+  //   } while (!equalObj);
+  // }
+
+
+
 }
 
 //############################################################################
@@ -929,6 +956,19 @@ DcoModel::setupSelf()
     int oddHoleFreq = DcoPar_->entry(DcoParams::cutOddHoleFreq);
     int probeFreq = DcoPar_->entry(DcoParams::cutProbingFreq);
     int twoMirFreq = DcoPar_->entry(DcoParams::cutTwoMirFreq);
+
+    // conic cut parameters
+    conicCutStrategy_ = static_cast<DcoConicCutStrategy>
+	(DcoPar_->entry(DcoParams::conicCutStrategy));
+    conicCutGenerationFrequency_ = DcoPar_->entry(DcoParams::cutGenerationFrequency);
+
+    if (conicCutGenerationFrequency_ < 1) {
+	std::cout << "WARNING: Input conic cut generation frequency is "
+		  << cutGenerationFrequency_
+		  << ", which is not allowed. Changed it to 1" << std::endl;
+	conicCutGenerationFrequency_ = 1;
+    }
+
 
     //------------------------------------------------------
     // Add cut generators.

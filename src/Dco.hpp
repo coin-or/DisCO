@@ -15,7 +15,7 @@
  *          Ted Ralphs, Lehigh University                                    *
  *          Laszlo Ladanyi, IBM T.J. Watson Research Center                  *
  *          Matthew Saltzman, Clemson University                             *
- *                                                                           * 
+ *                                                                           *
  *                                                                           *
  * Copyright (C) 2001-2015, Lehigh University, Yan Xu, and Ted Ralphs.       *
  * All Rights Reserved.                                                      *
@@ -74,6 +74,14 @@ enum DcoCutStrategy{
    DcoCutStrategyPeriodic
 };
 
+enum DcoConicCutStrategy{
+   DcoConicCutStrategyNotSet = -1,
+   DcoConicCutStrategyNone = 0,
+   DcoConicCutStrategyRoot,
+   DcoConicCutStrategyAuto,
+   DcoConicCutStrategyPeriodic
+};
+
 enum DcoHeurStrategy{
    DcoHeurStrategyNotSet = -1,
    DcoHeurStrategyNone = 0,
@@ -102,7 +110,7 @@ enum DcoHotStartStrategy{
 enum DcoBranchingStrategy{
    DcoBranchingStrategyMaxInfeasibility,
    DcoBranchingStrategyPseudoCost,
-   DcoBranchingStrategyReliability,   
+   DcoBranchingStrategyReliability,
    DcoBranchingStrategyStrong,
    DcoBranchingStrategyBilevel
 };

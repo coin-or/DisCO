@@ -15,7 +15,7 @@
  *          Ted Ralphs, Lehigh University                                    *
  *          Laszlo Ladanyi, IBM T.J. Watson Research Center                  *
  *          Matthew Saltzman, Clemson University                             *
- *                                                                           * 
+ *                                                                           *
  *                                                                           *
  * Copyright (C) 2001-2015, Lehigh University, Yan Xu, and Ted Ralphs.       *
  * All Rights Reserved.                                                      *
@@ -25,7 +25,11 @@
 
 using std::make_pair;
 
+<<<<<<< HEAD
 void 
+=======
+void
+>>>>>>> conic_cuts
 DcoParams::createKeywordList() {
 
   //--------------------------------------------------------
@@ -35,6 +39,7 @@ DcoParams::createKeywordList() {
   //--------------------------------------------------------
   // CharPar
   //--------------------------------------------------------
+<<<<<<< HEAD
  
     keys_.push_back(make_pair(std::string("Dco_cutRampUp"),
                               AlpsParameter(AlpsBoolPar, cutRampUp)));
@@ -42,6 +47,15 @@ DcoParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("Dco_presolve"),
 			     AlpsParameter(AlpsBoolPar, presolve)));
     
+=======
+
+    keys_.push_back(make_pair(std::string("Dco_cutRampUp"),
+                              AlpsParameter(AlpsBoolPar, cutRampUp)));
+
+   keys_.push_back(make_pair(std::string("Dco_presolve"),
+			     AlpsParameter(AlpsBoolPar, presolve)));
+
+>>>>>>> conic_cuts
    keys_.push_back(make_pair(std::string("Dco_shareConstraints"),
 			     AlpsParameter(AlpsBoolPar,
 					   shareConstraints)));
@@ -53,15 +67,19 @@ DcoParams::createKeywordList() {
    keys_.push_back(make_pair(std::string("Dco_sharePseudocostRampUp"),
 			     AlpsParameter(AlpsBoolPar,
 					   sharePseudocostRampUp)));
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> conic_cuts
    keys_.push_back(make_pair(std::string("Dco_sharePseudocostSearch"),
 			     AlpsParameter(AlpsBoolPar,
 					   sharePseudocostSearch)));
-    
+
   //--------------------------------------------------------
   // BoolArrayPar
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   // Int Parameters
   //--------------------------------------------------------
@@ -77,12 +95,20 @@ DcoParams::createKeywordList() {
 
   keys_.push_back(make_pair(std::string("Dco_quickCutPass"),
 			    AlpsParameter(AlpsIntPar, quickCutPass)));
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> conic_cuts
   keys_.push_back(make_pair(std::string("Dco_cutStrategy"),
 			    AlpsParameter(AlpsIntPar, cutStrategy)));
 
   keys_.push_back(make_pair(std::string("Dco_cutGenerationFrequency"),
+<<<<<<< HEAD
 			    AlpsParameter(AlpsIntPar, 
+=======
+			    AlpsParameter(AlpsIntPar,
+>>>>>>> conic_cuts
 					  cutGenerationFrequency)));
 
   keys_.push_back(make_pair(std::string("Dco_cutCliqueStrategy"),
@@ -96,10 +122,17 @@ DcoParams::createKeywordList() {
 
   keys_.push_back(make_pair(std::string("Dco_cutKnapsackStrategy"),
 			    AlpsParameter(AlpsIntPar, cutKnapsackStrategy)));
+<<<<<<< HEAD
   
   keys_.push_back(make_pair(std::string("Dco_cutMirStrategy"),
 			    AlpsParameter(AlpsIntPar, cutMirStrategy)));
   
+=======
+
+  keys_.push_back(make_pair(std::string("Dco_cutMirStrategy"),
+			    AlpsParameter(AlpsIntPar, cutMirStrategy)));
+
+>>>>>>> conic_cuts
   keys_.push_back(make_pair(std::string("Dco_cutOddHoleStrategy"),
 			    AlpsParameter(AlpsIntPar, cutOddHoleStrategy)));
 
@@ -120,10 +153,17 @@ DcoParams::createKeywordList() {
 
   keys_.push_back(make_pair(std::string("Dco_cutKnapsackFreq"),
 			    AlpsParameter(AlpsIntPar, cutKnapsackFreq)));
+<<<<<<< HEAD
   
   keys_.push_back(make_pair(std::string("Dco_cutMirFreq"),
 			    AlpsParameter(AlpsIntPar, cutMirFreq)));
   
+=======
+
+  keys_.push_back(make_pair(std::string("Dco_cutMirFreq"),
+			    AlpsParameter(AlpsIntPar, cutMirFreq)));
+
+>>>>>>> conic_cuts
   keys_.push_back(make_pair(std::string("Dco_cutOddHoleFreq"),
 			    AlpsParameter(AlpsIntPar, cutOddHoleFreq)));
 
@@ -135,6 +175,7 @@ DcoParams::createKeywordList() {
 
   keys_.push_back(make_pair(std::string("Dco_difference"),
 			    AlpsParameter(AlpsIntPar, difference)));
+<<<<<<< HEAD
   
   keys_.push_back(make_pair(std::string("Dco_heurStrategy"),
                             AlpsParameter(AlpsIntPar, heurStrategy)));
@@ -151,6 +192,24 @@ DcoParams::createKeywordList() {
   keys_.push_back(make_pair(std::string("Dco_lookAhead"),
 			    AlpsParameter(AlpsIntPar, lookAhead)));
   
+=======
+
+  keys_.push_back(make_pair(std::string("Dco_heurStrategy"),
+                            AlpsParameter(AlpsIntPar, heurStrategy)));
+
+  keys_.push_back(make_pair(std::string("Dco_heurCallFrequencyy"),
+                            AlpsParameter(AlpsIntPar, heurCallFrequency)));
+
+  keys_.push_back(make_pair(std::string("Dco_heurRoundStrategy"),
+			    AlpsParameter(AlpsIntPar, heurRoundStrategy)));
+
+  keys_.push_back(make_pair(std::string("Dco_heurRoundFreq"),
+			    AlpsParameter(AlpsIntPar, heurRoundFreq)));
+
+  keys_.push_back(make_pair(std::string("Dco_lookAhead"),
+			    AlpsParameter(AlpsIntPar, lookAhead)));
+
+>>>>>>> conic_cuts
   keys_.push_back(make_pair(std::string("Dco_pseudoRelibility"),
 			    AlpsParameter(AlpsIntPar, pseudoRelibility)));
 
@@ -162,20 +221,53 @@ DcoParams::createKeywordList() {
 
   keys_.push_back(make_pair(std::string("Dco_strongCandSize"),
 			    AlpsParameter(AlpsIntPar, strongCandSize)));
-  
+
+  // conic cut related
+  keys_.push_back(make_pair(std::string("Dco_conicCutStrategy"),
+			    AlpsParameter(AlpsIntPar, conicCutStrategy)));
+  keys_.push_back(make_pair(std::string("Dco_conicCutGenerationFrequency"),
+			    AlpsParameter(AlpsIntPar, conicCutGenerationFrequency)));
+  keys_.push_back(make_pair(std::string("Dco_conicCutPass"),
+			    AlpsParameter(AlpsIntPar, conicCutPass)));
+  keys_.push_back(make_pair(std::string("Dco_quickConicCutPass"),
+			    AlpsParameter(AlpsIntPar, quickConicCutPass)));
+  keys_.push_back(make_pair(std::string("Dco_conicCutMirStrategy"),
+			    AlpsParameter(AlpsIntPar, conicCutMirStrategy)));
+  keys_.push_back(make_pair(std::string("Dco_conicCutGD1Strategy"),
+			    AlpsParameter(AlpsIntPar, conicCutGD1Strategy)));
+  keys_.push_back(make_pair(std::string("Dco_conicCutGD2Strategy"),
+			    AlpsParameter(AlpsIntPar, conicCutGD2Strategy)));
+  keys_.push_back(make_pair(std::string("Dco_conicCutMirFreq"),
+			    AlpsParameter(AlpsIntPar, conicCutMirFreq)));
+  keys_.push_back(make_pair(std::string("Dco_conicCutGD1Freq"),
+			    AlpsParameter(AlpsIntPar, conicCutGD1Freq)));
+  keys_.push_back(make_pair(std::string("Dco_conicCutGD2Freq"),
+			    AlpsParameter(AlpsIntPar, conicCutGD2Freq)));
+
   //--------------------------------------------------------
   // Double Parameters.
   //--------------------------------------------------------
+<<<<<<< HEAD
   
   keys_.push_back(make_pair(std::string("Dco_cutFactor"),
 			    AlpsParameter(AlpsDoublePar, cutFactor)));
   
+=======
+
+  keys_.push_back(make_pair(std::string("Dco_cutFactor"),
+			    AlpsParameter(AlpsDoublePar, cutFactor)));
+
+>>>>>>> conic_cuts
   keys_.push_back(make_pair(std::string("Dco_cutoff"),
 			    AlpsParameter(AlpsDoublePar, cutoff)));
 
   keys_.push_back(make_pair(std::string("Dco_cutoffInc"),
 			    AlpsParameter(AlpsDoublePar, cutoffInc)));
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> conic_cuts
   keys_.push_back(make_pair(std::string("Dco_denseConFactor"),
 			    AlpsParameter(AlpsDoublePar, denseConFactor)));
 
@@ -184,6 +276,7 @@ DcoParams::createKeywordList() {
 
   keys_.push_back(make_pair(std::string("Dco_objSense"),
 			    AlpsParameter(AlpsDoublePar, objSense)));
+<<<<<<< HEAD
   
   keys_.push_back(make_pair(std::string("Dco_optimalRelGap"),
 			    AlpsParameter(AlpsDoublePar, optimalRelGap)));
@@ -194,12 +287,24 @@ DcoParams::createKeywordList() {
   keys_.push_back(make_pair(std::string("Dco_pseudoWeight"),
 			    AlpsParameter(AlpsDoublePar, pseudoWeight)));
   
+=======
+
+  keys_.push_back(make_pair(std::string("Dco_optimalRelGap"),
+			    AlpsParameter(AlpsDoublePar, optimalRelGap)));
+
+  keys_.push_back(make_pair(std::string("Dco_optimalAbsGap"),
+			    AlpsParameter(AlpsDoublePar, optimalAbsGap)));
+
+  keys_.push_back(make_pair(std::string("Dco_pseudoWeight"),
+			    AlpsParameter(AlpsDoublePar, pseudoWeight)));
+
+>>>>>>> conic_cuts
   keys_.push_back(make_pair(std::string("Dco_scaleConFactor"),
 			    AlpsParameter(AlpsDoublePar, scaleConFactor)));
 
   keys_.push_back(make_pair(std::string("Dco_tailOff"),
                             AlpsParameter(AlpsDoublePar, tailOff)));
-  
+
   //--------------------------------------------------------
   // String Parameters.
   //--------------------------------------------------------
@@ -208,7 +313,11 @@ DcoParams::createKeywordList() {
 
 //#############################################################################
 
+<<<<<<< HEAD
 void 
+=======
+void
+>>>>>>> conic_cuts
 DcoParams::setDefaultEntries() {
 
   //-------------------------------------------------------------
@@ -257,7 +366,19 @@ DcoParams::setDefaultEntries() {
   setEntry(sharePcostDepth, 30);
   setEntry(sharePcostFrequency, 100);
   setEntry(strongCandSize, 10);
-  
+
+  // conic cut related parameters
+  setEntry(conicCutStrategy, DcoConicCutStrategyNotSet);
+  setEntry(conicCutGenerationFrequency, 1);
+  setEntry(conicCutPass, 5);
+  setEntry(quickConicCutPass, 0);
+  setEntry(conicCutMirStrategy, DcoConicCutStrategyNotSet);
+  setEntry(conicCutGD1Strategy, DcoConicCutStrategyNotSet);
+  setEntry(conicCutGD2Strategy, DcoConicCutStrategyNotSet);
+  setEntry(conicCutMirFreq, 1);
+  setEntry(conicCutGD1Freq, 1);
+  setEntry(conicCutGD2Freq, 1);
+
   //-------------------------------------------------------------
   // Double Parameters
   //-------------------------------------------------------------
@@ -273,9 +394,9 @@ DcoParams::setDefaultEntries() {
   setEntry(pseudoWeight, 0.8);
   setEntry(scaleConFactor, 1000000.0);
   setEntry(tailOff, 1e-7);
-  
+
   //-------------------------------------------------------------
   // String Parameters
   //-------------------------------------------------------------
-  
+
 }

@@ -19,7 +19,7 @@ Alps_timeLimit 720
 #Alps_masterInitNodeNum 8
 #Alps_hubInitNodeNum 16
 #Alps_unitWorkNodes 100         # or unit time
-#Alps_unitWorkTime 0.03 
+#Alps_unitWorkTime 0.03
 #Alps_needWorkThreshold 0.5
 #Alps_changeWorkThreshold 0.10
 #Alps_donorThreshold 0.10
@@ -27,14 +27,14 @@ Alps_timeLimit 720
 #Alps_masterBalancePeriod 0.3
 #Alps_hubReportPeriod 0.5
 
-#Dco_cutRampUp 1       # true(1) or false(0) 
+#Dco_cutRampUp 1       # true(1) or false(0)
 
 ####### Dco_cutStrategy and Dco_cutGenerationFrequency control
 ####### the strategy and frequency of a spefic cut generator only if
 ####### users do not set the strategy for that cut generator.
 
 #Dco_cutStrategy              3   # 0: disable, 1: root, 2: auto, 3: periodic
-#Dco_cutGenerationFrequency   1 
+#Dco_cutGenerationFrequency   1
 
 #Dco_cutCliqueStrategy       2    # 0: disable, 1: root, 2: auto, 3: periodic
 #Dco_cutCliqueFreq         100
@@ -84,3 +84,20 @@ Alps_timeLimit 720
 #Dco_sharePseudocostRampUp 1
 #Dco_sharePseudocostSearch 1
 #Dco_checkMemory 1
+
+
+####### Dco_conicCutStrategy and Dco_conicCutGenerationFrequency control
+####### the strategy and frequency of a spefic conic cut generator only if
+####### users do not set the strategy for that cut generator.
+
+Dco_conicCutStrategy             1  # 0: disable, 1: root, 2: auto, 3: periodic
+Dco_conicCutGenerationFrequency  1
+
+Dco_conicCutMirStrategy          0
+Dco_conicCutMirFreq              100
+
+Dco_conicCutGD1Strategy          1
+Dco_conicCutGD1Freq              100
+
+Dco_conicCutGD2Strategy          0
+Dco_conicCutGD2Freq              100
