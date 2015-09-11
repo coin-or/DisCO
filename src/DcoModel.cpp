@@ -321,16 +321,7 @@ void DcoModel::readInstance(const char* dataFile) {
   OsiConicSolverInterface * si = origLpSolver_;
   si->loadProblem(*colMatrix_, varLB_, varUB_, objCoef_,
   			     conLB_, conUB_);
-
-  // for (j=0; j<numCols_; ++j) {
-  //   if (colType_[j]!='C')
-  //     si->setInteger(j);
-  // }
-
-  //origLpSolver_->initialSolve();
-
   createObjects();
-
   // read conic part
   int nOfCones = 0;
   int * coneStart = NULL;
@@ -1185,6 +1176,11 @@ DcoModel::setupSelf()
             cutStrategy_ = DcoCutStrategyPeriodic;
 	    cutGenerationFrequency_ = 1;
         }
+    }
+
+    // adjust conic cut strategy
+    if (conicCutStrategy_==DcoConicCutStrategyNotSet) {
+      conicCutStrategy_ = DcoConicCutStrategyNone;
     }
 
 #if 0
