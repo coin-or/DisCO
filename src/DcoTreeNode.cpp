@@ -462,6 +462,11 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 	// Check if tailoff or have to keep on.
 	//------------------------------------------
 
+	// keep going if there is no fractional variable to branch
+	ipSol = model->feasibleSolution(numIntInfs, numObjInfs);
+	if (!numIntInfs) {
+	  keepOn = true;
+	}
 	if (model->boundingPass_ > 1) {
 	  improvement = quality_ - preObjValue;
 	  if (improvement > tailOffTol) {
@@ -656,6 +661,9 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 	    model->solver()->resolve();
 	    model->solver()->setHintParam(OsiDoInBranchAndCut,
 					  true, OsiHintDo, NULL) ;
+
+
+
 #ifdef DISCO_DEBUG
 	    if (model->solver()->getIterationCount() != 0) {
 	      // TODO: maybe some cuts become slack again
@@ -787,6 +795,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
       tempNumCons = newConPool.getNumConstraints();
       getViolatedConstraints(model, currLpSolution,
 			     *(model->constraintPoolReceive()));
+      // todo(aykut) fix typo voilated
       voilatedNumCons = newConPool.getNumConstraints() - tempNumCons;
 
       // Generate constraints (only if no violated).
@@ -861,7 +870,7 @@ radii		      << std::endl;
       keepOn = false;
     }
 #endif // end of __COLA__ defined block
-   } // EOF bounding/cutting/heuristics loop
+  } // EOF bounding/cutting/heuristics loop
 
 
   // todo(aykut) This is the proper place to generate and add conic cuts
@@ -2839,6 +2848,11 @@ DcoTreeNode::applyConstraints(DcoModel *model,
 	  double scaleFactor;
 
 	  for (k = 0; k < length; ++k) {
+	    // todo(aykut) skip if the value of the element is 0.
+	    // should this be an exact 0.0?
+	    if (elements[k]==0.0) {
+	      continue;
+	    }
 	    if (fabs(elements[k]) > maxElem) {
 	      maxElem = fabs(elements[k]);
 	    }
@@ -3520,3 +3534,13 @@ DcoTreeNode::callHeuristics(DcoModel *model, bool onlyBeforeRoot)
 
 //#############################################################################
 
+bool DcoTreeNode::fractional_vars_exist() const {
+  DcoModel const * model = dynamic_cast<DcoModel*>(desc_->getModel());
+  double const * sol = model->getLpSolution();
+  int numIntegers = model->getNumIntObjects();
+  const int *intIndices = model->getIntColIndices();
+  for (int i=0; i<numIntegers; ++i) {
+    // check whether variable i is fractional?
+  }
+  return true;
+}

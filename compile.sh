@@ -1,12 +1,12 @@
 #!/bin/bash
-mkdir build
-cd build
+mkdir opt_build
+cd opt_build
 build_dir=$PWD
 inc_dir=${build_dir%%/}/include
 lib_dir=${build_dir%%/}/lib
 pkg_dir=${lib_dir%%/}/pkgconfig
 PKG_CONFIG_PATH=${pkg_dir}:$PKG_CONFIG_PATH
-export CXXFLAGS="-std=c++11 -g"
+export CXXFLAGS="-std=c++11 -O3"
 # configure and install Blas
 mkdir -p ThirdParty/Blas
 cd ThirdParty/Blas

@@ -48,12 +48,16 @@
 #include "DcoBranchStrategyBilevel.hpp"
 
 #include "DcoConstraint.hpp"
+#include "DcoConicConstraint.hpp"
 #include "DcoHeurRound.hpp"
 #include "DcoModel.hpp"
 #include "DcoObjectInt.hpp"
 #include "DcoSolution.hpp"
 #include "DcoTreeNode.hpp"
 #include "DcoVariable.hpp"
+
+#include "CglConicOA.hpp"
+#include "DcoConicConGenerator.hpp"
 
 #define DISCO_MIN_SHARE_CON 5
 #define DISCO_MAX_SHARE_CON 25
@@ -321,7 +325,6 @@ void DcoModel::readInstance(const char* dataFile) {
   OsiConicSolverInterface * si = origLpSolver_;
   si->loadProblem(*colMatrix_, varLB_, varUB_, objCoef_,
   			     conLB_, conUB_);
-  createObjects();
   // read conic part
   int nOfCones = 0;
   int * coneStart = NULL;
@@ -385,7 +388,7 @@ void DcoModel::readInstance(const char* dataFile) {
   delete [] coneIdx;
   delete [] coneType;
   delete reader;
-
+  createObjects();
 
   // Generate and add conic cuts
   // if (isRoot) {
@@ -435,7 +438,7 @@ void DcoModel::createObjects() {
     var->setStatus(BCPS_NONREMOVALBE);
     var->setIntType(colType_[j]);
     variables_.push_back(var);
-    // todo(aykut) it seems memory allocated to var is never released.
+    // this is released in Bcps deconstructors.
     var = NULL;
   }
   for (int j=0; j<numRows_; ++j) {
@@ -465,6 +468,20 @@ void DcoModel::createObjects() {
       coneTypes_[j] = 1;
     }
   }
+  // add conic constraints as objects
+  for (int j=0; j<numCoreCones_; ++j) {
+    DcoConicConstraint *con = new DcoConicConstraint(coneSizes_[j],
+						     coneTypes_[j],
+						     coneMembers_[j]);
+    con->setObjectIndex(j+numRows_);
+    con->setRepType(BCPS_CORE);
+    con->setStatus(BCPS_NONREMOVALBE);
+    constraints_.push_back(con);
+    // memory for this will get released in ~BcpsConstraint since
+    // ~DcoConicConstraint is virtual.
+    con = NULL;
+  }
+
   // Set all objects as core by default.
   numCoreVariables_ = numCols_;
   numCoreConstraints_ = numRows_;
@@ -1151,6 +1168,17 @@ DcoModel::setupSelf()
 	addCutGenerator(twoMirCut, "Two MIR", twoMirStrategy, twoMirFreq);
     }
 
+#if defined(__COLA__)
+    //----------------------------------
+    // Add Outer approximation cut generator
+    //----------------------------------
+    CglConicCutGenerator * oa_gen = new CglConicOA();
+    DcoConGeneratorBase * dco_cg = new DcoConicConGenerator(this,
+					   oa_gen, "oa_gen");
+    addCutGenerator(dco_cg);
+    oa_gen = NULL;
+#endif
+
     //--------------------------------------------
     // Adjust cutStrategy_ according to the strategies of
     // each cut generators.
@@ -1439,7 +1467,7 @@ DcoModel::storeSolution(DcoSolutionType how, DcoSolution* sol)
 }
 
 //############################################################################
-
+// todo(aykut) rename it to createIntegerObjects not intger but integer.
 void
 DcoModel::createIntgerObjects(bool startAgain)
 {
@@ -1648,7 +1676,7 @@ DcoModel::gutsOfDestructor()
         std::cout << "MODEL: distructor: numCutGenerators = "
                   << numCutGenerators_ << std::endl;
 #endif
-        DcoConGenerator *temp = NULL;
+        DcoConGeneratorBase *temp = NULL;
         for (i = 0; i < numCutGenerators_; ++i) {
             temp = generators_[i];
             delete temp;
@@ -1821,6 +1849,19 @@ DcoModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
 
     numObjectInfs = numUnsatisfied - numIntegerInfs;
 
+    // check feasibility of conic constraints.
+    int start = numRows_;
+    int end = numRows_ + numCoreCones_;
+    for (j=start; j<end; j++) {
+      double infeas;
+      DcoConicConstraint const * con;
+      con = dynamic_cast<DcoConicConstraint*>(constraints_[j]);
+      infeas = con->infeasibility(this, preferredWay);
+      if (infeas) {
+	sumUnsatisfied += infeas;
+	numUnsatisfied++;
+      }
+    }
     if (broker_->getMsgLevel() > 200) {
 	std::cout << "FEASIBLE SOL: numUnsatisfied = "
 		  << numUnsatisfied << std::endl;
@@ -2018,10 +2059,10 @@ DcoModel::addCutGenerator(CglCutGenerator * generator,
 			   bool atSolution,
 			   bool whenInfeasible)
 {
-    DcoConGenerator ** temp = generators_;
+    DcoConGeneratorBase ** temp = generators_;
 
-    generators_ = new DcoConGenerator * [(numCutGenerators_ + 1)];
-    memcpy(generators_, temp, numCutGenerators_ * sizeof(DcoConGenerator *));
+    generators_ = new DcoConGeneratorBase * [(numCutGenerators_ + 1)];
+    memcpy(generators_, temp, numCutGenerators_ * sizeof(DcoConGeneratorBase *));
 
     generators_[numCutGenerators_++] =
         new DcoConGenerator(this, generator, name, strategy, freq,
@@ -2037,12 +2078,12 @@ DcoModel::addCutGenerator(CglCutGenerator * generator,
 //#############################################################################
 
 void
-DcoModel::addCutGenerator(DcoConGenerator * generator)
+DcoModel::addCutGenerator(DcoConGeneratorBase * generator)
 {
-    DcoConGenerator ** temp = generators_;
+    DcoConGeneratorBase ** temp = generators_;
 
-    generators_ = new DcoConGenerator * [(numCutGenerators_ + 1)];
-    memcpy(generators_, temp, numCutGenerators_ * sizeof(DcoConGenerator *));
+    generators_ = new DcoConGeneratorBase * [(numCutGenerators_ + 1)];
+    memcpy(generators_, temp, numCutGenerators_ * sizeof(DcoConGeneratorBase *));
 
     generators_[numCutGenerators_++] = generator;
 
@@ -2871,5 +2912,3 @@ DcoModel::unpackSharedVariables(AlpsEncoded &encoded)
 }
 
 //#############################################################################
-
-

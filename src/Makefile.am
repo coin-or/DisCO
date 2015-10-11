@@ -69,10 +69,16 @@ libDisco_la_SOURCES = \
 	DcoBranchStrategyStrong.hpp \
 	DcoBranchStrategyBilevel.cpp \
 	DcoBranchStrategyBilevel.hpp \
+	DcoConGeneratorBase.hpp \
+	DcoConGeneratorBase.cpp \
 	DcoConGenerator.cpp \
 	DcoConGenerator.hpp \
+	DcoConicConGenerator.cpp \
+	DcoConicConGenerator.hpp \
 	DcoConstraint.cpp \
 	DcoConstraint.hpp \
+	DcoConicConstraint.cpp \
+	DcoConicConstraint.hpp \
 	Dco.hpp \
 	DcoHelp.cpp \
 	DcoHelp.hpp \
@@ -140,8 +146,11 @@ includecoin_HEADERS = \
 	DcoBranchStrategyPseudo.hpp \
 	DcoBranchStrategyRel.hpp \
 	DcoBranchStrategyStrong.hpp \
+	DcoConGeneratorBase.hpp \
 	DcoConGenerator.hpp \
+	DcoConicConGenerator.hpp \
 	DcoConstraint.hpp \
+	DcoConicConstraint.hpp \
 	Dco.hpp \
 	DcoHelp.hpp \
 	DcoHeuristic.hpp \

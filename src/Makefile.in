@@ -96,9 +96,11 @@ am_libDisco_la_OBJECTS = DcoBranchObjectInt.lo \
 	DcoBranchObjectBilevel.lo DcoBranchStrategyMaxInf.lo \
 	DcoBranchStrategyPseudo.lo DcoBranchStrategyRel.lo \
 	DcoBranchStrategyStrong.lo DcoBranchStrategyBilevel.lo \
-	DcoConGenerator.lo DcoConstraint.lo DcoHelp.lo DcoHeurRound.lo \
-	DcoMessage.lo DcoModel.lo DcoObjectInt.lo DcoParams.lo \
-	DcoPresolve.lo DcoPseudo.lo DcoTreeNode.lo
+	DcoConGeneratorBase.lo DcoConGenerator.lo \
+	DcoConicConGenerator.lo DcoConstraint.lo DcoConicConstraint.lo \
+	DcoHelp.lo DcoHeurRound.lo DcoMessage.lo DcoModel.lo \
+	DcoObjectInt.lo DcoParams.lo DcoPresolve.lo DcoPseudo.lo \
+	DcoTreeNode.lo
 libDisco_la_OBJECTS = $(am_libDisco_la_OBJECTS)
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
@@ -377,10 +379,16 @@ libDisco_la_SOURCES = \
 	DcoBranchStrategyStrong.hpp \
 	DcoBranchStrategyBilevel.cpp \
 	DcoBranchStrategyBilevel.hpp \
+	DcoConGeneratorBase.hpp \
+	DcoConGeneratorBase.cpp \
 	DcoConGenerator.cpp \
 	DcoConGenerator.hpp \
+	DcoConicConGenerator.cpp \
+	DcoConicConGenerator.hpp \
 	DcoConstraint.cpp \
 	DcoConstraint.hpp \
+	DcoConicConstraint.cpp \
+	DcoConicConstraint.hpp \
 	Dco.hpp \
 	DcoHelp.cpp \
 	DcoHelp.hpp \
@@ -441,8 +449,11 @@ includecoin_HEADERS = \
 	DcoBranchStrategyPseudo.hpp \
 	DcoBranchStrategyRel.hpp \
 	DcoBranchStrategyStrong.hpp \
+	DcoConGeneratorBase.hpp \
 	DcoConGenerator.hpp \
+	DcoConicConGenerator.hpp \
 	DcoConstraint.hpp \
+	DcoConicConstraint.hpp \
 	Dco.hpp \
 	DcoHelp.hpp \
 	DcoHeuristic.hpp \
@@ -598,6 +609,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyRel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyStrong.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConGenerator.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConGeneratorBase.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConicConGenerator.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConicConstraint.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConstraint.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoHelp.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoHeurRound.Plo@am__quote@

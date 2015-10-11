@@ -241,7 +241,7 @@ protected:
   int maxNumCons_;
 
   /** The list of cut generators used. */
-  DcoConGenerator **generators_;
+  DcoConGeneratorBase **generators_;
 
   /** Store all the cuts. */
   BcpsConstraintPool *constraintPool_;
@@ -706,7 +706,7 @@ public:
   //------------------------------------------------------
 
   /** Add a Dco cut generator. */
-  void addCutGenerator(DcoConGenerator * generator);
+  void addCutGenerator(DcoConGeneratorBase * generator);
 
   /** Add a Cgl cut generator. */
   void addCutGenerator(CglCutGenerator * generator,
@@ -718,7 +718,7 @@ public:
 		       bool whenInfeasible = false);
 
   /** Get a specific cut generator. */
-  DcoConGenerator *cutGenerators(int i) const { return generators_[i]; }
+  DcoConGeneratorBase * cutGenerators(int i) const { return generators_[i]; }
 
   /** Get the number of cut generators. */
   int numCutGenerators() const { return numCutGenerators_; }

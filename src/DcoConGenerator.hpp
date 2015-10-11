@@ -32,7 +32,7 @@
 
 #include "OsiConicSolverInterface.hpp"
 #include "OsiCuts.hpp"
-
+#include "DcoConGeneratorBase.hpp"
 
 class DcoModel;
 
@@ -55,100 +55,29 @@ class CglCutGenerator;
     solution is found, and when a subproblem is found to be infeasible.
 */
 
-class DcoConGenerator  {
-
+class DcoConGenerator: virtual public DcoConGeneratorBase {
 protected:
-  /** The client model. */
-  DcoModel *model_;
-
   /** The CglCutGenerator object. */
   CglCutGenerator * generator_;
-
-  //------------------------------------------------------
-  // CON CONTROL
-  //------------------------------------------------------
-
-  /** When to call CglCutGenerator::generateCuts routine.
-      DcoCutStrategyNone:                    disable
-      DcoCutStrategyRoot:                    just root
-      DcoCutStrategyAuto:                    automatically decided by DISCO
-      DcoCutStrategyPeriodic:                Generate every 't' nodes
-  */
-  DcoCutStrategy strategy_;
-
-  /** The frequency of calls to the cut generator. */
-  int cutGenerationFrequency_;
-
-  /** Conic cut related **/
-  /** Conic cut strategy **/
-  DcoConicCutStrategy conicCutStrategy_;
-  /** The frequency of calls to the cut generator. */
-  int conicCutGenerationFrequency_;
-
-  /** Name of generator. */
-  std::string name_;
-
-  /** Whether to call the generator in the normal place. */
-  bool normal_;
-
-  /** Whether to call the generator when a new solution is found. */
-  bool atSolution_;
-
-  /** Whether to call generator when a subproblem is found to be
-      infeasible.*/
-  bool whenInfeasible_;
-
-  //------------------------------------------------------
-  // CON STATISTICS
-  //------------------------------------------------------
-
-  /** Number of cons generated. */
-  int numConsGenerated_;
-
-  /** Number of cons used. */
-  int numConsUsed_;
-
-  /** Used CPU/User time. */
-  double time_;
-
-  /** The times of calling this generator. */
-  int calls_;
-
-  /** The times of calling this generator and no cons found. */
-  int noConsCalls_;
-
 public:
-
   /**@name Constructors and destructors */
   //@{
   /** Default constructor. */
-  DcoConGenerator()
-    :
-    model_(NULL),
-    generator_(NULL),
-    strategy_(DcoCutStrategyAuto),
-    cutGenerationFrequency_(1),
-    conicCutStrategy_(DcoConicCutStrategyNone),
-    conicCutGenerationFrequency_(1),
-    normal_(true),
-    atSolution_(false),
-    whenInfeasible_(false),
-    numConsGenerated_(0),
-    numConsUsed_(0),
-    time_(0),
-    calls_(0),
-    noConsCalls_(0)
-  { name_ = "UNKNOWN"; }
-
+  DcoConGenerator() : DcoConGeneratorBase(),
+                      generator_(NULL) {}
   /** Useful constructor. */
   DcoConGenerator(DcoModel * model,
 		  CglCutGenerator * generator,
 		  const char * name = NULL,
 		  DcoCutStrategy strategy = DcoCutStrategyAuto,
-		  int cutGenerationFrequency_ = 1,
+		  int cutGenerationFrequency = 1,
 		  bool normal = true,
 		  bool atSolution = false,
-		  bool infeasible = false);
+		  bool infeasible = false)
+    : DcoConGeneratorBase(model, name, strategy, cutGenerationFrequency,
+                          normal, atSolution, infeasible) {
+    generator_ = generator;
+  }
 
   /** Copy constructor. */
   DcoConGenerator (const DcoConGenerator &);
@@ -165,7 +94,16 @@ public:
     }
   }
   //@}
-
+  /** \name Get methods */
+  //@{
+  //** Get cut generator
+  CglCutGenerator * generator() const { return generator_; }
+  //@}
+  /** \name Set methods */
+  //@{
+  //** Set cut generator
+  void setGenerator(CglCutGenerator * gen) { generator_ = gen; }
+  //@}
   /** \name Generate Constraints */
   //@{
   /** Generate cons for the client model.
@@ -180,94 +118,6 @@ public:
   virtual bool generateConstraints(BcpsConstraintPool &conPool);
   //@}
 
-  /**@name Gets and sets */
-  //@{
-  /** Set the client model.
-      In addition to setting the client model, refreshModel also calls
-      the \c refreshSolver method of the CglCutGenerator object.
-  */
-  /** Get a pointer to the model */
-  inline DcoModel *getModel() { return model_; }
-
-  /** Set the model */
-  inline void setModel(DcoModel *m) { model_ = m; }
-
-  /** Refresh the model */
-  void refreshModel(DcoModel * model);
-
-  /** return name of generator. */
-  void setName(const char *str) { name_ = str; }
-
-  /** return name of generator. */
-  inline std::string name() const { return name_; }
-
-  /** Set the con generation strategy. */
-  void setStrategy(DcoCutStrategy value) { strategy_ = value; }
-
-  /** Get the con generation interval. */
-  inline DcoCutStrategy strategy() const { return strategy_; }
-
-  /** Set the con generation strategy. */
-  void setCutGenerationFreq(int freq) { cutGenerationFrequency_ = freq; }
-
-  /** Get the con generation interval. */
-  inline int cutGenerationFreq() const { return cutGenerationFrequency_; }
-
-  /** Get whether the con generator should be called in the normal place. */
-  inline bool normal() const { return normal_; }
-
-  /** Set whether the con generator should be called in the normal place. */
-  inline void setNormal(bool value) { normal_ = value; }
-
-  /** Get whether the con generator should be called when a solution
-      is found. */
-  inline bool atSolution() const { return atSolution_; }
-
-  /** Set whether the con generator should be called when a solution
-      is found. */
-  inline void setAtSolution(bool value) { atSolution_ = value; }
-
-  /** Get whether the con generator should be called when the subproblem is
-      found to be infeasible. */
-  inline bool whenInfeasible() const { return whenInfeasible_; }
-
-  /** Set whether the con generator should be called when the subproblem is
-      found to be infeasible. */
-  inline void setWhenInfeasible(bool value) { whenInfeasible_ = value; }
-
-  /** Get the \c CglCutGenerator bound to this \c DcoConGenerator. */
-  inline CglCutGenerator * generator() const { return generator_; }
-
-  /** Get number of generated cons. */
-  inline int numConsGenerated() { return numConsGenerated_; }
-
-  /** Increase the number of generated cons. */
-  inline void addNumConsGenerated(int n) { numConsGenerated_ += n; }
-
-  /** Get number of used cons. */
-  inline int numConsUsed() { return numConsUsed_; }
-
-  /** Increase the number of generated cons. */
-  inline void addNumConsUsed(int n) { numConsUsed_ += n; }
-
-  /** Cpu time used. */
-  inline double time() const { return time_; }
-
-  /** Increase Cpu time used. */
-  inline void addTime(double t) { time_ += t; }
-
-  /** Number called. */
-  inline int calls() const { return calls_; }
-
-  /** Increase the number of called. */
-  inline void addCalls(int n=1) { calls_ += n; }
-
-  /** Number called and no cons found. */
-  inline int noConsCalls() const { return noConsCalls_; }
-
-  /** Increase the number of no cons called. */
-  inline void addNoConsCalls(int n=1) { noConsCalls_ += n; }
-  //@}
 };
 
 #endif
