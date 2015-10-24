@@ -305,7 +305,7 @@ void DcoModel::readInstance(const char* dataFile) {
   // AT Data read. Now we must
   // 1) check if presolve
   // 2) if presolve, create lp : lpSolver_->loadProblem(*colMatrix_,
-  //    varLB_, varUB_, 	   objCoef_,  conLB_, conUB_);
+  //    varLB_, varUB_,		   objCoef_,  conLB_, conUB_);
   // 3) call presolve
   // 4) post solve the presolvedLP. (not blis postprocess)
   // 5) update data so that we use use the presolved problem: numcol,
@@ -324,7 +324,7 @@ void DcoModel::readInstance(const char* dataFile) {
 
   OsiConicSolverInterface * si = origLpSolver_;
   si->loadProblem(*colMatrix_, varLB_, varUB_, objCoef_,
-  			     conLB_, conUB_);
+			     conLB_, conUB_);
   // read conic part
   int nOfCones = 0;
   int * coneStart = NULL;
@@ -500,7 +500,7 @@ void DcoModel::createObjects() {
  */
 void
 DcoModel::importModel(std::vector<DcoVariable *> vars,
-                       std::vector<DcoConstraint *> cons)
+		       std::vector<DcoConstraint *> cons)
 {
 
     CoinBigIndex i, j;
@@ -523,13 +523,13 @@ DcoModel::importModel(std::vector<DcoVariable *> vars,
 
     // Get numElems_ and colType_
     for (i = 0; i < numCols_; ++i) {
-        numElems_ += vars[i]->getSize();
-        colType_[i] = vars[i]->getIntType();
+	numElems_ += vars[i]->getSize();
+	colType_[i] = vars[i]->getIntType();
     }
 
 #if 0
     std::cout << "numCols_ = " << numCols_
-              << "; numRows_ = " << numRows_ << std::endl;
+	      << "; numRows_ = " << numRows_ << std::endl;
 #endif
 
     //------------------------------------------------------
@@ -544,42 +544,42 @@ DcoModel::importModel(std::vector<DcoVariable *> vars,
 
     // Get varLB_, varUB_, objCoef_, and matrix from variables
     for (numElems_ = 0, i = 0; i < numCols_; ++i) {
-        varLB_[i] = vars[i]->getLbHard();
-        varUB_[i] = vars[i]->getUbHard();
-        objCoef_[i] = vars[i]->getObjCoef();
+	varLB_[i] = vars[i]->getLbHard();
+	varUB_[i] = vars[i]->getUbHard();
+	objCoef_[i] = vars[i]->getObjCoef();
 
-        start[i] = numElems_;
+	start[i] = numElems_;
 
-        varValues = vars[i]->getValues();
-        varIndices = vars[i]->getIndices();
-        size = vars[i]->getSize();
-        for (j = 0; j < size; ++j, ++numElems_){
-            indices[numElems_] = varIndices[j];
-            values[numElems_] = varValues[j];
-        }
+	varValues = vars[i]->getValues();
+	varIndices = vars[i]->getIndices();
+	size = vars[i]->getSize();
+	for (j = 0; j < size; ++j, ++numElems_){
+	    indices[numElems_] = varIndices[j];
+	    values[numElems_] = varValues[j];
+	}
     }
 
     // Last position.
     start[numCols_] = numElems_;
 
     for (k = 0; k < numCols_; ++k) {
-        length[k] = start[(k+1)] - start[k];
+	length[k] = start[(k+1)] - start[k];
     }
 
     colMatrix_ =  new CoinPackedMatrix(true, // column-majored
-                                       numRows_,
-                                       numCols_,
-                                       numElems_,
-                                       values,
-                                       indices,
-                                       start,
-                                       length);
+				       numRows_,
+				       numCols_,
+				       numElems_,
+				       values,
+				       indices,
+				       start,
+				       length);
 
 
     // Get conLB_ and conUB_
     for (k = 0; k < numRows_; ++k) {
-        conLB_[k] = cons[k]->getLbHard();
-        conUB_[k] = cons[k]->getUbHard();
+	conLB_[k] = cons[k]->getLbHard();
+	conUB_[k] = cons[k]->getUbHard();
     }
 
     //------------------------------------------------------
@@ -587,11 +587,11 @@ DcoModel::importModel(std::vector<DcoVariable *> vars,
     //------------------------------------------------------
 
     for (k = 0; k < numCols_; ++k) {
-        variables_.push_back(vars[k]);
+	variables_.push_back(vars[k]);
     }
 
     for (k = 0; k < numRows_; ++k) {
-        constraints_.push_back(cons[k]);
+	constraints_.push_back(cons[k]);
     }
 
     //------------------------------------------------------
@@ -629,11 +629,11 @@ void
 DcoModel::writeParameters(std::ostream& outstream) const
 {
     outstream << "\n================================================"
-              <<std::endl;
+	      <<std::endl;
     outstream << "ALPS Parameters: " << std::endl;
     AlpsPar_->writeToStream(outstream);
     outstream << "\n================================================"
-              <<std::endl;
+	      <<std::endl;
     outstream << "DISCO Parameters: " << std::endl;
     DcoPar_->writeToStream(outstream);
 }
@@ -652,7 +652,7 @@ DcoModel::setupSelf()
     blisMessageHandler_->setLogLevel(broker_->getMsgLevel());
 
     if (broker_->getMsgLevel() > 0) {
-        if (broker_->getProcRank() == broker_->getMasterRank()) {
+	if (broker_->getProcRank() == broker_->getMasterRank()) {
 	   if (strcmp(BCPS_VERSION, "trunk")){
 	      std::cout << "Bcps Version: " << BCPS_VERSION << std::endl;
 	   }else{
@@ -669,7 +669,7 @@ DcoModel::setupSelf()
 #ifdef DISCO_SVN_REV
 	   std::cout << "Dco Revision Number: " << DISCO_SVN_REV << std::endl;
 #endif
-        }
+	}
     }
 
     //------------------------------------------------------
@@ -685,14 +685,14 @@ DcoModel::setupSelf()
 
     for(j = 0; j < numCols_; ++j) {
 	if (colType_[j] == 'I' || colType_[j] == 'B') {
-            intColIndices_[numIntObjects_++] = j;
+	    intColIndices_[numIntObjects_++] = j;
 	}
     }
     if (numIntObjects_ == 0) {
-        if (broker_->getMsgLevel() > 0) {
-            bcpsMessageHandler_->message(DISCO_W_LP, blisMessages())
-                << CoinMessageEol;
-        }
+	if (broker_->getMsgLevel() > 0) {
+	    bcpsMessageHandler_->message(DISCO_W_LP, blisMessages())
+		<< CoinMessageEol;
+	}
     }
 
     //------------------------------------------------------
@@ -700,16 +700,16 @@ DcoModel::setupSelf()
     //------------------------------------------------------
 
     if (!lpSolver_) {
-        // preprocessing causes this check.
-        lpSolver_ = origLpSolver_;
+	// preprocessing causes this check.
+	lpSolver_ = origLpSolver_;
     }
 
     //AT here problem is set for first time for lp solver -> should be moved to read problem??
     if(!presolved)
-        lpSolver_->loadProblem(*colMatrix_,
-                               varLB_, varUB_,
-                               objCoef_,
-                               conLB_, conUB_);
+	lpSolver_->loadProblem(*colMatrix_,
+			       varLB_, varUB_,
+			       objCoef_,
+			       conLB_, conUB_);
 
     lpSolver_->setObjSense(1.0);
     lpSolver_->setInteger(intColIndices_, numIntObjects_);
@@ -777,53 +777,53 @@ DcoModel::setupSelf()
     int brStrategy = DcoPar_->entry(DcoParams::branchStrategy);
 
     if (brStrategy == DcoBranchingStrategyMaxInfeasibility) {
-        // Max inf
-        branchStrategy_ = new DcoBranchStrategyMaxInf(this);
+	// Max inf
+	branchStrategy_ = new DcoBranchStrategyMaxInf(this);
     }
     else if (brStrategy == DcoBranchingStrategyPseudoCost) {
-        // Pseudocost
-        branchStrategy_ = new DcoBranchStrategyPseudo(this, 1);
+	// Pseudocost
+	branchStrategy_ = new DcoBranchStrategyPseudo(this, 1);
     }
     else if (brStrategy == DcoBranchingStrategyReliability) {
-        // Relibility
-        branchStrategy_ = new DcoBranchStrategyRel(this, relibility);
+	// Relibility
+	branchStrategy_ = new DcoBranchStrategyRel(this, relibility);
     }
     else if (brStrategy == DcoBranchingStrategyStrong) {
-        // Strong
-        branchStrategy_ = new DcoBranchStrategyStrong(this);
+	// Strong
+	branchStrategy_ = new DcoBranchStrategyStrong(this);
     }
     else if (brStrategy == DcoBranchingStrategyBilevel) {
-        // Bilevel
-        branchStrategy_ = new DcoBranchStrategyBilevel(this);
+	// Bilevel
+	branchStrategy_ = new DcoBranchStrategyBilevel(this);
     }
     else {
-        throw CoinError("Unknown branch strategy.", "setupSelf","DcoModel");
+	throw CoinError("Unknown branch strategy.", "setupSelf","DcoModel");
     }
 
     brStrategy = DcoPar_->entry(DcoParams::branchStrategyRampUp);
 
     if (brStrategy == DcoBranchingStrategyMaxInfeasibility) {
-        // Max inf
+	// Max inf
       rampUpBranchStrategy_ = new DcoBranchStrategyMaxInf(this);
     }
     else if (brStrategy == DcoBranchingStrategyPseudoCost) {
-        // Pseudocost
-        rampUpBranchStrategy_ = new DcoBranchStrategyPseudo(this, 1);
+	// Pseudocost
+	rampUpBranchStrategy_ = new DcoBranchStrategyPseudo(this, 1);
     }
     else if (brStrategy == DcoBranchingStrategyReliability) {
-        // Relibility
-        rampUpBranchStrategy_ = new DcoBranchStrategyRel(this, relibility);
+	// Relibility
+	rampUpBranchStrategy_ = new DcoBranchStrategyRel(this, relibility);
     }
     else if (brStrategy == DcoBranchingStrategyStrong) {
-        // Strong
-        rampUpBranchStrategy_ = new DcoBranchStrategyStrong(this);
+	// Strong
+	rampUpBranchStrategy_ = new DcoBranchStrategyStrong(this);
     }
     else if (brStrategy == DcoBranchingStrategyBilevel) {
-        // Bilevel
-        rampUpBranchStrategy_ = new DcoBranchStrategyBilevel(this);
+	// Bilevel
+	rampUpBranchStrategy_ = new DcoBranchStrategyBilevel(this);
     }
     else {
-        throw CoinError("Unknown branch strategy.", "setupSelf","DcoModel");
+	throw CoinError("Unknown branch strategy.", "setupSelf","DcoModel");
     }
 
     //------------------------------------------------------
@@ -839,27 +839,27 @@ DcoModel::setupSelf()
     int callFreq = 1;
 
     if (heurRoundStrategy == DcoHeurStrategyNotSet) {
-        heurRoundStrategy = heurStrategy_;
+	heurRoundStrategy = heurStrategy_;
 	callFreq = heurCallFrequency_;
     }
     if (heurRoundStrategy != DcoHeurStrategyNone &&
 	heurRoundStrategy != DcoHeurStrategyNotSet) {
-        // Add rounding heuristic
-        DcoHeurRound *heurRound = new DcoHeurRound(this,
-                                                     "Rounding",
-                                                     heurRoundStrategy,
+	// Add rounding heuristic
+	DcoHeurRound *heurRound = new DcoHeurRound(this,
+						     "Rounding",
+						     heurRoundStrategy,
 						     callFreq);
-        addHeuristic(heurRound);
+	addHeuristic(heurRound);
     }
 
     // Adjust heurStrategy
     for (j = 0; j < numHeuristics_; ++j) {
-        if (heuristics_[j]->strategy() != DcoHeurStrategyNone) {
-            // Doesn't matter what's the strategy, we just want to
-            // call heuristics.
-            heurStrategy_ = DcoHeurStrategyAuto;
-            break;
-        }
+	if (heuristics_[j]->strategy() != DcoHeurStrategyNone) {
+	    // Doesn't matter what's the strategy, we just want to
+	    // call heuristics.
+	    heurStrategy_ = DcoHeurStrategyAuto;
+	    break;
+	}
     }
 
     //------------------------------------------------------
@@ -890,12 +890,12 @@ DcoModel::setupSelf()
     }
     stdLen = sqrt(sumLen/numRows_);
     if (denseConFactor > 10e5) {
-        denseConCutoff_ = ALPS_INT_MAX;
+	denseConCutoff_ = ALPS_INT_MAX;
     }
     else {
-        denseConCutoff_ = static_cast<int>(aveLen + denseConFactor*stdLen);
-        denseConCutoff_ = ALPS_MIN(numCols_/2, denseConCutoff_);
-        denseConCutoff_ = ALPS_MAX(100, denseConCutoff_);
+	denseConCutoff_ = static_cast<int>(aveLen + denseConFactor*stdLen);
+	denseConCutoff_ = ALPS_MIN(numCols_/2, denseConCutoff_);
+	denseConCutoff_ = ALPS_MAX(100, denseConCutoff_);
     }
 
 #ifdef DISCO_DEBUG
@@ -908,12 +908,12 @@ DcoModel::setupSelf()
     double cutFactor = DcoPar_->entry(DcoParams::cutFactor);
 
     if (cutFactor > 1.0e5) {
-        maxNumCons_ = ALPS_INT_MAX;
+	maxNumCons_ = ALPS_INT_MAX;
 	// old constraint size will automatically double if no space.
 	oldConstraintsSize_ = 10000;
     }
     else {
-        maxNumCons_ = (int)((cutFactor - 1.0) * numRows_);
+	maxNumCons_ = (int)((cutFactor - 1.0) * numRows_);
 	oldConstraintsSize_ = maxNumCons_;
     }
 
@@ -988,7 +988,7 @@ DcoModel::setupSelf()
     //----------------------------------
 
     if (probeStrategy == DcoCutStrategyNotSet) {
-        // Disable by default
+	// Disable by default
 	if (cutStrategy_ == DcoCutStrategyNotSet) {
 	    probeStrategy = DcoCutStrategyNone;
 	}
@@ -1001,19 +1001,19 @@ DcoModel::setupSelf()
 	}
     }
     if (probeStrategy != DcoCutStrategyNone) {
-        CglProbing *probing = new CglProbing;
-        probing->setUsingObjective(true);
-        probing->setMaxPass(1);
-        probing->setMaxPassRoot(5);
-        // Number of unsatisfied variables to look at
-        probing->setMaxProbe(10);
-        probing->setMaxProbeRoot(1000);
-        // How far to follow the consequences
-        probing->setMaxLook(50);
-        probing->setMaxLookRoot(500);
-        // Only look at rows with fewer than this number of elements
-        probing->setMaxElements(200);
-        probing->setRowCuts(3);
+	CglProbing *probing = new CglProbing;
+	probing->setUsingObjective(true);
+	probing->setMaxPass(1);
+	probing->setMaxPassRoot(5);
+	// Number of unsatisfied variables to look at
+	probing->setMaxProbe(10);
+	probing->setMaxProbeRoot(1000);
+	// How far to follow the consequences
+	probing->setMaxLook(50);
+	probing->setMaxLookRoot(500);
+	// Only look at rows with fewer than this number of elements
+	probing->setMaxElements(200);
+	probing->setRowCuts(3);
 	addCutGenerator(probing, "Probing", probeStrategy, probeFreq);
     }
 
@@ -1022,7 +1022,7 @@ DcoModel::setupSelf()
     //----------------------------------
 
     if (cliqueStrategy == DcoCutStrategyNotSet) {
-        // Only at root by default
+	// Only at root by default
 	if (cutStrategy_ == DcoCutStrategyNotSet) {
 	    cliqueStrategy = DcoCutStrategyRoot;
 	}
@@ -1035,9 +1035,9 @@ DcoModel::setupSelf()
 	}
     }
     if (cliqueStrategy != DcoCutStrategyNone) {
-        CglClique *cliqueCut = new CglClique ;
-        cliqueCut->setStarCliqueReport(false);
-        cliqueCut->setRowCliqueReport(false);
+	CglClique *cliqueCut = new CglClique ;
+	cliqueCut->setStarCliqueReport(false);
+	cliqueCut->setRowCliqueReport(false);
 	addCutGenerator(cliqueCut, "Clique", cliqueStrategy, cliqueFreq);
     }
 
@@ -1059,11 +1059,11 @@ DcoModel::setupSelf()
 	}
     }
     if (oddHoleStrategy != DcoCutStrategyNone) {
-        CglOddHole *oldHoleCut = new CglOddHole;
-        oldHoleCut->setMinimumViolation(0.005);
-        oldHoleCut->setMinimumViolationPer(0.00002);
-        // try larger limit
-        oldHoleCut->setMaximumEntries(200);
+	CglOddHole *oldHoleCut = new CglOddHole;
+	oldHoleCut->setMinimumViolation(0.005);
+	oldHoleCut->setMinimumViolationPer(0.00002);
+	// try larger limit
+	oldHoleCut->setMaximumEntries(200);
 	addCutGenerator(oldHoleCut, "OddHole",oddHoleStrategy,oddHoleFreq);
     }
 
@@ -1085,7 +1085,7 @@ DcoModel::setupSelf()
 	}
     }
     if (fCoverStrategy != DcoCutStrategyNone) {
-        CglFlowCover *flowGen = new CglFlowCover;
+	CglFlowCover *flowGen = new CglFlowCover;
 	addCutGenerator(flowGen, "Flow Cover", fCoverStrategy, fCoverFreq);
     }
 
@@ -1107,7 +1107,7 @@ DcoModel::setupSelf()
 	}
     }
     if (knapStrategy != DcoCutStrategyNone) {
-        CglKnapsackCover *knapCut = new CglKnapsackCover;
+	CglKnapsackCover *knapCut = new CglKnapsackCover;
 	addCutGenerator(knapCut, "Knapsack", knapStrategy, knapFreq);
     }
 
@@ -1129,7 +1129,7 @@ DcoModel::setupSelf()
 	}
     }
     if (mirStrategy != DcoCutStrategyNone) {
-        CglMixedIntegerRounding2 *mixedGen = new CglMixedIntegerRounding2;
+	CglMixedIntegerRounding2 *mixedGen = new CglMixedIntegerRounding2;
 	addCutGenerator(mixedGen, "MIR", mirStrategy, mirFreq);
     }
 
@@ -1151,9 +1151,9 @@ DcoModel::setupSelf()
 	}
     }
     if (gomoryStrategy != DcoCutStrategyNone) {
-        CglGomory *gomoryCut = new CglGomory;
-        // try larger limit
-        gomoryCut->setLimit(300);
+	CglGomory *gomoryCut = new CglGomory;
+	// try larger limit
+	gomoryCut->setLimit(300);
 	addCutGenerator(gomoryCut, "Gomory", gomoryStrategy, gomoryFreq);
     }
 
@@ -1164,7 +1164,7 @@ DcoModel::setupSelf()
     // Disable forever, not useful.
     twoMirStrategy = DcoCutStrategyNone;
     if (twoMirStrategy != DcoCutStrategyNone) {
-        CglTwomir *twoMirCut =  new CglTwomir;
+	CglTwomir *twoMirCut =  new CglTwomir;
 	addCutGenerator(twoMirCut, "Two MIR", twoMirStrategy, twoMirFreq);
     }
 
@@ -1198,12 +1198,12 @@ DcoModel::setupSelf()
 	    // All cut generators has same strategy.
 	    cutStrategy_ = strategy0;
 	}
-        else {
-            // Assume to generate cons at each node since generators
+	else {
+	    // Assume to generate cons at each node since generators
 	    // has various strategies.
-            cutStrategy_ = DcoCutStrategyPeriodic;
+	    cutStrategy_ = DcoCutStrategyPeriodic;
 	    cutGenerationFrequency_ = 1;
-        }
+	}
     }
 
     // adjust conic cut strategy
@@ -1225,13 +1225,13 @@ DcoModel::setupSelf()
     double DSEED2 = 2147483647.0;
 
     for (j = 0; j < numCols_; ++j) {
-        deseed *= 16807.0;
-        int jseed = (int) (deseed / DSEED2);
-        deseed -= (double) jseed * DSEED2;
-        double random = deseed / DSEED2;
-        conRandoms_[j] = random;
-        //std::cout << "conRandoms_[" << j << "]="
-        //      <<conRandoms_[j]<< std::endl;
+	deseed *= 16807.0;
+	int jseed = (int) (deseed / DSEED2);
+	deseed -= (double) jseed * DSEED2;
+	double random = deseed / DSEED2;
+	conRandoms_[j] = random;
+	//std::cout << "conRandoms_[" << j << "]="
+	//      <<conRandoms_[j]<< std::endl;
     }
 
 
@@ -1242,8 +1242,8 @@ DcoModel::setupSelf()
 
 // AT - Begin
 void DcoModel::presolveForTheWholeTree() {
- 	 //if (!lpSolver_) {
-        // preprocessing causes this check.
+	 //if (!lpSolver_) {
+	// preprocessing causes this check.
      //   lpSolver_ = origLpSolver_;
     //}
     int numPasses = 50;
@@ -1289,12 +1289,12 @@ void DcoModel::presolveForTheWholeTree() {
     memcpy(conUB_, presolvedLpSolver_->getRowUpper(), sizeof(double) * numRows_);
 
 		 if (objSense_ > 0.0) {
-        memcpy(objCoef_, presolvedLpSolver_->getObjCoefficients(), sizeof(double) * numCols_);
+	memcpy(objCoef_, presolvedLpSolver_->getObjCoefficients(), sizeof(double) * numCols_);
     }
     else {
-        const double *mpsObj =  presolvedLpSolver_->getObjCoefficients();
-        for (int j = 0; j < numCols_; ++j) {
-            objCoef_[j] = - mpsObj[j];
+	const double *mpsObj =  presolvedLpSolver_->getObjCoefficients();
+	for (int j = 0; j < numCols_; ++j) {
+	    objCoef_[j] = - mpsObj[j];
 
 		}
     }
@@ -1407,60 +1407,60 @@ DcoModel::storeSolution(DcoSolutionType how, DcoSolution* sol)
 
     // Store in pool, assume minimization.
     getKnowledgeBroker()->addKnowledge(AlpsKnowledgeTypeSolution,
-                                       sol,
-                                       objSense_ * sol->getQuality());
+				       sol,
+				       objSense_ * sol->getQuality());
 #if 0
-        std::cout << "Found a better solution"
-                  <<", old cutoff = " << cutoff
-                  << ", new cutoff = " << getCutoff()  << std::endl;
+	std::cout << "Found a better solution"
+		  <<", old cutoff = " << cutoff
+		  << ", new cutoff = " << getCutoff()  << std::endl;
 #endif
 
     // Record how the solution was found
     switch (how) {
     case DcoSolutionTypeBounding:
 #ifdef DISCO_DEBUG
-        std::cout << "Rounding heuristics found a better solution"
-                  <<", old cutoff = " << cutoff
-                  << ", new cutoff = " << getCutoff()  << std::endl;
+	std::cout << "Rounding heuristics found a better solution"
+		  <<", old cutoff = " << cutoff
+		  << ", new cutoff = " << getCutoff()  << std::endl;
 #endif
-        break;
+	break;
     case DcoSolutionTypeBranching:
 #ifdef DISCO_DEBUG
-        std::cout << "Branching found a better solution"
-                  <<", old cutoff = " << cutoff
-                  << ", new cutoff = " << getCutoff()  << std::endl;
+	std::cout << "Branching found a better solution"
+		  <<", old cutoff = " << cutoff
+		  << ", new cutoff = " << getCutoff()  << std::endl;
 #endif
-        break;
+	break;
     case DcoSolutionTypeDiving:
-        ++numHeurSolutions_;
+	++numHeurSolutions_;
 #ifdef DISCO_DEBUG
-        std::cout << "Branching found a better solution"
-                  <<", old cutoff = " << cutoff
-                  << ", new cutoff = " << getCutoff()  << std::endl;
+	std::cout << "Branching found a better solution"
+		  <<", old cutoff = " << cutoff
+		  << ", new cutoff = " << getCutoff()  << std::endl;
 #endif
-        break;
+	break;
     case DcoSolutionTypeHeuristic:
-        ++numHeurSolutions_;
-        if (broker_->getMsgLevel() > 200) {
-            std::cout << "Heuristics found a better solution"
-                      <<", old cutoff = " << cutoff
-                      << ", new cutoff = " << getCutoff()  << std::endl;
-        }
-        break;
+	++numHeurSolutions_;
+	if (broker_->getMsgLevel() > 200) {
+	    std::cout << "Heuristics found a better solution"
+		      <<", old cutoff = " << cutoff
+		      << ", new cutoff = " << getCutoff()  << std::endl;
+	}
+	break;
     case DcoSolutionTypeStrong:
 #ifdef DISCO_DEBUG
-        std::cout << "Strong branching found a better solution"
-                  <<", old cutoff = " << cutoff
-                  << ", new cutoff = " << getCutoff()  << std::endl;
+	std::cout << "Strong branching found a better solution"
+		  <<", old cutoff = " << cutoff
+		  << ", new cutoff = " << getCutoff()  << std::endl;
 #endif
-        break;
+	break;
     default:
 #ifdef DISCO_DEBUG
-        std::cout << "Nowhere found a better solution"
-                  <<", old cutoff = " << cutoff
-                  << ", new cutoff = " << getCutoff()  << std::endl;
+	std::cout << "Nowhere found a better solution"
+		  <<", old cutoff = " << cutoff
+		  << ", new cutoff = " << getCutoff()  << std::endl;
 #endif
-        break;
+	break;
     }
 
     return AlpsReturnStatusOk;
@@ -1483,7 +1483,7 @@ DcoModel::createIntgerObjects(bool startAgain)
     DcoObjectInt *intObject = NULL;
 
     if (intColIndices_) {
-        delete [] intColIndices_;
+	delete [] intColIndices_;
     }
     numIntObjects_ = 0;
 
@@ -1493,7 +1493,7 @@ DcoModel::createIntgerObjects(bool startAgain)
 
 #if 0
     std::cout << "==== findInteger: numIntObjects_ = "
-              << numIntObjects_ << std::endl;
+	      << numIntObjects_ << std::endl;
 #endif
 
     double weight = DcoPar_->entry(DcoParams::pseudoWeight);
@@ -1508,15 +1508,15 @@ DcoModel::createIntgerObjects(bool startAgain)
 
 	if (obj) {
 	    delete oldObject[iObject];
-        }
+	}
 	else {
 	    oldObject[numObjects++] = oldObject[iObject];
-        }
+	}
     }
 
     if (!intObjIndices_) {
-        intObjIndices_ = new int [numCols];
-        memset(intObjIndices_, 0, sizeof(int) * numCols);
+	intObjIndices_ = new int [numCols];
+	memset(intObjIndices_, 0, sizeof(int) * numCols);
     }
 
     objects_ = new BcpsObject * [(numIntObjects_ + numObjects)];
@@ -1531,20 +1531,20 @@ DcoModel::createIntgerObjects(bool startAgain)
 	if(lpSolver_->isInteger(iCol)) {
 
 	    intObject = new DcoObjectInt(numIntObjects_,
-                                          iCol,
-                                          colLB[iCol],
-                                          colUB[iCol]);
-            intObject->pseudocost().setWeight(weight);
+					  iCol,
+					  colLB[iCol],
+					  colUB[iCol]);
+	    intObject->pseudocost().setWeight(weight);
 
 	    intObjIndices_[iCol] = numIntObjects_;
-            objects_[numIntObjects_] = intObject;
+	    objects_[numIntObjects_] = intObject;
 	    intColIndices_[numIntObjects_++] = iCol;
 	}
     }
 
     if (numIntObjects_) {
-        sharedObjectMark_ = new char [numIntObjects_];
-        memset(sharedObjectMark_, 0, sizeof(char) * numIntObjects_);
+	sharedObjectMark_ = new char [numIntObjects_];
+	memset(sharedObjectMark_, 0, sizeof(char) * numIntObjects_);
     }
 
     // Now append other objects
@@ -1562,7 +1562,7 @@ DcoModel::resolve()
     lpSolver_->resolve();
     numIterations_ += lpSolver_->getIterationCount();
     bool feasible = (lpSolver_->isProvenOptimal() &&
-                     !lpSolver_->isDualObjectiveLimitReached());
+		     !lpSolver_->isDualObjectiveLimitReached());
 
     return feasible;
 }
@@ -1657,32 +1657,32 @@ DcoModel::gutsOfDestructor()
 
     if (numHeuristics_ > 0) {
 #ifdef DISCO_DEBUG
-        std::cout << "MODEL: distructor: numHeuristics =  "
-                  << numHeuristics_ << std::endl;
+	std::cout << "MODEL: distructor: numHeuristics =  "
+		  << numHeuristics_ << std::endl;
 #endif
-        DcoHeuristic *tempH = NULL;
+	DcoHeuristic *tempH = NULL;
 
-        for (i = 0; i < numHeuristics_; ++i) {
-            tempH = heuristics_[i];
-            delete tempH;
-        }
+	for (i = 0; i < numHeuristics_; ++i) {
+	    tempH = heuristics_[i];
+	    delete tempH;
+	}
 
-        delete [] heuristics_;
-        heuristics_ = NULL;
+	delete [] heuristics_;
+	heuristics_ = NULL;
     }
 
     if (generators_ != NULL) {
 #ifdef DISCO_DEBUG
-        std::cout << "MODEL: distructor: numCutGenerators = "
-                  << numCutGenerators_ << std::endl;
+	std::cout << "MODEL: distructor: numCutGenerators = "
+		  << numCutGenerators_ << std::endl;
 #endif
-        DcoConGeneratorBase *temp = NULL;
-        for (i = 0; i < numCutGenerators_; ++i) {
-            temp = generators_[i];
-            delete temp;
-        }
-        delete [] generators_;
-        generators_ = NULL;
+	DcoConGeneratorBase *temp = NULL;
+	for (i = 0; i < numCutGenerators_; ++i) {
+	    temp = generators_[i];
+	    delete temp;
+	}
+	delete [] generators_;
+	generators_ = NULL;
     }
 
     delete constraintPool_;
@@ -1725,78 +1725,78 @@ DcoModel::feasibleSolutionHeur(const double *solution)
 
     // Check if within column bounds
     for (j = 0; j < numCols_; ++j) {
-        value = solution[j];
-        if (varLB_[j] > -ALPS_INFINITY) {
-            if (value < varLB_[j] - tol) {
-                feasible = false;
-                goto TERM_FEAS_HEUR;
-            }
-        }
-        if (varUB_[j] < ALPS_INFINITY) {
-            if (value > varUB_[j] + tol) {
-                feasible = false;
-                goto TERM_FEAS_HEUR;
-            }
-        }
-        objValue += value * objCoef_[j];
+	value = solution[j];
+	if (varLB_[j] > -ALPS_INFINITY) {
+	    if (value < varLB_[j] - tol) {
+		feasible = false;
+		goto TERM_FEAS_HEUR;
+	    }
+	}
+	if (varUB_[j] < ALPS_INFINITY) {
+	    if (value > varUB_[j] + tol) {
+		feasible = false;
+		goto TERM_FEAS_HEUR;
+	    }
+	}
+	objValue += value * objCoef_[j];
     }
 
     if (broker_->getMsgLevel() > 200) {
-        std::cout << "FEASIBLE HEUR: numCols = " << numCols_
-                  << " ; pass column bound check." << std::endl;
+	std::cout << "FEASIBLE HEUR: numCols = " << numCols_
+		  << " ; pass column bound check." << std::endl;
     }
 
     // Check if integeral
     for (j = 0; j < numIntObjects_; ++j) {
-        ind = intColIndices_[j];
-        value = solution[ind];
-        //std::cout << "ind = " << ind << " ; value = " << value << std::endl;
+	ind = intColIndices_[j];
+	value = solution[ind];
+	//std::cout << "ind = " << ind << " ; value = " << value << std::endl;
 
-        nearest = static_cast<int>(value + 0.5);
-        if (fabs(value - nearest) > integerTol_) {
-            feasible = false;
-            goto TERM_FEAS_HEUR;
-        }
+	nearest = static_cast<int>(value + 0.5);
+	if (fabs(value - nearest) > integerTol_) {
+	    feasible = false;
+	    goto TERM_FEAS_HEUR;
+	}
     }
 
     if (broker_->getMsgLevel() > 200) {
-        std::cout << "FEASIBLE HEUR: numInts = " << numIntObjects_
-                  << " ; pass integral check." << std::endl;
+	std::cout << "FEASIBLE HEUR: numInts = " << numIntObjects_
+		  << " ; pass integral check." << std::endl;
     }
 
     // Check if within row bounds
     rowAct = new double [numRows_];
     colMatrix_->times(solution, rowAct);
     for (j = 0; j < numRows_; ++j) {
-        value = rowAct[j];
-        if (conLB_[j] > -ALPS_INFINITY) {
-            if (value < conLB_[j] - tol) {
-                feasible = false;
-                goto TERM_FEAS_HEUR;
-            }
-        }
-        if (conUB_[j] < ALPS_INFINITY) {
-            if (value > conUB_[j] + tol) {
-                feasible = false;
-                goto TERM_FEAS_HEUR;
-            }
-        }
+	value = rowAct[j];
+	if (conLB_[j] > -ALPS_INFINITY) {
+	    if (value < conLB_[j] - tol) {
+		feasible = false;
+		goto TERM_FEAS_HEUR;
+	    }
+	}
+	if (conUB_[j] < ALPS_INFINITY) {
+	    if (value > conUB_[j] + tol) {
+		feasible = false;
+		goto TERM_FEAS_HEUR;
+	    }
+	}
     }
 
     if (broker_->getMsgLevel() > 200) {
-        std::cout << "FEASIBLE HEUR: numRows = " << numRows_
-                  << " ; pass row bounds check." << std::endl;
+	std::cout << "FEASIBLE HEUR: numRows = " << numRows_
+		  << " ; pass row bounds check." << std::endl;
     }
 
 TERM_FEAS_HEUR:
 
     // Check if satisfy user criteria
     if (feasible) {
-        blisSol = userFeasibleSolution(solution, userFeasible);
+	blisSol = userFeasibleSolution(solution, userFeasible);
 
-        if (broker_->getMsgLevel() > 200 && blisSol && userFeasible) {
-            std::cout << "FEASIBLE HEUR: pass user feasibility check." << std::endl;
-        }
+	if (broker_->getMsgLevel() > 200 && blisSol && userFeasible) {
+	    std::cout << "FEASIBLE HEUR: pass user feasibility check." << std::endl;
+	}
 
 	if (!blisSol && userFeasible) {
 	    // User doesn't provide feasibility check.
@@ -1805,8 +1805,8 @@ TERM_FEAS_HEUR:
     }
 
     if (feasible && userFeasible && !blisSol) {
-        // User doesn't overload feasible solution function.
-        blisSol = new DcoSolution(getNumCols(), solution, objValue);
+	// User doesn't overload feasible solution function.
+	blisSol = new DcoSolution(getNumCols(), solution, objValue);
     }
 
     if (rowAct) delete [] rowAct;
@@ -1846,9 +1846,6 @@ DcoModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
 	    sumUnsatisfied += infeasibility;
 	}
     }
-
-    numObjectInfs = numUnsatisfied - numIntegerInfs;
-
     // check feasibility of conic constraints.
     int start = numRows_;
     int end = numRows_ + numCoreCones_;
@@ -1862,16 +1859,17 @@ DcoModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
 	numUnsatisfied++;
       }
     }
+    numObjectInfs = numUnsatisfied - numIntegerInfs;
     if (broker_->getMsgLevel() > 200) {
 	std::cout << "FEASIBLE SOL: numUnsatisfied = "
 		  << numUnsatisfied << std::endl;
     }
 
     if (!numUnsatisfied) {
-        sol = userFeasibleSolution(getLpSolution(), userFeasible);
-        if (broker_->getMsgLevel() > 200 && sol && userFeasible) {
-            std::cout << "FEASIBLE HEUR: pass user feasibility check." << std::endl;
-        }
+	sol = userFeasibleSolution(getLpSolution(), userFeasible);
+	if (broker_->getMsgLevel() > 200 && sol && userFeasible) {
+	    std::cout << "FEASIBLE HEUR: pass user feasibility check." << std::endl;
+	}
 	if (!sol && userFeasible) {
 	    // User doesn't provide feasibility check.
 	    numBranchResolve_ = 10;
@@ -1879,12 +1877,11 @@ DcoModel::feasibleSolution(int & numIntegerInfs, int & numObjectInfs)
     }
 
     if (!numUnsatisfied && userFeasible && !sol) {
-        // User doesn't overload feasible solution function.
-        sol = new DcoSolution(getNumCols(),
-                               getLpSolution(),
-                               objSense_ * getLpObjValue());
+	// User doesn't overload feasible solution function.
+	sol = new DcoSolution(getNumCols(),
+			       getLpSolution(),
+			       objSense_ * getLpObjValue());
     }
-
     return sol;
 }
 
@@ -1911,19 +1908,19 @@ DcoModel::passInPriorities (const int * priorities,
     if (!priority_) {
 	priority_ = new int[numObjects_];
 	for (i = 0; i < numObjects_; ++i) {
-            priority_[i] = defaultValue;
-        }
+	    priority_[i] = defaultValue;
+	}
     }
 
     if (priorities) {
 	if (ifObject) {
 	    memcpy(priority_ + numIntObjects_,
-                   priorities,
+		   priorities,
 		   (numObjects_ - numIntObjects_) * sizeof(int));
-        }
+	}
 	else {
 	    memcpy(priority_, priorities, numIntObjects_ * sizeof(int));
-        }
+	}
     }
 }
 
@@ -1959,9 +1956,9 @@ DcoModel::createRoot() {
 
 #ifdef DISCO_DEBUG
     std::cout << "DISCO: createRoot(): numVars=" << numVars
-              << ", numCons=" << numCons
-              << "; numCoreVariables_=" << numCoreVariables_
-              << ", numCoreConstraints_=" << numCoreConstraints_ << std::endl;
+	      << ", numCons=" << numCons
+	      << "; numCoreVariables_=" << numCoreVariables_
+	      << ", numCoreConstraints_=" << numCoreConstraints_ << std::endl;
 #endif
 
     int *varIndices1 = new int [numVars];
@@ -1987,14 +1984,14 @@ DcoModel::createRoot() {
     //-------------------------------------------------------------
 
     for (k = 0; k < numVars; ++k) {
-        vlhe[k] = vars[k]->getLbHard();
-        vuhe[k] = vars[k]->getUbHard();
-        varIndices1[k] = k;
-        varIndices2[k] = k;
+	vlhe[k] = vars[k]->getLbHard();
+	vuhe[k] = vars[k]->getUbHard();
+	varIndices1[k] = k;
+	varIndices2[k] = k;
 
 #ifdef DISCO_DEBUG_MORE
-        std::cout << "DISCO: createRoot(): var "<< k << ": hard: lb=" << vlhe[k]
-                  << ", ub=" << vuhe[k] << std::endl;
+	std::cout << "DISCO: createRoot(): var "<< k << ": hard: lb=" << vlhe[k]
+		  << ", ub=" << vuhe[k] << std::endl;
 #endif
     }
 
@@ -2003,27 +2000,27 @@ DcoModel::createRoot() {
     //-------------------------------------------------------------
 
     for (k = 0; k < numCons; ++k) {
-        clhe[k] = cons[k]->getLbHard();
-        cuhe[k] = cons[k]->getUbHard();
-        conIndices1[k] = k;
-        conIndices2[k] = k;
+	clhe[k] = cons[k]->getLbHard();
+	cuhe[k] = cons[k]->getUbHard();
+	conIndices1[k] = k;
+	conIndices2[k] = k;
     }
 
     int *tempInd = NULL;
     BcpsObject **tempObj = NULL;
 
     desc->assignVars(0 /*numRem*/, tempInd,
-                     0 /*numAdd*/, tempObj,
-                     false, numVars, varIndices1, vlhe, /*Var hard lb*/
-                     false, numVars, varIndices2, vuhe, /*Var hard ub*/
-                     false, 0, varIndices3, vlse,       /*Var soft lb*/
-                     false, 0, varIndices4, vuse);      /*Var soft ub*/
+		     0 /*numAdd*/, tempObj,
+		     false, numVars, varIndices1, vlhe, /*Var hard lb*/
+		     false, numVars, varIndices2, vuhe, /*Var hard ub*/
+		     false, 0, varIndices3, vlse,       /*Var soft lb*/
+		     false, 0, varIndices4, vuse);      /*Var soft ub*/
     desc->assignCons(0 /*numRem*/, tempInd,
-                     0 /*numAdd*/, tempObj,
-                     false, numCons, conIndices1, clhe, /*Con hard lb*/
-                     false, numCons, conIndices2, cuhe, /*Con hard ub*/
-                     false, 0,conIndices3,clse,         /*Con soft lb*/
-                     false, 0,conIndices4,cuse);        /*Con soft ub*/
+		     0 /*numAdd*/, tempObj,
+		     false, numCons, conIndices1, clhe, /*Con hard lb*/
+		     false, numCons, conIndices2, cuhe, /*Con hard ub*/
+		     false, 0,conIndices3,clse,         /*Con soft lb*/
+		     false, 0,conIndices4,cuse);        /*Con soft ub*/
 
     //-------------------------------------------------------------
     // Mark it as an explicit node.
@@ -2065,8 +2062,8 @@ DcoModel::addCutGenerator(CglCutGenerator * generator,
     memcpy(generators_, temp, numCutGenerators_ * sizeof(DcoConGeneratorBase *));
 
     generators_[numCutGenerators_++] =
-        new DcoConGenerator(this, generator, name, strategy, freq,
-                             normal, atSolution, whenInfeasible);
+	new DcoConGenerator(this, generator, name, strategy, freq,
+			     normal, atSolution, whenInfeasible);
     delete [] temp;
     temp = NULL;
 #if 0
@@ -2126,14 +2123,14 @@ DcoModel::decodeDco(AlpsEncoded &encoded)
     int k;
     int size = static_cast<int> (variables_.size());
     for (k = 0; k < size; ++k) {
-        DcoVariable * aVar = dynamic_cast<DcoVariable *>(variables_[k]);
-        vars.push_back(aVar);
+	DcoVariable * aVar = dynamic_cast<DcoVariable *>(variables_[k]);
+	vars.push_back(aVar);
     }
 
     size = static_cast<int> (constraints_.size());
     for (k = 0; k < size; ++k) {
-        DcoConstraint * aCon = dynamic_cast<DcoConstraint *>(constraints_[k]);
-        cons.push_back(aCon);
+	DcoConstraint * aCon = dynamic_cast<DcoConstraint *>(constraints_[k]);
+	cons.push_back(aCon);
     }
 
     variables_.clear();
@@ -2198,28 +2195,28 @@ DcoModel::packSharedKnowlege()
     //------------------------------------------------------
 
     if (phase == AlpsPhaseRampup) {
-        sharePseudo = DcoPar_->entry(DcoParams::sharePseudocostRampUp);
+	sharePseudo = DcoPar_->entry(DcoParams::sharePseudocostRampUp);
     }
     else if (phase == AlpsPhaseSearch) {
-        sharePseudo = DcoPar_->entry(DcoParams::sharePseudocostSearch);
-        if (sharePseudo) {
-            // Depth and frequency
-            depth = DcoPar_->entry(DcoParams::sharePcostDepth);
-            frequency =  DcoPar_->entry(DcoParams::sharePcostFrequency);
-            if ( /*(numNodes_ % frequency != 0) ||*/
+	sharePseudo = DcoPar_->entry(DcoParams::sharePseudocostSearch);
+	if (sharePseudo) {
+	    // Depth and frequency
+	    depth = DcoPar_->entry(DcoParams::sharePcostDepth);
+	    frequency =  DcoPar_->entry(DcoParams::sharePcostFrequency);
+	    if ( /*(numNodes_ % frequency != 0) ||*/
 		(broker_->getTreeDepth() >  depth) ) {
-                sharePseudo = false;
-            }
-        }
+		sharePseudo = false;
+	    }
+	}
     }
 
     if (sharePseudo) {
-        for (k = 0; k < numIntObjects_; ++k) {
-            if (sharedObjectMark_[k]){
-                ++numPseudcosts;
-            }
-        }
-        if (numPseudcosts) share = true;
+	for (k = 0; k < numIntObjects_; ++k) {
+	    if (sharedObjectMark_[k]){
+		++numPseudcosts;
+	    }
+	}
+	if (numPseudcosts) share = true;
     }
 
     //------------------------------------------------------
@@ -2238,14 +2235,14 @@ DcoModel::packSharedKnowlege()
 
 #if 0
     std::cout << "++++ sharePseudo =  " << sharePseudo
-              << ", shareCon = " << shareCon
-              << ", shareVar = " << shareVar
-              << ", numPseudcosts = " << numPseudcosts
-              << ", numNodes_ = " << numNodes_
-              << ", frequency = " << frequency
-              << ", depth = " << depth
-              << ", treeDepth = " << broker_->getTreeDepth()
-              << ", share = " << share << std::endl;
+	      << ", shareCon = " << shareCon
+	      << ", shareVar = " << shareVar
+	      << ", numPseudcosts = " << numPseudcosts
+	      << ", numNodes_ = " << numNodes_
+	      << ", frequency = " << frequency
+	      << ", depth = " << depth
+	      << ", treeDepth = " << broker_->getTreeDepth()
+	      << ", share = " << share << std::endl;
 #endif
 
     if (share) {
@@ -2311,64 +2308,64 @@ DcoModel::modelLog()
     int msgLevel = AlpsPar_->entry(AlpsParams::msgLevel);
 
     if (broker_->getProcType() == AlpsProcessTypeSerial) {
-        /* Only valid for serial code */
-        if (logFileLevel > 0) {
-            std::string logfile = AlpsPar_->entry(AlpsParams::logFile);
-            std::ofstream logFout(logfile.c_str(), std::ofstream::app);
-            writeParameters(logFout);
-        }
+	/* Only valid for serial code */
+	if (logFileLevel > 0) {
+	    std::string logfile = AlpsPar_->entry(AlpsParams::logFile);
+	    std::ofstream logFout(logfile.c_str(), std::ofstream::app);
+	    writeParameters(logFout);
+	}
 
-        if (msgLevel > 0) {
-            int k;
-            for (k = 0; k < numCutGenerators_; ++k) {
-                if (cutGenerators(k)->calls() > 0) {
-                    blisMessageHandler()->message(DISCO_CUT_STAT_FINAL,
-                                                  blisMessages())
-                        << cutGenerators(k)->name()
-                        << cutGenerators(k)->calls()
-                        << cutGenerators(k)->numConsGenerated()
-                        << cutGenerators(k)->time()
-                        << cutGenerators(k)->strategy()
-                        << CoinMessageEol;
-                }
-            }
-            for (k = 0; k < numHeuristics_; ++k) {
-                if (heuristics(k)->calls() > 0) {
-                    blisMessageHandler()->message(DISCO_HEUR_STAT_FINAL,
-                                                  blisMessages())
-                        << heuristics(k)->name()
-                        << heuristics(k)->calls()
-                        << heuristics(k)->numSolutions()
-                        << heuristics(k)->time()
-                        << heuristics(k)->strategy()
-                        << CoinMessageEol;
-                }
-            }
+	if (msgLevel > 0) {
+	    int k;
+	    for (k = 0; k < numCutGenerators_; ++k) {
+		if (cutGenerators(k)->calls() > 0) {
+		    blisMessageHandler()->message(DISCO_CUT_STAT_FINAL,
+						  blisMessages())
+			<< cutGenerators(k)->name()
+			<< cutGenerators(k)->calls()
+			<< cutGenerators(k)->numConsGenerated()
+			<< cutGenerators(k)->time()
+			<< cutGenerators(k)->strategy()
+			<< CoinMessageEol;
+		}
+	    }
+	    for (k = 0; k < numHeuristics_; ++k) {
+		if (heuristics(k)->calls() > 0) {
+		    blisMessageHandler()->message(DISCO_HEUR_STAT_FINAL,
+						  blisMessages())
+			<< heuristics(k)->name()
+			<< heuristics(k)->calls()
+			<< heuristics(k)->numSolutions()
+			<< heuristics(k)->time()
+			<< heuristics(k)->strategy()
+			<< CoinMessageEol;
+		}
+	    }
 
-            // Print gap
-            if (currRelGap_ > ALPS_OBJ_MAX_LESS) {
-                blisMessageHandler()->message(DISCO_GAP_NO, blisMessages())
-                    << CoinMessageEol;
-            }
-            else {
-                blisMessageHandler()->message(DISCO_GAP_YES, blisMessages())
-                    << currRelGap_ << CoinMessageEol;
-            }
+	    // Print gap
+	    if (currRelGap_ > ALPS_OBJ_MAX_LESS) {
+		blisMessageHandler()->message(DISCO_GAP_NO, blisMessages())
+		    << CoinMessageEol;
+	    }
+	    else {
+		blisMessageHandler()->message(DISCO_GAP_YES, blisMessages())
+		    << currRelGap_ << CoinMessageEol;
+	    }
 
-        }
+	}
     }
     else if (broker_->getProcType() == AlpsProcessTypeMaster) {
-        if (msgLevel > 0) {
-            // Print gap
-            if (currRelGap_ > ALPS_OBJ_MAX_LESS) {
-                blisMessageHandler()->message(DISCO_GAP_NO, blisMessages())
-                    << CoinMessageEol;
-            }
-            else {
-                blisMessageHandler()->message(DISCO_GAP_YES, blisMessages())
-                    << currRelGap_ << CoinMessageEol;
-            }
-        }
+	if (msgLevel > 0) {
+	    // Print gap
+	    if (currRelGap_ > ALPS_OBJ_MAX_LESS) {
+		blisMessageHandler()->message(DISCO_GAP_NO, blisMessages())
+		    << CoinMessageEol;
+	    }
+	    else {
+		blisMessageHandler()->message(DISCO_GAP_YES, blisMessages())
+		    << currRelGap_ << CoinMessageEol;
+	    }
+	}
     }
 }
 
@@ -2392,266 +2389,266 @@ DcoModel::nodeLog(AlpsTreeNode *node, bool force)
     AlpsTreeNode *bestNode = NULL;
 
     if (broker_->getProcType() == AlpsProcessTypeSerial) {
-        /* For serial code only */
+	/* For serial code only */
 #if 0
-        std::cout << "==== Process " << broker_->getProcRank()
-                  << ": printLog = " << printLog
-                  << ", msgLevel = " << msgLevel
-                  << ", proc type = " << broker_->getProcType()
-                  << std::endl;
+	std::cout << "==== Process " << broker_->getProcRank()
+		  << ": printLog = " << printLog
+		  << ", msgLevel = " << msgLevel
+		  << ", proc type = " << broker_->getProcType()
+		  << std::endl;
 #endif
 
-        // Get gap
-        if (broker_->getNumKnowledges(AlpsKnowledgeTypeSolution) > 0) {
-            feasBound = (broker_->getBestKnowledge(AlpsKnowledgeTypeSolution)).second;
-        }
+	// Get gap
+	if (broker_->getNumKnowledges(AlpsKnowledgeTypeSolution) > 0) {
+	    feasBound = (broker_->getBestKnowledge(AlpsKnowledgeTypeSolution)).second;
+	}
 
-        bestNode = broker_->getBestNode();
+	bestNode = broker_->getBestNode();
 
-        if (bestNode) {
-            relBound = bestNode->getQuality();
-        }
+	if (bestNode) {
+	    relBound = bestNode->getQuality();
+	}
 
-        if (relBound > ALPS_OBJ_MAX_LESS) {
-            currAbsGap_ = currRelGap_ = 0.0;
-        }
-        else if (feasBound < ALPS_OBJ_MAX_LESS) {
-            gapVal = ALPS_MAX(0, feasBound - relBound);
-            currAbsGap_ = ALPS_MAX(0, gapVal);
-            currRelGap_ = 100 * gapVal / (ALPS_FABS(relBound) + 1.0);
-        }
+	if (relBound > ALPS_OBJ_MAX_LESS) {
+	    currAbsGap_ = currRelGap_ = 0.0;
+	}
+	else if (feasBound < ALPS_OBJ_MAX_LESS) {
+	    gapVal = ALPS_MAX(0, feasBound - relBound);
+	    currAbsGap_ = ALPS_MAX(0, gapVal);
+	    currRelGap_ = 100 * gapVal / (ALPS_FABS(relBound) + 1.0);
+	}
 
-        // print node log
-        if ((msgLevel >= 1) && (force||(numNodesProcessed % nodeInterval == 0))) {
-            printLog = true;
-        }
-        if (msgLevel > 200) {
-            printLog = true;
-        }
-        if (printLog) {
+	// print node log
+	if ((msgLevel >= 1) && (force||(numNodesProcessed % nodeInterval == 0))) {
+	    printLog = true;
+	}
+	if (msgLevel > 200) {
+	    printLog = true;
+	}
+	if (printLog) {
 #if 0
-            int numCols = getNumCols();
-            int numRows = getNumRows();
+	    int numCols = getNumCols();
+	    int numRows = getNumRows();
 #endif
 
-            // Print header
-            if (numNodesProcessed == 0 ||
-                (numNodesProcessed % (nodeInterval * 30)) == 0 ||
+	    // Print header
+	    if (numNodesProcessed == 0 ||
+		(numNodesProcessed % (nodeInterval * 30)) == 0 ||
 		msgLevel >= 10) {
-                /* Print header. */
-                std::cout << std::endl;
-                std::cout << "Nodes Done";         /*8 spaces*/
+		/* Print header. */
+		std::cout << std::endl;
+		std::cout << "Nodes Done";         /*8 spaces*/
 #if 0
-                std::cout << "      ObjValue";   /*14 spaces*/
-                if (msgLevel > 2) {
-                    std::cout << "     Row";    /*8 Spaces*/
-                    std::cout << "  Column";    /*8 Spaces*/
-                    std::cout << "   Index";     /*8 spaces*/
-                    std::cout << "  Parent";     /*8 spaces*/
-                    std::cout << "   Depth";     /*8 spaces*/
-                }
+		std::cout << "      ObjValue";   /*14 spaces*/
+		if (msgLevel > 2) {
+		    std::cout << "     Row";    /*8 Spaces*/
+		    std::cout << "  Column";    /*8 Spaces*/
+		    std::cout << "   Index";     /*8 spaces*/
+		    std::cout << "  Parent";     /*8 spaces*/
+		    std::cout << "   Depth";     /*8 spaces*/
+		}
 #endif
-                std::cout << "   Upper Bound";
-                std::cout << "   Lower Bound";
-                std::cout << "      Gap";         /*9 spaces*/
-                std::cout << "   Time";
-                std::cout << " Nodes Left";
-                std::cout << std::endl;
-            }
+		std::cout << "   Upper Bound";
+		std::cout << "   Lower Bound";
+		std::cout << "      Gap";         /*9 spaces*/
+		std::cout << "   Time";
+		std::cout << " Nodes Left";
+		std::cout << std::endl;
+	    }
 
-            // Print log
-            if (numNodesProcessed < 10000000) {
-                printf("%10d", numNodesProcessed);
-            }
-            else {
-                printf("%9dK", numNodesProcessed/1000);
-            }
+	    // Print log
+	    if (numNodesProcessed < 10000000) {
+		printf("%10d", numNodesProcessed);
+	    }
+	    else {
+		printf("%9dK", numNodesProcessed/1000);
+	    }
 
-            /* Quality */
+	    /* Quality */
 #if 0
-            if (node->getStatus() == AlpsNodeStatusFathomed) {
-                printf("      Fathomed");
-            }
-            else {
-                printf(" %13g", node->getQuality());
-            }
+	    if (node->getStatus() == AlpsNodeStatusFathomed) {
+		printf("      Fathomed");
+	    }
+	    else {
+		printf(" %13g", node->getQuality());
+	    }
 
-            if (msgLevel > 2) {
-                if (numRows < 10000000) {
-                    printf("%8d", numRows);
-                }
-                else {
-                    printf("%7dK", numRows/1000);
-                }
-                if (numCols < 10000000) {
-                    printf("%8d", numCols);
-                }
-                else {
-                    printf("%7dK", numCols/1000);
-                }
-                /* This index */
-                printf("%8d", node->getIndex());
-                /* Paraent index */
-                if (node->getParent()) {
-                    printf(" %7d", node->getParent()->getIndex());
-                }
-                else {
-                    printf("        ");
-                }
-                /* Depth */
-                printf(" %7d", node->getDepth());
-            }
+	    if (msgLevel > 2) {
+		if (numRows < 10000000) {
+		    printf("%8d", numRows);
+		}
+		else {
+		    printf("%7dK", numRows/1000);
+		}
+		if (numCols < 10000000) {
+		    printf("%8d", numCols);
+		}
+		else {
+		    printf("%7dK", numCols/1000);
+		}
+		/* This index */
+		printf("%8d", node->getIndex());
+		/* Paraent index */
+		if (node->getParent()) {
+		    printf(" %7d", node->getParent()->getIndex());
+		}
+		else {
+		    printf("        ");
+		}
+		/* Depth */
+		printf(" %7d", node->getDepth());
+	    }
 #endif
 
-            if (feasBound > ALPS_OBJ_MAX_LESS) {
-                printf("              ");
-            }
-            else {
-                printf(" %13g", feasBound);
-            }
+	    if (feasBound > ALPS_OBJ_MAX_LESS) {
+		printf("              ");
+	    }
+	    else {
+		printf(" %13g", feasBound);
+	    }
 
-            if (relBound > ALPS_OBJ_MAX_LESS) {
-                printf("              ");
-            }
-            else {
-                printf(" %13g", relBound);
-            }
+	    if (relBound > ALPS_OBJ_MAX_LESS) {
+		printf("              ");
+	    }
+	    else {
+		printf(" %13g", relBound);
+	    }
 
-            /* Gap */
-            if (currRelGap_ > ALPS_OBJ_MAX_LESS) {
-                printf("         "); /* 9 spaces*/
-            }
-            else {
-                if (currRelGap_ < 1.0e4) {
-                    printf(" %7.2f%%", currRelGap_);
-                }
-                else {
-                    printf("% 8g", currAbsGap_);
-                }
-            }
+	    /* Gap */
+	    if (currRelGap_ > ALPS_OBJ_MAX_LESS) {
+		printf("         "); /* 9 spaces*/
+	    }
+	    else {
+		if (currRelGap_ < 1.0e4) {
+		    printf(" %7.2f%%", currRelGap_);
+		}
+		else {
+		    printf("% 8g", currAbsGap_);
+		}
+	    }
 
-            int solTime = static_cast<int>(broker_->timer().getCpuTime());
-            if (solTime < 1000000) {
-                printf("%7d", solTime);
-            }
-            else {
-                solTime = static_cast<int>(solTime/3600.0);
-                printf("%6d", solTime);
-                printf("H");
-            }
+	    int solTime = static_cast<int>(broker_->timer().getCpuTime());
+	    if (solTime < 1000000) {
+		printf("%7d", solTime);
+	    }
+	    else {
+		solTime = static_cast<int>(solTime/3600.0);
+		printf("%6d", solTime);
+		printf("H");
+	    }
 
-            /* Number of left nodes */
-            if (numNodesLeft < 10000000) {
-                printf(" %10d", numNodesLeft);
-            }
-            else {
-                printf(" %8dK", numNodesLeft/1000);
-            }
+	    /* Number of left nodes */
+	    if (numNodesLeft < 10000000) {
+		printf(" %10d", numNodesLeft);
+	    }
+	    else {
+		printf(" %8dK", numNodesLeft/1000);
+	    }
 
 	    std::cout << std::endl;
 	    if (msgLevel >= 10){
 		std::cout << std::endl;
 	    }
-        }
+	}
     }
     else if (broker_->getProcType() == AlpsProcessTypeMaster){
-        /* For parallel code, only master print node log. */
+	/* For parallel code, only master print node log. */
 
-        double feasBound = broker_->getIncumbentValue();
-        double relBound = broker_->getBestEstimateQuality();
-        double gapVal = ALPS_OBJ_MAX;
-        int numNodeLog = broker_->getNumNodeLog();
-        numNodesProcessed = broker_->getNumNodesProcessedSystem();
+	double feasBound = broker_->getIncumbentValue();
+	double relBound = broker_->getBestEstimateQuality();
+	double gapVal = ALPS_OBJ_MAX;
+	int numNodeLog = broker_->getNumNodeLog();
+	numNodesProcessed = broker_->getNumNodesProcessedSystem();
 
-        /* Compute gap */
-        if (relBound > ALPS_OBJ_MAX_LESS) {
-            currAbsGap_ = currRelGap_ = 0.0;
-        }
-        else if (feasBound < ALPS_OBJ_MAX_LESS) {
-            gapVal = ALPS_MAX(0, feasBound - relBound);
-            currAbsGap_ = ALPS_MAX(0, gapVal);
-            currRelGap_ = 100 * gapVal / (ALPS_FABS(relBound) + 1.0);
-        }
+	/* Compute gap */
+	if (relBound > ALPS_OBJ_MAX_LESS) {
+	    currAbsGap_ = currRelGap_ = 0.0;
+	}
+	else if (feasBound < ALPS_OBJ_MAX_LESS) {
+	    gapVal = ALPS_MAX(0, feasBound - relBound);
+	    currAbsGap_ = ALPS_MAX(0, gapVal);
+	    currRelGap_ = 100 * gapVal / (ALPS_FABS(relBound) + 1.0);
+	}
 
-        if (msgLevel < 1) {
-            return;
-        }
-        if ( (numNodeLog == 0) ||
-             (numNodesProcessed - numNodeLog >= nodeInterval) ) {
-            printLog = true;
-        }
+	if (msgLevel < 1) {
+	    return;
+	}
+	if ( (numNodeLog == 0) ||
+	     (numNodesProcessed - numNodeLog >= nodeInterval) ) {
+	    printLog = true;
+	}
 
-        if (printLog) {
+	if (printLog) {
 
-            numNodesLeft = broker_->getNumNodeLeftSystem();
+	    numNodesLeft = broker_->getNumNodeLeftSystem();
 
-            // Print header
-            if (numNodeLog == 0) {
-                std::cout << "\n";
-                std::cout << "    Node";         /*8 spaces*/
-                std::cout << "  BestFeasible";
-                std::cout << "     BestBound";
-                std::cout << "      Gap";         /*9 spaces*/
-                std::cout << "   Time";
-                std::cout << "    Left";
-                std::cout << std::endl;
-            }
+	    // Print header
+	    if (numNodeLog == 0) {
+		std::cout << "\n";
+		std::cout << "    Node";         /*8 spaces*/
+		std::cout << "  BestFeasible";
+		std::cout << "     BestBound";
+		std::cout << "      Gap";         /*9 spaces*/
+		std::cout << "   Time";
+		std::cout << "    Left";
+		std::cout << std::endl;
+	    }
 
-            // Print log
-            if (numNodesProcessed < 10000000) {
-                printf("%8d", numNodesProcessed);
-            }
-            else {
-                printf("%7dK", numNodesProcessed/1000);
-            }
+	    // Print log
+	    if (numNodesProcessed < 10000000) {
+		printf("%8d", numNodesProcessed);
+	    }
+	    else {
+		printf("%7dK", numNodesProcessed/1000);
+	    }
 
-            if (feasBound > ALPS_OBJ_MAX_LESS) {
-                printf("              ");
-            }
-            else {
-                printf(" %13g", feasBound);
-            }
+	    if (feasBound > ALPS_OBJ_MAX_LESS) {
+		printf("              ");
+	    }
+	    else {
+		printf(" %13g", feasBound);
+	    }
 
-            if (relBound > ALPS_OBJ_MAX_LESS) {
-                printf("              ");
-            }
-            else {
-                printf(" %13g", relBound);
-            }
+	    if (relBound > ALPS_OBJ_MAX_LESS) {
+		printf("              ");
+	    }
+	    else {
+		printf(" %13g", relBound);
+	    }
 
-            if (currRelGap_ > ALPS_OBJ_MAX_LESS) {
-                printf("         "); /* 9 spaces*/
-            }
-            else {
-                if (currRelGap_ < 1.0e4) {
-                    printf(" %7.2f%%", currRelGap_);
-                }
-                else {
-                    printf("% 8g", currAbsGap_);
-                }
-            }
+	    if (currRelGap_ > ALPS_OBJ_MAX_LESS) {
+		printf("         "); /* 9 spaces*/
+	    }
+	    else {
+		if (currRelGap_ < 1.0e4) {
+		    printf(" %7.2f%%", currRelGap_);
+		}
+		else {
+		    printf("% 8g", currAbsGap_);
+		}
+	    }
 
-            int solTime = static_cast<int>(broker_->timer().getCpuTime());
-            if (solTime < 1000000) {
-                printf("%7d", solTime);
-            }
-            else {
-                solTime = static_cast<int>(solTime/3600.0);
-                printf("%6d", solTime);
-                printf("H");
-            }
+	    int solTime = static_cast<int>(broker_->timer().getCpuTime());
+	    if (solTime < 1000000) {
+		printf("%7d", solTime);
+	    }
+	    else {
+		solTime = static_cast<int>(solTime/3600.0);
+		printf("%6d", solTime);
+		printf("H");
+	    }
 
-            /* Number of left nodes */
-            if (numNodesLeft < 10000000) {
-                printf(" %7d", numNodesLeft);
-            }
-            else {
-                printf(" %6dK", numNodesLeft/1000);
-            }
+	    /* Number of left nodes */
+	    if (numNodesLeft < 10000000) {
+		printf(" %7d", numNodesLeft);
+	    }
+	    else {
+		printf(" %6dK", numNodesLeft/1000);
+	    }
 
-            printf("\n");
-            broker_->setNumNodeLog(numNodesProcessed);
-        }
+	    printf("\n");
+	    broker_->setNumNodeLog(numNodesProcessed);
+	}
     }
 }
 
@@ -2673,28 +2670,28 @@ DcoModel::fathomAllNodes()
     bestNode = broker_->getBestNode();
 
     if (bestNode) {
-        relBound = bestNode->getQuality();
+	relBound = bestNode->getQuality();
     }
 
     if (relBound > ALPS_OBJ_MAX_LESS) {
-        currAbsGap_ = currRelGap_ = 0.0;
+	currAbsGap_ = currRelGap_ = 0.0;
     }
     else if (feasBound < ALPS_OBJ_MAX_LESS) {
-        gapVal = ALPS_MAX(0, feasBound - relBound);
-        currAbsGap_ = ALPS_MAX(0, gapVal);
-        currRelGap_ = 100 * gapVal / (ALPS_FABS(relBound) + 1.0);
+	gapVal = ALPS_MAX(0, feasBound - relBound);
+	currAbsGap_ = ALPS_MAX(0, gapVal);
+	currRelGap_ = 100 * gapVal / (ALPS_FABS(relBound) + 1.0);
     }
 #if 0
     printf("+++ Process %d: currAbsGap_ %g, currRelGap_%g\n",
-           broker_->getProcRank(), currAbsGap_,  currRelGap_);
+	   broker_->getProcRank(), currAbsGap_,  currRelGap_);
 #endif
 
     if ( (currAbsGap_ <= optimalAbsGap_ + ALPS_ZERO) ||
-         (currRelGap_ <= optimalRelGap_ + ALPS_ZERO) ) {
-        return true;
+	 (currRelGap_ <= optimalRelGap_ + ALPS_ZERO) ) {
+	return true;
     }
     else {
-        return false;
+	return false;
     }
 }
 
@@ -2837,9 +2834,9 @@ DcoModel::unpackSharedPseudocost(AlpsEncoded &encoded)
     DcoObjectInt *intObj = NULL;
     encoded.readRep(size);
     for (k = 0; k < size; ++k) {
-        encoded.readRep(objIndex);
-        intObj = dynamic_cast<DcoObjectInt *>(objects_[objIndex]);
-        (intObj->pseudocost()).decodeFrom(encoded);
+	encoded.readRep(objIndex);
+	intObj = dynamic_cast<DcoObjectInt *>(objects_[objIndex]);
+	(intObj->pseudocost()).decodeFrom(encoded);
     }
 }
 
@@ -2887,9 +2884,9 @@ DcoModel::unpackSharedConstraints(AlpsEncoded &encoded)
     for (int k = 0; k < numCons; ++k) {
 	// Unpack and store constraints
 	const AlpsKnowledge* know =
-            broker_->decoderObject(BcpsKnowledgeTypeConstraint);
+	    broker_->decoderObject(BcpsKnowledgeTypeConstraint);
 	BcpsConstraint *con = NULL;
-        con = static_cast<BcpsConstraint *>(know->decode(encoded));
+	con = static_cast<BcpsConstraint *>(know->decode(encoded));
 	constraintPoolReceive_->addConstraint(con);
 	con = NULL;
     }

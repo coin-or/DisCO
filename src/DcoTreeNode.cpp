@@ -454,7 +454,6 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 	  setStatus(AlpsNodeStatusFathomed);
 	  goto TERM_PROCESS;
 	}
-	needBranch = true;
 	// call reduced cost fix when solver is COLA, do not call for other
 	// solver, ie. mosek, cplex,
 	reducedCostFix(model);
@@ -462,9 +461,15 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 	// Check if tailoff or have to keep on.
 	//------------------------------------------
 
-	// keep going if there is no fractional variable to branch
-	ipSol = model->feasibleSolution(numIntInfs, numObjInfs);
-	if (!numIntInfs) {
+	// at this point there is no solution both integer and conic feasible.
+	// if there is a fractional variable branch.
+	// else
+	if (numIntInfs) {
+	  needBranch = true;
+	  keepOn = false;
+	}
+	else {
+	  // we have an integer solution that is not conic feasible
 	  keepOn = true;
 	}
 	if (model->boundingPass_ > 1) {
@@ -760,11 +765,11 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
     // if (keepOn) {
     //   int heurStatus = callHeuristics(model, false);
     //   if (heurStatus == 1) {
-    // 	cutoff = model->getCutoff();
+    //	cutoff = model->getCutoff();
     //   }
     //   else if (heurStatus == 2) {
-    // 	// Fathom this node
-    // 	goto TERM_PROCESS;
+    //	// Fathom this node
+    //	goto TERM_PROCESS;
     //   }
     // }
 
@@ -815,7 +820,6 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
       if (tempNumCons > 0) {
 	// Select and install new constraints
 	applyConstraints(model, currLpSolution, newConPool);
-
 	// Some weak/parallel/dense constraints might be discarded.
 	tempNumCons = newConPool.getNumConstraints();
 	if (tempNumCons > 0) {
@@ -2549,31 +2553,6 @@ int DcoTreeNode::installSubProblem(BcpsModel *m) {
   CoinWarmStartBasis *pws = desc->getBasis();
   if (pws != NULL) {
     model->solver()->setWarmStart(pws);
-  }
-  // if numCoreCones are already in solver return.
-  if (numCones>=numCoreCones) {
-    return status;
-  }
-  // if not there then load them to solver.
-  // install conic constraints
-  OsiConicSolverInterface * si = model->solver();
-  numCoreCones = model->getNumCoreCones();
-  int const * const * coneMembers = model->getConeMembers();
-  int const * coneTypes = model->getConeTypes();
-  int const * coneSizes = model->getConeSizes();
-  OsiLorentzConeType type;
-  for(int i=0; i<numCoreCones; ++i) {
-    if (coneTypes[i]==0) {
-      type=OSI_QUAD;
-    }
-    else if (coneTypes[i]==1) {
-      type=OSI_RQUAD;
-    }
-    else {
-      std::cerr << "Disco: Unknown cone type!" << std::endl;
-      throw std::exception();
-    }
-    si->addConicConstraint(type, coneSizes[i], coneMembers[i]);
   }
   return status;
 }
