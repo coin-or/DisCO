@@ -53,60 +53,51 @@
 
 //#############################################################################
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
+  try {
+    //Set up lp solver
+    // OsiConicSolverInterface * solver = new ColaModel();
+    // solver.getModelPtr()->setDualBound(1.0e10);
+    // solver.messageHandler()->setLogLevel(0);
 
-	try{
-	  //Set up lp solver
-	  // OsiConicSolverInterface * solver = new ColaModel();
-	  // solver.getModelPtr()->setDualBound(1.0e10);
-	  // solver.messageHandler()->setLogLevel(0);
-
-	  // if both mosek and cplex is available, choose mosek.
-	  // if both not available then choose cola
+    // if both mosek and cplex is available, choose mosek.
+    // if both not available then choose cola
 #if defined(__OSI_MOSEK__)
-	  OsiConicSolverInterface * solver = new OsiMosekSolverInterface();
+    OsiConicSolverInterface * solver = new OsiMosekSolverInterface();
 #else
 #if defined(__OSI_CPLEX__)
-	  OsiConicSolverInterface * solver = new OsiCplexSolverInterface();
+    OsiConicSolverInterface * solver = new OsiCplexSolverInterface();
 #else
 #if defined(__COLA__)
-	  OsiConicSolverInterface * solver = new ColaModel();
+    OsiConicSolverInterface * solver = new ColaModel();
 #endif
 #endif
 #endif
-	  // Create DisCO model
-	  DcoModel model;
-	  model.setSolver(solver);
+    // Create DisCO model
+    DcoModel model;
+    model.setSolver(solver);
 
 #ifdef  COIN_HAS_MPI
-		AlpsKnowledgeBrokerMPI broker(argc, argv, model);
+    AlpsKnowledgeBrokerMPI broker(argc, argv, model);
 #else
-		AlpsKnowledgeBrokerSerial broker(argc, argv, model);
+    AlpsKnowledgeBrokerSerial broker(argc, argv, model);
 #endif
-
-		// Search for best solution
-		broker.search(&model);
-
-		// Report the best solution found and its ojective value
-		broker.printBestSolution();
- }
-
-	catch(CoinError& er) {
- 	std::cerr << "\nDISCO ERROR: \"" << er.message()
-		  << "\""<< std::endl
-		  << "             from function \"" << er.methodName()
-		  << "\""<< std::endl
-		  << "             from class \"" << er.className()
-		  << "\"" << std::endl;
-	}
-  catch(...) {
-		std::cerr << "Something went wrong!" << std::endl;
+    // Search for best solution
+    broker.search(&model);
+    // Report the best solution found and its ojective value
+    broker.printBestSolution();
   }
-
-
+  catch(CoinError& er) {
+    std::cerr << "\nDISCO ERROR: \"" << er.message()
+	      << "\""<< std::endl
+	      << "             from function \"" << er.methodName()
+	      << "\""<< std::endl
+	      << "             from class \"" << er.className()
+	      << "\"" << std::endl;
+  }
+  catch(...) {
+    std::cerr << "Something went wrong!" << std::endl;
+  }
   return 0;
 }
-
 //#############################################################################
-
