@@ -14,7 +14,7 @@ Parallel Search (CHiPPS) framework.
 
 INSTALLATION
 ============
-After cloninc DisCO, use ```bash sh get_dependencies.sh && sh compile.sh```.
+After cloning DisCO, use ```bash sh get_dependencies.sh && sh compile.sh```.
 
 For advanced users:
 Make sure all dependencies are accessible through pkg-config. Then DisCO's configure script will find them through pkg-config. Alternatively DisCO configure script can locate other projects if --prefix configure flag is set right. Assume other projects are installed at install_dir. Then ```bash ./configure --prefix=install_dir && make install``` should work.
