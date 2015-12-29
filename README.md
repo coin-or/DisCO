@@ -14,16 +14,18 @@ Parallel Search (CHiPPS) framework.
 
 INSTALLATION
 ============
-Please see the INSTALL file for a guide to installation.
+After cloninc DisCO, use ```bash sh get_dependencies.sh && sh compile.sh```.
+
+For advanced users:
+Make sure all dependencies are accessible through pkg-config. Then DisCO's configure script will find them through pkg-config. Alternatively DisCO configure script can locate other projects if --prefix configure flag is set right. Assume other projects are installed at install_dir. Then ```bash ./configure --prefix=install_dir && make install``` should work.
 
 
 CURRENT TESTING STATUS
 ======================
 1. Configurations
    - Cola: well tested.
-   - Mosek: Does not terminate on some instances with some specific branching
-strategy.
    - Cplex: Missing functions in the interface.
+   - OA: Fails on some instances. Check CBLIB problems robust and classical.
    - Dco_branchStrategy reliability is broken
 
 SUPPORT
