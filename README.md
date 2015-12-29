@@ -17,7 +17,7 @@ INSTALLATION
 After cloning DisCO, use
 ```shell
 sh get_dependencies.sh && sh compile.sh
-```.
+```
 
 For advanced users:
 Make sure all dependencies are accessible through pkg-config. Then DisCO's configure script will find them through pkg-config. Alternatively DisCO configure script can locate other projects if --prefix configure flag is set right. Assume other projects are installed at install_dir. Then use
