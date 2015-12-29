@@ -1,6 +1,5 @@
-DisCO Version 0.1 README
+DisCO
 =========================
-
 DisCO is distributed under the Eclipse Public License and is
 freely redistributable. All source code and documentation is Copyright
 2001-2013 by Lehigh University, Aykut Bulut, Yan Xu, and Ted Ralphs. This
