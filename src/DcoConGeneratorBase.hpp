@@ -64,12 +64,12 @@ public:
     noConsCalls_(0) { name_ = "UNKNOWN"; }
   /** Useful constructor. */
   DcoConGeneratorBase(DcoModel * model,
-                      const char * name = NULL,
-                      DcoCutStrategy strategy = DcoCutStrategyAuto,
-                      int cutGenerationFrequency_ = 1,
-                      bool normal = true,
-                      bool atSolution = false,
-                      bool infeasible = false);
+		      const char * name = NULL,
+		      DcoCutStrategy strategy = DcoCutStrategyAuto,
+		      int cutGenerationFrequency_ = 1,
+		      bool normal = true,
+		      bool atSolution = false,
+		      bool infeasible = false);
   /** Copy constructor. */
   DcoConGeneratorBase (const DcoConGeneratorBase &);
   /** Assignment operator. */
@@ -131,11 +131,11 @@ public:
       found to be infeasible. */
   inline void setWhenInfeasible(bool value) { whenInfeasible_ = value; }
   /** Get number of generated cons. */
-  inline int numConsGenerated() { return numConsGenerated_; }
+  inline int numConsGenerated() const { return numConsGenerated_; }
   /** Increase the number of generated cons. */
   inline void addNumConsGenerated(int n) { numConsGenerated_ += n; }
   /** Get number of used cons. */
-  inline int numConsUsed() { return numConsUsed_; }
+  inline int numConsUsed() const { return numConsUsed_; }
   /** Increase the number of generated cons. */
   inline void addNumConsUsed(int n) { numConsUsed_ += n; }
   /** Cpu time used. */

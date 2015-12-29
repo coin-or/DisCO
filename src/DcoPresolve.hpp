@@ -46,21 +46,29 @@ public:
 
     /** Default constructor (empty object) */
     DcoPresolve() :
-        preMatrix_(0),
-        postMatrix_(0) {}
+	preMatrix_(0),
+	postMatrix_(0) {}
 
     /** Virtual destructor */
     virtual ~DcoPresolve() {
-        delete preMatrix_;
-        delete postMatrix_;
+	delete preMatrix_;
+	delete postMatrix_;
     }
 
     /** Presolve */
+#if defined(__OA__)
+    virtual OsiSolverInterface *preprocess(OsiSolverInterface & origModel,
+					   double feasibilityTolerance=0.0,
+					   bool keepIntegers=true,
+					   int numberPasses=5,
+					   const char * prohibited=NULL);
+#else
     virtual OsiConicSolverInterface *preprocess(OsiConicSolverInterface & origModel,
-                                           double feasibilityTolerance=0.0,
-                                           bool keepIntegers=true,
-                                           int numberPasses=5,
-                                           const char * prohibited=NULL);
+					   double feasibilityTolerance=0.0,
+					   bool keepIntegers=true,
+					   int numberPasses=5,
+					   const char * prohibited=NULL);
+#endif
 
     /** Postsolve */
     virtual void postprocess(bool updateStatus=true);

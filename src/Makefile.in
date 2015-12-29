@@ -62,9 +62,10 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-@COLA_SOCO_SOLVER_TRUE@am__append_1 = -D__COLA__
-@MOSEK_SOCO_SOLVER_TRUE@am__append_2 = -D__OSI_MOSEK__
-@CPLEX_SOCO_SOLVER_TRUE@am__append_3 = -D__OSI_CPLEX__
+@OA_SOCO_SOLVER_TRUE@am__append_1 = -D__OA__
+@COLA_SOCO_SOLVER_TRUE@am__append_2 = -D__COLA__
+@MOSEK_SOCO_SOLVER_TRUE@am__append_3 = -D__OSI_MOSEK__
+@CPLEX_SOCO_SOLVER_TRUE@am__append_4 = -D__OSI_CPLEX__
 bin_PROGRAMS = disco$(EXEEXT)
 subdir = src
 DIST_COMMON = $(includecoin_HEADERS) $(srcdir)/DcoMain.cpp \
@@ -258,6 +259,8 @@ MOSEK_SOCO_SOLVER_FALSE = @MOSEK_SOCO_SOLVER_FALSE@
 MOSEK_SOCO_SOLVER_TRUE = @MOSEK_SOCO_SOLVER_TRUE@
 MPICC = @MPICC@
 MPICXX = @MPICXX@
+OA_SOCO_SOLVER_FALSE = @OA_SOCO_SOLVER_FALSE@
+OA_SOCO_SOLVER_TRUE = @OA_SOCO_SOLVER_TRUE@
 OBJEXT = @OBJEXT@
 OPT_CFLAGS = @OPT_CFLAGS@
 OPT_CXXFLAGS = @OPT_CXXFLAGS@
@@ -353,7 +356,7 @@ AUTOMAKE_OPTIONS = foreign
 LDADD = $(DISCOLIB_LIBS)
 DEPENDENCIES = $(DISCOLIB_DEPENDENCIES)
 AM_CPPFLAGS = $(DISCOLIB_CFLAGS) $(am__append_1) $(am__append_2) \
-	$(am__append_3)
+	$(am__append_3) $(am__append_4)
 
 ########################################################################
 #                               libDisco                                #

@@ -62,6 +62,11 @@ int main(int argc, char *argv[]) {
 
     // if both mosek and cplex is available, choose mosek.
     // if both not available then choose cola
+#if defined(__OA__)
+    OsiSolverInterface * solver = new OsiClpSolverInterface();
+    // for unboundedness directions set option
+    dynamic_cast<OsiClpSolverInterface*>(solver)->getModelPtr()->setMoreSpecialOptions(0);
+#else
 #if defined(__OSI_MOSEK__)
     OsiConicSolverInterface * solver = new OsiMosekSolverInterface();
 #else
@@ -70,6 +75,7 @@ int main(int argc, char *argv[]) {
 #else
 #if defined(__COLA__)
     OsiConicSolverInterface * solver = new ColaModel();
+#endif
 #endif
 #endif
 #endif

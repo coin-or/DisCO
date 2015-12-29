@@ -12,11 +12,12 @@ class OsiRowCut;
 DcoConicConstraint::DcoConicConstraint() {
   members_ = 0;
   size_ = 0;
-  type_ = -1;
+  // cone is lorentz cone by default.
+  type_ = OSI_QUAD;
 }
 
 /** Useful constructor. */
-DcoConicConstraint::DcoConicConstraint(int size, int type, int const * members) {
+DcoConicConstraint::DcoConicConstraint(int size, OsiLorentzConeType type, int const * members) {
   size_ = size;
   type_ = type;
   members_ = new int[size];
@@ -44,7 +45,7 @@ double DcoConicConstraint::infeasibility(BcpsModel * m,
     par_sol[i] = sol[members_[i]];
   }
   double infeas;
-  if (type_==0) {
+  if (type_==OSI_QUAD) {
     double term1 = par_sol[0];
     double term2 = std::inner_product(par_sol+1, par_sol+size_,
 				      par_sol+1, 0.0);
@@ -54,7 +55,7 @@ double DcoConicConstraint::infeasibility(BcpsModel * m,
       infeas = 0.0;
     }
   }
-  else if (type_==1) {
+  else if (type_==OSI_RQUAD) {
     double term1 = 2.0*par_sol[0]*par_sol[1];
     double term2 = std::inner_product(par_sol+2, par_sol+size_,
 				      par_sol+2, 0.0);
@@ -101,14 +102,14 @@ double DcoConicConstraint::violation(double const * lpSolution) {
   for (int j=0; j<size_; ++j) {
     par_sol[j] = lpSolution[members_[j]];
   }
-  if (type_==0) {
+  if (type_==OSI_QUAD) {
     double term1 = par_sol[0];
     double term2 = std::inner_product(par_sol+1, par_sol+size_,
 				      par_sol+1, 0.0);
     term2 = sqrt(term2);
     viol = term2 - term1;
   }
-  else if (type_==1) {
+  else if (type_==OSI_RQUAD) {
     double term1 = 2.0*par_sol[0]*par_sol[1];
     double term2 = std::inner_product(par_sol+2, par_sol+size_,
 				      par_sol+2, 0.0);

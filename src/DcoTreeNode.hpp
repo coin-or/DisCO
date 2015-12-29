@@ -47,7 +47,9 @@ class DcoModel;
 
 class DcoTreeNode : public BcpsTreeNode {
 private:
-
+  // 0 if ipm solver is not called on the root node.
+  // nonzero if it is called.
+  int ipm_called_;
     /** No copy constructor, assignment operator. */
     DcoTreeNode(const DcoTreeNode&);
 
@@ -70,28 +72,28 @@ private:
 
     /** Estimate quality of a feasible solution. */
     double estimateSolution(DcoModel *model,
-                            const double *lpSolution,
-                            double lpObjValue) const;
+			    const double *lpSolution,
+			    double lpObjValue) const;
 
 public:
 
     /** Default constructor. */
     DcoTreeNode()
-        :
-        BcpsTreeNode()
-        { init(); }
+	:
+	BcpsTreeNode()
+	{ init(); }
 
     /** Useful constructor. */
     DcoTreeNode(DcoModel* m) {
-        init();
-        desc_ = new DcoNodeDesc(m);
+	init();
+	desc_ = new DcoNodeDesc(m);
     }
 
     /** Useful constructor. */
     DcoTreeNode(AlpsNodeDesc *&desc) {
-        init();
-        desc_ = desc;
-        desc = NULL;
+	init();
+	desc_ = desc;
+	desc = NULL;
     }
 
     /** Destructor. */
@@ -101,8 +103,9 @@ public:
 
     /** Initilize member data when constructing a node. */
     void init() {
-        //constraintPool_ = new BcpsConstraintPool;
-        //variablePool_ = new BcpsVariablePool;
+      ipm_called_ = 0;
+	//constraintPool_ = new BcpsConstraintPool;
+	//variablePool_ = new BcpsVariablePool;
     }
 
     /** Create a new node based on given desc. */
@@ -124,16 +127,16 @@ public:
     virtual int bound(BcpsModel *model);
 
     /** Takes the explicit description of the current active node and
-        creates the children's descriptions, which contain information
-        about how the branching is to be done. The stati of the children
-        are AlpsNodeStatusCandidate. */
+	creates the children's descriptions, which contain information
+	about how the branching is to be done. The stati of the children
+	are AlpsNodeStatusCandidate. */
     virtual std::vector< CoinTriple<AlpsNodeDesc*, AlpsNodeStatus, double> >
 	branch();
 
     /** Select a branching object based on give branching strategy. */
     int selectBranchObject(DcoModel *model,
-                           bool& foundSol,
-                           int numPassesLeft);
+			   bool& foundSol,
+			   int numPassesLeft);
 
     /** To be defined. */
     virtual int chooseBranchingObject(BcpsModel*) { return AlpsReturnStatusOk;}
@@ -158,7 +161,7 @@ public:
     /** Select and apply constraints. */
     DcoReturnStatus applyConstraints(DcoModel *model,
 				      const double *solution,
-                                      BcpsConstraintPool & conPool);
+				      BcpsConstraintPool & conPool);
 
     /** Fix and tighten varaibles based optimality conditions. */
     DcoReturnStatus reducedCostFix(DcoModel *model);
@@ -178,6 +181,11 @@ public:
 
   /** Return true if fractional variables exist */
   bool fractional_vars_exist() const;
+
+#if defined(__OA__)
+  /** solve problem with IPM by fixing integer variables. */
+  void integerFix(DcoModel * model, OsiConicSolverInterface * ipm_solver) const;
+#endif
 };
 
 #endif

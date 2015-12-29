@@ -33,7 +33,7 @@
 
 //#############################################################################
 
-struct DcoPseuoGreater
+struct DcoPseudoGreater
 {
   bool operator()(double x, double y) const {
     return (x > y);
@@ -79,13 +79,13 @@ DcoBranchStrategyPseudo::betterBranchObject(BcpsBranchObject * thisOne,
   if (thisScore > bestChange) {
     betterDirection = thisOne->getDirection();
     bestChangeUp_ = thisScore;
-#ifdef BLIS_DEBUG_MORE
+#ifdef DISCO_DEBUG_MORE
     std::cout << "thisScore=" << thisScore
 	      << "; bestChange=" << bestChange
 	      << "; betterDirection=" << betterDirection
 	      << std::endl;
 #endif
-#ifdef BLIS_DEBUG
+#ifdef DISCO_DEBUG
     assert(betterDirection != 0);
 #endif
 
@@ -126,8 +126,11 @@ DcoBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft,
   double *saveSolution = NULL;
 
   DcoModel *model = dynamic_cast<DcoModel *>(model_);
-  OsiConicSolverInterface *solver = model->solver();
-
+#if defined(__OA__)
+  OsiSolverInterface * solver = model->solver();
+#else
+  OsiConicSolverInterface * solver = model->solver();
+#endif
   int numCols = model->getNumCols();
   int numObjects = model->numObjects();
   int aveIterations = model->getAveIterations();
@@ -146,7 +149,7 @@ DcoBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft,
 
   if (maxTimeReached || !numPassesLeft) {
     selectNow = true;
-#ifdef BLIS_DEBUG
+#ifdef DISCO_DEBUG
     printf("PSEUDO: CREATE: maxTimeReached %d, numPassesLeft %d\n",
 	   maxTimeReached, numPassesLeft);
 #endif
@@ -159,7 +162,7 @@ DcoBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft,
   std::vector<DcoObjectInt *> infObjects;
 
   // TODO: check if sorting is expensive.
-  std::multimap<double, BcpsBranchObject*, DcoPseuoGreater> candObjects;
+  std::multimap<double, BcpsBranchObject*, DcoPseudoGreater> candObjects;
 
   double objValue = solver->getObjSense() * solver->getObjValue();
 
@@ -185,62 +188,41 @@ DcoBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft,
     firstObjects.clear();
 
     for (i = 0; i < numObjects; ++i) {
-
       object = model->objects(i);
       infeasibility = object->infeasibility(model, preferDir);
-
       if (infeasibility) {
-
 	++numInfs;
 	intObject = dynamic_cast<DcoObjectInt *>(object);
-
 	if (intObject) {
 	  infObjects.push_back(intObject);
-
 	  if (!selectNow) {
 	    minCount =
 	      ALPS_MIN(intObject->pseudocost().getDownCount(),
 		       intObject->pseudocost().getUpCount());
-
 	    if (minCount < 1) {
 	      firstObjects.push_back(intObject);
 	    }
 	  }
-
-#ifdef BLIS_DEBUG
-	  if (intObject->columnIndex() == 40) {
-	    std::cout << "x[40] = " << saveSolution[40]
-		      << std::endl;
-	  }
-#endif
-
 	  intObject = NULL;
 	}
 	else {
 	  // TODO: currently all are integer objects.
-#ifdef BLIS_DEBUG
+#ifdef DISCO_DEBUG
 	  assert(0);
 #endif
 	}
-
       }
     }
 
     if (numInfs) {
-#if 0
-      std::cout << "PSEUDO: numInfs = " << numInfs
-		<< std::endl;
-#endif
       break;
     }
-    else if (pass == 0) {
+    else if (pass==0) {
       // The first pass and is IP feasible.
-
 #if 1
       std::cout << "ERROR: PSEUDO: given a integer feasible sol, no fraction variable" << std::endl;
       assert(0);
 #endif
-
       roundAgain = false;
       CoinWarmStartBasis * ws =
 	dynamic_cast<CoinWarmStartBasis*>(solver->getWarmStart());
@@ -403,7 +385,7 @@ DcoBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft,
       sumDeg += score;
 
 
-#ifdef BLIS_DEBUG_MORE
+#ifdef DISCO_DEBUG_MORE
       std::cout << "col[" << infObjects[i]->columnIndex() << "]: score="
 		<< score << ", dir=" << branchObjects_[i]->getDirection()
 		<< ", up=" << infObjects[i]->pseudocost().getUpCost()
@@ -434,4 +416,3 @@ DcoBranchStrategyPseudo::createCandBranchObjects(int numPassesLeft,
 }
 
 //#############################################################################
-

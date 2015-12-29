@@ -70,12 +70,16 @@ bool
 DcoConGenerator::generateConstraints(BcpsConstraintPool &conPool)
 {
   bool status = false;
-
+#if defined(__OA__)
+  OsiSolverInterface * solver = model_->solver();
+#else
   OsiConicSolverInterface * solver = model_->solver();
+#endif
 
 #if defined(DISCO_DEBUG_MORE)
-  std::cout << "model_->getNodeCount() = " << model_->getNodeCount()
-	    << std::endl;
+  // todo(aykut) no such function in DcoModel
+  // std::cout << "model_->getNodeCount() = " << model_->getNodeCount()
+  //	    << std::endl;
 #endif
 
   //--------------------------------------------------

@@ -34,10 +34,10 @@
 /** Useful constructor
     Loads actual upper & lower bounds for the specified variable. */
 DcoObjectInt::DcoObjectInt(int objectIndex,
-                             int iColumn,
-                             double lb,
-                             double ub,
-                             double breakEven)
+			     int iColumn,
+			     double lb,
+			     double ub,
+			     double breakEven)
     :
     BcpsObject()
 {
@@ -86,7 +86,11 @@ double
 DcoObjectInt::infeasibility(BcpsModel *m, int & preferredWay) const
 {
     DcoModel * model = dynamic_cast<DcoModel *>(m);
+#if defined(__OA__)
+    OsiSolverInterface * solver = model->solver();
+#else
     OsiConicSolverInterface * solver = model->solver();
+#endif
 
     const double * solution =  solver->getColSolution();
 
@@ -138,7 +142,11 @@ DcoObjectInt::feasibleRegion(BcpsModel *m)
 {
 
     DcoModel *model = dynamic_cast<DcoModel* >(m);
+#if defined(__OA__)
+    OsiSolverInterface * solver = model->solver();
+#else
     OsiConicSolverInterface * solver = model->solver();
+#endif
 
     const double * solution =  solver->getColSolution();
     const double * lower = solver->getColLower();
@@ -165,7 +173,11 @@ BcpsBranchObject *
 DcoObjectInt::createBranchObject(BcpsModel *m, int direction) const
 {
     DcoModel *model = dynamic_cast<DcoModel* >(m);
+#if defined(__OA__)
+    OsiSolverInterface * solver = model->solver();
+#else
     OsiConicSolverInterface * solver = model->solver();
+#endif
 
     //double integerTolerance = model->DcoPar()->entry(DcoParams::integerTol);
 
@@ -194,7 +206,11 @@ BcpsBranchObject *
 DcoObjectInt::preferredNewFeasible(BcpsModel *m) const
 {
     DcoModel *model = dynamic_cast<DcoModel* >(m);
+#if defined(__OA__)
+    OsiSolverInterface * solver = model->solver();
+#else
     OsiConicSolverInterface * solver = model->solver();
+#endif
 
     double value = solver->getColSolution()[columnIndex_];
 
@@ -211,10 +227,10 @@ DcoObjectInt::preferredNewFeasible(BcpsModel *m) const
 	if (nearest > originalLower_ + 0.5) {
 	    // Has room to go down
 	    object = new DcoBranchObjectInt(model,
-                                             objectIndex_,
-                                             -1,
-                                             nearest - 1.0,
-                                             nearest - 1.0);
+					     objectIndex_,
+					     -1,
+					     nearest - 1.0,
+					     nearest - 1.0);
 	}
     }
     else {
@@ -222,10 +238,10 @@ DcoObjectInt::preferredNewFeasible(BcpsModel *m) const
 	if (nearest < originalUpper_ - 0.5) {
 	    // Has room to go up
 	    object = new DcoBranchObjectInt(model,
-                                             objectIndex_,
-                                             -1,
-                                             nearest + 1.0,
-                                             nearest + 1.0);
+					     objectIndex_,
+					     -1,
+					     nearest + 1.0,
+					     nearest + 1.0);
 	}
     }
 
@@ -243,7 +259,11 @@ BcpsBranchObject *
 DcoObjectInt::notPreferredNewFeasible(BcpsModel *m) const
 {
     DcoModel *model = dynamic_cast<DcoModel* >(m);
+#if defined(__OA__)
+    OsiSolverInterface * solver = model->solver();
+#else
     OsiConicSolverInterface * solver = model->solver();
+#endif
     double value = solver->getColSolution()[columnIndex_];
 
     double nearest = floor(value + 0.5);
@@ -257,10 +277,10 @@ DcoObjectInt::notPreferredNewFeasible(BcpsModel *m) const
 	if (nearest > originalLower_ + 0.5) {
 	    // Has room to go down.
 	    object = new DcoBranchObjectInt(model,
-                                             objectIndex_,
-                                             -1,
-                                             nearest - 1.0,
-                                             nearest - 1.0);
+					     objectIndex_,
+					     -1,
+					     nearest - 1.0,
+					     nearest - 1.0);
 	}
     }
     else {
@@ -268,10 +288,10 @@ DcoObjectInt::notPreferredNewFeasible(BcpsModel *m) const
 	if (nearest < originalUpper_-0.5) {
 	    // Has room to go up.
 	    object = new DcoBranchObjectInt(model,
-                                             objectIndex_,
-                                             -1,
-                                             nearest + 1.0,
-                                             nearest + 1.0);
+					     objectIndex_,
+					     -1,
+					     nearest + 1.0,
+					     nearest + 1.0);
 	}
     }
 

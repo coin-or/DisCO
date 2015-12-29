@@ -121,29 +121,38 @@ AC_COIN_CHECK_PACKAGE(Mosek,  [osimosek],  [DiscoLib])
 AC_MSG_CHECKING([for DisCO default solver])
 AC_ARG_WITH([soco-solver],
 [AC_HELP_STRING([--with-soco-solver@<:@=socosolver@:>@],
-                [specify the SOCO solver in small
-                letters(default socosolver=cola)])],
-		[dco_soco_solver=$withval],[dco_soco_solver=cola])
+		[specify the SOCO solver in small
+		letters(default socosolver=oa)])],
+		[dco_soco_solver=$withval],[dco_soco_solver=oa])
 
 found_package=true
 case $dco_soco_solver in
+   oa)
+    AC_MSG_RESULT(oa)
+     if [test $coin_has_coindepend = unavailable || test $coin_has_coindepend = skipping]; \
+     then
+	 found_package=false
+     fi
+   ;;
    cola)
     AC_MSG_RESULT(Cola)
      if [test $coin_has_cola = unavailable || test $coin_has_cola = skipping]; \
      then
-         found_package=false
+	 found_package=false
      fi
    ;;
    mosek)
      AC_MSG_RESULT(Mosek)
-     if test $coin_has_mosek = false; then
-         found_package=false
+     if test $coin_has_mosek = false; \
+     then
+	 found_package=false
      fi
    ;;
    cplex)
      AC_MSG_RESULT(Cplex)
-     if test $coin_has_cplex = false; then
-         found_package=false
+     if test $coin_has_cplex = false; \
+     then
+	 found_package=false
      fi
    ;;
   *)
@@ -155,6 +164,8 @@ if test $found_package = false; then
   AC_MSG_ERROR(Couldn't find the $dco_soco_solver package!)
 fi
 
+AM_CONDITIONAL(OA_SOCO_SOLVER,[test $dco_soco_solver = oa &&
+test $coin_has_coindepend = yes])
 AM_CONDITIONAL(COLA_SOCO_SOLVER,[test $dco_soco_solver = cola &&
 test $coin_has_cola = yes])
 AM_CONDITIONAL(MOSEK_SOCO_SOLVER,[test $dco_soco_solver = mosek &&
@@ -192,9 +203,9 @@ AC_COIN_DOXYGEN(CoinUtils Osi Clp Cgl Alps Bcps CglConic Cola OsiConic OsiCplex 
 # configuration header file)
 AC_CONFIG_FILES([Makefile
 		 examples/VRP/Makefile
-                 src/Makefile
+		 src/Makefile
 		 src/disco.par
-                 test/Makefile
+		 test/Makefile
 		 disco.pc
 		 disco-uninstalled.pc])
 

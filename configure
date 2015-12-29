@@ -492,7 +492,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os ALWAYS_FALSE_TRUE ALWAYS_FALSE_FALSE have_svnversion DISCO_SVN_REV CDEFS ADD_CFLAGS DBG_CFLAGS OPT_CFLAGS sol_cc_compiler CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT COIN_CC_IS_CL_TRUE COIN_CC_IS_CL_FALSE MPICC CXXDEFS ADD_CXXFLAGS DBG_CXXFLAGS OPT_CXXFLAGS CXX CXXFLAGS ac_ct_CXX COIN_CXX_IS_CL_TRUE COIN_CXX_IS_CL_FALSE MPICXX EGREP LN_S INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT LIBTOOLM4 have_autoconf have_automake have_svn BUILDTOOLSDIR AUX_DIR abs_source_dir abs_lib_dir abs_include_dir abs_bin_dir HAVE_EXTERNALS_TRUE HAVE_EXTERNALS_FALSE host host_cpu host_vendor host_os ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL ac_c_preproc_warn_flag ac_cxx_preproc_warn_flag RPATH_FLAGS DEPENDENCY_LINKING_TRUE DEPENDENCY_LINKING_FALSE LT_LDFLAGS PKG_CONFIG ac_ct_PKG_CONFIG COIN_HAS_PKGCONFIG_TRUE COIN_HAS_PKGCONFIG_FALSE COIN_PKG_CONFIG_PATH COIN_PKG_CONFIG_PATH_UNINSTALLED COINDEPEND_LIBS COINDEPEND_CFLAGS COINDEPEND_DATA COINDEPEND_DEPENDENCIES COINDEPEND_LIBS_INSTALLED COINDEPEND_CFLAGS_INSTALLED COINDEPEND_DATA_INSTALLED DISCOLIB_CFLAGS DISCOLIB_LIBS DISCOLIB_PCLIBS DISCOLIB_PCREQUIRES DISCOLIB_DEPENDENCIES DISCOLIB_CFLAGS_INSTALLED DISCOLIB_LIBS_INSTALLED COIN_HAS_COINDEPEND_TRUE COIN_HAS_COINDEPEND_FALSE COLA_LIBS COLA_CFLAGS COLA_DATA COLA_DEPENDENCIES COLA_LIBS_INSTALLED COLA_CFLAGS_INSTALLED COLA_DATA_INSTALLED COIN_HAS_COLA_TRUE COIN_HAS_COLA_FALSE SAMPLE_LIBS SAMPLE_CFLAGS SAMPLE_DATA SAMPLE_DEPENDENCIES SAMPLE_LIBS_INSTALLED SAMPLE_CFLAGS_INSTALLED SAMPLE_DATA_INSTALLED COIN_HAS_SAMPLE_TRUE COIN_HAS_SAMPLE_FALSE CPLEX_LIBS CPLEX_CFLAGS CPLEX_DATA CPLEX_DEPENDENCIES CPLEX_LIBS_INSTALLED CPLEX_CFLAGS_INSTALLED CPLEX_DATA_INSTALLED COIN_HAS_CPLEX_TRUE COIN_HAS_CPLEX_FALSE MOSEK_LIBS MOSEK_CFLAGS MOSEK_DATA MOSEK_DEPENDENCIES MOSEK_LIBS_INSTALLED MOSEK_CFLAGS_INSTALLED MOSEK_DATA_INSTALLED COIN_HAS_MOSEK_TRUE COIN_HAS_MOSEK_FALSE COLA_SOCO_SOLVER_TRUE COLA_SOCO_SOLVER_FALSE MOSEK_SOCO_SOLVER_TRUE MOSEK_SOCO_SOLVER_FALSE CPLEX_SOCO_SOLVER_TRUE CPLEX_SOCO_SOLVER_FALSE coin_have_doxygen coin_have_latex coin_doxy_usedot coin_doxy_tagname coin_doxy_logname COIN_HAS_DOXYGEN_TRUE COIN_HAS_DOXYGEN_FALSE COIN_HAS_LATEX_TRUE COIN_HAS_LATEX_FALSE coin_doxy_tagfiles coin_doxy_excludes LIBEXT VPATH_DISTCLEANFILES ABSBUILDDIR LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os ALWAYS_FALSE_TRUE ALWAYS_FALSE_FALSE have_svnversion DISCO_SVN_REV CDEFS ADD_CFLAGS DBG_CFLAGS OPT_CFLAGS sol_cc_compiler CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT COIN_CC_IS_CL_TRUE COIN_CC_IS_CL_FALSE MPICC CXXDEFS ADD_CXXFLAGS DBG_CXXFLAGS OPT_CXXFLAGS CXX CXXFLAGS ac_ct_CXX COIN_CXX_IS_CL_TRUE COIN_CXX_IS_CL_FALSE MPICXX EGREP LN_S INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT LIBTOOLM4 have_autoconf have_automake have_svn BUILDTOOLSDIR AUX_DIR abs_source_dir abs_lib_dir abs_include_dir abs_bin_dir HAVE_EXTERNALS_TRUE HAVE_EXTERNALS_FALSE host host_cpu host_vendor host_os ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL ac_c_preproc_warn_flag ac_cxx_preproc_warn_flag RPATH_FLAGS DEPENDENCY_LINKING_TRUE DEPENDENCY_LINKING_FALSE LT_LDFLAGS PKG_CONFIG ac_ct_PKG_CONFIG COIN_HAS_PKGCONFIG_TRUE COIN_HAS_PKGCONFIG_FALSE COIN_PKG_CONFIG_PATH COIN_PKG_CONFIG_PATH_UNINSTALLED COINDEPEND_LIBS COINDEPEND_CFLAGS COINDEPEND_DATA COINDEPEND_DEPENDENCIES COINDEPEND_LIBS_INSTALLED COINDEPEND_CFLAGS_INSTALLED COINDEPEND_DATA_INSTALLED DISCOLIB_CFLAGS DISCOLIB_LIBS DISCOLIB_PCLIBS DISCOLIB_PCREQUIRES DISCOLIB_DEPENDENCIES DISCOLIB_CFLAGS_INSTALLED DISCOLIB_LIBS_INSTALLED COIN_HAS_COINDEPEND_TRUE COIN_HAS_COINDEPEND_FALSE COLA_LIBS COLA_CFLAGS COLA_DATA COLA_DEPENDENCIES COLA_LIBS_INSTALLED COLA_CFLAGS_INSTALLED COLA_DATA_INSTALLED COIN_HAS_COLA_TRUE COIN_HAS_COLA_FALSE SAMPLE_LIBS SAMPLE_CFLAGS SAMPLE_DATA SAMPLE_DEPENDENCIES SAMPLE_LIBS_INSTALLED SAMPLE_CFLAGS_INSTALLED SAMPLE_DATA_INSTALLED COIN_HAS_SAMPLE_TRUE COIN_HAS_SAMPLE_FALSE CPLEX_LIBS CPLEX_CFLAGS CPLEX_DATA CPLEX_DEPENDENCIES CPLEX_LIBS_INSTALLED CPLEX_CFLAGS_INSTALLED CPLEX_DATA_INSTALLED COIN_HAS_CPLEX_TRUE COIN_HAS_CPLEX_FALSE MOSEK_LIBS MOSEK_CFLAGS MOSEK_DATA MOSEK_DEPENDENCIES MOSEK_LIBS_INSTALLED MOSEK_CFLAGS_INSTALLED MOSEK_DATA_INSTALLED COIN_HAS_MOSEK_TRUE COIN_HAS_MOSEK_FALSE OA_SOCO_SOLVER_TRUE OA_SOCO_SOLVER_FALSE COLA_SOCO_SOLVER_TRUE COLA_SOCO_SOLVER_FALSE MOSEK_SOCO_SOLVER_TRUE MOSEK_SOCO_SOLVER_FALSE CPLEX_SOCO_SOLVER_TRUE CPLEX_SOCO_SOLVER_FALSE coin_have_doxygen coin_have_latex coin_doxy_usedot coin_doxy_tagname coin_doxy_logname COIN_HAS_DOXYGEN_TRUE COIN_HAS_DOXYGEN_FALSE COIN_HAS_LATEX_TRUE COIN_HAS_LATEX_FALSE coin_doxy_tagfiles coin_doxy_excludes LIBEXT VPATH_DISTCLEANFILES ABSBUILDDIR LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -1156,7 +1156,7 @@ Optional Packages:
   --with-mosek-datadir directory with data files for using package Mosek
   --with-soco-solver[=socosolver]
                           specify the SOCO solver in small letters(default
-                          socosolver=cola)
+                          socosolver=oa)
   --with-dot              use dot (from graphviz) when creating documentation
                           with doxygen if available; --without-dot to disable
 
@@ -23296,31 +23296,39 @@ if test "${with_soco_solver+set}" = set; then
   withval="$with_soco_solver"
   dco_soco_solver=$withval
 else
-  dco_soco_solver=cola
+  dco_soco_solver=oa
 fi;
 
 found_package=true
 case $dco_soco_solver in
+   oa)
+    echo "$as_me:$LINENO: result: oa" >&5
+echo "${ECHO_T}oa" >&6
+     if test $coin_has_coindepend = unavailable || test $coin_has_coindepend = skipping; \
+     then
+	 found_package=false
+     fi
+   ;;
    cola)
     echo "$as_me:$LINENO: result: Cola" >&5
 echo "${ECHO_T}Cola" >&6
      if test $coin_has_cola = unavailable || test $coin_has_cola = skipping; \
      then
-         found_package=false
+	 found_package=false
      fi
    ;;
    mosek)
      echo "$as_me:$LINENO: result: Mosek" >&5
 echo "${ECHO_T}Mosek" >&6
      if test $coin_has_mosek = false; then
-         found_package=false
+	 found_package=false
      fi
    ;;
    cplex)
      echo "$as_me:$LINENO: result: Cplex" >&5
 echo "${ECHO_T}Cplex" >&6
      if test $coin_has_cplex = false; then
-         found_package=false
+	 found_package=false
      fi
    ;;
   *)
@@ -23334,6 +23342,17 @@ if test $found_package = false; then
   { { echo "$as_me:$LINENO: error: Couldn't find the $dco_soco_solver package!" >&5
 echo "$as_me: error: Couldn't find the $dco_soco_solver package!" >&2;}
    { (exit 1); exit 1; }; }
+fi
+
+
+
+if test $dco_soco_solver = oa &&
+test $coin_has_coindepend = yes; then
+  OA_SOCO_SOLVER_TRUE=
+  OA_SOCO_SOLVER_FALSE='#'
+else
+  OA_SOCO_SOLVER_TRUE='#'
+  OA_SOCO_SOLVER_FALSE=
 fi
 
 
@@ -23917,6 +23936,13 @@ if test -z "${COIN_HAS_MOSEK_TRUE}" && test -z "${COIN_HAS_MOSEK_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"COIN_HAS_MOSEK\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"COIN_HAS_MOSEK\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${OA_SOCO_SOLVER_TRUE}" && test -z "${OA_SOCO_SOLVER_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"OA_SOCO_SOLVER\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"OA_SOCO_SOLVER\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -24663,6 +24689,8 @@ s,@MOSEK_CFLAGS_INSTALLED@,$MOSEK_CFLAGS_INSTALLED,;t t
 s,@MOSEK_DATA_INSTALLED@,$MOSEK_DATA_INSTALLED,;t t
 s,@COIN_HAS_MOSEK_TRUE@,$COIN_HAS_MOSEK_TRUE,;t t
 s,@COIN_HAS_MOSEK_FALSE@,$COIN_HAS_MOSEK_FALSE,;t t
+s,@OA_SOCO_SOLVER_TRUE@,$OA_SOCO_SOLVER_TRUE,;t t
+s,@OA_SOCO_SOLVER_FALSE@,$OA_SOCO_SOLVER_FALSE,;t t
 s,@COLA_SOCO_SOLVER_TRUE@,$COLA_SOCO_SOLVER_TRUE,;t t
 s,@COLA_SOCO_SOLVER_FALSE@,$COLA_SOCO_SOLVER_FALSE,;t t
 s,@MOSEK_SOCO_SOLVER_TRUE@,$MOSEK_SOCO_SOLVER_TRUE,;t t

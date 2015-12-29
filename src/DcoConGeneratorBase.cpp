@@ -2,11 +2,11 @@
 
 /** Useful constructor. */
 DcoConGeneratorBase::DcoConGeneratorBase(DcoModel * model,
-                      const char * name,
-                      DcoCutStrategy strategy ,
-                      int cutGenerationFrequency,
-                      bool normal,
-                      bool atSolution,
+		      const char * name,
+		      DcoCutStrategy strategy ,
+		      int cutGenerationFrequency,
+		      bool normal,
+		      bool atSolution,
 					 bool infeasiblex) {
   model_ = model;
   name_ = name;
@@ -15,6 +15,11 @@ DcoConGeneratorBase::DcoConGeneratorBase(DcoModel * model,
   normal_ = normal;
   atSolution_ = atSolution;
   whenInfeasible_ = infeasiblex;
+  numConsGenerated_ = 0;
+  numConsUsed_ = 0;
+  time_ = 0.0;
+  calls_ = 0;
+  noConsCalls_ = 0;
 }
 
 /** Copy constructor. */
@@ -26,6 +31,11 @@ DcoConGeneratorBase::DcoConGeneratorBase (const DcoConGeneratorBase & other) {
   setNormal(other.normal());
   setAtSolution(other.atSolution());
   setWhenInfeasible(other.whenInfeasible());
+  numConsGenerated_ = other.numConsGenerated();
+  numConsUsed_ = other.numConsUsed();
+  time_ = other.time();
+  calls_ = other.calls();
+  noConsCalls_ = other.noConsCalls();
 }
 
 /** Assignment operator. */
@@ -39,6 +49,11 @@ DcoConGeneratorBase & DcoConGeneratorBase::operator=(
     setNormal(rhs.normal());
     setAtSolution(rhs.atSolution());
     setWhenInfeasible(rhs.whenInfeasible());
+    numConsGenerated_ = rhs.numConsGenerated();
+    numConsUsed_ = rhs.numConsUsed();
+    time_ = rhs.time();
+    calls_ = rhs.calls();
+    noConsCalls_ = rhs.noConsCalls();
   }
   return *this;
 }

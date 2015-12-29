@@ -65,7 +65,11 @@ DcoBranchStrategyBilevel::createCandBranchObjects(int numPassesLeft,
     numBranchObjects_ = 1;
 
     DcoModel *model = dynamic_cast<DcoModel *>(model_);
-    OsiConicSolverInterface *solver = model->solver();
+#if defined(__OA__)
+    OsiSolverInterface * solver = model->solver();
+#else
+    OsiConicSolverInterface * solver = model->solver();
+#endif
     int msgLevel = model->AlpsPar()->entry(AlpsParams::msgLevel);
     int numCols = model->getNumCols();
 
