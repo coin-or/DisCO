@@ -401,6 +401,7 @@ void DcoModel::readInstance(const char* dataFile) {
   // update row information
   numRows_ = origLpSolver_->getNumRows();
   numElems_ = origLpSolver_->getNumElements();
+  delete colMatrix_;
   colMatrix_ = new CoinPackedMatrix();
   *colMatrix_ = *(origLpSolver_->getMatrixByCol());
   delete[] conLB_;
@@ -701,39 +702,25 @@ DcoModel::setupSelf()
     //------------------------------------------------------
     // Load data to LP solver.
     //------------------------------------------------------
-
-    if (!lpSolver_) {
-	// preprocessing causes this check.
-	lpSolver_ = origLpSolver_;
-    }
-
-    //AT here problem is set for first time for lp solver -> should be moved to read problem??
-    if(!presolved)
-	lpSolver_->loadProblem(*colMatrix_,
-			       varLB_, varUB_,
-			       objCoef_,
-			       conLB_, conUB_);
-
+    // todo(aykut) just copy the pointer to the origLpSolver
+    // this should work fine.
+    lpSolver_ = origLpSolver_;
     lpSolver_->setObjSense(1.0);
+    // we do not need the following line, since they are done in
+    // readInstance
     lpSolver_->setInteger(intColIndices_, numIntObjects_);
-
     // AT - Begin - solver ready, in principle we could presolve here
     problemSetup=true;
     // AT - End
-
     //------------------------------------------------------
     // Create integer objects and analyze objective coef.
     //------------------------------------------------------
-
     createIntgerObjects(true);
-
     // Do this after loading LP.
     analyzeObjective();
-
     //------------------------------------------------------
     // Allocate memory.
     //------------------------------------------------------
-
     startVarLB_ = new double [numCols_];
     startVarUB_ = new double [numCols_];
 
@@ -1189,12 +1176,10 @@ DcoModel::setupSelf()
     addCutGenerator(dco_oa_cg);
     oa_gen = NULL;
 #endif
-
     //--------------------------------------------
     // Adjust cutStrategy_ according to the strategies of
     // each cut generators.
     //--------------------------------------------
-
     if (numCutGenerators_ > 0) {
 	DcoCutStrategy strategy0 = cutGenerators(0)->strategy();
 	DcoCutStrategy strategy1;
@@ -1257,23 +1242,29 @@ void DcoModel::approximateCones() {
   origLpSolver_->resolve();
   do {
     // generate cuts
-    OsiCuts * cuts = new OsiCuts();
+    OsiCuts * ipm_cuts = new OsiCuts();
+    OsiCuts * oa_cuts = new OsiCuts();
     CglConicCutGenerator * cg_ipm = new CglConicIPM();
+    CglConicCutGenerator * cg_oa = new CglConicOA();
     // get cone info
-    // todo(aykut) what if problem is unbounded
     int largest_cone_size = *std::max_element(coneSizes_, coneSizes_+numCoreCones_);
-    cg_ipm->generateCuts(*origLpSolver_, *cuts, numCoreCones_, coneTypes_,
+    cg_ipm->generateCuts(*origLpSolver_, *ipm_cuts, numCoreCones_, coneTypes_,
 			 coneSizes_, coneMembers_, largest_cone_size);
+    // cg_oa->generateCuts(*origLpSolver_, *oa_cuts, numCoreCones_, coneTypes_,
+    //			 coneSizes_, coneMembers_, largest_cone_size);
     // if we do not get any cuts break the loop
-    if (cuts->sizeRowCuts()==0) {
+    if (ipm_cuts->sizeRowCuts()==0 && oa_cuts->sizeRowCuts()==0) {
       break;
     }
     // if problem is unbounded do nothing, add cuts to the problem
     // this will make lp relaxation infeasible
-    origLpSolver_->applyCuts(*cuts);
+    origLpSolver_->applyCuts(*ipm_cuts);
+    origLpSolver_->applyCuts(*oa_cuts);
     origLpSolver_->resolve();
-    delete cuts;
+    delete ipm_cuts;
+    delete oa_cuts;
     delete cg_ipm;
+    delete cg_oa;
     dual_infeasible = origLpSolver_->isProvenDualInfeasible();
   } while(dual_infeasible);
 }
