@@ -38,7 +38,7 @@ bool DcoConicConGenerator::generateConstraints(
   int const * sizes = model_->getConeSizes();
   // convert cone type to osi types
   generator_->generateCuts(*solver, *cuts, num_cones, types,
-			   sizes, members, 3);
+			   sizes, members, 1);
   // add cuts to the constraint pool
   int num_cuts = cuts->sizeRowCuts();
   for (int i=0; i<num_cuts; ++i) {
@@ -56,6 +56,7 @@ bool DcoConicConGenerator::generateConstraints(
     //   std::cerr << "Negative size cut" << std::endl;
     // }
   }
+  delete cuts;
   if (num_cuts) {
     return true;
   }
