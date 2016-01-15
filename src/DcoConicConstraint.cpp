@@ -68,6 +68,7 @@ double DcoConicConstraint::infeasibility(BcpsModel * m,
     std::cerr << "Unknown cone type!" << std::endl;
     throw std::exception();
   }
+  delete[] par_sol;
   return infeas;
 }
 
