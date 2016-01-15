@@ -34,7 +34,10 @@
 #include "OsiCuts.hpp"
 
 #include <CglConicGD1.hpp>
-
+#if defined(__OA__)
+#include <CglConicIPM.hpp>
+#include <OsiMosekSolverInterface.hpp>
+#endif
 #include "AlpsKnowledge.h"
 #include "AlpsEnumProcessT.h"
 #include "AlpsKnowledgeBroker.h"
@@ -323,6 +326,11 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
     }
   }
 
+#if defined(__OA__)
+  // when OA is used we may generate cuts in every node.
+  genConsHere = true;
+#endif
+
   //--------------------------------------------------
   // Call HeurisBounding before solving for the first node.
   //--------------------------------------------------
@@ -351,7 +359,6 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
   //------------------------------------------------------
   // Extract info from this node and load subproblem into lp solver.
   //------------------------------------------------------
-
   installSubProblem(model);
 
   //------------------------------------------------------
@@ -416,9 +423,8 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
       getKnowledgeBroker()->tempTimer().start();
     }
 
-    // Get lowe bound.
+    // Get lower bound.
     lpStatus = static_cast<DcoLpStatus> (bound(model));
-
     if (model->boundingPass_ == 1) {
       int iter = model->solver()->getIterationCount();
       model->addNumIterations(iter);
@@ -440,7 +446,6 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
     case DcoLpStatusOptimal:
       // Check if IP feasible
       ipSol = model->feasibleSolution(numIntInfs, numObjInfs);
-
       if (ipSol) {
 	// IP feasible
 	model->storeSolution(DcoSolutionTypeBounding, ipSol);
@@ -462,22 +467,39 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 	//------------------------------------------
 
 	// at this point there is no solution both integer and conic feasible.
-	// if there is a fractional variable branch.
-	// else
+	// if there is a fractional variable, branch.
 	if (numIntInfs) {
 	  needBranch = true;
 	  keepOn = false;
 	}
 	else {
 	  // we have an integer solution that is not conic feasible
+#if defined(__OA__)
+#if defined(DISCO_DEBUG)
+	  std::cout << "===============================================================================" << std::endl;
+	  std::cout << "Node index " << index_ << std::endl;
+	  std::cout << "Integer feasibility obtained." << std::endl;
+	  std::cout << "Generate cuts for conic feasibility." << std::endl;
+	  std::cout << "Number of infeasible conic constraints: " << numObjInfs << std::endl;
+	  std::cout << "===============================================================================" << std::endl;
+#endif
 	  keepOn = true;
+	  // this will call cut generators
+	  // in ipm cut generator we will check if the solution is integer. We will call
+	  // cut procedure if it is integer.
+#else
+	  keepOn = false;
+	  needBranch = true;
+#endif
 	}
 	if (model->boundingPass_ > 1) {
 	  improvement = quality_ - preObjValue;
 	  if (improvement > tailOffTol) {
 	    // NOTE: still need remove slacks, although
 	    //       tailoff.
-	    keepOn = true;
+	    // we do not want this. Conic cuts will improve the bound
+	    // but we want to branch if there is at least one fractional variable.
+	    //keepOn = true;
 	  }
 
 #if 0
@@ -714,6 +736,10 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
       returnStatus = DcoReturnStatusErrLp;
       goto TERM_PROCESS;
     case DcoLpStatusDualInfeasible:
+      //todo(aykut) what happens if the relaxation is unbounded?
+      // this is the current bug
+
+
       // FIXME: maybe also primal infeasible
 #ifdef DISCO_DEBUG
       assert(0);
@@ -748,8 +774,8 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
       break;
     }
 
-
-#if defined(__COLA__) // run generation/heuristics when solver is cola.
+// run generation/heuristics when solver is cola or OA.
+#if defined(__OA__) || defined(__COLA__)
     //--------------------------------------------------
     // Call heuristics.
     //--------------------------------------------------
@@ -777,18 +803,18 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
     // Generate constraints.
     //--------------------------------------------------
 
-#if 0
+#ifdef DISCO_DEBUG
     std::cout << "keepOn = " << keepOn
 	      << ", geneConsHere = " << genConsHere
 	      << ", numAppliedCons = " << numAppliedCons
 	      << ", maxNumCons = " << maxNumCons
+	      << ", boundingPass = " << model->boundingPass_
+	      << ", maxPass =" << maxPass
 	      << std::endl;
 #endif
-
     if ( keepOn && genConsHere &&
 	 (numAppliedCons < maxNumCons) &&
 	 (model->boundingPass_ < maxPass) ) {
-
       //OsiCuts newOsiCuts;
       BcpsConstraintPool newConPool;
 
@@ -816,6 +842,9 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
       }
 
       tempNumCons = newConPool.getNumConstraints();
+#ifdef DISCO_DEBUG
+      std::cout << "Generated " << tempNumCons << " many cuts." << std::endl;
+#endif
 
       if (tempNumCons > 0) {
 	// Select and install new constraints
@@ -858,7 +887,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 #if 0
 	    std::cout << "+++ Num of send new constraint = "
 		      << model->constraintPoolSend()->getNumConstraints()
-radii		      << std::endl;
+		      << std::endl;
 #endif
 	  }
 	}
@@ -868,6 +897,16 @@ radii		      << std::endl;
       }
       else { // Didn't generate any new constraints.
 	keepOn = false;
+#if defined(__OA__)
+	// if OA algorithm is used and we did not generated any cuts
+	// check if the current sol is integer
+	// if it is integer, this means ipm method did not result any cuts.
+	// we can use CglConicOA to generate cuts.
+#ifdef DISCO_DEBUG_MORE
+	std::cout << "Solution is integer and conic infeasible. " << std::endl;
+	std::cout << "Failed to generate cuts." << std::endl;
+#endif
+#endif
       }
     }
     else { // Don't allow to generate constraints.
@@ -901,14 +940,16 @@ radii		      << std::endl;
 	std::cout << "*** I AM RANK ONE: before choose:bStatus = "
 		  << bStatus << std::endl;
       }
+      // todo(aykut) what if problem becomes integer feasible after the
+      // branch on the prev iteration
       bStatus = selectBranchObject(model,
 				   foundSolution,
 				   numPassesLeft);
       --numPassesLeft;
 
       if (bStatus == -1) {
+	// bStatus is -1 if a varaible is fixed to some value.
 	lpFeasible = model->resolve();
-
 	//resolved = true ;
 #ifdef DISCO_DEBUG_MORE
 	printf("Resolve since some col fixed, Obj value %g, numRows %d, cutoff %g\n",
@@ -931,6 +972,47 @@ radii		      << std::endl;
 	    cutoff = model->getCutoff();
 	    setStatus(AlpsNodeStatusFathomed);
 	    goto TERM_PROCESS;
+	  }
+	  else if (!numIntInfs && numObjInfs) {
+	    // problem is integer feasible but not conic feasible
+	    // this can happen only if OA is used.
+#ifdef DISCO_DEBUG_MORE
+	    std::cout << "Some col is fixed. Problem is integer feasible but not conic feasible." << std::endl;
+	    std::cout << "Fix all integer variables, solve problem with IPM..." << std::endl;
+#endif
+	    // fix all integer variables, load problem to ipm solver,
+	    // if feasible check solution quality, if better store it, else
+	    // fathom.
+#if defined(__OA__)
+	    OsiConicSolverInterface * ipm_solver = new OsiMosekSolverInterface();
+	    integerFix(model, ipm_solver);
+	    if (ipm_solver->isProvenOptimal()) {
+	      quality_ = ipm_solver->getObjValue();
+	      if (quality_ > cutoff) {
+		bStatus = -2;
+	      }
+	      else {
+		// Check if feasible at the other branch due to random LP
+		ipSol = model->feasibleSolution(numIntInfs, numObjInfs);
+		// IP feasible
+		model->storeSolution(DcoSolutionTypeBounding, ipSol);
+		// Update cutoff
+		cutoff = model->getCutoff();
+		setStatus(AlpsNodeStatusFathomed);
+		goto TERM_PROCESS;
+	      }
+	    }
+	    else if (ipm_solver->isProvenPrimalInfeasible() || ipm_solver->isProvenDualInfeasible()) {
+	      // problem is infeasible when integer variables are fixed.
+	      setStatus(AlpsNodeStatusFathomed);
+	      goto TERM_PROCESS;
+	    }
+	    else {
+	      std::cout << "IPM failed!" << std::endl;
+	      throw std::exception();
+	    }
+	    delete ipm_solver;
+#endif
 	  }
 	  if (msgLevel >= 100){
 	    printf("Final Bound:  %.3f\n", quality_);
@@ -967,9 +1049,9 @@ radii		      << std::endl;
 
 #ifdef DISCO_DEBUG_MORE
       DcoBranchObjectInt *branchObject =
-	dynamic_cast<DcoIntegerBranchObject *>(branchObject_);
+	dynamic_cast<DcoBranchObjectInt *>(branchObject_);
       std::cout << "SetPregnant: branchedOn = "
-		<< model->getIntVars()[branchObject->variable()]
+		<< branchObject->getObjectIndex()
 		<< std::endl;
 #endif
       //--------------------------------------------------
@@ -2121,23 +2203,17 @@ DcoTreeNode::branch() {
 
 int DcoTreeNode::selectBranchObject(DcoModel *model,
 				    bool& foundSol,
-				    int numPassesLeft)
-{
+				    int numPassesLeft) {
   int bStatus = 0;
-  BcpsBranchStrategy *strategy = 0;
-
+  BcpsBranchStrategy * strategy = 0;
   AlpsPhase phase = knowledgeBroker_->getPhase();
-
-
   if(branchObject_) {
     delete branchObject_;
     branchObject_ = NULL;
   }
-
   //------------------------------------------------------
   // Get branching strategy.
   //------------------------------------------------------
-
   if (phase == AlpsPhaseRampup) {
     strategy = model->rampUpBranchStrategy();
   }
@@ -2146,46 +2222,27 @@ int DcoTreeNode::selectBranchObject(DcoModel *model,
   }
 
   if (!strategy) {
-    throw CoinError("No branch strategy.", "process()","DcoTreeNode");
+    throw CoinError("No branch strategy.", "selectBranchObject()",
+		    "DcoTreeNode");
   }
-
   //------------------------------------------------------
   // Create branching object candidates.
   //-----------------------------------------------------
-
   bStatus = strategy->createCandBranchObjects(numPassesLeft,
 					      model->getCutoff());
-
   //------------------------------------------------------
   // Select the best branching objects.
   //-----------------------------------------------------
-
   if (bStatus >= 0) {
-
     branchObject_ = strategy->bestBranchObject();
-
-    if (branchObject_) {
-      // Move best branching object to node.
-
-#ifdef DISCO_DEBUG_MORE
-      std::cout << "SELECTBEST: Set branching obj" << std::endl;
-#endif
+    if (branchObject_==0) {
+      throw CoinError("No branch object created.", "selectBranchObject()",
+		      "DcoTreeNode");
     }
-    else {
-#ifdef DISCO_DEBUG
-      std::cout << "ERROR: Can't find branching object" << std::endl;
-#endif
-      assert(0);
-    }
-
-    // Set guessed solution value
-    // solEstimate_ = quality_ + sumDeg;
   }
-
   if (!model->branchStrategy()) {
     delete strategy;
   }
-
   return bStatus;
 }
 
@@ -2194,109 +2251,60 @@ int DcoTreeNode::selectBranchObject(DcoModel *model,
 int
 DcoTreeNode::bound(BcpsModel *model)
 {
+
   DcoLpStatus status = DcoLpStatusUnknown;
-
   DcoModel *m = dynamic_cast<DcoModel *>(model);
-
   // Bounding
   m->solver()->resolve();
-
-#if 0
-  char name[50] = "";
-  sprintf(name, "matrix.%i.%i", index_, m->boundingPass_);
-  m->solver()->writeMps(name, "mps", 1.0);
-#endif
-
-#if 0
-  int j;
-  int numCols = m->solver()->getNumCols();
-  const double * clb = m->solver()->getColLower();
-  const double * cub = m->solver()->getColUpper();
-  const double * solution = m->solver()->getColSolution();
-
-  for (j = 0; j < numCols; ++j) {
-    std::cout << "col"<< j <<": bounds ["<<clb[j]<<", "<< cub[j] << "]"
-	      << ", x = " << solution[j]
-	      << std::endl;
-  }
-#endif
-
   if (m->solver()->isAbandoned()) {
-#ifdef DISCO_DEBUG
-    std::cout << "BOUND: is abandoned" << std::endl;
-#endif
     status = DcoLpStatusAbandoned;
   }
   else if (m->solver()->isProvenOptimal()) {
-#ifdef DISCO_DEBUG
-    std::cout << "BOUND: is lp optimal" << std::endl;
-#endif
-    status = DcoLpStatusOptimal;
-    DcoNodeDesc *desc = dynamic_cast<DcoNodeDesc*>(desc_);
-
-    double objValue = m->solver()->getObjValue() *
-      m->solver()->getObjSense();
-
-    int dir = desc->getBranchedDir();
-    if (dir != 0) {
-      double objDeg = objValue - quality_;
-      int objInd = desc->getBranchedInd();
-      double lpX = desc->getBranchedVal();
-      DcoObjectInt *intObject =
-	dynamic_cast<DcoObjectInt *>(m->objects(objInd));
-#if 0
-      std::cout << "BOUND: col[" << intObject->columnIndex()
-		<< "], dir=" << dir << ", objDeg=" << objDeg
-		<< ", x=" << lpX
-		<< ", up=" << intObject->pseudocost().getUpCost()
-		<< ", down=" << intObject->pseudocost().getDownCost()
-		<< ", pre quality=" << quality_
-		<< ", objValue=" << objValue
-		<< std::endl;
-#endif
-
-      intObject->pseudocost().update(dir, objDeg, lpX);
-      m->setSharedObjectMark(intObject->getObjectIndex());
+    // todo(aykut) if obj val is greater than 1e+30 we consider problem
+    // infeasible. This is due to our cut generation when the problem is
+    // infeasible. We add a high lower bound (1e+30) to the objective
+    // function. This can be improved.
+    if (m->solver()->getObjValue()>=1e+30) {
+      status = DcoLpStatusPrimalInfeasible;
     }
-
-    // Update quality of this nodes.
-    quality_ = objValue;
+    else {
+      status = DcoLpStatusOptimal;
+      DcoNodeDesc *desc = dynamic_cast<DcoNodeDesc*>(desc_);
+      double objValue = m->solver()->getObjValue() *
+	m->solver()->getObjSense();
+      int dir = desc->getBranchedDir();
+      if (dir != 0) {
+	double objDeg = objValue - quality_;
+	int objInd = desc->getBranchedInd();
+	double lpX = desc->getBranchedVal();
+	DcoObjectInt *intObject =
+	  dynamic_cast<DcoObjectInt *>(m->objects(objInd));
+	intObject->pseudocost().update(dir, objDeg, lpX);
+	m->setSharedObjectMark(intObject->getObjectIndex());
+      }
+      // Update quality of this nodes.
+      quality_ = objValue;
+    }
   }
   else if (m->solver()->isProvenPrimalInfeasible()) {
-#ifdef DISCO_DEBUG
-    std::cout << "BOUND: is primal inf" << std::endl;
-#endif
     status = DcoLpStatusPrimalInfeasible;
   }
   else if (m->solver()->isProvenDualInfeasible()) {
-#ifdef DISCO_DEBUG
-    std::cout << "BOUND: is dual inf" << std::endl;
-#endif
     status = DcoLpStatusDualInfeasible;
   }
   else if (m->solver()->isPrimalObjectiveLimitReached()) {
-#ifdef DISCO_DEBUG
-    std::cout << "BOUND: is primal limit" << std::endl;
-#endif
     status = DcoLpStatusPrimalObjLim;
   }
   else if (m->solver()->isDualObjectiveLimitReached()) {
-#ifdef DISCO_DEBUG
-    std::cout << "BOUND: is dual limit" << std::endl;
-#endif
     status = DcoLpStatusDualObjLim;
   }
   else if (m->solver()->isIterationLimitReached()) {
-#ifdef DISCO_DEBUG
-    std::cout << "BOUND: is iter limit" << std::endl;
-#endif
     status = DcoLpStatusIterLim;
   }
   else {
     std::cout << "UNKNOWN LP STATUS" << std::endl;
     assert(0);
   }
-
   return status;
 }
 
@@ -2315,7 +2323,16 @@ int DcoTreeNode::installSubProblem(BcpsModel *m) {
   int numCoreCones = model->getNumCoreCones();
   int numCols = model->solver()->getNumCols();
   int numRows = model->solver()->getNumRows();
+  //todo(aykut) find a way to keep number of cones for each node.
+  // this may be different then number of core cones once conic
+  // cuts are involved.
+#if defined(__OA__)
+  // todo(aykut) for now we assume no conic cuts (Julio's cuts or conic MIR
+  // etc.) are used in OA method.
+  int num_cones = numCoreCones;
+#else
   int numCones = model->solver()->getNumCones();
+#endif
   //double *varSoftLB = NULL;
   //double *varSoftUB = NULL;
   double *varHardLB = NULL;
@@ -2617,7 +2634,21 @@ DcoTreeNode::generateConstraints(DcoModel *model,BcpsConstraintPool &conPool)
   double genCutTime;
 
   numCGs = model->numCutGenerators();
-
+  int ipm_fails = 0;
+  // whether ipm cut generator exists and before oa cut generator
+  int ipm_exists = 0;
+  for (i = 0 ; i < numCGs; ++i) {
+    std::string name = model->cutGenerators(i)->name();
+    if (name.compare("ipm_gen")==0) {
+      // ipm is before oa cut generator, it exists.
+      ipm_exists = 1;
+      break;
+    }
+    else if (name.compare("oa_gen")==0) {
+      // we get oa before ipm
+      break;
+    }
+  }
   for (i = 0 ; i < numCGs; ++i) {
 
     //----------------------------------------------------
@@ -2649,6 +2680,58 @@ DcoTreeNode::generateConstraints(DcoModel *model,BcpsConstraintPool &conPool)
       throw CoinError("Unknown cut generation strategy",
 		      "generateConstraints", "DcoTreeNode");
     }
+    // todo(aykut)
+    // if cut generator is ipm, check if the solution is integer
+    // use it if the solution is integer feasible only.
+#if defined(__OA__)
+    DcoSolution *ipSol = NULL;
+    int numIntInfs;
+    int numObjInfs;
+    std::string name = model->cutGenerators(i)->name();
+    if (name.compare("ipm_gen")==0) {
+      ipSol = model->feasibleSolution(numIntInfs, numObjInfs);
+      if (numIntInfs==0) {
+	if (numObjInfs==0) {
+	  std::cerr << "Current solution is feasible! Why are we trying to generate a cut?" << std::endl;
+	  throw std::exception();
+	}
+	else {
+	  // integer solution does not satisfy conic constraints
+	  // use ipm cut generator
+	  useThisCutGenerator = true;
+	}
+      }
+      else {
+	// solution is not integer
+	useThisCutGenerator = false;
+      }
+    }
+    else if (name.compare("oa_gen")==0) {
+      // if ipm does not exists generate cuts using oa
+      if (ipm_exists) {
+	// what if ipm is not added as a generator?
+	if (ipm_fails) {
+	  // ipm did not yield any cuts, use CglConicOA to generate cuts.
+	  useThisCutGenerator = true;
+	}
+	else {
+	  useThisCutGenerator = false;
+	}
+      }
+      else {
+	useThisCutGenerator = true;
+      }
+    }
+    // generate ipm cuts 10% of the time
+    if (name.compare("ipm_gen")==0 && useThisCutGenerator) {
+      // generate Random Number
+      int rand_number = rand()%100;
+      if (rand_number > -1) {
+	ipm_fails = 2;
+	useThisCutGenerator = false;
+      }
+    }
+#endif
 
 #if 0
     std::cout<<"CUTGEN: " << model->cutGenerators(i)->name()
@@ -2658,28 +2741,42 @@ DcoTreeNode::generateConstraints(DcoModel *model,BcpsConstraintPool &conPool)
 	     << ", num of nodes =" << model->getNumNodes()
 	     <<std::endl;
 #endif
+    // int numIntInfs;
+    // int numObjInfs;
+    // DcoSolution const * ipSol = model->feasibleSolution(numIntInfs, numObjInfs);
+    // std::string ipm_strat("ipm_gen");
+    // std::cout << "cut generator " << model->cutGenerators(0)->name() << std::endl;
+    // if (model->cutGenerators(0)->name()==ipm_strat) {
+    //   std::cout << "***** set ipm cut generator to false. *****" << std::endl;
+    //   useThisCutGenerator = false;
+    //   if (!numIntInfs && numObjInfs) {
+    //	std::cout << "***** number of integer feasibility is " << numIntInfs;
+    //	std::cout << " cut generator is set to true. *****" << std::endl;
+    //	useThisCutGenerator = true;
+    //   }
+    //   if (model->boundingPass_>=2) {
+    //	useThisCutGenerator = false;
+    //   }
+    // }
 
     //----------------------------------------------------
     // Generator constraints.
     //----------------------------------------------------
-
     if (useThisCutGenerator) {
-
       preNumCons = conPool.getNumConstraints();
-
       genCutTime = CoinCpuTime();
-
       // Call constraint generator
       mustResolve = model->cutGenerators(i)->generateConstraints(conPool);
-
+#if defined(__OA__)
+      if (conPool.getNumConstraints()==0 and name.compare("ipm_gen")==0) {
+	ipm_fails = 1;
+      }
+#endif
       genCutTime = CoinCpuTime() - genCutTime;
-
       // Statistics
       model->cutGenerators(i)->addTime(genCutTime);
       model->cutGenerators(i)->addCalls(1);
-
       newNumCons = conPool.getNumConstraints() - preNumCons;
-
       if (newNumCons == 0) {
 	model->cutGenerators(i)->addNoConsCalls(1);
       }
@@ -2689,7 +2786,6 @@ DcoTreeNode::generateConstraints(DcoModel *model,BcpsConstraintPool &conPool)
 	model->cutGenerators(i)->addNoConsCalls(-noCuts);
 	model->cutGenerators(i)->addNumConsGenerated(newNumCons);
       }
-
       if (mustResolve) {
 	// TODO: Only probing will return ture.
 	status = static_cast<DcoLpStatus> (bound(model));
@@ -2707,12 +2803,10 @@ DcoTreeNode::generateConstraints(DcoModel *model,BcpsConstraintPool &conPool)
 	  break;
 	}
       }
-
       //------------------------------------------------
       // Modify control.
       // NOTE: only modify if user choose automatic.
       //------------------------------------------------
-
       if (model->getCutStrategy() == DcoCutStrategyNone) {
 	for (j = 0; j < numCGs; ++j) {
 	  strategy =  model->cutGenerators(j)->strategy();
@@ -2720,14 +2814,12 @@ DcoTreeNode::generateConstraints(DcoModel *model,BcpsConstraintPool &conPool)
 	    break;
 	  }
 	}
-
 	if (j == numCGs) {
 	  model->setCutStrategy(DcoCutStrategyNone);
 	}
       }
     }
   }
-
   return status;
 }
 
@@ -3523,3 +3615,38 @@ bool DcoTreeNode::fractional_vars_exist() const {
   }
   return true;
 }
+
+#if defined(__OA__)
+void DcoTreeNode::integerFix(DcoModel * model, OsiConicSolverInterface * ipm_solver) const {
+  // build core problem and fix integer variables.
+  OsiSolverInterface * si = model->solver();
+  int num_cols = si->getNumCols();
+  CoinPackedMatrix const * matrix = si->getMatrixByCol();
+  double const * rowlb = si->getRowLower();
+  double const * rowub = si->getRowUpper();
+  double const * collb = si->getColLower();
+  double const * colub = si->getColUpper();
+  double const * obj = si->getObjCoefficients();
+  ipm_solver->loadProblem(*matrix, collb, colub, obj, rowlb, rowub);
+  // add cones to the problem
+  int num_cones = model->getNumCoreCones();
+  OsiLorentzConeType const * cone_type = model->getConeTypes();
+  int const * cone_size = model->getConeSizes();
+  int const * const * members = model->getConeMembers();
+  for (int i=0; i<num_cones; ++i) {
+    ipm_solver->addConicConstraint(cone_type[i], cone_size[i], members[i]);
+  }
+  // fix integer variables
+  double const * sol = si->getColSolution();
+  int const * ind = model->getIntColIndices();
+  for (int i=0; i<model->getNumIntObjects(); ++i) {
+    int index = ind[i];
+    double value = sol[index];
+    ipm_solver->setColBounds(index, value, value);
+  }
+  ipm_solver->initialSolve();
+  if (ipm_solver->isProvenOptimal()) {
+    si->setColSolution(ipm_solver->getColSolution());
+  }
+}
+#endif

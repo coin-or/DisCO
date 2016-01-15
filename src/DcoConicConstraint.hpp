@@ -2,6 +2,7 @@
 #define DcoConicConstraint_h_
 
 #include "BcpsObject.h"
+#include <OsiConicSolverInterface.hpp>
 
 class OsiRowCut;
 
@@ -13,14 +14,14 @@ protected:
   /** Size of cone */
   int size_;
   /** Cone type, 0 for Lorentz cone, 1 for rotated Lorentz cone */
-  int type_;
+  OsiLorentzConeType type_;
   /** Variable indices */
   int * members_;
 public:
   /** Default constructor. */
   DcoConicConstraint();
   /** Useful constructor. */
-  DcoConicConstraint(int size, int type, int const * members);
+  DcoConicConstraint(int size, OsiLorentzConeType type, int const * members);
   /** Destructor. */
   virtual ~DcoConicConstraint();
   /** Copy constructor. */
@@ -28,7 +29,7 @@ public:
   /** Return data  */
   /**@{*/
   int getSize() const       { return size_; }
-  int getType() const   { return type_; }
+  OsiLorentzConeType getType() const   { return type_; }
   int const * getMembers() const { return members_; }
   /**@}*/
   /** Virtual Functions inherited from BcpsObjcet */
@@ -50,10 +51,10 @@ public:
 
   /** Set data  */
   /**@{*/
-  void setData(int size, int type, int const * members) {
+  void setData(int size, OsiLorentzConeType type, int const * members) {
     if (size_ < size) {
       if (members_) {
-        delete [] members_;
+	delete [] members_;
       }
       members_ = new int[size];
     }

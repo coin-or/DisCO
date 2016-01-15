@@ -8,7 +8,7 @@ svn co https://projects.coin-or.org/svn/Clp/stable/1.16/Clp
 svn co https://projects.coin-or.org/svn/Cgl/stable/0.59/Cgl
 svn co https://projects.coin-or.org/svn/CHiPPS/Alps/trunk/Alps
 svn co https://projects.coin-or.org/svn/CHiPPS/Bcps/trunk/Bcps
-svn co https://projects.coin-or.org/svn/Ipopt/releases/3.12.3/Ipopt Ipopt
+svn co https://projects.coin-or.org/svn/Ipopt/releases/3.12.4/Ipopt Ipopt
 svn co https://projects.coin-or.org/svn/BuildTools/ThirdParty/Blas/stable/1.4 ThirdParty/Blas
 svn co https://projects.coin-or.org/svn/BuildTools/ThirdParty/Lapack/stable/1.5 ThirdParty/Lapack
 # IPOPT dependencies

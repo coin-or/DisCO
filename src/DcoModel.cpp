@@ -57,6 +57,7 @@
 #include "DcoVariable.hpp"
 
 #include "CglConicOA.hpp"
+#include "CglConicIPM.hpp"
 #include "DcoConicConGenerator.hpp"
 
 #define DISCO_MIN_SHARE_CON 5
@@ -321,8 +322,11 @@ void DcoModel::readInstance(const char* dataFile) {
   //-------------------------------------------------------------
   // Create variables and constraints.
   //-------------------------------------------------------------
-
+#if defined(__OA__)
+  OsiSolverInterface * si = origLpSolver_;
+#else
   OsiConicSolverInterface * si = origLpSolver_;
+#endif
   si->loadProblem(*colMatrix_, varLB_, varUB_, objCoef_,
 			     conLB_, conUB_);
   // read conic part
@@ -341,7 +345,7 @@ void DcoModel::readInstance(const char* dataFile) {
   }
   // allocate memory for cone data members of the class
   numCoreCones_ = nOfCones;
-  coneTypes_ = new int[nOfCones];
+  coneTypes_ = new OsiLorentzConeType[nOfCones];
   coneSizes_ = new int[nOfCones];
   coneMembers_ = new int*[nOfCones];
   for (int i=0; i<nOfCones; ++i) {
@@ -365,13 +369,16 @@ void DcoModel::readInstance(const char* dataFile) {
     OsiLorentzConeType type;
     if (coneType[i]==1) {
       type = OSI_QUAD;
-      coneTypes_[i] = 0;
+      coneTypes_[i] = OSI_QUAD;
     }
     else if (coneType[i]==2) {
       type = OSI_RQUAD;
-      coneTypes_[i] = 1;
+      coneTypes_[i] = OSI_RQUAD;
     }
+#if defined(__OA__)
+#else
     origLpSolver_->addConicConstraint(type, num_members, coneMembers_[i]);
+#endif
   }
   // check log level and print ccordingly
   if (nOfCones) {
@@ -388,8 +395,23 @@ void DcoModel::readInstance(const char* dataFile) {
   delete [] coneIdx;
   delete [] coneType;
   delete reader;
-  createObjects();
 
+#if defined(__OA__)
+  approximateCones();
+  // update row information
+  numRows_ = origLpSolver_->getNumRows();
+  numElems_ = origLpSolver_->getNumElements();
+  delete colMatrix_;
+  colMatrix_ = new CoinPackedMatrix();
+  *colMatrix_ = *(origLpSolver_->getMatrixByCol());
+  delete[] conLB_;
+  delete[] conUB_;
+  conLB_ = new double [numRows_];
+  conUB_ = new double [numRows_];
+  memcpy(conLB_, origLpSolver_->getRowLower(), sizeof(double) * numRows_);
+  memcpy(conUB_, origLpSolver_->getRowUpper(), sizeof(double) * numRows_);
+#endif
+  createObjects();
   // Generate and add conic cuts
   // if (isRoot) {
   //   OsiConicSolverInterface * si = model->solver();
@@ -408,9 +430,6 @@ void DcoModel::readInstance(const char* dataFile) {
   //     equalObj = eq(si->getObjValue(), obj);
   //   } while (!equalObj);
   // }
-
-
-
 }
 
 //############################################################################
@@ -452,21 +471,6 @@ void DcoModel::createObjects() {
     constraints_.push_back(con);
     // todo(aykut) it seems memory allocated to con is never released.
     con = NULL;
-  }
-  // Initialize the cone information
-  numCoreCones_ = origLpSolver_->getNumCones();
-  coneMembers_ = new int*[numCoreCones_];
-  coneTypes_ = new int[numCoreCones_];
-  coneSizes_ = new int[numCoreCones_];
-  for(int j=0; j<numCoreCones_; j++) {
-    OsiLorentzConeType type;
-    origLpSolver_->getConicConstraint(j, type, coneSizes_[j], coneMembers_[j]);
-    if (type==OSI_QUAD) {
-      coneTypes_[j] = 0;
-    }
-    else {
-      coneTypes_[j] = 1;
-    }
   }
   // add conic constraints as objects
   for (int j=0; j<numCoreCones_; ++j) {
@@ -698,39 +702,25 @@ DcoModel::setupSelf()
     //------------------------------------------------------
     // Load data to LP solver.
     //------------------------------------------------------
-
-    if (!lpSolver_) {
-	// preprocessing causes this check.
-	lpSolver_ = origLpSolver_;
-    }
-
-    //AT here problem is set for first time for lp solver -> should be moved to read problem??
-    if(!presolved)
-	lpSolver_->loadProblem(*colMatrix_,
-			       varLB_, varUB_,
-			       objCoef_,
-			       conLB_, conUB_);
-
+    // todo(aykut) just copy the pointer to the origLpSolver
+    // this should work fine.
+    lpSolver_ = origLpSolver_;
     lpSolver_->setObjSense(1.0);
+    // we do not need the following line, since they are done in
+    // readInstance
     lpSolver_->setInteger(intColIndices_, numIntObjects_);
-
     // AT - Begin - solver ready, in principle we could presolve here
     problemSetup=true;
     // AT - End
-
     //------------------------------------------------------
     // Create integer objects and analyze objective coef.
     //------------------------------------------------------
-
     createIntgerObjects(true);
-
     // Do this after loading LP.
     analyzeObjective();
-
     //------------------------------------------------------
     // Allocate memory.
     //------------------------------------------------------
-
     startVarLB_ = new double [numCols_];
     startVarUB_ = new double [numCols_];
 
@@ -1168,22 +1158,28 @@ DcoModel::setupSelf()
 	addCutGenerator(twoMirCut, "Two MIR", twoMirStrategy, twoMirFreq);
     }
 
-#if defined(__COLA__)
+#if defined(__OA__)
+    //----------------------------------
+    // Add IPM cut generator
+    //----------------------------------
+    // CglConicCutGenerator * ipm_gen = new CglConicIPM();
+    // DcoConGeneratorBase * dco_ipm_cg = new DcoConicConGenerator(this,
+    //					   ipm_gen, "ipm_gen");
+    // addCutGenerator(dco_ipm_cg);
+    // ipm_gen = NULL;
     //----------------------------------
     // Add Outer approximation cut generator
     //----------------------------------
     CglConicCutGenerator * oa_gen = new CglConicOA();
-    DcoConGeneratorBase * dco_cg = new DcoConicConGenerator(this,
+    DcoConGeneratorBase * dco_oa_cg = new DcoConicConGenerator(this,
 					   oa_gen, "oa_gen");
-    addCutGenerator(dco_cg);
+    addCutGenerator(dco_oa_cg);
     oa_gen = NULL;
 #endif
-
     //--------------------------------------------
     // Adjust cutStrategy_ according to the strategies of
     // each cut generators.
     //--------------------------------------------
-
     if (numCutGenerators_ > 0) {
 	DcoCutStrategy strategy0 = cutGenerators(0)->strategy();
 	DcoCutStrategy strategy1;
@@ -1239,6 +1235,39 @@ DcoModel::setupSelf()
 }
 
 //############################################################################
+
+// generate cuts for the linear relaxation using ipm method
+void DcoModel::approximateCones() {
+  bool dual_infeasible = false;
+  origLpSolver_->resolve();
+  do {
+    // generate cuts
+    OsiCuts * ipm_cuts = new OsiCuts();
+    OsiCuts * oa_cuts = new OsiCuts();
+    CglConicCutGenerator * cg_ipm = new CglConicIPM();
+    CglConicCutGenerator * cg_oa = new CglConicOA();
+    // get cone info
+    int largest_cone_size = *std::max_element(coneSizes_, coneSizes_+numCoreCones_);
+    cg_ipm->generateCuts(*origLpSolver_, *ipm_cuts, numCoreCones_, coneTypes_,
+			 coneSizes_, coneMembers_, largest_cone_size);
+    // cg_oa->generateCuts(*origLpSolver_, *oa_cuts, numCoreCones_, coneTypes_,
+    //			 coneSizes_, coneMembers_, largest_cone_size);
+    // if we do not get any cuts break the loop
+    if (ipm_cuts->sizeRowCuts()==0 && oa_cuts->sizeRowCuts()==0) {
+      break;
+    }
+    // if problem is unbounded do nothing, add cuts to the problem
+    // this will make lp relaxation infeasible
+    origLpSolver_->applyCuts(*ipm_cuts);
+    origLpSolver_->applyCuts(*oa_cuts);
+    origLpSolver_->resolve();
+    delete ipm_cuts;
+    delete oa_cuts;
+    delete cg_ipm;
+    delete cg_oa;
+    dual_infeasible = origLpSolver_->isProvenDualInfeasible();
+  } while(dual_infeasible);
+}
 
 // AT - Begin
 void DcoModel::presolveForTheWholeTree() {

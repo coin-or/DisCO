@@ -73,7 +73,15 @@ protected:
   //------------------------------------------------------
   // LP SOLVER.
   //------------------------------------------------------
-
+#if defined(__OA__)
+  /** Input by user. */
+  OsiSolverInterface *origLpSolver_;
+  /** Presolved. */
+  OsiSolverInterface *presolvedLpSolver_;
+  /** Actually used. If using presolve, then it is presolved;
+      otherwise it is the original. */
+  OsiSolverInterface *lpSolver_;
+#else
   /** Input by user. */
   OsiConicSolverInterface *origLpSolver_;
   /** Presolved. */
@@ -81,7 +89,7 @@ protected:
   /** Actually used. If using presolve, then it is presolved;
       otherwise it is the original. */
   OsiConicSolverInterface *lpSolver_;
-
+#endif
   //------------------------------------------------------
   // PROBLEM DATA. Populate when loadProblem(),
   //------------------------------------------------------
@@ -115,7 +123,7 @@ protected:
   int ** coneMembers_;
   int * coneSizes_;
   // 0 for lorentz cone, 1 for rotated lorentz cone
-  int * coneTypes_;
+  OsiLorentzConeType * coneTypes_;
   int numCoreCones_;
   //@}
 
@@ -445,6 +453,7 @@ public:
    */
   virtual bool setupSelf();
 
+  void approximateCones();
   /** Preprocessing the model. */
   virtual void preprocess();
 
@@ -452,14 +461,19 @@ public:
   virtual void postprocess();
 
   /** Set lp solver. */
+#if defined(__OA__)
+  virtual void setSolver(OsiSolverInterface *si) { origLpSolver_ = si; }
+  /** Get lp solver. */
+  virtual OsiSolverInterface *getSolver() { return origLpSolver_; }
+  /** Get lp solver. */
+  virtual OsiSolverInterface *solver() { return lpSolver_; }
+#else
   virtual void setSolver(OsiConicSolverInterface *si) { origLpSolver_ = si; }
-
   /** Get lp solver. */
   virtual OsiConicSolverInterface *getSolver() { return origLpSolver_; }
-
   /** Get lp solver. */
   virtual OsiConicSolverInterface *solver() { return lpSolver_; }
-
+#endif
   /** get number of core cones. */
   /* todo(aykut) I am not sure if this function should be here or in Bcps */
   /* level? Similar functions like getNumCoreVariables() are in Bcps level. */
@@ -468,7 +482,7 @@ public:
   /** Get cone members */
   int ** getConeMembers() const { return coneMembers_; }
   /** Get cone types */
-  int * getConeTypes() const { return coneTypes_; }
+  OsiLorentzConeType * getConeTypes() const { return coneTypes_; }
   /** Get cone sizes */
   int * getConeSizes() const { return coneSizes_; }
 

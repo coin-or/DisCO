@@ -4,6 +4,9 @@
 #include "DcoConstraint.hpp"
 #include "DcoHelp.hpp"
 
+#include "OsiSolverInterface.hpp"
+//#include "OsiConicSolverInterface.hpp"
+
 /** Copy constructor. */
 DcoConicConGenerator::DcoConicConGenerator (
 					    const DcoConicConGenerator & other): DcoConGeneratorBase(other) {
@@ -25,8 +28,17 @@ DcoConicConGenerator &
 bool DcoConicConGenerator::generateConstraints(
   BcpsConstraintPool & conPool) {
   OsiCuts * cuts = new OsiCuts();
-  OsiConicSolverInterface * solver = model_->solver();
-  generator_->generateCuts(*solver, *cuts);
+  OsiSolverInterface * solver = model_->solver();
+  // get conic constraint information
+  // todo(aykut) things may break in case of conic cuts in the root node.
+  // since we use the core cones here.
+  int num_cones = model_->getNumCoreCones();
+  int * const * const members = model_->getConeMembers();
+  OsiLorentzConeType const * types = model_->getConeTypes();
+  int const * sizes = model_->getConeSizes();
+  // convert cone type to osi types
+  generator_->generateCuts(*solver, *cuts, num_cones, types,
+			   sizes, members, 1);
   // add cuts to the constraint pool
   int num_cuts = cuts->sizeRowCuts();
   for (int i=0; i<num_cuts; ++i) {
@@ -44,6 +56,7 @@ bool DcoConicConGenerator::generateConstraints(
     //   std::cerr << "Negative size cut" << std::endl;
     // }
   }
+  delete cuts;
   if (num_cuts) {
     return true;
   }

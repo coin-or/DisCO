@@ -15,7 +15,7 @@
  *          Ted Ralphs, Lehigh University                                    *
  *          Laszlo Ladanyi, IBM T.J. Watson Research Center                  *
  *          Matthew Saltzman, Clemson University                             *
- *                                                                           * 
+ *                                                                           *
  *                                                                           *
  * Copyright (C) 2001-2015, Lehigh University, Yan Xu, and Ted Ralphs.       *
  * All Rights Reserved.                                                      *
@@ -24,13 +24,26 @@
 #include "DcoPresolve.hpp"
 
 //#############################################################################
-
+#if defined(__OA__)
+OsiSolverInterface *
+DcoPresolve::preprocess(OsiSolverInterface & origModel,
+			 double feasibilityTolerance,
+			 bool keepIntegers,
+			 int numberPasses,
+			 const char * prohibited)
+{
+  OsiSolverInterface * si = presolvedModel(origModel, feasibilityTolerance,
+					   keepIntegers, numberPasses,
+					   prohibited);
+  return si;
+}
+#else
 OsiConicSolverInterface *
 DcoPresolve::preprocess(OsiConicSolverInterface & origModel,
-                         double feasibilityTolerance,
-                         bool keepIntegers,
-                         int numberPasses,
-                         const char * prohibited)
+			 double feasibilityTolerance,
+			 bool keepIntegers,
+			 int numberPasses,
+			 const char * prohibited)
 {
   OsiSolverInterface * om = dynamic_cast<OsiSolverInterface*>(&origModel);
   OsiSolverInterface * si = presolvedModel(*om,
@@ -41,10 +54,11 @@ DcoPresolve::preprocess(OsiConicSolverInterface & origModel,
   OsiConicSolverInterface * si_conic = dynamic_cast<OsiConicSolverInterface*>(si);
   return si_conic;
 }
+#endif
 
 //#############################################################################
 
-void 
+void
 DcoPresolve::postprocess(bool updateStatus)
 {
     postsolve(updateStatus);

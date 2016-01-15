@@ -77,8 +77,8 @@ DcoHeurRound::searchSolution(double & solutionValue, double * betterSolution)
     bool foundBetter = false;
 
     if (strategy_ == DcoHeurStrategyNone) {
-        // This heuristic has been disabled.
-        return foundBetter;
+	// This heuristic has been disabled.
+	return foundBetter;
     }
 
     //std::cout << "HERE!!" << std::endl;
@@ -94,7 +94,11 @@ DcoHeurRound::searchSolution(double & solutionValue, double * betterSolution)
     matrixByRow_ = *(model_->solver()->getMatrixByRow());
     seed_ = 1;
 
+#if defined(__OA__)
+    OsiSolverInterface * solver = model_->solver();
+#else
     OsiConicSolverInterface * solver = model_->solver();
+#endif
     const double * lower = solver->getColLower();
     const double * upper = solver->getColUpper();
     const double * rowLower = solver->getRowLower();
@@ -404,9 +408,9 @@ DcoHeurRound::searchSolution(double & solutionValue, double * betterSolution)
     //time_ += (CoinCpuTime() - start);
 
     if (noSolsCalls_ > DISCO_HEUR_ROUND_DISABLE) {
-        if (strategy_ == DcoHeurStrategyAuto) {
-            strategy_ = DcoHeurStrategyNone;
-        }
+	if (strategy_ == DcoHeurStrategyAuto) {
+	    strategy_ = DcoHeurStrategyNone;
+	}
     }
 
     // Increase count by 1

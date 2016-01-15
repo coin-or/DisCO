@@ -6,7 +6,6 @@
 #ifndef DcoConicConGenerator_h_
 #define DcoConicConGenerator_h_
 
-#include "OsiConicSolverInterface.hpp"
 #include "OsiCuts.hpp"
 #include "DcoConGeneratorBase.hpp"
 #include "CglConicCutGenerator.hpp"
@@ -30,7 +29,7 @@ public:
   //@{
   /** Default constructor. */
   DcoConicConGenerator() : DcoConGeneratorBase(),
-                      generator_(NULL) {}
+		      generator_(NULL) {}
   /** Useful constructor. */
   DcoConicConGenerator(DcoModel * model,
 		  CglConicCutGenerator * generator,
@@ -41,7 +40,7 @@ public:
 		  bool atSolution = false,
 		  bool infeasible = false)
     : DcoConGeneratorBase(model, name, strategy, cutGenerationFrequency,
-                          normal, atSolution, infeasible) {
+			  normal, atSolution, infeasible) {
     generator_ = generator;
   }
 
