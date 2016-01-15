@@ -423,7 +423,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
       getKnowledgeBroker()->tempTimer().start();
     }
 
-    // Get lowe bound.
+    // Get lower bound.
     lpStatus = static_cast<DcoLpStatus> (bound(model));
     if (model->boundingPass_ == 1) {
       int iter = model->solver()->getIterationCount();
@@ -489,6 +489,7 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 	  // cut procedure if it is integer.
 #else
 	  keepOn = false;
+	  needBranch = true;
 #endif
 	}
 	if (model->boundingPass_ > 1) {
@@ -2721,7 +2722,17 @@ DcoTreeNode::generateConstraints(DcoModel *model,BcpsConstraintPool &conPool)
 	useThisCutGenerator = true;
       }
     }
+    // generate ipm cuts 10% of the time
+    if (name.compare("ipm_gen")==0 && useThisCutGenerator) {
+      // generate Random Number
+      int rand_number = rand()%100;
+      if (rand_number > -1) {
+	ipm_fails = 2;
+	useThisCutGenerator = false;
+      }
+    }
 #endif
+
 #if 0
     std::cout<<"CUTGEN: " << model->cutGenerators(i)->name()
 	     <<": useThisCutGenerator ="<<useThisCutGenerator
