@@ -2321,19 +2321,8 @@ int DcoTreeNode::installSubProblem(BcpsModel *m) {
   int numModify = 0;
   int numCoreCols = model->getNumCoreVariables();
   int numCoreRows = model->getNumCoreConstraints();
-  int numCoreCones = model->getNumCoreCones();
   int numCols = model->solver()->getNumCols();
   int numRows = model->solver()->getNumRows();
-  //todo(aykut) find a way to keep number of cones for each node.
-  // this may be different then number of core cones once conic
-  // cuts are involved.
-#if defined(__OA__)
-  // todo(aykut) for now we assume no conic cuts (Julio's cuts or conic MIR
-  // etc.) are used in OA method.
-  int num_cones = numCoreCones;
-#else
-  int numCones = model->solver()->getNumCones();
-#endif
   //double *varSoftLB = NULL;
   //double *varSoftUB = NULL;
   double *colHardLB = NULL;
@@ -2371,7 +2360,6 @@ int DcoTreeNode::installSubProblem(BcpsModel *m) {
   //------------------------------------------------------
   // Remove old constraints from lp solver.
   //------------------------------------------------------
-  //#ifndef __OA__
   int numDelRows = numRows - numCoreRows;
   if (numDelRows > 0) {
     int *indices = new int [numDelRows];
@@ -2385,13 +2373,6 @@ int DcoTreeNode::installSubProblem(BcpsModel *m) {
     delete [] indices;
     indices = NULL;
   }
-  //#endif
-  // Remove old conic constraints
-  // todo(aykut) remove old conic constraints
-  // I am not sure whether we need this for now.
-  // for (i=numCoreCones; i<numCones; ++i) {
-  //   model->solver()->removeConicConstraint(i);
-  // }
   //--------------------------------------------------------
   // Travel back to a full node, then collect diff (add/rem col/row,
   // hard/soft col/row bounds) from the node full to this node.
@@ -2551,7 +2532,6 @@ int DcoTreeNode::installSubProblem(BcpsModel *m) {
   // Add old constraints, which are collect from differencing.
   //--------------------------------------------------------
   // If removed cuts due to local cuts.
-  //#ifndef __OA__
   model->setNumOldConstraints(numOldRows);
   if (numOldRows > 0) {
     const OsiRowCut ** oldOsiCuts = new const OsiRowCut * [numOldRows];
@@ -2566,7 +2546,6 @@ int DcoTreeNode::installSubProblem(BcpsModel *m) {
     delete [] oldOsiCuts;
     oldOsiCuts = NULL;
   }
-  //#endif
   //--------------------------------------------------------
   // Add parent variables, which are collect from differencing.
   //--------------------------------------------------------
