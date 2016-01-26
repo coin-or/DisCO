@@ -1172,12 +1172,13 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 	AlpsTreeNode *parent = parent_;
 
 	// First push this node since it has branching hard bounds.
-	model->leafToRootPath.push_back(this);
+	std::vector<AlpsTreeNode*> leafToRootPath;
+	leafToRootPath.push_back(this);
 	DcoNodeDesc* pathDesc = NULL;
 
 	if (phase != AlpsPhaseRampup) {
 	  while(parent) {
-	    model->leafToRootPath.push_back(parent);
+	    leafToRootPath.push_back(parent);
 	    if (parent->getExplicit()) {
 	      // Reach an explicit node, then stop.
 	      break;
@@ -1189,17 +1190,17 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 	}
 
 #ifdef DISCO_DEBUG_MORE
-	std::cout << "SAVE: EXP: path len = "<<model->leafToRootPath.size()
+	std::cout << "SAVE: EXP: path len = "<<leafToRootPath.size()
 		  << std::endl;
 #endif
 	//------------------------------------------
 	// Summarize bounds.
 	//------------------------------------------
 
-	for(j = static_cast<int> (model->leafToRootPath.size() - 1); j > -1; --j) {
+	for(j = static_cast<int> (leafToRootPath.size() - 1); j > -1; --j) {
 
 	  pathDesc = dynamic_cast<DcoNodeDesc*>
-	    ((model->leafToRootPath.at(j))->getDesc());
+	    ((leafToRootPath.at(j))->getDesc());
 
 	  //--------------------------------------
 	  // Full variable hard bounds.
@@ -1438,8 +1439,8 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
 	// Clear path vector.
 	//------------------------------------------
 
-	model->leafToRootPath.clear();
-	assert(model->leafToRootPath.size() == 0);
+	leafToRootPath.clear();
+	assert(leafToRootPath.size() == 0);
       }
       else { // Relative.
 	//------------------------------------------
@@ -2318,8 +2319,8 @@ int DcoTreeNode::installSubProblem(BcpsModel *m) {
   assert(model);
   DcoNodeDesc *desc = dynamic_cast<DcoNodeDesc*>(desc_);
   int numModify = 0;
-  int numCoreVars = model->getNumCoreVariables();
-  int numCoreCons = model->getNumCoreConstraints();
+  int numCoreCols = model->getNumCoreVariables();
+  int numCoreRows = model->getNumCoreConstraints();
   int numCoreCones = model->getNumCoreCones();
   int numCols = model->solver()->getNumCols();
   int numRows = model->solver()->getNumRows();
@@ -2335,8 +2336,8 @@ int DcoTreeNode::installSubProblem(BcpsModel *m) {
 #endif
   //double *varSoftLB = NULL;
   //double *varSoftUB = NULL;
-  double *varHardLB = NULL;
-  double *varHardUB = NULL;
+  double *colHardLB = NULL;
+  double *colHardUB = NULL;
   //double *conSoftLB = NULL;
   //double *conSoftUB = NULL;
   //double *conHardLB = NULL;
@@ -2345,11 +2346,11 @@ int DcoTreeNode::installSubProblem(BcpsModel *m) {
   double *startColUB = model->startVarUB();
   double *startRowLB = model->startConLB();
   double *startRowUB = model->startConUB();
-  CoinFillN(startColLB, numCoreVars, -ALPS_DBL_MAX);
-  CoinFillN(startColUB, numCoreVars, ALPS_DBL_MAX);
-  CoinFillN(startRowLB, numCoreCons, -ALPS_DBL_MAX);
-  CoinFillN(startRowUB, numCoreCons, ALPS_DBL_MAX);
-  int numOldCons = 0;
+  CoinFillN(startColLB, numCoreCols, -ALPS_DBL_MAX);
+  CoinFillN(startColUB, numCoreCols, ALPS_DBL_MAX);
+  CoinFillN(startRowLB, numCoreRows, -ALPS_DBL_MAX);
+  CoinFillN(startRowUB, numCoreRows, ALPS_DBL_MAX);
+  int numOldRows = 0;
   int tempInt = 0;
   DcoConstraint *aCon = NULL;
   int nodeID = -1;
@@ -2370,19 +2371,21 @@ int DcoTreeNode::installSubProblem(BcpsModel *m) {
   //------------------------------------------------------
   // Remove old constraints from lp solver.
   //------------------------------------------------------
-  int numDelCons = numRows - numCoreCons;
-  if (numDelCons > 0) {
-    int *indices = new int [numDelCons];
+  //#ifndef __OA__
+  int numDelRows = numRows - numCoreRows;
+  if (numDelRows > 0) {
+    int *indices = new int [numDelRows];
     if (indices == NULL) {
       throw CoinError("Out of memory", "installSubProblem", "DcoTreeNode");
     }
-    for (i = 0; i < numDelCons; ++i) {
-      indices[i] = numCoreCons + i;
+    for (i = 0; i < numDelRows; ++i) {
+      indices[i] = numCoreRows + i;
     }
-    model->solver()->deleteRows(numDelCons, indices);
+    model->solver()->deleteRows(numDelRows, indices);
     delete [] indices;
     indices = NULL;
   }
+  //#endif
   // Remove old conic constraints
   // todo(aykut) remove old conic constraints
   // I am not sure whether we need this for now.
@@ -2404,10 +2407,11 @@ int DcoTreeNode::installSubProblem(BcpsModel *m) {
   AlpsTreeNode *parent = parent_;
   /* First push this node since it has branching hard bounds.
      NOTE: during rampup, this desc has full description when branch(). */
-  model->leafToRootPath.push_back(this);
+  std::vector<AlpsTreeNode*> leafToRootPath;
+  leafToRootPath.push_back(this);
   if (phase != AlpsPhaseRampup) {
     while(parent) {
-      model->leafToRootPath.push_back(parent);
+      leafToRootPath.push_back(parent);
       if (parent->getExplicit()) {
 	// Reach an explicit node, then stop.
 	break;
@@ -2421,15 +2425,15 @@ int DcoTreeNode::installSubProblem(BcpsModel *m) {
   // Travel back from this node to the explicit node to
   // collect full description.
   //------------------------------------------------------
-  for(i = static_cast<int> (model->leafToRootPath.size() - 1); i > -1; --i) {
+  for(i = static_cast<int> (leafToRootPath.size() - 1); i > -1; --i) {
     //--------------------------------------------------
     // NOTE: As away from explicit node, bounds become
     //       tighter and tighter.
     //--------------------------------------------------
-    pathDesc = dynamic_cast<DcoNodeDesc*>((model->leafToRootPath.at(i))->
+    pathDesc = dynamic_cast<DcoNodeDesc*>((leafToRootPath.at(i))->
 					  getDesc());
-    varHardLB = pathDesc->getVars()->lbHard.entries;
-    varHardUB = pathDesc->getVars()->ubHard.entries;
+    colHardLB = pathDesc->getVars()->lbHard.entries;
+    colHardUB = pathDesc->getVars()->ubHard.entries;
     //--------------------------------------------------
     // Adjust bounds according to hard var lb/ub.
     // If rampup or explicit, collect hard bounds so far.
@@ -2483,14 +2487,14 @@ int DcoTreeNode::installSubProblem(BcpsModel *m) {
       assert(aCon);
       assert(aCon->getSize() > 0);
       assert(aCon->getSize() < 100000);
-      (model->oldConstraints())[numOldCons++] = aCon;
-      if (numOldCons >= maxOld) {
+      (model->oldConstraints())[numOldRows++] = aCon;
+      if (numOldRows >= maxOld) {
 	// Need resize
 	maxOld *= 2;
 	DcoConstraint **tempCons = new DcoConstraint* [maxOld];
 	memcpy(tempCons,
 	       model->oldConstraints(),
-	       numOldCons * sizeof(DcoConstraint *));
+	       numOldRows * sizeof(DcoConstraint *));
 	model->delOldConstraints();
 	model->setOldConstraints(tempCons);
 	model->setOldConstraintsSize(maxOld);
@@ -2504,36 +2508,36 @@ int DcoTreeNode::installSubProblem(BcpsModel *m) {
     tempInt = pathDesc->getCons()->numRemove;
     if (tempInt > 0) {
       int tempPos;
-      int *tempMark = new int [numOldCons];
-      CoinZeroN(tempMark, numOldCons);
+      int *tempMark = new int [numOldRows];
+      CoinZeroN(tempMark, numOldRows);
       for (k = 0; k < tempInt; ++k) {
 	tempPos = pathDesc->getCons()->posRemove[k];
 	tempMark[tempPos] = 1;
       }
       tempInt = 0;
-      for (k = 0; k < numOldCons; ++k) {
+      for (k = 0; k < numOldRows; ++k) {
 	if (tempMark[k] != 1) {
 	  // Survived.
 	  (model->oldConstraints())[tempInt++]=
 	    (model->oldConstraints())[k];
 	}
       }
-      if (tempInt + pathDesc->getCons()->numRemove != numOldCons) {
+      if (tempInt + pathDesc->getCons()->numRemove != numOldRows) {
 	std::cout << "INSTALL: tempInt=" << tempInt
 		  <<", numRemove="<<pathDesc->getCons()->numRemove
-		  << ", numOldCons=" << numOldCons << std::endl;
+		  << ", numOldRows=" << numOldRows << std::endl;
 	assert(0);
       }
       // Update number of old non-core constraints.
-      numOldCons = tempInt;
+      numOldRows = tempInt;
       delete [] tempMark;
     }
   } // EOF leafToRootPath.
   //--------------------------------------------------------
   // Clear path vector.
   //--------------------------------------------------------
-  model->leafToRootPath.clear();
-  assert(model->leafToRootPath.size() == 0);
+  leafToRootPath.clear();
+  assert(leafToRootPath.size() == 0);
   //--------------------------------------------------------
   // Adjust column bounds in lp solver
   //--------------------------------------------------------
@@ -2547,20 +2551,22 @@ int DcoTreeNode::installSubProblem(BcpsModel *m) {
   // Add old constraints, which are collect from differencing.
   //--------------------------------------------------------
   // If removed cuts due to local cuts.
-  model->setNumOldConstraints(numOldCons);
-  if (numOldCons > 0) {
-    const OsiRowCut ** oldOsiCuts = new const OsiRowCut * [numOldCons];
-    for (k = 0; k < numOldCons; ++k) {
+  //#ifndef __OA__
+  model->setNumOldConstraints(numOldRows);
+  if (numOldRows > 0) {
+    const OsiRowCut ** oldOsiCuts = new const OsiRowCut * [numOldRows];
+    for (k = 0; k < numOldRows; ++k) {
       OsiRowCut * acut = (model->oldConstraints()[k])->createOsiRowCut();
       oldOsiCuts[k] = acut;
     }
-    model->solver()->applyRowCuts(numOldCons, oldOsiCuts);
-    for (k = 0; k < numOldCons; ++k) {
+    model->solver()->applyRowCuts(numOldRows, oldOsiCuts);
+    for (k = 0; k < numOldRows; ++k) {
       delete oldOsiCuts[k];
     }
     delete [] oldOsiCuts;
     oldOsiCuts = NULL;
   }
+  //#endif
   //--------------------------------------------------------
   // Add parent variables, which are collect from differencing.
   //--------------------------------------------------------
@@ -3269,9 +3275,10 @@ void DcoTreeNode::convertToExplicit() {
   //--------------------------------------------------------
   DcoNodeDesc* pathDesc = NULL;
   AlpsTreeNode *parent = parent_;
-  model->leafToRootPath.push_back(this);
+  std::vector<AlpsTreeNode*> leafToRootPath;
+  leafToRootPath.push_back(this);
   while(parent) {
-    model->leafToRootPath.push_back(parent);
+    leafToRootPath.push_back(parent);
     if (parent->getExplicit()) {
       // Reach an explicit node, then stop.
       break;
@@ -3284,8 +3291,8 @@ void DcoTreeNode::convertToExplicit() {
   // Travel back from this node to the explicit node to
   // collect full description.
   //------------------------------------------------------
-  for(i = static_cast<int> (model->leafToRootPath.size() - 1); i > -1; --i) {
-    pathDesc = dynamic_cast<DcoNodeDesc*>((model->leafToRootPath.at(i))->
+  for(i = static_cast<int> (leafToRootPath.size() - 1); i > -1; --i) {
+    pathDesc = dynamic_cast<DcoNodeDesc*>((leafToRootPath.at(i))->
 					  getDesc());
     //--------------------------------------
     // Full variable hard bounds.
@@ -3421,8 +3428,8 @@ void DcoTreeNode::convertToExplicit() {
   //--------------------------------------------------
   // Clear path vector.
   //--------------------------------------------------
-  model->leafToRootPath.clear();
-  assert(model->leafToRootPath.size() == 0);
+  leafToRootPath.clear();
+  assert(leafToRootPath.size() == 0);
 }
 
 //#############################################################################

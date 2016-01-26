@@ -47,9 +47,6 @@ class DcoModel;
 
 class DcoTreeNode : public BcpsTreeNode {
 private:
-  // 0 if ipm solver is not called on the root node.
-  // nonzero if it is called.
-  int ipm_called_;
     /** No copy constructor, assignment operator. */
     DcoTreeNode(const DcoTreeNode&);
 
@@ -103,7 +100,6 @@ public:
 
     /** Initilize member data when constructing a node. */
     void init() {
-      ipm_called_ = 0;
 	//constraintPool_ = new BcpsConstraintPool;
 	//variablePool_ = new BcpsVariablePool;
     }

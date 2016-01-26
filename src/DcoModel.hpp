@@ -345,9 +345,6 @@ public:
   /** Store new cuts in each pass. */
   OsiCuts newCutPool_;
 
-  /** Record the path from leaf to root. */
-  std::vector<AlpsTreeNode *> leafToRootPath;
-
 protected:
 
   /** Intialize member data */
