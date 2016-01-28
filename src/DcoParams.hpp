@@ -62,20 +62,20 @@ class DcoParams : public AlpsParameterSet {
   enum intParams{
 
       /** Branching strategy.
-          0: max infeasibilty,
-          1: pseudocost,
-          2: relibility,
-          3: strong branching.
+	  0: max infeasibilty,
+	  1: pseudocost,
+	  2: reliability,
+	  3: strong branching.
 	  4: bilevel branching
       */
       branchStrategy,
       branchStrategyRampUp,
 
       /** Cut generators control.
-          -2: root,
-          -1: auto,
-          0: disable,
-          any positive frequency
+	  -2: root,
+	  -1: auto,
+	  0: disable,
+	  any positive frequency
       */
       cutStrategy, /** All constraint generators */
       cutGenerationFrequency,
@@ -104,10 +104,10 @@ class DcoParams : public AlpsParameterSet {
       difference,
 
       /** Heuristics control.
-          DcoHeurStrategyRoot:     root,
-          DcoHeurStrategyAuto:     auto,
-          DcoHuerStrategyNone:     disable,
-          DcoHeurStrategyPeriodic: every 't' nodes
+	  DcoHeurStrategyRoot:     root,
+	  DcoHeurStrategyAuto:     auto,
+	  DcoHuerStrategyNone:     disable,
+	  DcoHeurStrategyPeriodic: every 't' nodes
       */
       heurStrategy, /** All heuristics */
       heurCallFrequency,
@@ -116,8 +116,8 @@ class DcoParams : public AlpsParameterSet {
 
       /** The look ahead of pseudocost. */
       lookAhead,
-      /** The relibility of pseudocost. */
-      pseudoRelibility,
+      /** The reliability of pseudocost. */
+      pseudoReliability,
 
       /** Maximum tree depth of sharing pseudocost. */
       sharePcostDepth,
@@ -128,10 +128,10 @@ class DcoParams : public AlpsParameterSet {
 
       /** conic cut parameters **/
       /** Cut generators control.
-          -2: root,
-          -1: auto,
-          0: disable,
-          any positive frequency
+	  -2: root,
+	  -1: auto,
+	  0: disable,
+	  any positive frequency
       */
       conicCutStrategy, /** All constraint generators */
       conicCutGenerationFrequency,
@@ -151,13 +151,13 @@ class DcoParams : public AlpsParameterSet {
   /** Double parameters. */
   enum dblParams{
       /** Limit the max number cuts applied at a node.
-          maxNumCons = (CutFactor - 1) * numCoreConstraints. */
+	  maxNumCons = (CutFactor - 1) * numCoreConstraints. */
       cutFactor,
 
       /** Cutoff any nodes whose objective value is higher than it. */
       cutoff,
       /** The value added to relaxation value when deciding fathom.
-          Default:1.0e-6 */
+	  Default:1.0e-6 */
       cutoffInc,
 
       /** Dense constraint factor.*/
@@ -170,11 +170,11 @@ class DcoParams : public AlpsParameterSet {
       objSense,
 
       /** If the relative gap between best feasible and best relaxed fall into
-          this gap, search stops. Default: 1.0e-6 */
+	  this gap, search stops. Default: 1.0e-6 */
       optimalRelGap,
 
       /** If the absolute gap between best feasible and best relaxed fall into
-          this gap, search stops. Default: 1.0e-4 */
+	  this gap, search stops. Default: 1.0e-4 */
       optimalAbsGap,
 
       /** Weight used to calculate pseudocost. */

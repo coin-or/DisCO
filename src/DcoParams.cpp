@@ -37,7 +37,7 @@ DcoParams::createKeywordList() {
   //--------------------------------------------------------
 
     keys_.push_back(make_pair(std::string("Dco_cutRampUp"),
-                              AlpsParameter(AlpsBoolPar, cutRampUp)));
+			      AlpsParameter(AlpsBoolPar, cutRampUp)));
 
    keys_.push_back(make_pair(std::string("Dco_presolve"),
 			     AlpsParameter(AlpsBoolPar, presolve)));
@@ -135,10 +135,10 @@ DcoParams::createKeywordList() {
 			    AlpsParameter(AlpsIntPar, difference)));
 
   keys_.push_back(make_pair(std::string("Dco_heurStrategy"),
-                            AlpsParameter(AlpsIntPar, heurStrategy)));
+			    AlpsParameter(AlpsIntPar, heurStrategy)));
 
   keys_.push_back(make_pair(std::string("Dco_heurCallFrequencyy"),
-                            AlpsParameter(AlpsIntPar, heurCallFrequency)));
+			    AlpsParameter(AlpsIntPar, heurCallFrequency)));
 
   keys_.push_back(make_pair(std::string("Dco_heurRoundStrategy"),
 			    AlpsParameter(AlpsIntPar, heurRoundStrategy)));
@@ -149,8 +149,8 @@ DcoParams::createKeywordList() {
   keys_.push_back(make_pair(std::string("Dco_lookAhead"),
 			    AlpsParameter(AlpsIntPar, lookAhead)));
 
-  keys_.push_back(make_pair(std::string("Dco_pseudoRelibility"),
-			    AlpsParameter(AlpsIntPar, pseudoRelibility)));
+  keys_.push_back(make_pair(std::string("Dco_pseudoReliability"),
+			    AlpsParameter(AlpsIntPar, pseudoReliability)));
 
   keys_.push_back(make_pair(std::string("Dco_sharePcostDepth"),
 			    AlpsParameter(AlpsIntPar, sharePcostDepth)));
@@ -217,7 +217,7 @@ DcoParams::createKeywordList() {
 			    AlpsParameter(AlpsDoublePar, scaleConFactor)));
 
   keys_.push_back(make_pair(std::string("Dco_tailOff"),
-                            AlpsParameter(AlpsDoublePar, tailOff)));
+			    AlpsParameter(AlpsDoublePar, tailOff)));
 
   //--------------------------------------------------------
   // String Parameters.
@@ -272,7 +272,7 @@ DcoParams::setDefaultEntries() {
   setEntry(heurRoundStrategy, DcoHeurStrategyNotSet);
   setEntry(heurRoundFreq, 1);
   setEntry(lookAhead, 4);
-  setEntry(pseudoRelibility, 8);
+  setEntry(pseudoReliability, 8);
   setEntry(sharePcostDepth, 30);
   setEntry(sharePcostFrequency, 100);
   setEntry(strongCandSize, 10);
