@@ -51,7 +51,7 @@ DcoBranchStrategyPseudo::DcoBranchStrategyPseudo (const DcoBranchStrategyPseudo 
   bestNumberUp_ = rhs.bestNumberUp_;
   bestChangeDown_ = rhs.bestChangeDown_;
   bestNumberDown_ = rhs.bestNumberDown_;
-  relibility_ = rhs.relibility_;
+  reliability_ = rhs.reliability_;
   type_ = rhs.type_;
 }
 

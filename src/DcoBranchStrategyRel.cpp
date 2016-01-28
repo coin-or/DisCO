@@ -53,7 +53,7 @@ DcoBranchStrategyRel::DcoBranchStrategyRel (
     bestNumberUp_ = rhs.bestNumberUp_;
     bestChangeDown_ = rhs.bestChangeDown_;
     bestNumberDown_ = rhs.bestNumberDown_;
-    relibility_ = rhs.relibility_;
+    reliability_ = rhs.reliability_;
     type_ = rhs.type_;
 }
 
@@ -205,43 +205,26 @@ DcoBranchStrategyRel::createCandBranchObjects(int numPassesLeft,
 		intObject = dynamic_cast<DcoObjectInt *>(object);
 
 		if (intObject) {
-
 		    //score = object->pseudocost().getScore();
 		    //tempBO = object->createBranchObject(model, preferDir);
 		    //candObjects.insert(std::make_pair(score, tempBO));
 		    //tempBO = NULL;
-
 		    infObjects.push_back(intObject);
-
 		    if (!selectNow) {
 			minCount =
 			    ALPS_MIN(intObject->pseudocost().getDownCount(),
 				     intObject->pseudocost().getUpCount());
-
 			if (minCount < 1) {
 			    firstObjects.push_back(intObject);
 			}
 		    }
-
-#ifdef DISCO_DEBUG_MORE
-		    if (intObject->columnIndex() == 15) {
-			std::cout << "x[15] = " << saveSolution[15]
-				  << std::endl;
-		    }
-#endif
-
 		    intObject = NULL;
 		}
 		else {
 		    // TODO: currently all are integer objects.
-#ifdef DISCO_DEBU
-		    assert(0);
-#endif
 		}
-
 	    }
 	}
-
 	if (numInfs) {
 #ifdef DISCO_DEBUG_MORE
 	    std::cout << "REL: numInfs = " << numInfs
@@ -447,10 +430,10 @@ DcoBranchStrategyRel::createCandBranchObjects(int numPassesLeft,
 #endif
 
 	    // Check if reliable.
-	    int objRelibility=ALPS_MIN(intObject->pseudocost().getUpCount(),
+	    int objReliability=ALPS_MIN(intObject->pseudocost().getUpCount(),
 				       intObject->pseudocost().getDownCount());
 
-	    if (objRelibility < relibility_) {
+	    if (objReliability < reliability_) {
 		// Unrelible object. Do strong branching.
 
 
