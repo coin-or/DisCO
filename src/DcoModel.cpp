@@ -741,7 +741,7 @@ DcoModel::setupSelf()
     optimalRelGap_ = DcoPar_->entry(DcoParams::optimalRelGap);
     optimalAbsGap_ = DcoPar_->entry(DcoParams::optimalAbsGap);
 
-    int relibility = DcoPar_->entry(DcoParams::pseudoRelibility);
+    int reliability = DcoPar_->entry(DcoParams::pseudoReliability);
     cutoff_ =  DcoPar_->entry(DcoParams::cutoff);
 
     //------------------------------------------------------
@@ -775,8 +775,8 @@ DcoModel::setupSelf()
 	branchStrategy_ = new DcoBranchStrategyPseudo(this, 1);
     }
     else if (brStrategy == DcoBranchingStrategyReliability) {
-	// Relibility
-	branchStrategy_ = new DcoBranchStrategyRel(this, relibility);
+	// Reliability
+	branchStrategy_ = new DcoBranchStrategyRel(this, reliability);
     }
     else if (brStrategy == DcoBranchingStrategyStrong) {
 	// Strong
@@ -801,8 +801,8 @@ DcoModel::setupSelf()
 	rampUpBranchStrategy_ = new DcoBranchStrategyPseudo(this, 1);
     }
     else if (brStrategy == DcoBranchingStrategyReliability) {
-	// Relibility
-	rampUpBranchStrategy_ = new DcoBranchStrategyRel(this, relibility);
+	// Reliability
+	rampUpBranchStrategy_ = new DcoBranchStrategyRel(this, reliability);
     }
     else if (brStrategy == DcoBranchingStrategyStrong) {
 	// Strong
@@ -1162,11 +1162,11 @@ DcoModel::setupSelf()
     //----------------------------------
     // Add IPM cut generator
     //----------------------------------
-    // CglConicCutGenerator * ipm_gen = new CglConicIPM();
-    // DcoConGeneratorBase * dco_ipm_cg = new DcoConicConGenerator(this,
-    //					   ipm_gen, "ipm_gen");
-    // addCutGenerator(dco_ipm_cg);
-    // ipm_gen = NULL;
+    CglConicCutGenerator * ipm_gen = new CglConicIPM();
+    DcoConGeneratorBase * dco_ipm_cg = new DcoConicConGenerator(this,
+					   ipm_gen, "ipm_gen");
+    addCutGenerator(dco_ipm_cg);
+    ipm_gen = NULL;
     //----------------------------------
     // Add Outer approximation cut generator
     //----------------------------------
@@ -1267,6 +1267,26 @@ void DcoModel::approximateCones() {
     delete cg_oa;
     dual_infeasible = origLpSolver_->isProvenDualInfeasible();
   } while(dual_infeasible);
+  // add outer apprixmating cuts for 50 rounds
+  int iter = 0;
+  while(iter<50) {
+    OsiCuts * oa_cuts = new OsiCuts();
+    CglConicCutGenerator * cg_oa = new CglConicOA();
+    cg_oa->generateCuts(*origLpSolver_, *oa_cuts, numCoreCones_, coneTypes_,
+			coneSizes_, coneMembers_, 1);
+    int num_cuts = oa_cuts->sizeRowCuts();
+    if (num_cuts==0) {
+      // ifno cuts are produced break early
+      break;
+    }
+    else {
+      std::cout << num_cuts << " many cuts produced." << std::endl;
+    }
+    origLpSolver_->applyCuts(*oa_cuts);
+    delete oa_cuts;
+    delete cg_oa;
+    iter++;
+  }
 }
 
 // AT - Begin

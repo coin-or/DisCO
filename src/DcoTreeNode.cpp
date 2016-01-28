@@ -346,6 +346,35 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
     }
   }
 
+  // add approximation cuts if this is root node
+  if (isRoot) {
+    int iter = 0;
+    while(iter<50) {
+      BcpsConstraintPool newConPool;
+      int num_cols = model->getNumCols();
+      double * currLpSolution = new double[num_cols];
+      std::copy(model->getLpSolution(), model->getLpSolution()+num_cols,
+		currLpSolution);
+      lpStatus = static_cast<DcoLpStatus> (generateConstraints(model, newConPool));
+      if (lpStatus != DcoLpStatusOptimal) {
+	std::cerr << "Problem could not solved to optimality!" << std::endl;
+	throw std::exception();
+      }
+      int num_cuts = newConPool.getNumConstraints();
+      if (num_cuts == 0) {
+	// break early if no cuts are generated.
+	break;
+      }
+      // Select and install new constraints
+      applyConstraints(model, currLpSolution, newConPool);
+      // Some weak/parallel/dense constraints might be discarded.
+      tempNumCons = newConPool.getNumConstraints();
+      delete[] currLpSolution;
+      newConPool.clear();
+      iter++;
+    }
+  }
+
   //======================================================
   // Restore, load and solve the subproblem.
   // (1) LP infeasible
@@ -2715,6 +2744,9 @@ DcoTreeNode::generateConstraints(DcoModel *model,BcpsConstraintPool &conPool)
 	ipm_fails = 2;
 	useThisCutGenerator = false;
       }
+    }
+    if (model->isRoot_) {
+      useThisCutGenerator = true;
     }
 #endif
 
