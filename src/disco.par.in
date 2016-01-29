@@ -71,11 +71,11 @@ Alps_timeLimit 720
 #Dco_heurRoundStrategy      3  # 0: disable, 1: root, 2: auto, 3: periodic
 #Dco_heurRoundFreq        100
 
-#Dco_branchStrategy 1   # 0: max inf, 1: pseudocost, 2: relibility, 3: strong
+#Dco_branchStrategy 1   # 0: max inf, 1: pseudocost, 2: reliability, 3: strong
 #Dco_branchStrategyRampUp 0
 
 #Dco_pseudoWeight          0.8  # [0.0, 1.0]
-#Dco_pseudoRelibility      8
+#Dco_pseudoReliability     8
 #Dco_lookAhead             4
 #Dco_denseConFactor        5.0
 #Dco_scaleConFactor        100000000.0
