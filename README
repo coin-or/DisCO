@@ -1,0 +1,7 @@
+DisCO (Discrete Conic Optimization) is a solver for Mixed-Iteger Second Order Conic (MISOCO) optimization problem.
+
+DisCO uses OSI conic to communicate with its SOCO solver. COLA, OsiCplex and OsiMosek implements this conic solver interface and DisCO can be used with these solvers.
+
+DisCO is an extension of COIN-OR BLIS solver to second order cone problems.
+
+
