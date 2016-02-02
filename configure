@@ -23320,14 +23320,16 @@ echo "${ECHO_T}Cola" >&6
    mosek)
      echo "$as_me:$LINENO: result: Mosek" >&5
 echo "${ECHO_T}Mosek" >&6
-     if test $coin_has_mosek = false; then
+     if test $coin_has_mosek = false; \
+     then
 	 found_package=false
      fi
    ;;
    cplex)
      echo "$as_me:$LINENO: result: Cplex" >&5
 echo "${ECHO_T}Cplex" >&6
-     if test $coin_has_cplex = false; then
+     if test $coin_has_cplex = false; \
+     then
 	 found_package=false
      fi
    ;;

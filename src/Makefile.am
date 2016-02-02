@@ -59,54 +59,27 @@ lib_LTLIBRARIES = libDisco.la
 
 # List all source files for this library, including headers
 libDisco_la_SOURCES = \
-	DcoBranchObjectInt.cpp \
-	DcoBranchObjectInt.hpp \
-	DcoBranchObjectBilevel.cpp \
-	DcoBranchObjectBilevel.hpp \
-	DcoBranchStrategyMaxInf.cpp \
-	DcoBranchStrategyMaxInf.hpp \
-	DcoBranchStrategyPseudo.cpp \
-	DcoBranchStrategyPseudo.hpp \
 	DcoBranchStrategyRel.cpp \
 	DcoBranchStrategyRel.hpp \
-	DcoBranchStrategyStrong.cpp \
-	DcoBranchStrategyStrong.hpp \
-	DcoBranchStrategyBilevel.cpp \
-	DcoBranchStrategyBilevel.hpp \
-	DcoConGeneratorBase.hpp \
-	DcoConGeneratorBase.cpp \
-	DcoConGenerator.cpp \
-	DcoConGenerator.hpp \
-	DcoConicConGenerator.cpp \
-	DcoConicConGenerator.hpp \
 	DcoConstraint.cpp \
 	DcoConstraint.hpp \
-	DcoConicConstraint.cpp \
-	DcoConicConstraint.hpp \
 	Dco.hpp \
-	DcoHelp.cpp \
-	DcoHelp.hpp \
-	DcoHeuristic.hpp \
-	DcoHeurRound.cpp \
-	DcoHeurRound.hpp \
 	DcoLicense.hpp \
 	DcoMessage.cpp \
 	DcoMessage.hpp \
 	DcoModel.cpp \
 	DcoModel.hpp \
+	DcoNodeDesc.cpp \
 	DcoNodeDesc.hpp \
-	DcoObjectInt.cpp \
-	DcoObjectInt.hpp \
 	DcoParams.cpp \
 	DcoParams.hpp \
-	DcoPresolve.hpp \
-	DcoPresolve.cpp \
-	DcoPseudo.cpp \
-	DcoPseudo.hpp \
+	DcoSolution.cpp \
 	DcoSolution.hpp \
+	DcoSubTree.cpp \
 	DcoSubTree.hpp \
 	DcoTreeNode.cpp \
 	DcoTreeNode.hpp \
+	DcoVariable.cpp \
 	DcoVariable.hpp
 
 # List all additionally required libraries
@@ -145,28 +118,14 @@ DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
 # and that therefore should be installed in 'install/coin'
 includecoindir = $(includedir)/coin
 includecoin_HEADERS = \
-	DcoBranchObjectInt.hpp \
-	DcoBranchStrategyMaxInf.hpp \
-	DcoBranchStrategyPseudo.hpp \
 	DcoBranchStrategyRel.hpp \
-	DcoBranchStrategyStrong.hpp \
-	DcoConGeneratorBase.hpp \
-	DcoConGenerator.hpp \
-	DcoConicConGenerator.hpp \
 	DcoConstraint.hpp \
-	DcoConicConstraint.hpp \
 	Dco.hpp \
-	DcoHelp.hpp \
-	DcoHeuristic.hpp \
-	DcoHeurRound.hpp \
 	DcoLicense.hpp \
 	DcoMessage.hpp \
 	DcoModel.hpp \
 	DcoNodeDesc.hpp \
-	DcoObjectInt.hpp \
 	DcoParams.hpp \
-	DcoPresolve.hpp \
-	DcoPseudo.hpp \
 	DcoSolution.hpp \
 	DcoSubTree.hpp \
 	DcoTreeNode.hpp \

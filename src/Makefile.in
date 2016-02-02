@@ -93,15 +93,9 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 @DEPENDENCY_LINKING_TRUE@libDisco_la_DEPENDENCIES =  \
 @DEPENDENCY_LINKING_TRUE@	$(am__DEPENDENCIES_1)
-am_libDisco_la_OBJECTS = DcoBranchObjectInt.lo \
-	DcoBranchObjectBilevel.lo DcoBranchStrategyMaxInf.lo \
-	DcoBranchStrategyPseudo.lo DcoBranchStrategyRel.lo \
-	DcoBranchStrategyStrong.lo DcoBranchStrategyBilevel.lo \
-	DcoConGeneratorBase.lo DcoConGenerator.lo \
-	DcoConicConGenerator.lo DcoConstraint.lo DcoConicConstraint.lo \
-	DcoHelp.lo DcoHeurRound.lo DcoMessage.lo DcoModel.lo \
-	DcoObjectInt.lo DcoParams.lo DcoPresolve.lo DcoPseudo.lo \
-	DcoTreeNode.lo
+am_libDisco_la_OBJECTS = DcoBranchStrategyRel.lo DcoConstraint.lo \
+	DcoMessage.lo DcoModel.lo DcoNodeDesc.lo DcoParams.lo \
+	DcoSolution.lo DcoSubTree.lo DcoTreeNode.lo DcoVariable.lo
 libDisco_la_OBJECTS = $(am_libDisco_la_OBJECTS)
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
@@ -368,54 +362,27 @@ lib_LTLIBRARIES = libDisco.la
 
 # List all source files for this library, including headers
 libDisco_la_SOURCES = \
-	DcoBranchObjectInt.cpp \
-	DcoBranchObjectInt.hpp \
-	DcoBranchObjectBilevel.cpp \
-	DcoBranchObjectBilevel.hpp \
-	DcoBranchStrategyMaxInf.cpp \
-	DcoBranchStrategyMaxInf.hpp \
-	DcoBranchStrategyPseudo.cpp \
-	DcoBranchStrategyPseudo.hpp \
 	DcoBranchStrategyRel.cpp \
 	DcoBranchStrategyRel.hpp \
-	DcoBranchStrategyStrong.cpp \
-	DcoBranchStrategyStrong.hpp \
-	DcoBranchStrategyBilevel.cpp \
-	DcoBranchStrategyBilevel.hpp \
-	DcoConGeneratorBase.hpp \
-	DcoConGeneratorBase.cpp \
-	DcoConGenerator.cpp \
-	DcoConGenerator.hpp \
-	DcoConicConGenerator.cpp \
-	DcoConicConGenerator.hpp \
 	DcoConstraint.cpp \
 	DcoConstraint.hpp \
-	DcoConicConstraint.cpp \
-	DcoConicConstraint.hpp \
 	Dco.hpp \
-	DcoHelp.cpp \
-	DcoHelp.hpp \
-	DcoHeuristic.hpp \
-	DcoHeurRound.cpp \
-	DcoHeurRound.hpp \
 	DcoLicense.hpp \
 	DcoMessage.cpp \
 	DcoMessage.hpp \
 	DcoModel.cpp \
 	DcoModel.hpp \
+	DcoNodeDesc.cpp \
 	DcoNodeDesc.hpp \
-	DcoObjectInt.cpp \
-	DcoObjectInt.hpp \
 	DcoParams.cpp \
 	DcoParams.hpp \
-	DcoPresolve.hpp \
-	DcoPresolve.cpp \
-	DcoPseudo.cpp \
-	DcoPseudo.hpp \
+	DcoSolution.cpp \
 	DcoSolution.hpp \
+	DcoSubTree.cpp \
 	DcoSubTree.hpp \
 	DcoTreeNode.cpp \
 	DcoTreeNode.hpp \
+	DcoVariable.cpp \
 	DcoVariable.hpp
 
 
@@ -447,28 +414,14 @@ DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
 # and that therefore should be installed in 'install/coin'
 includecoindir = $(includedir)/coin
 includecoin_HEADERS = \
-	DcoBranchObjectInt.hpp \
-	DcoBranchStrategyMaxInf.hpp \
-	DcoBranchStrategyPseudo.hpp \
 	DcoBranchStrategyRel.hpp \
-	DcoBranchStrategyStrong.hpp \
-	DcoConGeneratorBase.hpp \
-	DcoConGenerator.hpp \
-	DcoConicConGenerator.hpp \
 	DcoConstraint.hpp \
-	DcoConicConstraint.hpp \
 	Dco.hpp \
-	DcoHelp.hpp \
-	DcoHeuristic.hpp \
-	DcoHeurRound.hpp \
 	DcoLicense.hpp \
 	DcoMessage.hpp \
 	DcoModel.hpp \
 	DcoNodeDesc.hpp \
-	DcoObjectInt.hpp \
 	DcoParams.hpp \
-	DcoPresolve.hpp \
-	DcoPseudo.hpp \
 	DcoSolution.hpp \
 	DcoSubTree.hpp \
 	DcoTreeNode.hpp \
@@ -604,28 +557,17 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchObjectBilevel.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchObjectInt.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyBilevel.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyMaxInf.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyPseudo.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyRel.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyStrong.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConGenerator.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConGeneratorBase.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConicConGenerator.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConicConstraint.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConstraint.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoHelp.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoHeurRound.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoMain.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoMessage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoModel.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoObjectInt.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoNodeDesc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoParams.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoPresolve.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoPseudo.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoSolution.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoSubTree.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoTreeNode.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoVariable.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
