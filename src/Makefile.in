@@ -95,7 +95,8 @@ am__DEPENDENCIES_1 =
 @DEPENDENCY_LINKING_TRUE@	$(am__DEPENDENCIES_1)
 am_libDisco_la_OBJECTS = DcoBranchStrategyRel.lo DcoConstraint.lo \
 	DcoMessage.lo DcoModel.lo DcoNodeDesc.lo DcoParams.lo \
-	DcoSolution.lo DcoSubTree.lo DcoTreeNode.lo DcoVariable.lo
+	DcoSolution.lo DcoSubTree.lo DcoTreeNode.lo DcoVariable.lo \
+	DcoMessage.lo
 libDisco_la_OBJECTS = $(am_libDisco_la_OBJECTS)
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
@@ -383,7 +384,10 @@ libDisco_la_SOURCES = \
 	DcoTreeNode.cpp \
 	DcoTreeNode.hpp \
 	DcoVariable.cpp \
-	DcoVariable.hpp
+	DcoVariable.hpp \
+	DcoMessage.cpp \
+	DcoMessage.hpp \
+	DcoConfig.hpp
 
 
 # List all additionally required libraries
@@ -425,7 +429,8 @@ includecoin_HEADERS = \
 	DcoSolution.hpp \
 	DcoSubTree.hpp \
 	DcoTreeNode.hpp \
-	DcoVariable.hpp
+	DcoVariable.hpp \
+	DcoConfig.hpp
 
 all: config.h config_dco.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am

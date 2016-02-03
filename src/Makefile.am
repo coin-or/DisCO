@@ -80,7 +80,11 @@ libDisco_la_SOURCES = \
 	DcoTreeNode.cpp \
 	DcoTreeNode.hpp \
 	DcoVariable.cpp \
-	DcoVariable.hpp
+	DcoVariable.hpp \
+	DcoMessage.cpp \
+	DcoMessage.hpp \
+	DcoConfig.hpp
+
 
 # List all additionally required libraries
 if DEPENDENCY_LINKING
@@ -129,7 +133,8 @@ includecoin_HEADERS = \
 	DcoSolution.hpp \
 	DcoSubTree.hpp \
 	DcoTreeNode.hpp \
-	DcoVariable.hpp
+	DcoVariable.hpp \
+	DcoConfig.hpp
 
 ########################################################################
 #                     Installing manifest (MSVC++)                     #
