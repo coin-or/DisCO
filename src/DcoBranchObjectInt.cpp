@@ -28,30 +28,30 @@
 
 //#############################################################################
 
-// Copy constructor 
+// Copy constructor
 DcoBranchObjectInt::
-DcoBranchObjectInt(const DcoBranchObjectInt & rhs) 
+DcoBranchObjectInt(const DcoBranchObjectInt & rhs)
     :
     BcpsBranchObject(rhs)
 {
-    down_[0] = rhs.down_[0];
-    down_[1] = rhs.down_[1];
-    up_[0] = rhs.up_[0];
-    up_[1] = rhs.up_[1];
+    downBranchBounds_[0] = rhs.downBranchBounds_[0];
+    downBranchBounds_[1] = rhs.downBranchBounds_[1];
+    upBranchBounds_[0] = rhs.upBranchBounds_[0];
+    upBranchBounds_[1] = rhs.upBranchBounds_[1];
 }
 
 //#############################################################################
 
-// Assignment operator 
-DcoBranchObjectInt & 
+// Assignment operator
+DcoBranchObjectInt &
 DcoBranchObjectInt::operator=(const DcoBranchObjectInt& rhs)
 {
     if (this != &rhs) {
 	BcpsBranchObject::operator=(rhs);
-	down_[0] = rhs.down_[0];
-	down_[1] = rhs.down_[1];
-	up_[0] = rhs.up_[0];
-	up_[1] = rhs.up_[1];
+	downBranchBounds_[0] = rhs.downBranchBounds_[0];
+	downBranchBounds_[1] = rhs.downBranchBounds_[1];
+	upBranchBounds_[0] = rhs.upBranchBounds_[0];
+	upBranchBounds_[1] = rhs.upBranchBounds_[1];
     }
     return *this;
 }
@@ -62,7 +62,7 @@ DcoBranchObjectInt::operator=(const DcoBranchObjectInt& rhs)
   Perform a branch by adjusting the bounds of the specified variable.
   Note that each arm of the branch advances the object to the next arm by
   advancing the value of direction_.
-  
+
   Providing new values for the variable's lower and upper bounds for each
   branching direction gives a little bit of additional flexibility and will
   be easily extensible to multi-direction branching.
@@ -74,64 +74,64 @@ DcoBranchObjectInt::branch(bool normalBranch)
     DcoModel *model = dynamic_cast<DcoModel *>(model_);
 
     int iColumn = model->getIntColIndices()[objectIndex_];
-    
+
     // Decrement number of branches left by 1.
     --numBranchesLeft_;
-    
+
     if (direction_<0) {
 #ifdef DISCO_DEBUG_MORE
-	{ 
+	{
 	    double olb, oub ;
 	    olb = model->solver()->getColLower()[iColumn];
 	    oub = model->solver()->getColUpper()[iColumn];
 	    printf("branching down on var %d: [%g,%g] => [%g,%g]\n",
-		   iColumn,olb,oub,down_[0],down_[1]); 
+		   iColumn,olb,oub,downBranchBounds_[0],downBranchBounds_[1]);
 	}
 #endif
-	model->solver()->setColLower(iColumn, down_[0]);
-	model->solver()->setColUpper(iColumn, down_[1]);
+	model->solver()->setColLower(iColumn, downBranchBounds_[0]);
+	model->solver()->setColUpper(iColumn, downBranchBounds_[1]);
 	direction_ = 1;
-    } 
+    }
     else {
 #ifdef DISCO_DEBUG_MORE
-	{ 
+	{
 	    double olb, oub ;
 	    olb = model->solver()->getColLower()[iColumn];
 	    oub = model->solver()->getColUpper()[iColumn];
 	    printf("branching up on var %d: [%g,%g] => [%g,%g]\n",
-		   iColumn,olb,oub,up_[0],up_[1]); 
+		   iColumn,olb,oub,upBranchBounds_[0],upBranchBounds_[1]);
 	}
 #endif
-	model->solver()->setColLower(iColumn, up_[0]);
-	model->solver()->setColUpper(iColumn, up_[1]);
+	model->solver()->setColLower(iColumn, upBranchBounds_[0]);
+	model->solver()->setColUpper(iColumn, upBranchBounds_[1]);
 	direction_ = -1;	  // Swap direction
     }
-    
+
     return 0.0;
 }
 
 //#############################################################################
 
-// Print what would happen  
+// Print what would happen
 void
 DcoBranchObjectInt::print(bool normalBranch)
 {
     DcoModel *model = dynamic_cast<DcoModel*>(model_);
     int iColumn = model->getIntColIndices()[objectIndex_];
     double olb, oub ;
-    
-    if (direction_ < 0) {
-        olb = model->solver()->getColLower()[iColumn] ;
-        oub = model->solver()->getColUpper()[iColumn] ;
-        printf("DcoInteger would branch down on var %d: [%g,%g] => [%g,%g]\n",
-               iColumn,olb,oub,down_[0],down_[1]); 
 
-    } 
+    if (direction_ < 0) {
+	olb = model->solver()->getColLower()[iColumn] ;
+	oub = model->solver()->getColUpper()[iColumn] ;
+	printf("DcoInteger would branch down on var %d: [%g,%g] => [%g,%g]\n",
+	       iColumn,olb,oub,downBranchBounds_[0],downBranchBounds_[1]);
+
+    }
     else {
-        olb = model->solver()->getColLower()[iColumn] ;
-        oub = model->solver()->getColUpper()[iColumn] ;
-        printf("DcoInteger would branch up on var %d: [%g,%g] => [%g,%g]\n",
-               iColumn,olb,oub,up_[0],up_[1]);
+	olb = model->solver()->getColLower()[iColumn] ;
+	oub = model->solver()->getColUpper()[iColumn] ;
+	printf("DcoInteger would branch up on var %d: [%g,%g] => [%g,%g]\n",
+	       iColumn,olb,oub,upBranchBounds_[0],upBranchBounds_[1]);
     }
 }
 

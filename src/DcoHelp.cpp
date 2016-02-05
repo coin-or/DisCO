@@ -15,7 +15,7 @@
  *          Ted Ralphs, Lehigh University                                    *
  *          Laszlo Ladanyi, IBM T.J. Watson Research Center                  *
  *          Matthew Saltzman, Clemson University                             *
- *                                                                           * 
+ *                                                                           *
  *                                                                           *
  * Copyright (C) 2001-2015, Lehigh University, Yan Xu, and Ted Ralphs.       *
  * All Rights Reserved.                                                      *
@@ -42,22 +42,22 @@ DcoConstraint * DcoOsiCutToConstraint(const OsiRowCut *rowCut)
 {
     int size = rowCut->row().getNumElements();
     assert(size > 0);
-    
+
     const int *ind = rowCut->row().getIndices();
     const double *val = rowCut->row().getElements();
 
     double lower = rowCut->lb();
     double upper = rowCut->ub();
-    
-    DcoConstraint *con = new DcoConstraint(lower, upper, 
-                                             lower, upper,
-                                             size, ind, val);
-    
+
+    DcoConstraint *con = new DcoConstraint(lower, upper,
+					     lower, upper,
+					     size, ind, val);
+
     if (!con) {
-        // No memory
-        throw CoinError("Out of Memory", "Dco_OsiCutToConstraint", "NONE");
+	// No memory
+	throw CoinError("Out of Memory", "Dco_OsiCutToConstraint", "NONE");
     }
-    
+
     return con;
 }
 
@@ -75,9 +75,9 @@ DcoStrongBranch(DcoModel *model, double objValue, int colInd, double x,
     int j, numIntInfDown, numObjInfDown;
 
     double newObjValue;
-    
+
     OsiSolverInterface * solver = model->solver();
-    
+
     int numCols = solver->getNumCols();
     const double * lower = solver->getColLower();
     const double * upper = solver->getColUpper();
@@ -89,120 +89,120 @@ DcoStrongBranch(DcoModel *model, double objValue, int colInd, double x,
 
     int ind = model->getIntObjIndices()[colInd];
     DcoObjectInt *intObj = dynamic_cast<DcoObjectInt *>(model->objects(ind));
-    
+
 #ifdef DISCO_DEBUG_MORE
     for (j = 0; j < numCols; ++j) {
 	if (saveLower[j] != lower[j]) {
 	    //solver->setColLower(j, saveLower[j]);
-            ++numDiff;
+	    ++numDiff;
 	}
 	if (saveUpper[j] != upper[j]) {
 	    //solver->setColUpper(j, saveUpper[j]);
-            ++numDiff;
+	    ++numDiff;
 	}
     }
     std::cout << "BEFORE: numDiff = " << numDiff << std::endl;
-#endif	 
-   
+#endif
+
     //------------------------------------------------------
     // Branching down.
     //------------------------------------------------------
 
     solver->setColUpper(colInd, floor(x));
     solver->solveFromHotStart();
-    
+
     newObjValue = solver->getObjSense() * solver->getObjValue();
     downDeg = newObjValue - objValue;
-    
+
     if (solver->isProvenOptimal()) {
 	lpStatus = 0; // optimal
 #ifdef DISCO_DEBUG_MORE
-        printf("STRONG: COL[%d]: downDeg=%g, x=%g\n", colInd, downDeg, x);
+	printf("STRONG: COL[%d]: downDeg=%g, x=%g\n", colInd, downDeg, x);
 #endif
-        // Update pseudocost
-        intObj->pseudocost().update(-1, downDeg, x);
-        model->setSharedObjectMark(ind);        
+	// Update pseudocost
+	intObj->pseudocost().update(-1, downDeg, x);
+	model->setSharedObjectMark(ind);
 
-        // Check if ip feasible
-        ksol = model->feasibleSolution(numIntInfDown, numObjInfDown);
-        if (ksol) {
+	// Check if ip feasible
+	ksol = model->feasibleSolution(numIntInfDown, numObjInfDown);
+	if (ksol) {
 #ifdef DISCO_DEBUG_MORE
-            printf("STRONG:Down:found a feasible solution\n");
+	    printf("STRONG:Down:found a feasible solution\n");
 #endif
-            
-            model->storeSolution(DcoSolutionTypeStrong, ksol);
+
+	    model->storeSolution(DcoSolutionTypeStrong, ksol);
 	    downKeep = false;
-        }
+	}
 	else {
 	    downKeep = true;
 	}
 	downFinished = true;
     }
-    else if (solver->isIterationLimitReached() && 
+    else if (solver->isIterationLimitReached() &&
 	     !solver->isDualObjectiveLimitReached()) {
-	lpStatus = 2;      // unknown 
+	lpStatus = 2;      // unknown
 	downKeep = true;
 	downFinished = false;
     }
     else {
-        downDeg = 1.0e20;
+	downDeg = 1.0e20;
 	lpStatus = 1; // infeasible
 	downKeep = false;
 	downFinished = false;
-    }       
-            
+    }
+
 #ifdef DISCO_DEBUG_MORE
     std::cout << "Down: lpStatus = " << lpStatus << std::endl;
 #endif
-    
+
     // restore bounds
     numDiff = 0;
     for (j = 0; j < numCols; ++j) {
 	if (saveLower[j] != lower[j]) {
 	    solver->setColLower(j, saveLower[j]);
-            ++numDiff;
+	    ++numDiff;
 	}
 	if (saveUpper[j] != upper[j]) {
 	    solver->setColUpper(j, saveUpper[j]);
-            ++numDiff;
+	    ++numDiff;
 	}
     }
 #ifdef DISCO_DEBUG
     assert(numDiff > 0);
     //std::cout << "numDiff = " << numDiff << std::endl;
-#endif	    
-          
+#endif
+
     //----------------------------------------------
     // Branching up.
     //----------------------------------------------
-    
+
     solver->setColLower(colInd, ceil(x));
     solver->solveFromHotStart();
 
     newObjValue = solver->getObjSense() * solver->getObjValue();
     upDeg = newObjValue - objValue;
-    
+
     if (solver->isProvenOptimal()) {
 	lpStatus = 0; // optimal
 
 #ifdef DISCO_DEBUG_MORE
-        printf("STRONG: COL[%d]: upDeg=%g, x=%g\n", colInd, upDeg, x);
+	printf("STRONG: COL[%d]: upDeg=%g, x=%g\n", colInd, upDeg, x);
 #endif
 
-        // Update pseudocost
-        intObj->pseudocost().update(1, upDeg, x);
-        model->setSharedObjectMark(ind);        
+	// Update pseudocost
+	intObj->pseudocost().update(1, upDeg, x);
+	model->setSharedObjectMark(ind);
 
-        // Check if IP feasible
-        ksol = model->feasibleSolution(numIntInfDown, numObjInfDown);
-        if (ksol) {
+	// Check if IP feasible
+	ksol = model->feasibleSolution(numIntInfDown, numObjInfDown);
+	if (ksol) {
 #ifdef DISCO_DEBUG_MORE
-            printf("STRONG:Up:found a feasible solution\n");
+	    printf("STRONG:Up:found a feasible solution\n");
 #endif
-            
-            model->storeSolution(DcoSolutionTypeStrong, ksol);
-            upKeep = false;
-        }
+
+	    model->storeSolution(DcoSolutionTypeStrong, ksol);
+	    upKeep = false;
+	}
 	else {
 	    upKeep = true;
 	}
@@ -210,7 +210,7 @@ DcoStrongBranch(DcoModel *model, double objValue, int colInd, double x,
     }
     else if (solver->isIterationLimitReached()
 	     &&!solver->isDualObjectiveLimitReached()) {
-	lpStatus = 2; // unknown 
+	lpStatus = 2; // unknown
 	upKeep = true;
 	upFinished = false;
     }
@@ -218,13 +218,13 @@ DcoStrongBranch(DcoModel *model, double objValue, int colInd, double x,
 	lpStatus = 1; // infeasible
 	upKeep = false;
 	upFinished = false;
-        upDeg = 1.0e20;
+	upDeg = 1.0e20;
     }
-    
+
 #ifdef DISCO_DEBUG_MORE
     std::cout << "STRONG: Up: lpStatus = " << lpStatus << std::endl;
-#endif      
-    
+#endif
+
     // restore bounds
     for (j = 0; j < numCols; ++j) {
 	if (saveLower[j] != lower[j]) {
@@ -253,7 +253,7 @@ int DcoEncodeWarmStart(AlpsEncoded *encoded, const CoinWarmStartBasis *ws)
     // Pack structural.
     int nint = (ws->getNumStructural() + 15) >> 4;
     encoded->writeRep(ws->getStructuralStatus(), nint * 4);
-    
+
     // Pack artificial.
     nint = (ws->getNumArtificial() + 15) >> 4;
     encoded->writeRep(ws->getArtificialStatus(), nint * 4);
@@ -264,22 +264,22 @@ int DcoEncodeWarmStart(AlpsEncoded *encoded, const CoinWarmStartBasis *ws)
 //#############################################################################
 
 CoinWarmStartBasis *DcoDecodeWarmStart(AlpsEncoded &encoded,
-					AlpsReturnStatus *rc) 
+					AlpsReturnStatus *rc)
 {
     int numCols;
     int numRows;
-    
+
     encoded.readRep(numCols);
     encoded.readRep(numRows);
-    
+
     int tempInt;
-    
+
     // Structural
     int nint = (numCols + 15) >> 4;
     char *structuralStatus = new char[4 * nint];
     encoded.readRep(structuralStatus, tempInt);
     assert(tempInt == nint*4);
-    
+
     // Artificial
     nint = (numRows + 15) >> 4;
     char *artificialStatus = new char[4 * nint];
@@ -290,20 +290,20 @@ CoinWarmStartBasis *DcoDecodeWarmStart(AlpsEncoded &encoded,
     if (!ws) {
 	throw CoinError("Out of memory", "DcoDecodeWarmStart", "HELP");
     }
-    
-    ws->assignBasisStatus(numCols, numRows, 
+
+    ws->assignBasisStatus(numCols, numRows,
 			  structuralStatus, artificialStatus);
-    
+
     assert(!structuralStatus);
     assert(!artificialStatus);
 
-    return ws;   
+    return ws;
 }
 
 //#############################################################################
 
 /** Compute and return a hash value of an Osi row cut. */
-double DcoHashingOsiRowCut(const OsiRowCut *rowCut, 
+double DcoHashingOsiRowCut(const OsiRowCut *rowCut,
 			    const DcoModel *model)
 {
     int size = rowCut->row().getNumElements();
@@ -313,8 +313,8 @@ double DcoHashingOsiRowCut(const OsiRowCut *rowCut,
 
     const int *indices = rowCut->row().getIndices();
     const double * randoms = model->getConRandoms();
-    
-    double hashValue_ = 0.0;    
+
+    double hashValue_ = 0.0;
     for (k = 0; k < size; ++k) {
 	ind = indices[k];
 	hashValue_ += randoms[ind] * ind;
@@ -330,16 +330,16 @@ double DcoHashingOsiRowCut(const OsiRowCut *rowCut,
 /** Check if a row cut parallel with another row cut. */
 bool DcoParallelCutCut(OsiRowCut * rowCut1,
 			OsiRowCut * rowCut2,
-			double threshold) 
+			double threshold)
 {
     int size1 = rowCut1->row().getNumElements();
     int size2 = rowCut2->row().getNumElements();
     assert(size1 > 0 && size2 > 0);
     int i, j, k;
-    bool para = false;   
+    bool para = false;
 
     if (size1 != size2) {
-        return para;
+	return para;
     }
 
     //------------------------------------------------------
@@ -355,7 +355,7 @@ bool DcoParallelCutCut(OsiRowCut * rowCut1,
 
     const int *indices2 = rowCut2->row().getIndices();
     const double *elems2 = rowCut2->row().getElements();
-    
+
     //------------------------------------------------------
     // Compute norms.
     //------------------------------------------------------
@@ -373,7 +373,7 @@ bool DcoParallelCutCut(OsiRowCut * rowCut1,
     norm2 = sqrt(norm2);
 
     //------------------------------------------------------
-    // Compute angel cut1 * cut2 
+    // Compute angel cut1 * cut2
     //------------------------------------------------------
 
     double denorm = 0.0;
@@ -403,14 +403,14 @@ bool DcoParallelCutCut(OsiRowCut * rowCut1,
     denorm = fabs(denorm);
     angle = denorm/(norm1 * norm2);
     assert(angle >= 0.0 && angle <= 1.000001);
-    
+
     if (angle >= threshold) {
 	para = true;
 #if 0
-        for (j = 0; j < size1; ++j) {
-            std::cout << indices1[j] << ", " << indices2[j] << "; ";
-        }
-        std::cout << std::endl;
+	for (j = 0; j < size1; ++j) {
+	    std::cout << indices1[j] << ", " << indices2[j] << "; ";
+	}
+	std::cout << std::endl;
 #endif
     }
 
@@ -428,12 +428,12 @@ bool DcoParallelCutCon(OsiRowCut * rowCut,
 
     // Convert con to row cut
     OsiRowCut * rowCut2 = con->createOsiRowCut();
-    
+
     parallel = DcoParallelCutCut(rowCut,
 				  rowCut2,
 				  threshold);
     delete rowCut2;
-    
+
     return parallel;
 }
 
@@ -449,13 +449,13 @@ bool DcoParallelConCon(DcoConstraint * con1,
     // Convert con to row cut
     OsiRowCut * rowCut1 = con1->createOsiRowCut();
     OsiRowCut * rowCut2 = con2->createOsiRowCut();
-    
+
     parallel = DcoParallelCutCut(rowCut1,
 				  rowCut2,
 				  threshold);
     delete rowCut1;
     delete rowCut2;
-    
+
     return parallel;
 }
 
