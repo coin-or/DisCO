@@ -1,4 +1,4 @@
-DisCO
+DisCO [![Build Status](https://travis-ci.org/aykutbulut/DisCO.svg?branch=master)](https://travis-ci.org/aykutbulut/DisCO)
 =========================
 DisCO is distributed under the Eclipse Public License and is
 freely redistributable. All source code and documentation is Copyright
