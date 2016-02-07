@@ -34,6 +34,11 @@ typedef struct {
 
 //#############################################################################
 
+//
+// 100-200 DcoModel::readInstance messages
+// 200-300 DcoTreeNode messages
+//
+//
 static Dco_message us_english[]=
 {
     {DISCO_CUTOFF_INC, 43, 1, "Objective coefficients are multiples of %g"},
@@ -55,6 +60,7 @@ static Dco_message us_english[]=
     {DISCO_READ_ROTATEDCONESIZE, 9002, 1, "Rotated cones should have at least 3 members."},
     {DISCO_READ_CONESTATS1,101,1,"Problem has %d cones."},
     {DISCO_READ_CONESTATS2,102,1, "Cone %d has %d entries (type %d)"},
+    {DISCO_NODE_BRANCHONINT,9201,1, "Branched on integer variable. Variable index %d."},
     {DISCO_DUMMY_END, 999999, 0, ""}
 };
 

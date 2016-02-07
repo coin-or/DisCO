@@ -1,4 +1,5 @@
 #include "DcoTreeNode.hpp"
+#include "DcoNodeDesc.hpp"
 
 DcoTreeNode::DcoTreeNode() {
 }
@@ -6,10 +7,33 @@ DcoTreeNode::DcoTreeNode() {
 DcoTreeNode::~DcoTreeNode() {
 }
 
-AlpsTreeNode * DcoTreeNode::createNewTreeNode(AlpsNodeDesc*& desc) const {
-  std::cerr << "Not implemented yet!" << std::endl;
-  throw std::exception();
-  return NULL;
+// create tree node from given description
+AlpsTreeNode * DcoTreeNode::createNewTreeNode(AlpsNodeDesc *& desc) const {
+  //DcoNodeBranchDir branchDir=dynamic_cast<DcoNodeDesc *>(desc)->getBranchedDir();
+  int branchInd=dynamic_cast<DcoNodeDesc *>(desc)->branchedInd();
+  double lpX = dynamic_cast<DcoNodeDesc *>(desc)->branchedVal();
+  DcoModel * model = dynamic_cast<DcoModel*>(desc_->getModel());
+  int objInd = model->getIntObjIndices()[branchInd];
+  DcoObjectInt * obj = dynamic_cast<DcoObjectInt *>(model->getobjects(objInd));
+  double frac = lpX - floor(lpX);
+  if (frac > 0.0) {
+    model->messageHandler->message(DISCO_NODE_BRANCHONINT,
+				   *model->messages())
+      << obj->columnIndex() << CoinMessageEol;
+  }
+  // Set solution estimate for this nodes.
+  // double estimate = solEstimate_;
+  // if (branchDir == -1) {
+  //   estimate -= (1.0-f) * obj->pseudocost().getUpCost();
+  // }
+  // else {
+  //   estimate -= f * obj->pseudocost().getDownCost();
+  // }
+
+  // Create a new tree node
+  DcoTreeNode * node = new DcoTreeNode(desc);
+  desc = NULL;
+  return node;
 }
 
 void DcoTreeNode::convertToExplicit() {

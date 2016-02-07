@@ -22,7 +22,8 @@ class DcoModel: public BcpsModel {
   // PROBLEM DATA
   //------------------------------------------------------
   /** Problem matrix */
-  CoinPackedMatrix * matrix_;
+  // Why do we need this. It seems unnecessary.
+  // CoinPackedMatrix * matrix_;
   /** Variable and constraint bounds. */
   //@{
   double *colLB_;
@@ -135,8 +136,9 @@ public:
   // /** Postprocessing the model. Default does nothing. We do not have any
   //     postprocessing for now. */
   // //virtual void postprocess();
-  // /** Create the root node. */
-  // virtual AlpsTreeNode * createRoot();
+
+  /** Create the root node. */
+  virtual AlpsTreeNode * createRoot();
 
   // /** Problem specific log. */
   // virtual void modelLog() {}

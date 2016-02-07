@@ -135,6 +135,12 @@ enum DcoBranchingObjectType {
     DcoBranchingObjectTypeBilevel
 };
 
+/** Node branch direction, is it a left node or right */
+enum DcoNodeBranchDir {
+    DcoNodeBranchDirectionLeft = 0,
+    DcoNodeBranchDirectionRight
+};
+
 //#############################################################################
 
 #define DISCO_CUT_DISABLE            20

@@ -16,11 +16,11 @@ matrix:
       compiler: clang
     - os: linux
       addons:
-        apt:
-          packages:
-          - gfortran
-          - libblas-dev
-          - liblapack-dev
+	apt:
+	  packages:
+	  - gfortran
+	  - libblas-dev
+	  - liblapack-dev
   allow_failures:
     - os: osx
 
@@ -31,4 +31,4 @@ before_script:
   - git clone https://gist.github.com/tkralphs/13d4529b4d4e8889f3a6 scripts
   - bash scripts/get.dependencies.sh fetch > /dev/null
 
-script: bash scripts/get.dependencies.sh build --quiet
+script: bash scripts/get.dependencies.sh build --quiet --threads=10 --with-mosek-incdir=/usr/local/mosek/7.1/tools/platform/linux64x86/h --with-mosek-lib='-L/usr/local/mosek/7.1/tools/platform/linux64x86/bin -lmosek64 -lmosekxx7_1 -lmosekjava7_1 -lmosekscopt7_1 -liomp5' --with-cplex-incdir=/usr/local/cplex/include/ilcplex --with-cplex-lib='-L/usr/local/cplex/lib/x86-64_linux/static_pic/ -lcplex -lm -lpthread'

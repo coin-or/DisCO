@@ -7,7 +7,7 @@ class DcoTreeNode: public BcpsTreeNode {
 public:
   DcoTreeNode();
   virtual ~DcoTreeNode();
-  virtual AlpsTreeNode * createNewTreeNode(AlpsNodeDesc*& desc) const;
+  virtual AlpsTreeNode * createNewTreeNode(AlpsNodeDesc *& desc) const;
   virtual void convertToExplicit();
   virtual void convertToRelative();
   virtual int generateConstraints(BcpsModel * model,
@@ -25,7 +25,7 @@ public:
       children's decriptions. The stati of the children
       can be any of the ones \c process() can return. */
   virtual std::vector< CoinTriple<AlpsNodeDesc*, AlpsNodeStatus, double> >
-  branch() = 0;
+  branch();
 private:
   // these are disabled in AlpsTreeNode
   DcoTreeNode(DcoTreeNode const & other);
