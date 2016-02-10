@@ -141,6 +141,13 @@ enum DcoNodeBranchDir {
     DcoNodeBranchDirectionRight
 };
 
+/** Integral type */
+enum DcoIntegralityType {
+    DcoIntegralityTypeCont = 0,
+    DcoIntegralityTypeInt
+};
+
+
 //#############################################################################
 
 #define DISCO_CUT_DISABLE            20

@@ -4,12 +4,60 @@
 #include "DcoMessage.hpp"
 #include "DcoTreeNode.hpp"
 #include "DcoNodeDesc.hpp"
+#include "DcoVariable.hpp"
+#include "DcoConstraint.hpp"
 
 DcoModel::DcoModel() {
   // set parameters
   dcoPar_ = new DcoParams();
   dcoMessageHandler_ = new CoinMessageHandler();
+#ifdef DISCO_DEBUG
+  dcoMessageHandler_->setLogLevel(4);
+#endif
   dcoMessages_ = new DcoMessage();
+  // initialize other fields
+  colLB_ = NULL;
+  colUB_ = NULL;
+  rowLB_ = NULL;
+  rowUB_ = NULL;
+  numCols_ = 0;
+  numRows_ = 0;
+  numElems_ = 0;
+  objSense_ = 0.0;
+  objCoef_ = NULL;
+  cone_ = NULL;
+  numCones_ = 0;
+  numIntegerCols_ = 0;
+  intColIndices_ = NULL;
+  numSolutions_ = 0;
+  // todo(aykut) this might create problems.
+  incObjValue_ = 0.0;
+  incumbentSol_ = NULL;
+  // todo(aykut) following two might create problems.
+  cutoff_ = 0.0;
+  cutoffInc_ = 0.0;
+  branchStrategy_ = NULL;
+  rampUpBranchStrategy_ = NULL;
+  activeNode_ = NULL;
+  numNodes_ = 0;
+  /** Number of lp(Simplex) iterations. */
+  numIterations_ = 0;;
+  /** Average number of lp iterations to solve a subproblem. */
+  aveIterations_ = 0;
+  /** The number of passes during bounding procedure.*/
+  boundingPass_ = 0;
+  /** Current relative optimal gap. */
+  currRelGap_ = 1e5;
+  /** Current absolute optimal gap. */
+  currAbsGap_ = 1e5;
+  // todo(aykut) why are we keeping this in the DcoModel class.
+  // It seems it is ony used in DcoTreeNode::installSubProblem()
+  /** Temporary store old cuts at a node when installing a node. */
+  oldConstraints_ = 0;
+  /** The memory size allocated for oldConstraints_. */
+  oldConstraintsSize_ = 0;
+  /** Number of old constraints. */
+  numOldConstraints_ = 0;
 }
 
 DcoModel::~DcoModel() {
@@ -70,24 +118,10 @@ void DcoModel::readInstance(char const * dataFile) {
       objCoef_[i] = -reader_obj[i];
     }
   }
-  // == set variable type
-  colType_ = new char[numCols_];
-  for(int i = 0; i<numCols_; ++i) {
-    if (reader->isContinuous(i)) {
-      colType_[i] = 0;
-    }
-    else {
-      if (colLB_[i] == 0 && colUB_[i] == 1.0) {
-	colType_[i] = 1;
-      }
-      else {
-	colType_[i] = 2;
-      }
-    }
-  }
   // == load data to solver
   solver_->loadProblem(*matrix, colLB_, colUB_, objCoef_,
 		       rowLB_, rowUB_);
+  delete matrix;
   // == read conic part
   int nOfCones = 0;
   int * coneStart = NULL;
@@ -125,13 +159,16 @@ void DcoModel::readInstance(char const * dataFile) {
     else if (coneType[i]==2) {
       type = OSI_RQUAD;
     }
-    cone_[i] = new OsiLorentzCone(type, coneStart[i+1]-coneStart[i],
+    cone_[i] = new OsiLorentzCone(type, num_members,
 				  coneIdx+coneStart[i]);
 #ifndef __OA__
     solver_->addConicConstraint(type, coneStart[i+1]-coneStart[i],
 				coneIdx+coneStart[i]);
 #endif
   }
+  delete[] coneStart;
+  delete[] coneIdx;
+  delete[] coneType;
   if (nOfCones) {
     dcoMessageHandler_->message(DISCO_READ_CONESTATS1,
 				*dcoMessages_) << nOfCones
@@ -140,15 +177,53 @@ void DcoModel::readInstance(char const * dataFile) {
       dcoMessageHandler_->message(DISCO_READ_CONESTATS2,
 				  *dcoMessages_)
 	<< i
-	<< coneStart[i+1]-coneStart[i]
+	<< cone_[i]->size()
 	<< cone_[i]->type()
 	<< CoinMessageEol;
     }
   }
-  delete [] coneStart;
-  delete [] coneIdx;
-  delete [] coneType;
+  // Add variables and constraints to *this.
+  // == get variable integrality constraints
+  char const * is_integer = reader->integerColumns();
   delete reader;
+  DcoIntegralityType * i_type = new DcoIntegralityType[numCols_];
+  for (int i=0; i<numCols_; ++i) {
+    if (is_integer[i]) {
+      i_type[i] = DcoIntegralityTypeInt;
+    }
+    else {
+      i_type[i] = DcoIntegralityTypeCont;
+    }
+  }
+  // == add variables to *this
+  BcpsVariable ** variables = new BcpsVariable*[numCols_];
+  for (int i=0; i<numCols_; ++i) {
+    variables[i] = new DcoVariable(colLB_[i], colUB_[i], colLB_[i],
+				   colLB_[i], i_type[i]);
+  }
+  setVariables(variables, numCols_);
+  delete[] i_type;
+  for (int i=0; i<numCols_; ++i) {
+    delete variables[i];
+  }
+  delete[] variables;
+  // == add constraints to *this
+  BcpsConstraint ** constraints = new BcpsConstraint*[numRows_+numCones_];
+  for (int i=0; i<numRows_; ++i) {
+    constraints[i] = new DcoConstraint(rowLB_[i], rowUB_[i], rowLB_[i],
+				       rowUB_[i], DCO_LINEAR);
+  }
+  for (int i=numRows_; i<numRows_+numCones_; ++i) {
+    constraints[i] = new DcoConstraint(cone_[i-numRows_]);
+  }
+  setConstraints(constraints, numRows_+numCones_);
+  for (int i=0; i<numRows_+numCones_; ++i) {
+    delete constraints[i];
+  }
+  delete[] constraints;
+}
+
+void DcoModel::preprocess() {
 #ifdef __OA__
   approximateCones();
   // update row information
@@ -167,16 +242,11 @@ void DcoModel::readInstance(char const * dataFile) {
 	    solver_->getRowUpper()+numRows_,
 	    rowUB_);
 #endif
-  // create columns and rows of the problem
-  createObjects();
 }
 
 void DcoModel::approximateCones() {
 }
 
-void DcoModel::createObjects() {
-
-}
 
 AlpsTreeNode * DcoModel::createRoot() {
   DcoTreeNode * root = new DcoTreeNode();

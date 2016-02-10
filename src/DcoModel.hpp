@@ -8,6 +8,7 @@
 
 
 #include "DcoParams.hpp"
+#include "DcoConstraint.hpp"
 
 class DcoModel: public BcpsModel {
   //------------------------------------------------------
@@ -21,15 +22,12 @@ class DcoModel: public BcpsModel {
   //------------------------------------------------------
   // PROBLEM DATA
   //------------------------------------------------------
-  /** Problem matrix */
-  // Why do we need this. It seems unnecessary.
-  // CoinPackedMatrix * matrix_;
   /** Variable and constraint bounds. */
   //@{
-  double *colLB_;
-  double *colUB_;
-  double *rowLB_;
-  double *rowUB_;
+  double * colLB_;
+  double * colUB_;
+  double * rowLB_;
+  double * rowUB_;
   //@}
   /** Number of columns/rows/elements */
   //@{
@@ -49,7 +47,10 @@ class DcoModel: public BcpsModel {
   //@}
   /** Column types. */
   //@{
-  int numIntObjects_;
+  // number of integer columns in the problem
+  int numIntegerCols_;
+  // indices of integer columns
+  // columns are stored in cols_ inherited from BcpsModel
   int * intColIndices_;  // size of numIntObjects_
   //@}
   //------------------------------------------------------
@@ -67,25 +68,16 @@ class DcoModel: public BcpsModel {
   //------------------------------------------------------
   // SEARCHING.
   //------------------------------------------------------
-  int * intObjIndices_; // size of numCols_
-  /** variable type, 0-continuous 1-binary and 2-general integer */
-  char * colType_;
   /** Starting var/con bounds for processing each node */
   //@{
-  double * startColLB_;
-  double * startColUB_;
-  double * startRowLB_;
-  double * startRowUB_;
+  // double * startColLB_;
+  // double * startColUB_;
+  // double * startRowLB_;
+  // double * startRowUB_;
   //@}
   /** Variable selection function. */
   BcpsBranchStrategy * branchStrategy_;
   BcpsBranchStrategy * rampUpBranchStrategy_;
-  /** Number of objects. */
-  int numObjects_;
-  /** The set of objects. */
-  BcpsObject ** objects_;
-  /** The objects that can be shared. */
-  char * sharedObjectMark_;
   /** Active node. */
   AlpsTreeNode * activeNode_;
   //------------------------------------------------------
@@ -93,10 +85,6 @@ class DcoModel: public BcpsModel {
   //------------------------------------------------------
   /** Dco parameters. */
   DcoParams * dcoPar_;
-  /** Message handler. */
-  CoinMessageHandler * dcoMessageHandler_;
-  /** Dco messages. */
-  CoinMessages * dcoMessages_;
   /** Number of processed nodes. */
   int numNodes_;
   /** Number of lp(Simplex) iterations. */
@@ -109,6 +97,20 @@ class DcoModel: public BcpsModel {
   double currRelGap_;
   /** Current absolute optimal gap. */
   double currAbsGap_;
+  // todo(aykut) why are we keeping this in the DcoModel class.
+  // It seems it is ony used in DcoTreeNode::installSubProblem()
+  /** Temporary store old cuts at a node when installing a node. */
+  DcoConstraint **oldConstraints_;
+  /** The memory size allocated for oldConstraints_. */
+  int oldConstraintsSize_;
+  /** Number of old constraints. */
+  int numOldConstraints_;
+public:
+  // PUBLIC DATA FIELDS
+    /** Message handler. */
+  CoinMessageHandler * dcoMessageHandler_;
+  /** Dco messages. */
+  CoinMessages * dcoMessages_;
 public:
   DcoModel();
   virtual ~DcoModel();
@@ -117,12 +119,42 @@ public:
 #else
   void setSolver(OsiConicSolverInterface * solver);
 #endif
+#if defined(__OA__)
+  OsiSolverInterface * solver() {return solver_;}
+#else
+  OsiConicSolverInterface * solver() {return solver_;}
+#endif
+  void approximateCones();
+  int getNumCoreVariables() const {return numCols_;}
+  int getNumCoreLinearConstraints() const {return numRows_;}
+  //@{
+  /** Get number of old constraints. */
+  int getNumOldConstraints() const { return numOldConstraints_; }
+  /** Set number of old constraints. */
+  void setNumOldConstraints(int num) { numOldConstraints_ = num; }
+  /** Get max number of old constraints. */
+  int getOldConstraintsSize() const { return oldConstraintsSize_; }
+  /** Set max number of old constraints. */
+  void setOldConstraintsSize(int num) { oldConstraintsSize_ = num; }
+  /** Access old constraints. */
+  DcoConstraint **oldConstraints() { return oldConstraints_; }
+  /** set old constraints. */
+  void setOldConstraints(DcoConstraint **old) { oldConstraints_ = old; }
+  /** Set max number of old constraints. */
+  void delOldConstraints() {
+    delete [] oldConstraints_;
+    oldConstraints_ = NULL;
+  }
+  //@}
+  double * colLB() {return colLB_;}
+  double * colUB() {return colUB_;}
+  double * rowLB() {return rowLB_;}
+  double * rowUB() {return rowUB_;}
+
+
   // ALPS VIRTUAL FUNCTIONS
   /** Read in the problem instance */
   virtual void readInstance(char const * dataFile);
-  void approximateCones();
-  void createObjects();
-
   /** Read in Alps parameters. */
   // virtual void readParameters(const int argnum,  char const * const * arglist);
   // /** Write out parameters. */
@@ -130,9 +162,9 @@ public:
   // /** Do necessary work to make model ready for use, such as classify
   //     variable and constraint types.*/
   // virtual bool setupSelf();
-  // /** Preprocessing the model. Default does nothing. We do not have any
-  //     preprocessing for now. */
-  // //virtual void preprocess();
+  /** Preprocessing the model. Default does nothing. We do not have any
+      preprocessing for now. */
+  virtual void preprocess();
   // /** Postprocessing the model. Default does nothing. We do not have any
   //     postprocessing for now. */
   // //virtual void postprocess();

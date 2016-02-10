@@ -2,6 +2,7 @@
 #define DcoNodeDesc_hpp_
 
 #include <CoinWarmStartBasis.hpp>
+#include <CoinWarmStartBasis.hpp>
 #include <BcpsNodeDesc.h>
 #include "DcoModel.hpp"
 #include "Dco.hpp"
@@ -26,6 +27,10 @@ public:
   void setBranchedDir(DcoNodeBranchDir dir);
   void setBranchedInd(int ind);
   void setBranchedVal(double val);
+  /** Set basis. */
+  void setBasis(CoinWarmStartBasis *& ws);
+  /** Get warm start basis. */
+  CoinWarmStartBasis * getBasis() const;
 };
 
 #endif

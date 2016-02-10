@@ -61,6 +61,11 @@ static Dco_message us_english[]=
     {DISCO_READ_CONESTATS1,101,1,"Problem has %d cones."},
     {DISCO_READ_CONESTATS2,102,1, "Cone %d has %d entries (type %d)"},
     {DISCO_NODE_BRANCHONINT,9201,1, "Branched on integer variable. Variable index %d."},
+    {DISCO_NODE_UNEXPECTEDSTATUS,9202,1, "Unexpected node status %d"},
+    // relaxation solver messages
+    {DISCO_SOLVER_UNKNOWN_STATUS,9301,1, "Unknown relaxation solver status."},
+    // general messages
+    {DISCO_OUT_OF_MEMORY,9901,1, "Out of memory, file: %s, line: %d."},
     {DISCO_DUMMY_END, 999999, 0, ""}
 };
 

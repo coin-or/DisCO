@@ -58,8 +58,13 @@ enum DISCO_Message {
     DISCO_READ_CONESTATS2,
     // tree node
     DISCO_NODE_BRANCHONINT,
+    DISCO_NODE_UNEXPECTEDSTATUS,
+    // relaxation solver messages
+    DISCO_SOLVER_UNKNOWN_STATUS,
+    // more general messages
+    // out of memory
+    DISCO_OUT_OF_MEMORY,
     ///
-
     DISCO_DUMMY_END
 };
 
