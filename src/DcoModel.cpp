@@ -23,9 +23,9 @@ DcoModel::DcoModel() {
   numCols_ = 0;
   numRows_ = 0;
   numElems_ = 0;
+  matrix_ = NULL;
   objSense_ = 0.0;
   objCoef_ = NULL;
-  cone_ = NULL;
   numCones_ = 0;
   numIntegerCols_ = 0;
   intColIndices_ = NULL;
@@ -61,6 +61,50 @@ DcoModel::DcoModel() {
 }
 
 DcoModel::~DcoModel() {
+  // solver_ is freed in main function.
+  if (matrix_) {
+    delete matrix_;
+  }
+  if (colLB_) {
+    delete[] colLB_;
+  }
+  if (colUB_) {
+    delete[] colUB_;
+  }
+  if (rowLB_) {
+    delete[] rowLB_;
+  }
+  if (rowUB_) {
+    delete[] rowUB_;
+  }
+  if (objCoef_) {
+    delete[] objCoef_;
+  }
+  if (incumbentSol_) {
+    delete[] incumbentSol_;
+  }
+  if (branchStrategy_) {
+    delete branchStrategy_;
+  }
+  if (rampUpBranchStrategy_) {
+    delete rampUpBranchStrategy_;
+  }
+  if (activeNode_) {
+    delete activeNode_;
+  }
+  if (dcoPar_) {
+    delete dcoPar_;
+  }
+  for (int i=0; i<numOldConstraints_; ++i) {
+    delete oldConstraints_[i];
+  }
+  delete[] oldConstraints_;
+  if (dcoMessageHandler_) {
+    delete dcoMessageHandler_;
+  }
+  if (dcoMessages_) {
+    delete dcoMessages_;
+  }
 }
 
 #if defined(__OA__)
@@ -93,7 +137,7 @@ void DcoModel::readInstance(char const * dataFile) {
   numCols_ = reader->getNumCols();
   numRows_ = reader->getNumRows();
   numElems_ = reader->getNumElements();
-  CoinPackedMatrix * matrix = new CoinPackedMatrix(*(reader->getMatrixByCol()));
+  matrix_ = new CoinPackedMatrix(*(reader->getMatrixByCol()));
   // == allocate variable bounds
   colLB_ = new double [numCols_];
   colUB_ = new double [numCols_];
@@ -119,9 +163,8 @@ void DcoModel::readInstance(char const * dataFile) {
     }
   }
   // == load data to solver
-  solver_->loadProblem(*matrix, colLB_, colUB_, objCoef_,
+  solver_->loadProblem(*matrix_, colLB_, colUB_, objCoef_,
 		       rowLB_, rowUB_);
-  delete matrix;
   // == read conic part
   int nOfCones = 0;
   int * coneStart = NULL;
@@ -141,7 +184,6 @@ void DcoModel::readInstance(char const * dataFile) {
   }
   // == allocate memory for cone data members of the class
   numCones_ = nOfCones;
-  cone_ = new OsiLorentzCone*[nOfCones];
   for (int i=0; i<nOfCones; ++i) {
     if (coneType[i]!=1 and coneType[i]!=2) {
       dcoMessageHandler_->message(DISCO_READ_CONEERROR,
@@ -159,8 +201,8 @@ void DcoModel::readInstance(char const * dataFile) {
     else if (coneType[i]==2) {
       type = OSI_RQUAD;
     }
-    cone_[i] = new OsiLorentzCone(type, num_members,
-				  coneIdx+coneStart[i]);
+    // cone_[i] = new OsiLorentzCone(type, num_members,
+    //				  coneIdx+coneStart[i]);
 #ifndef __OA__
     solver_->addConicConstraint(type, coneStart[i+1]-coneStart[i],
 				coneIdx+coneStart[i]);
@@ -174,12 +216,12 @@ void DcoModel::readInstance(char const * dataFile) {
 				*dcoMessages_) << nOfCones
 					      << CoinMessageEol;
     for (int i=0; i<nOfCones; ++i) {
-      dcoMessageHandler_->message(DISCO_READ_CONESTATS2,
-				  *dcoMessages_)
-	<< i
-	<< cone_[i]->size()
-	<< cone_[i]->type()
-	<< CoinMessageEol;
+      // dcoMessageHandler_->message(DISCO_READ_CONESTATS2,
+      //				  *dcoMessages_)
+      //	<< i
+      //	<< cone_[i]->size()
+      //	<< cone_[i]->type()
+      //	<< CoinMessageEol;
     }
   }
   // Add variables and constraints to *this.
@@ -214,7 +256,7 @@ void DcoModel::readInstance(char const * dataFile) {
 				       rowUB_[i], DCO_LINEAR);
   }
   for (int i=numRows_; i<numRows_+numCones_; ++i) {
-    constraints[i] = new DcoConstraint(cone_[i-numRows_]);
+    //constraints[i] = new DcoConstraint();
   }
   setConstraints(constraints, numRows_+numCones_);
   for (int i=0; i<numRows_+numCones_; ++i) {

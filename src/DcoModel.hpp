@@ -29,21 +29,21 @@ class DcoModel: public BcpsModel {
   double * rowLB_;
   double * rowUB_;
   //@}
-  /** Number of columns/rows/elements */
+  /** Number of columns/rows/cones/elements */
   //@{
   int numCols_;
   int numRows_;
+  int numCones_;
   int numElems_;
+  //@}
+  /** Problem matrix (linear constraints only) */
+  //@{
+  CoinPackedMatrix * matrix_;
   //@}
   /** Objective function. */
   //@{
   double objSense_;
   double * objCoef_;
-  //@}
-  /** Cone data. */
-  //@{
-  OsiLorentzCone ** cone_;
-  int numCones_;
   //@}
   /** Column types. */
   //@{
