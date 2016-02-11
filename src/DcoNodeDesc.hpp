@@ -20,9 +20,9 @@ public:
   DcoNodeDesc();
   DcoNodeDesc(DcoModel * model);
   virtual ~DcoNodeDesc();
-  DcoNodeBranchDir branchedDir() const;
-  int branchedInd() const;
-  double branchedVal() const;
+  DcoNodeBranchDir getBranchedDir() const;
+  int getBranchedInd() const;
+  double getBranchedVal() const;
   // set fields
   void setBranchedDir(DcoNodeBranchDir dir);
   void setBranchedInd(int ind);

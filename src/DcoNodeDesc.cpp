@@ -24,15 +24,15 @@ DcoNodeDesc::~DcoNodeDesc() {
   }
 }
 
-DcoNodeBranchDir DcoNodeDesc::branchedDir() const {
+DcoNodeBranchDir DcoNodeDesc::getBranchedDir() const {
   return branchedDir_;
 }
 
-int DcoNodeDesc::branchedInd() const {
+int DcoNodeDesc::getBranchedInd() const {
   return branchedInd_;
 }
 
-double DcoNodeDesc::branchedVal() const {
+double DcoNodeDesc::getBranchedVal() const {
   return branchedVal_;
 }
 

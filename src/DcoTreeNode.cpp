@@ -21,8 +21,8 @@ DcoTreeNode::~DcoTreeNode() {
 // create tree node from given description
 AlpsTreeNode * DcoTreeNode::createNewTreeNode(AlpsNodeDesc *& desc) const {
   DcoNodeDesc * dco_node = dynamic_cast<DcoNodeDesc*>(desc);
-  int branched_index = dco_node->branchedInd();
-  double branched_value = dco_node->branchedVal();
+  int branched_index = dco_node->getBranchedInd();
+  double branched_value = dco_node->getBranchedVal();
   double frac = branched_value - floor(branched_value);
   DcoModel * model = dynamic_cast<DcoModel*>(desc->getModel());
   if (frac > 0.0) {
@@ -133,24 +133,13 @@ int DcoTreeNode::bound(BcpsModel * bcps_model) {
     // infeasible. This is due to our cut generation when the problem is
     // infeasible. We add a high lower bound (1e+30) to the objective
     // function. This can be improved.
-    if (m->solver()->getObjValue()>=1e+30) {
+    if (model->solver()->getObjValue()>=1e+30) {
       lp_status = DcoLpStatusPrimalInfeasible;
     }
     else {
       lp_status = DcoLpStatusOptimal;
-      DcoNodeDesc * desc = dynamic_cast<DcoNodeDesc*>(desc_);
       double objValue = model->solver()->getObjValue() *
 	model->solver()->getObjSense();
-      int dir = desc->getBranchedDir();
-      if (dir != 0) {
-	double objDeg = objValue - quality_;
-	int objInd = desc->getBranchedInd();
-	double lpX = desc->getBranchedVal();
-	DcoObjectInt *intObject =
-	  dynamic_cast<DcoObjectInt *>(model->objects(objInd));
-	intObject->pseudocost().update(dir, objDeg, lpX);
-	model->setSharedObjectMark(intObject->getObjectIndex());
-      }
       // Update quality of this nodes.
       quality_ = objValue;
     }
