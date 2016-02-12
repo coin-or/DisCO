@@ -32,6 +32,13 @@
 
 //#############################################################################
 
+#define DISCO_INFINITY 1e30
+
+enum DcoLorentzConeType {
+  DcoLorentzCone = 0,
+  DcoRotatedLorentzCone
+};
+
 enum DcoLpStatus{
    DcoLpStatusOptimal,
    DcoLpStatusAbandoned,

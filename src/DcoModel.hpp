@@ -105,6 +105,12 @@ class DcoModel: public BcpsModel {
   int oldConstraintsSize_;
   /** Number of old constraints. */
   int numOldConstraints_;
+  /// Add variables to the model. Helps readInstance function.
+  void readAddVariables(CoinMpsIO * reader);
+  /// Add linear constraints to the model. Helps readInstance function.
+  void readAddLinearConstraints(CoinMpsIO * reader);
+  /// Add conic constraints to the model. Helps readInstance function.
+  void readAddConicConstraints(CoinMpsIO * reader);
 public:
   // PUBLIC DATA FIELDS
     /** Message handler. */

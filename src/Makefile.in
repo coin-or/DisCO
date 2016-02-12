@@ -94,9 +94,9 @@ am__DEPENDENCIES_1 =
 @DEPENDENCY_LINKING_TRUE@libDisco_la_DEPENDENCIES =  \
 @DEPENDENCY_LINKING_TRUE@	$(am__DEPENDENCIES_1)
 am_libDisco_la_OBJECTS = DcoBranchStrategyRel.lo DcoConstraint.lo \
-	DcoMessage.lo DcoModel.lo DcoNodeDesc.lo DcoParams.lo \
-	DcoSolution.lo DcoSubTree.lo DcoTreeNode.lo DcoVariable.lo \
-	DcoMessage.lo
+	DcoLinearConstraint.lo DcoConicConstraint.lo DcoMessage.lo \
+	DcoModel.lo DcoNodeDesc.lo DcoParams.lo DcoSolution.lo \
+	DcoSubTree.lo DcoTreeNode.lo DcoVariable.lo DcoMessage.lo
 libDisco_la_OBJECTS = $(am_libDisco_la_OBJECTS)
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
@@ -367,6 +367,10 @@ libDisco_la_SOURCES = \
 	DcoBranchStrategyRel.hpp \
 	DcoConstraint.cpp \
 	DcoConstraint.hpp \
+	DcoLinearConstraint.cpp \
+	DcoLinearConstraint.hpp \
+	DcoConicConstraint.cpp \
+	DcoConicConstraint.hpp \
 	Dco.hpp \
 	DcoLicense.hpp \
 	DcoMessage.cpp \
@@ -420,6 +424,8 @@ includecoindir = $(includedir)/coin
 includecoin_HEADERS = \
 	DcoBranchStrategyRel.hpp \
 	DcoConstraint.hpp \
+	DcoLinearConstraint.hpp \
+	DcoConicConstraint.hpp \
 	Dco.hpp \
 	DcoLicense.hpp \
 	DcoMessage.hpp \
@@ -563,7 +569,9 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyRel.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConicConstraint.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConstraint.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoLinearConstraint.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoMain.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoMessage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoModel.Plo@am__quote@

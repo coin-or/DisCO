@@ -4,13 +4,8 @@
 #include <OsiLorentzCone.hpp>
 #include <BcpsObject.h>
 
-typedef enum {
-  DCO_LINEAR=0,
-  DCO_CONIC
-} DcoConstraintType;
-
 class OsiRowCut;
-
+class DcoModel;
 /*!
   DcoConstraint inherits BcpsConstraint. BcpsConstraint inherits BcpsObject.
   BcpsObject inherits AlpsKnowledge.
@@ -28,6 +23,12 @@ class OsiRowCut;
        that it has bounds and might have integrality constraint. It can be a
        variable or a constraint row (a mathematical formula of variables).
 
+       It has the following fields, \c objectIndex_, \c repType_, \c intType_,
+       \c validRegion_, \c status_, \c lbHard_, \c ubHard_, \c lbSoft_,
+       \c ubSoft_, \c hashValue_, \c numInactive_, \c effectiveness_.
+
+
+
   <li> BcpsConstraint<br>
        Represents a constraint. Does not assume anything for a constraint
        other than having lower and upper bounds. This class does not have any
@@ -39,11 +40,7 @@ class OsiRowCut;
        of two types, Lorentz cones or rotated Lorentz Cones. We do not support
        generic conic constraints (|Ax-b| <= d^Tx-h) yet.
 
-       If the constraint represented is a linear constraint we use fields
-       \c size_, \c indices_ and \c values_. If it is a conic constraint
-       field \c cone_ is used. Field \c cType_ keeps the type of the
-       constraint. The irrelevant fields are ignored depending on the
-       constraint type.
+       This class is a base class for linear and conic constraints.
   </ul>
 
   todo(aykut) list:
@@ -53,22 +50,15 @@ class OsiRowCut;
  */
 
 class DcoConstraint: public BcpsConstraint {
-  DcoConstraintType const cType_;
-  int size_;
-  int * indices_;
-  double * values_;
-  OsiLorentzCone * cone_;
 public:
-  DcoConstraint();
-  DcoConstraint(double lbh, double ubh, double lbs, double ubs,
-		DcoConstraintType type);
-  DcoConstraint(OsiLorentzCone const * cone);
+  DcoConstraint(double lb, double ub);
   DcoConstraint(DcoConstraint const & other);
+  DcoConstraint operator=(DcoConstraint const & rhs);
   virtual ~DcoConstraint();
-  DcoConstraintType type() const;
-  int getSize() const;
-  /** Create a OsiRowCut based on this constraint. */
-  OsiRowCut * createOsiRowCut() const;
+  /// Create an OsiRowCut based on this constraint. Returns NULL if this is a
+  /// conic constraint.
+  virtual OsiRowCut * createOsiRowCut(DcoModel * model) const {return NULL;}
+private:
 };
 
 #endif

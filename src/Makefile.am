@@ -63,6 +63,10 @@ libDisco_la_SOURCES = \
 	DcoBranchStrategyRel.hpp \
 	DcoConstraint.cpp \
 	DcoConstraint.hpp \
+	DcoLinearConstraint.cpp \
+	DcoLinearConstraint.hpp \
+	DcoConicConstraint.cpp \
+	DcoConicConstraint.hpp \
 	Dco.hpp \
 	DcoLicense.hpp \
 	DcoMessage.cpp \
@@ -124,6 +128,8 @@ includecoindir = $(includedir)/coin
 includecoin_HEADERS = \
 	DcoBranchStrategyRel.hpp \
 	DcoConstraint.hpp \
+	DcoLinearConstraint.hpp \
+	DcoConicConstraint.hpp \
 	Dco.hpp \
 	DcoLicense.hpp \
 	DcoMessage.hpp \

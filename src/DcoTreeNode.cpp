@@ -312,9 +312,6 @@ int DcoTreeNode::installSubProblem(BcpsModel * bcps_model) {
     for (int k=0; k<tempInt; ++k) {
       DcoConstraint * aCon = dynamic_cast<DcoConstraint *>
 	(currDesc->getCons()->objects[k]);
-      assert(aCon);
-      assert(aCon->getSize() > 0);
-      assert(aCon->getSize() < 100000);
       (model->oldConstraints())[numOldRows++] = aCon;
       if (numOldRows >= maxOld) {
 	// Need resize
@@ -381,7 +378,7 @@ int DcoTreeNode::installSubProblem(BcpsModel * bcps_model) {
   if (numOldRows > 0) {
     const OsiRowCut ** oldOsiCuts = new const OsiRowCut * [numOldRows];
     for (int k=0; k<numOldRows; ++k) {
-      OsiRowCut * acut = (model->oldConstraints()[k])->createOsiRowCut();
+      OsiRowCut * acut = (model->oldConstraints()[k])->createOsiRowCut(model);
       oldOsiCuts[k] = acut;
     }
     model->solver()->applyRowCuts(numOldRows, oldOsiCuts);

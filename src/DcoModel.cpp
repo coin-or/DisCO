@@ -5,7 +5,8 @@
 #include "DcoTreeNode.hpp"
 #include "DcoNodeDesc.hpp"
 #include "DcoVariable.hpp"
-#include "DcoConstraint.hpp"
+#include "DcoLinearConstraint.hpp"
+#include "DcoConicConstraint.hpp"
 
 DcoModel::DcoModel() {
   // set parameters
@@ -130,10 +131,9 @@ void DcoModel::readInstance(char const * dataFile) {
 				*dcoMessages_) << CoinMessageEol;
   }
   // read mps file
-  int reader_return;
   CoinMpsIO * reader = new CoinMpsIO;
   reader->messageHandler()->setLogLevel(dcoLogLevel);
-  reader_return = reader->readMps(dataFile, "");
+  reader->readMps(dataFile, "");
   numCols_ = reader->getNumCols();
   numRows_ = reader->getNumRows();
   numElems_ = reader->getNumElements();
@@ -165,69 +165,19 @@ void DcoModel::readInstance(char const * dataFile) {
   // == load data to solver
   solver_->loadProblem(*matrix_, colLB_, colUB_, objCoef_,
 		       rowLB_, rowUB_);
-  // == read conic part
-  int nOfCones = 0;
-  int * coneStart = NULL;
-  int * coneIdx = NULL;
-  int * coneType = NULL;
-  reader_return = reader->readConicMps(NULL, coneStart, coneIdx,
-				       coneType, nOfCones);
-  // == when there is no conic section status is -3.
-  if (reader_return==-3) {
-    dcoMessageHandler_->message(DISCO_READ_NOCONES,
-				*dcoMessages_);
-  }
-  else if (reader_return!=0) {
-    dcoMessageHandler_->message(DISCO_READ_MPSERROR,
-				*dcoMessages_) << reader_return
-					      << CoinMessageEol;
-  }
-  // == allocate memory for cone data members of the class
-  numCones_ = nOfCones;
-  for (int i=0; i<nOfCones; ++i) {
-    if (coneType[i]!=1 and coneType[i]!=2) {
-      dcoMessageHandler_->message(DISCO_READ_CONEERROR,
-				  *dcoMessages_) << CoinMessageEol;
-    }
-    int num_members = coneStart[i+1]-coneStart[i];
-    if (coneType[i]==2 and num_members<3) {
-      dcoMessageHandler_->message(DISCO_READ_ROTATEDCONESIZE,
-				  *dcoMessages_) << CoinMessageEol;
-    }
-    OsiLorentzConeType type;
-    if (coneType[i]==1) {
-      type = OSI_QUAD;
-    }
-    else if (coneType[i]==2) {
-      type = OSI_RQUAD;
-    }
-    // cone_[i] = new OsiLorentzCone(type, num_members,
-    //				  coneIdx+coneStart[i]);
-#ifndef __OA__
-    solver_->addConicConstraint(type, coneStart[i+1]-coneStart[i],
-				coneIdx+coneStart[i]);
-#endif
-  }
-  delete[] coneStart;
-  delete[] coneIdx;
-  delete[] coneType;
-  if (nOfCones) {
-    dcoMessageHandler_->message(DISCO_READ_CONESTATS1,
-				*dcoMessages_) << nOfCones
-					      << CoinMessageEol;
-    for (int i=0; i<nOfCones; ++i) {
-      // dcoMessageHandler_->message(DISCO_READ_CONESTATS2,
-      //				  *dcoMessages_)
-      //	<< i
-      //	<< cone_[i]->size()
-      //	<< cone_[i]->type()
-      //	<< CoinMessageEol;
-    }
-  }
-  // Add variables and constraints to *this.
-  // == get variable integrality constraints
-  char const * is_integer = reader->integerColumns();
+  // == add variables to the model
+  readAddVariables(reader);
+  // == add linear constraints to the model
+  readAddLinearConstraints(reader);
+  // == add conic constraints to the model
+  readAddConicConstraints(reader);
   delete reader;
+}
+
+// Add variables to *this.
+void DcoModel::readAddVariables(CoinMpsIO * reader) {
+  // get variable integrality constraints
+  char const * is_integer = reader->integerColumns();
   DcoIntegralityType * i_type = new DcoIntegralityType[numCols_];
   for (int i=0; i<numCols_; ++i) {
     if (is_integer[i]) {
@@ -237,7 +187,7 @@ void DcoModel::readInstance(char const * dataFile) {
       i_type[i] = DcoIntegralityTypeCont;
     }
   }
-  // == add variables to *this
+  // add variables
   BcpsVariable ** variables = new BcpsVariable*[numCols_];
   for (int i=0; i<numCols_; ++i) {
     variables[i] = new DcoVariable(colLB_[i], colUB_[i], colLB_[i],
@@ -249,20 +199,99 @@ void DcoModel::readInstance(char const * dataFile) {
     delete variables[i];
   }
   delete[] variables;
+}
+
+void DcoModel::readAddLinearConstraints(CoinMpsIO * reader) {
   // == add constraints to *this
   BcpsConstraint ** constraints = new BcpsConstraint*[numRows_+numCones_];
+  CoinPackedMatrix const * matrix = reader->getMatrixByRow();
+  int const * indices = matrix->getIndices();
+  double const * values = matrix->getElements();
+  int const * lengths = matrix->getVectorLengths();
+  int const * starts = matrix->getVectorStarts();
   for (int i=0; i<numRows_; ++i) {
-    constraints[i] = new DcoConstraint(rowLB_[i], rowUB_[i], rowLB_[i],
-				       rowUB_[i], DCO_LINEAR);
-  }
-  for (int i=numRows_; i<numRows_+numCones_; ++i) {
-    //constraints[i] = new DcoConstraint();
+    constraints[i] = new DcoLinearConstraint(lengths[i], indices+starts[i],
+					     values+starts[i], rowLB_[i],
+					     rowUB_[i]);
   }
   setConstraints(constraints, numRows_+numCones_);
   for (int i=0; i<numRows_+numCones_; ++i) {
     delete constraints[i];
   }
   delete[] constraints;
+}
+
+// read conic part and add conic constraints to the model.
+void DcoModel::readAddConicConstraints(CoinMpsIO * reader) {
+  int nOfCones = 0;
+  int * coneStart = NULL;
+  int * coneMembers = NULL;
+  int * coneType = NULL;
+  int reader_return = reader->readConicMps(NULL, coneStart, coneMembers,
+				       coneType, nOfCones);
+  // when there is no conic section status is -3.
+  if (reader_return==-3) {
+    dcoMessageHandler_->message(DISCO_READ_NOCONES,
+				*dcoMessages_);
+  }
+  else if (reader_return!=0) {
+    dcoMessageHandler_->message(DISCO_READ_MPSERROR,
+				*dcoMessages_) << reader_return
+					      << CoinMessageEol;
+  }
+  // store number of cones in the problem
+  numCones_ = nOfCones;
+  // log cone information messages
+  if (nOfCones) {
+    dcoMessageHandler_->message(DISCO_READ_CONESTATS1,
+				*dcoMessages_) << nOfCones
+					       << CoinMessageEol;
+    for (int i=0; i<nOfCones; ++i) {
+      dcoMessageHandler_->message(DISCO_READ_CONESTATS2,
+				  *dcoMessages_)
+	<< i
+	<< coneStart[i+1] - coneStart[i]
+	<< coneType[i]
+	<< CoinMessageEol;
+    }
+  }
+  // iterate over cones and add them to the model
+  for (int i=0; i<nOfCones; ++i) {
+    if (coneType[i]!=1 and coneType[i]!=2) {
+      dcoMessageHandler_->message(DISCO_READ_CONEERROR,
+				  *dcoMessages_) << CoinMessageEol;
+    }
+    int num_members = coneStart[i+1]-coneStart[i];
+    if (coneType[i]==2 and num_members<3) {
+      dcoMessageHandler_->message(DISCO_READ_ROTATEDCONESIZE,
+				  *dcoMessages_) << CoinMessageEol;
+    }
+    DcoLorentzConeType type;
+    if (coneType[i]==1) {
+      type = DcoLorentzCone;
+    }
+    else if (coneType[i]==2) {
+      type = DcoRotatedLorentzCone;
+    }
+    addConstraint(new DcoConicConstraint(type, num_members,
+					 coneMembers+coneStart[i]));
+    // cone_[i] = new OsiLorentzCone(type, num_members,
+    //				  coneMembers+coneStart[i]);
+#ifndef __OA__
+    OsiLorentzConeType osi_type;
+    if (coneType[i]==1) {
+      type = OSI_QUAD;
+    }
+    else if (coneType[i]==2) {
+      type = OSI_RQUAD;
+    }
+    solver_->addConicConstraint(type, coneStart[i+1]-coneStart[i],
+				coneMembers+coneStart[i]);
+#endif
+  }
+  delete[] coneStart;
+  delete[] coneMembers;
+  delete[] coneType;
 }
 
 void DcoModel::preprocess() {
