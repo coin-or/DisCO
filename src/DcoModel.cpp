@@ -195,9 +195,10 @@ void DcoModel::readAddVariables(CoinMpsIO * reader) {
   }
   setVariables(variables, numCols_);
   delete[] i_type;
-  for (int i=0; i<numCols_; ++i) {
-    delete variables[i];
-  }
+  // variables are now owned by BcpsModel, do not free them.
+  // for (int i=0; i<numCols_; ++i) {
+  //   delete variables[i];
+  // }
   delete[] variables;
 }
 
@@ -215,9 +216,10 @@ void DcoModel::readAddLinearConstraints(CoinMpsIO * reader) {
 					     rowUB_[i]);
   }
   setConstraints(constraints, numRows_+numCones_);
-  for (int i=0; i<numRows_+numCones_; ++i) {
-    delete constraints[i];
-  }
+  // constraints are owned by BcpsModel. Do not free them here.
+  // for (int i=0; i<numRows_+numCones_; ++i) {
+  //   delete constraints[i];
+  // }
   delete[] constraints;
 }
 
@@ -280,12 +282,12 @@ void DcoModel::readAddConicConstraints(CoinMpsIO * reader) {
 #ifndef __OA__
     OsiLorentzConeType osi_type;
     if (coneType[i]==1) {
-      type = OSI_QUAD;
+      osi_type = OSI_QUAD;
     }
     else if (coneType[i]==2) {
-      type = OSI_RQUAD;
+      osi_type = OSI_RQUAD;
     }
-    solver_->addConicConstraint(type, coneStart[i+1]-coneStart[i],
+    solver_->addConicConstraint(osi_type, coneStart[i+1]-coneStart[i],
 				coneMembers+coneStart[i]);
 #endif
   }
