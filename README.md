@@ -31,14 +31,17 @@ Make sure all dependencies are accessible through pkg-config. Then DisCO's confi
    - OA: Fails on some instances. Check CBLIB problems robust and classical.
    - Dco_branchStrategy reliability is broken
 
-## 4. SUPPORT ##
-### 4.1 Authors ###
+## 4. DOCUMENTATION ##
+For doxygen documentation see http://128.180.35.24/index.html (available only in Lehigh network).
+
+## 5. SUPPORT ##
+### 5.1 Authors ###
 Aykut Bulut (aykut@lehigh.edu)
 Yan Xu (yax2@lehigh.edu)
 Ted Ralphs (tkralphs@lehigh.edu), Project Manager
 Laci Ladanyi (ladanyi@us.ibm.com)
 Matt Saltzman (mjs@clemson.edu)
 
-### 4.2 Bug Reports ###
+### 5.2 Bug Reports ###
 Bug reports should be reported on the CHiPPS development web site at
 https://github.com/aykutbulut/DisCO/issues/new
