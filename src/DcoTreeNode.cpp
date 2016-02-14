@@ -4,6 +4,7 @@
 
 #include "DcoNodeDesc.hpp"
 #include "DcoMessage.hpp"
+#include "DcoLinearConstraint.hpp"
 
 #include <vector>
 
@@ -212,10 +213,6 @@ int DcoTreeNode::bound(BcpsModel * bcps_model) {
   return subproblem_status;
 }
 
-/**
-    install subproblem to the solver. This involes changing corresponding
-    variable bounds.
- */
 int DcoTreeNode::installSubProblem(BcpsModel * bcps_model) {
   AlpsReturnStatus status = AlpsReturnStatusOk;
   DcoModel * model = dynamic_cast<DcoModel*>(bcps_model);
@@ -224,9 +221,10 @@ int DcoTreeNode::installSubProblem(BcpsModel * bcps_model) {
   DcoNodeDesc * desc = dynamic_cast<DcoNodeDesc*>(getDesc());
   // number of columns and rows
   int numCoreCols = model->getNumCoreVariables();
-  int numCoreRows = model->getNumCoreLinearConstraints();
-  int numCols = model->solver()->getNumCols();
-  int numRows = model->solver()->getNumRows();
+  int numCoreLinearRows = model->getNumCoreLinearConstraints();
+  int numSolverCols = model->solver()->getNumCols();
+  // solver rows are all linear, for both Osi and OsiConic.
+  int numSolverRows = model->solver()->getNumRows();
   // set col and row bounds
   double * colLB = model->colLB();
   double * colUB = model->colUB();
@@ -234,8 +232,8 @@ int DcoTreeNode::installSubProblem(BcpsModel * bcps_model) {
   double * rowUB = model->colUB();
   CoinFillN(colLB, numCoreCols, -ALPS_DBL_MAX);
   CoinFillN(colUB, numCoreCols, ALPS_DBL_MAX);
-  CoinFillN(rowLB, numCoreRows, -ALPS_DBL_MAX);
-  CoinFillN(rowUB, numCoreRows, ALPS_DBL_MAX);
+  CoinFillN(rowLB, numCoreLinearRows, -ALPS_DBL_MAX);
+  CoinFillN(rowUB, numCoreLinearRows, ALPS_DBL_MAX);
   //======================================================
   // Restore subproblem:
   //  1. Remove noncore columns and rows
@@ -250,16 +248,16 @@ int DcoTreeNode::installSubProblem(BcpsModel * bcps_model) {
   //------------------------------------------------------
   // Remove old constraints from lp solver.
   //------------------------------------------------------
-  int numDelRows = numRows - numCoreRows;
+  int numDelRows = numSolverRows - numCoreLinearRows;
   if (numDelRows > 0) {
-    int * indices = new int [numDelRows];
+    int * indices = new int[numDelRows];
     if (indices==NULL) {
       message_handler->message(DISCO_OUT_OF_MEMORY, *messages)
 	<< __FILE__ << __LINE__ << CoinMessageEol;
       throw CoinError("Out of memory", "installSubProblem", "DcoTreeNode");
     }
     for (int i=0; i<numDelRows; ++i) {
-      indices[i] = numCoreRows + i;
+      indices[i] = numCoreLinearRows + i;
     }
     model->solver()->deleteRows(numDelRows, indices);
     delete[] indices;
@@ -298,6 +296,7 @@ int DcoTreeNode::installSubProblem(BcpsModel * bcps_model) {
   // collect full description.
   //------------------------------------------------------
   int numOldRows = 0;
+  std::vector<DcoConstraint*> old_cons;
   for(int i = static_cast<int> (leafToRootPath.size() - 1); i > -1; --i) {
     //--------------------------------------------------
     // NOTE: As away from explicit node, bounds become
@@ -354,25 +353,14 @@ int DcoTreeNode::installSubProblem(BcpsModel * bcps_model) {
     // deleted.
     //----------------------------------------------
     int tempInt = currDesc->getCons()->numAdd;
-    int maxOld = model->getOldConstraintsSize();
     for (int k=0; k<tempInt; ++k) {
       DcoConstraint * aCon = dynamic_cast<DcoConstraint *>
 	(currDesc->getCons()->objects[k]);
-      (model->oldConstraints())[numOldRows++] = aCon;
-      if (numOldRows >= maxOld) {
-	// Need resize
-	maxOld *= 2;
-	DcoConstraint **tempCons = new DcoConstraint* [maxOld];
-	std::copy(model->oldConstraints(),
-		  model->oldConstraints()+numOldRows, tempCons);
-	model->delOldConstraints();
-	model->setOldConstraints(tempCons);
-	model->setOldConstraintsSize(maxOld);
-      }
+      old_cons.push_back(aCon);
     }
     //----------------------------------------------
     // Remove those deleted.
-    // NOTE: model->oldConstraints_ stores all previously
+    // NOTE: old_cons stores all previously
     // generated active constraints at parent.
     //----------------------------------------------
     tempInt = currDesc->getCons()->numRemove;
@@ -388,8 +376,7 @@ int DcoTreeNode::installSubProblem(BcpsModel * bcps_model) {
       for (int k=0; k<numOldRows; ++k) {
 	if (tempMark[k] != 1) {
 	  // Survived.
-	  (model->oldConstraints())[tempInt++]=
-	    (model->oldConstraints())[k];
+	  old_cons[tempInt++] = old_cons[k];
 	}
       }
       if (tempInt + currDesc->getCons()->numRemove != numOldRows) {
@@ -420,11 +407,10 @@ int DcoTreeNode::installSubProblem(BcpsModel * bcps_model) {
   // Add old constraints, which are collect from differencing.
   //--------------------------------------------------------
   // If removed cuts due to local cuts.
-  model->setNumOldConstraints(numOldRows);
   if (numOldRows > 0) {
     const OsiRowCut ** oldOsiCuts = new const OsiRowCut * [numOldRows];
     for (int k=0; k<numOldRows; ++k) {
-      OsiRowCut * acut = (model->oldConstraints()[k])->createOsiRowCut(model);
+      OsiRowCut * acut = old_cons[k]->createOsiRowCut(model);
       oldOsiCuts[k] = acut;
     }
     model->solver()->applyRowCuts(numOldRows, oldOsiCuts);
@@ -444,6 +430,7 @@ int DcoTreeNode::installSubProblem(BcpsModel * bcps_model) {
   if (pws != NULL) {
     model->solver()->setWarmStart(pws);
   }
+  old_cons.clear();
   return status;
 }
 
@@ -504,4 +491,7 @@ void DcoTreeNode::decide(DcoSubproblemStatus subproblem_status,
     throw std::exception();
   }
   // subproblem is solved to optimality. Check feasibility of the solution.
+  // iterate over objects and check their feasibility
+
+  // what is in the subproblem and what is not in the subproblem?
 }

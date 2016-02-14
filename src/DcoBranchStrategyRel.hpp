@@ -5,6 +5,19 @@
 
 class DcoModel;
 
+/**
+   Represents Reliability branching strategy. Inherits BcpsBranchStrategy.
+
+   BcpsBranchStrategy:
+   BcpsBranchStrategy is an abstract base class for defining a branch stragey.
+   It provides an interface for creating a set of branching candidates and
+   comparing them.
+
+   DcoBranchStrategyRel:
+   Implements reliability branching in interface inherited from
+   BcpsBranchStrategy.
+
+ */
 class DcoBranchStrategyRel: public BcpsBranchStrategy {
 public:
   DcoBranchStrategyRel();

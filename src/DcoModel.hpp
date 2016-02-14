@@ -10,219 +10,229 @@
 #include "DcoParams.hpp"
 #include "DcoConstraint.hpp"
 
+
+/*
+  todo(aykut): Bcps ideas
+  We keep relaxed objects (the whole object or integrality of the object) in
+  list BcpsObject ** relaxed_.
+
+  Can subproblems have different relaxed objects? Yes they can. But make sure
+  all relaxed objects are in the relaxed_.
+
+  Subproblems might have different solvers? A subprobllem might be an LP, SOCO,
+  MILP or even MISOCO. How will DcoTreeNode::bound know about the solver to be
+  used?
+
+  When subproblem is solved with the solver we go back and check the
+  feasibility of the objects that are relaxed in the subproblem (objects in
+  relaxed_). This is done through infeasible() virtual function defined in
+  BcpsObject.
+  After this check we have a list of objects that are infeasible. At this
+  point we need to decide what to do with them. Options are (1) generate
+  cuts (using generateConstraints()), (2) lift the subproblem (using
+  generateVariables()), (3) branch.
+  (1) We can generate cuts when infeasible objects are continuous or
+  integer. Generate a separating hyperplane that cuts the subproblem solution
+  from feasible region.
+  (2) Branching when the object is continuous. This is similar to branch
+  on variables. Branching procedure should create new subproblems where
+  infeasible object has new upper and lower bounds.
+*/
+
+/**
+   Represents a discrete conic optimization problem.
+   Relax same set of rows/columns for the all the subproblems.
+ */
+
 class DcoModel: public BcpsModel {
-  //------------------------------------------------------
-  // LP SOLVER.
-  //------------------------------------------------------
+  /// Subproblem solver.
 #if defined(__OA__)
   OsiSolverInterface * solver_;
 #else
   OsiConicSolverInterface * solver_;
 #endif
-  //------------------------------------------------------
-  // PROBLEM DATA
-  //------------------------------------------------------
-  /** Variable and constraint bounds. */
+  ///@name Variable and constraint bounds.
   //@{
+  /// Column lower bound.
   double * colLB_;
+  /// Column upper bound.
   double * colUB_;
+  /// Row lower bound.
   double * rowLB_;
+  /// Row upper bound.
   double * rowUB_;
   //@}
-  /** Number of columns/rows/cones/elements */
+  ///@name Number of columns and rows
   //@{
+  /// Number of columns.
   int numCols_;
+  /// Number of rows (constraints), linear + conic.
   int numRows_;
-  int numCones_;
-  int numElems_;
+  /// Number of linear rows.
+  int numLinearRows_;
+  /// Number of conic rows.
+  int numConicRows_;
   //@}
-  /** Problem matrix (linear constraints only) */
-  //@{
+  /// Problem matrix (linear constraints only).
   CoinPackedMatrix * matrix_;
-  //@}
-  /** Objective function. */
+  ///@name Objective function
   //@{
   double objSense_;
   double * objCoef_;
   //@}
-  /** Column types. */
+  ///@name Column types
   //@{
-  // number of integer columns in the problem
+  /// Number of integer columns in the problem.
   int numIntegerCols_;
-  // indices of integer columns
-  // columns are stored in cols_ inherited from BcpsModel
-  int * intColIndices_;  // size of numIntObjects_
+  /// Indices of integer columns. Columns are stored in cols_ inherited from
+  /// BcpsModel. Size of numIntegerCols_.
+  int * integerCols_;
   //@}
   //------------------------------------------------------
   // SOLUTION.
   //------------------------------------------------------
-  int numSolutions_;
-  /** Incumbent objective value. */
-  double incObjValue_;
-  /** Incumbent */
-  double * incumbentSol_;
-  /** Cutoff in lp solver. */
-  double cutoff_;
-  /** Cutoff increment. */
-  double cutoffInc_;
-  //------------------------------------------------------
-  // SEARCHING.
-  //------------------------------------------------------
-  /** Starting var/con bounds for processing each node */
+  ///@name Solution related
   //@{
-  // double * startColLB_;
-  // double * startColUB_;
-  // double * startRowLB_;
-  // double * startRowUB_;
-  //@}
-  /** Variable selection function. */
-  BcpsBranchStrategy * branchStrategy_;
-  BcpsBranchStrategy * rampUpBranchStrategy_;
-  /** Active node. */
-  AlpsTreeNode * activeNode_;
-  //------------------------------------------------------
-  // PARAMETERS, STATISTICS, and MESSAGE
-  //------------------------------------------------------
-  /** Dco parameters. */
-  DcoParams * dcoPar_;
-  /** Number of processed nodes. */
-  int numNodes_;
-  /** Number of lp(Simplex) iterations. */
-  int numIterations_;
-  /** Average number of lp iterations to solve a subproblem. */
-  int aveIterations_;
-  /** The number of passes during bounding procedure.*/
-  int boundingPass_;
-  /** Current relative optimal gap. */
+  /// Number of solutions.
+  int numSolutions_;
+  /// Incumbent objective value.
+  double incObjValue_;
+  /// Incumbent solution.
+  double * incumbentSol_;
+  /// Cutoff in lp solver.
+  double cutoff_;
+  /// Cutoff increment.
+  double cutoffInc_;
+  /// Current relative optimal gap.
   double currRelGap_;
-  /** Current absolute optimal gap. */
+  /// Current absolute optimal gap.
   double currAbsGap_;
-  // todo(aykut) why are we keeping this in the DcoModel class.
-  // It seems it is ony used in DcoTreeNode::installSubProblem()
-  /** Temporary store old cuts at a node when installing a node. */
-  DcoConstraint **oldConstraints_;
-  /** The memory size allocated for oldConstraints_. */
-  int oldConstraintsSize_;
-  /** Number of old constraints. */
-  int numOldConstraints_;
+  //@}
+  ///@name Variable selection function.
+  //@{
+  /// Branchs strategy.
+  BcpsBranchStrategy * branchStrategy_;
+  /// Ramp up branch strategy.
+  BcpsBranchStrategy * rampUpBranchStrategy_;
+  //@}
+  /// Active node.
+  AlpsTreeNode * activeNode_;
+  ///@name Dco parameters.
+  //@{
+  /// DisCO parameter.
+  DcoParams * dcoPar_;
+  //@}
+  ///@name Statistics
+  //@{
+  /// Number of processed nodes.
+  int numNodes_;
+  /// Number of lp(Simplex) iterations.
+  int numIterations_;
+  /// Average number of lp iterations to solve a subproblem.
+  int aveIterations_;
+  //@}
+  ///@name Relaxed objects data.
+  //@{
+  /// Number of relaxed columns
+  int numRelaxedCols_;
+  /// Array of indices to relaxed columns.
+  int * relaxedCols_;
+  /// Number of relaxed rows
+  int numRelaxedRows_;
+  /// Array of indices to relaxed rows.
+  int * relaxedRows_;
+  //@}
+  // Private Functions
+  ///@name Read Helpers
+  //@{
   /// Add variables to the model. Helps readInstance function.
   void readAddVariables(CoinMpsIO * reader);
   /// Add linear constraints to the model. Helps readInstance function.
   void readAddLinearConstraints(CoinMpsIO * reader);
   /// Add conic constraints to the model. Helps readInstance function.
   void readAddConicConstraints(CoinMpsIO * reader);
+  //@}
 public:
-  // PUBLIC DATA FIELDS
-    /** Message handler. */
+  ///@name Message printing
+  //@{
+  /// DisCO message handler.
   CoinMessageHandler * dcoMessageHandler_;
-  /** Dco messages. */
+  /// DisCO messages.
   CoinMessages * dcoMessages_;
+  //@}
 public:
+  ///@name Constructors and Destructors
+  //@{
+  /// Default constructor.
   DcoModel();
+  /// Destructor.
   virtual ~DcoModel();
+  //@}
+  ///@name Solver related
+  //@{
+  /// Set solver
 #if defined(__OA__)
   void setSolver(OsiSolverInterface * solver);
 #else
   void setSolver(OsiConicSolverInterface * solver);
 #endif
+  /// Get solver
 #if defined(__OA__)
   OsiSolverInterface * solver() {return solver_;}
 #else
   OsiConicSolverInterface * solver() {return solver_;}
 #endif
-  void approximateCones();
-  int getNumCoreVariables() const {return numCols_;}
-  int getNumCoreLinearConstraints() const {return numRows_;}
-  //@{
-  /** Get number of old constraints. */
-  int getNumOldConstraints() const { return numOldConstraints_; }
-  /** Set number of old constraints. */
-  void setNumOldConstraints(int num) { numOldConstraints_ = num; }
-  /** Get max number of old constraints. */
-  int getOldConstraintsSize() const { return oldConstraintsSize_; }
-  /** Set max number of old constraints. */
-  void setOldConstraintsSize(int num) { oldConstraintsSize_ = num; }
-  /** Access old constraints. */
-  DcoConstraint **oldConstraints() { return oldConstraints_; }
-  /** set old constraints. */
-  void setOldConstraints(DcoConstraint **old) { oldConstraints_ = old; }
-  /** Set max number of old constraints. */
-  void delOldConstraints() {
-    delete [] oldConstraints_;
-    oldConstraints_ = NULL;
-  }
   //@}
+  ///@name Other functions
+  //@{
+  /// Approximate cones.
+  void approximateCones();
+  //@}
+  ///@name Querry problem data
+  //@{
+  /// Get number of core variables.
+  int getNumCoreVariables() const {return numCols_;}
+  /// Get number of core linear constraints.
+  int getNumCoreLinearConstraints() const {return numLinearRows_;}
+  /// Get number of core conic constraints.
+  int getNumCoreConicConstraints() const {return numConicRows_;}
+  /// Get column lower bounds.
   double * colLB() {return colLB_;}
+  /// Get column upper bounds.
   double * colUB() {return colUB_;}
+  /// Get row lower bounds.
   double * rowLB() {return rowLB_;}
+  /// Get row upper bounds.
   double * rowUB() {return rowUB_;}
-
-
-  // ALPS VIRTUAL FUNCTIONS
-  /** Read in the problem instance */
+  //@}
+  ///@name Querry relaxed problem objects
+  //@{
+  /// Get number of relaxed columns.
+  int numRelaxedCols() const {return numRelaxedCols_;}
+  /// Get array of indices to relaxed columns.
+  int const * relaxedCols() const {return relaxedCols_;}
+  /// Get number of relaxed rows
+  int numRelaxedRows() const {return numRelaxedRows_;}
+  /// Get array of indices to relaxed rows.
+  int const * relaxedRows() const {return relaxedRows_;}
+  //@}
+  ///@name Virtual functions from AlpsModel
+  //@{
+  /// Read in the problem instance. Currently linear Mps files and Mosek
+  /// style conic mps files.
   virtual void readInstance(char const * dataFile);
-  /** Read in Alps parameters. */
-  // virtual void readParameters(const int argnum,  char const * const * arglist);
-  // /** Write out parameters. */
-  // void writeParameters(std::ostream& outstream) const;
-  // /** Do necessary work to make model ready for use, such as classify
-  //     variable and constraint types.*/
-  // virtual bool setupSelf();
-  /** Preprocessing the model. Default does nothing. We do not have any
-      preprocessing for now. */
+  /// Do necessary work to make model ready for use, such as classify
+  /// variable and constraint types.
+  virtual bool setupSelf();
+  /// Preprocessing the model. Default does nothing. We do not have any
+  /// preprocessing for now.
   virtual void preprocess();
-  // /** Postprocessing the model. Default does nothing. We do not have any
-  //     postprocessing for now. */
-  // //virtual void postprocess();
-
-  /** Create the root node. */
+  /// Postprocessing the model. Default does nothing. We do not have any
+  /// postprocessing for now.
+  virtual void postprocess();
+  /// Create the root node.
   virtual AlpsTreeNode * createRoot();
-
-  // /** Problem specific log. */
-  // virtual void modelLog() {}
-
-  // /** Node log. */
-  // virtual void nodeLog(AlpsTreeNode *node, bool force);
-
-  // /** Return true if all nodes on this process can be fathomed.*/
-  // virtual bool fathomAllNodes() { return false; }
-  // /** Decode model data from the encoded form and fill member data.*/
-  // virtual void decodeToSelf(AlpsEncoded& encoded) {}
-
-  // /** Register knowledge class. */
-  // virtual void registerKnowledge() { /* Default does nothing */ }
-
-  // /** Send generated knowledge */
-  // virtual void sendGeneratedKnowledge() { /* Default does nothing */ }
-
-  // /** Receive generated knowledge */
-  // virtual void receiveGeneratedKnowledge() { /* Default does nothing */ }
-
-  // /** Pack knowledge to be shared with others into an encoded object.
-  //     Return NULL means that no knowledge can be shared. */
-  // virtual AlpsEncoded* packSharedKnowlege() {
-  //   /* Default does nothing */
-  //   AlpsEncoded* encoded = NULL;
-  //   return encoded;
-  // }
-
-  // /** Unpack and store shared knowledge from an encoded object. */
-  // virtual void unpackSharedKnowledge(AlpsEncoded&)
-  // { /* Default does nothing */ }
-  // // end of ALPS VIRTUAL FUNCTIONS
-
-
-
-
-
-
-
-
-  // BCPS VIRTUAL FUNCTIONS
-
-
-
-
+  //@}
 };
 
 #endif

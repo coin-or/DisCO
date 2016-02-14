@@ -9,27 +9,20 @@
 #include "DcoConicConstraint.hpp"
 
 DcoModel::DcoModel() {
-  // set parameters
-  dcoPar_ = new DcoParams();
-  dcoMessageHandler_ = new CoinMessageHandler();
-#ifdef DISCO_DEBUG
-  dcoMessageHandler_->setLogLevel(4);
-#endif
-  dcoMessages_ = new DcoMessage();
-  // initialize other fields
+  solver_ = NULL;
   colLB_ = NULL;
   colUB_ = NULL;
   rowLB_ = NULL;
   rowUB_ = NULL;
   numCols_ = 0;
   numRows_ = 0;
-  numElems_ = 0;
+  numLinearRows_ = 0;
+  numConicRows_ = 0;
   matrix_ = NULL;
   objSense_ = 0.0;
   objCoef_ = NULL;
-  numCones_ = 0;
   numIntegerCols_ = 0;
-  intColIndices_ = NULL;
+  integerCols_ = NULL;
   numSolutions_ = 0;
   // todo(aykut) this might create problems.
   incObjValue_ = 0.0;
@@ -37,28 +30,24 @@ DcoModel::DcoModel() {
   // todo(aykut) following two might create problems.
   cutoff_ = 0.0;
   cutoffInc_ = 0.0;
+  currRelGap_ = 1e5;
+  currAbsGap_ = 1e5;
   branchStrategy_ = NULL;
   rampUpBranchStrategy_ = NULL;
   activeNode_ = NULL;
+  dcoPar_ = new DcoParams();
   numNodes_ = 0;
-  /** Number of lp(Simplex) iterations. */
   numIterations_ = 0;;
-  /** Average number of lp iterations to solve a subproblem. */
   aveIterations_ = 0;
-  /** The number of passes during bounding procedure.*/
-  boundingPass_ = 0;
-  /** Current relative optimal gap. */
-  currRelGap_ = 1e5;
-  /** Current absolute optimal gap. */
-  currAbsGap_ = 1e5;
-  // todo(aykut) why are we keeping this in the DcoModel class.
-  // It seems it is ony used in DcoTreeNode::installSubProblem()
-  /** Temporary store old cuts at a node when installing a node. */
-  oldConstraints_ = 0;
-  /** The memory size allocated for oldConstraints_. */
-  oldConstraintsSize_ = 0;
-  /** Number of old constraints. */
-  numOldConstraints_ = 0;
+  numRelaxedCols_ = 0;
+  relaxedCols_ = NULL;
+  numRelaxedRows_ = 0;
+  relaxedRows_ = NULL;
+  dcoMessageHandler_ = new CoinMessageHandler();
+#ifdef DISCO_DEBUG
+  dcoMessageHandler_->setLogLevel(4);
+#endif
+  dcoMessages_ = new DcoMessage();
 }
 
 DcoModel::~DcoModel() {
@@ -96,15 +85,17 @@ DcoModel::~DcoModel() {
   if (dcoPar_) {
     delete dcoPar_;
   }
-  for (int i=0; i<numOldConstraints_; ++i) {
-    delete oldConstraints_[i];
-  }
-  delete[] oldConstraints_;
   if (dcoMessageHandler_) {
     delete dcoMessageHandler_;
   }
   if (dcoMessages_) {
     delete dcoMessages_;
+  }
+  if (relaxedCols_) {
+    delete[] relaxedCols_;
+  }
+  if (relaxedRows_) {
+    delete[] relaxedRows_;
   }
 }
 
@@ -118,7 +109,6 @@ void DcoModel::setSolver(OsiConicSolverInterface * solver) {
 }
 #endif
 
-// read conic mps
 void DcoModel::readInstance(char const * dataFile) {
   // get log level parameters
   int dcoLogLevel =  dcoPar_->entry(DcoParams::logLevel);
@@ -135,8 +125,7 @@ void DcoModel::readInstance(char const * dataFile) {
   reader->messageHandler()->setLogLevel(dcoLogLevel);
   reader->readMps(dataFile, "");
   numCols_ = reader->getNumCols();
-  numRows_ = reader->getNumRows();
-  numElems_ = reader->getNumElements();
+  numLinearRows_ = reader->getNumRows();
   matrix_ = new CoinPackedMatrix(*(reader->getMatrixByCol()));
   // == allocate variable bounds
   colLB_ = new double [numCols_];
@@ -147,8 +136,8 @@ void DcoModel::readInstance(char const * dataFile) {
   // == copy bounds
   std::copy(reader->getColLower(), reader->getColLower()+numCols_, colLB_);
   std::copy(reader->getColUpper(), reader->getColUpper()+numCols_, colUB_);
-  std::copy(reader->getRowLower(), reader->getRowLower()+numRows_, rowLB_);
-  std::copy(reader->getRowUpper(), reader->getRowUpper()+numRows_, rowUB_);
+  std::copy(reader->getRowLower(), reader->getRowLower()+numLinearRows_, rowLB_);
+  std::copy(reader->getRowUpper(), reader->getRowUpper()+numLinearRows_, rowUB_);
   // == set objective sense
   objSense_ = dcoPar_->entry(DcoParams::objSense);
   // == allocate objective coefficients
@@ -204,18 +193,18 @@ void DcoModel::readAddVariables(CoinMpsIO * reader) {
 
 void DcoModel::readAddLinearConstraints(CoinMpsIO * reader) {
   // == add constraints to *this
-  BcpsConstraint ** constraints = new BcpsConstraint*[numRows_+numCones_];
+  BcpsConstraint ** constraints = new BcpsConstraint*[numLinearRows_];
   CoinPackedMatrix const * matrix = reader->getMatrixByRow();
   int const * indices = matrix->getIndices();
   double const * values = matrix->getElements();
   int const * lengths = matrix->getVectorLengths();
   int const * starts = matrix->getVectorStarts();
-  for (int i=0; i<numRows_; ++i) {
+  for (int i=0; i<numLinearRows_; ++i) {
     constraints[i] = new DcoLinearConstraint(lengths[i], indices+starts[i],
 					     values+starts[i], rowLB_[i],
 					     rowUB_[i]);
   }
-  setConstraints(constraints, numRows_+numCones_);
+  setConstraints(constraints, numLinearRows_);
   // constraints are owned by BcpsModel. Do not free them here.
   // for (int i=0; i<numRows_+numCones_; ++i) {
   //   delete constraints[i];
@@ -242,7 +231,7 @@ void DcoModel::readAddConicConstraints(CoinMpsIO * reader) {
 					      << CoinMessageEol;
   }
   // store number of cones in the problem
-  numCones_ = nOfCones;
+  numConicRows_ = nOfCones;
   // log cone information messages
   if (nOfCones) {
     dcoMessageHandler_->message(DISCO_READ_CONESTATS1,
@@ -300,24 +289,28 @@ void DcoModel::preprocess() {
 #ifdef __OA__
   approximateCones();
   // update row information
-  numRows_ = solver_->getNumRows();
-  // update num elements
-  numElems_ = solver_->getNumElements();
+  numLinearRows_ = solver_->getNumRows();
   // update row bounds
   delete[] rowLB_;
   delete[] rowUB_;
   rowLB_ = new double [numRows_];
   rowUB_ = new double [numRows_];
   std::copy(solver_->getRowLower(),
-	    solver_->getRowLower()+numRows_,
+	    solver_->getRowLower()+numLinearRows_,
 	    rowLB_);
   std::copy(solver_->getRowUpper(),
-	    solver_->getRowUpper()+numRows_,
+	    solver_->getRowUpper()+numLinearRows_,
 	    rowUB_);
 #endif
 }
 
 void DcoModel::approximateCones() {
+}
+
+bool DcoModel::setupSelf() {
+}
+
+void DcoModel::postprocess() {
 }
 
 

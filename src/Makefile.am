@@ -61,6 +61,8 @@ lib_LTLIBRARIES = libDisco.la
 libDisco_la_SOURCES = \
 	DcoBranchStrategyRel.cpp \
 	DcoBranchStrategyRel.hpp \
+	DcoBranchStrategyMaxInf.cpp \
+	DcoBranchStrategyMaxInf.hpp \
 	DcoConstraint.cpp \
 	DcoConstraint.hpp \
 	DcoLinearConstraint.cpp \
@@ -127,6 +129,7 @@ DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
 includecoindir = $(includedir)/coin
 includecoin_HEADERS = \
 	DcoBranchStrategyRel.hpp \
+	DcoBranchStrategyMaxInf.hpp \
 	DcoConstraint.hpp \
 	DcoLinearConstraint.hpp \
 	DcoConicConstraint.hpp \

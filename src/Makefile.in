@@ -93,7 +93,8 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 @DEPENDENCY_LINKING_TRUE@libDisco_la_DEPENDENCIES =  \
 @DEPENDENCY_LINKING_TRUE@	$(am__DEPENDENCIES_1)
-am_libDisco_la_OBJECTS = DcoBranchStrategyRel.lo DcoConstraint.lo \
+am_libDisco_la_OBJECTS = DcoBranchStrategyRel.lo \
+	DcoBranchStrategyMaxInf.lo DcoConstraint.lo \
 	DcoLinearConstraint.lo DcoConicConstraint.lo DcoMessage.lo \
 	DcoModel.lo DcoNodeDesc.lo DcoParams.lo DcoSolution.lo \
 	DcoSubTree.lo DcoTreeNode.lo DcoVariable.lo DcoMessage.lo
@@ -365,6 +366,8 @@ lib_LTLIBRARIES = libDisco.la
 libDisco_la_SOURCES = \
 	DcoBranchStrategyRel.cpp \
 	DcoBranchStrategyRel.hpp \
+	DcoBranchStrategyMaxInf.cpp \
+	DcoBranchStrategyMaxInf.hpp \
 	DcoConstraint.cpp \
 	DcoConstraint.hpp \
 	DcoLinearConstraint.cpp \
@@ -423,6 +426,7 @@ DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
 includecoindir = $(includedir)/coin
 includecoin_HEADERS = \
 	DcoBranchStrategyRel.hpp \
+	DcoBranchStrategyMaxInf.hpp \
 	DcoConstraint.hpp \
 	DcoLinearConstraint.hpp \
 	DcoConicConstraint.hpp \
@@ -568,6 +572,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyMaxInf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyRel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConicConstraint.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConstraint.Plo@am__quote@
