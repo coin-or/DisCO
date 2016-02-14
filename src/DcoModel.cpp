@@ -110,8 +110,6 @@ void DcoModel::setSolver(OsiConicSolverInterface * solver) {
 #endif
 
 void DcoModel::readInstance(char const * dataFile) {
-  // get log level parameters
-  int dcoLogLevel =  dcoPar_->entry(DcoParams::logLevel);
   // get input file name
   std::string input_file(dataFile);
   std::string base_name = input_file.substr(0, input_file.rfind('.'));
@@ -122,6 +120,8 @@ void DcoModel::readInstance(char const * dataFile) {
   }
   // read mps file
   CoinMpsIO * reader = new CoinMpsIO;
+  // get log level parameters
+  int dcoLogLevel =  dcoPar_->entry(DcoParams::logLevel);
   reader->messageHandler()->setLogLevel(dcoLogLevel);
   reader->readMps(dataFile, "");
   numCols_ = reader->getNumCols();
@@ -184,10 +184,7 @@ void DcoModel::readAddVariables(CoinMpsIO * reader) {
   }
   setVariables(variables, numCols_);
   delete[] i_type;
-  // variables are now owned by BcpsModel, do not free them.
-  // for (int i=0; i<numCols_; ++i) {
-  //   delete variables[i];
-  // }
+  // variables[i] are now owned by BcpsModel, do not free them.
   delete[] variables;
 }
 
@@ -205,10 +202,7 @@ void DcoModel::readAddLinearConstraints(CoinMpsIO * reader) {
 					     rowUB_[i]);
   }
   setConstraints(constraints, numLinearRows_);
-  // constraints are owned by BcpsModel. Do not free them here.
-  // for (int i=0; i<numRows_+numCones_; ++i) {
-  //   delete constraints[i];
-  // }
+  // constraints[i] are owned by BcpsModel. Do not free them here.
   delete[] constraints;
 }
 
@@ -297,20 +291,21 @@ void DcoModel::readAddConicConstraints(CoinMpsIO * reader) {
 
 void DcoModel::preprocess() {
 #ifdef __OA__
-  approximateCones();
-  // update row information
-  numLinearRows_ = solver_->getNumRows();
-  // update row bounds
-  delete[] rowLB_;
-  delete[] rowUB_;
-  rowLB_ = new double [numRows_];
-  rowUB_ = new double [numRows_];
-  std::copy(solver_->getRowLower(),
-	    solver_->getRowLower()+numLinearRows_,
-	    rowLB_);
-  std::copy(solver_->getRowUpper(),
-	    solver_->getRowUpper()+numLinearRows_,
-	    rowUB_);
+  // approximateCones();
+  // // update row information
+  // numLinearRows_ = solver_->getNumRows();
+  // // update row bounds
+  // delete[] rowLB_;
+  // delete[] rowUB_;
+  // int numLinearRows_ = solver_->getNumRows();
+  // rowLB_ = new double [numLinearRows_];
+  // rowUB_ = new double [numLinearRows_];
+  // std::copy(solver_->getRowLower(),
+  //	    solver_->getRowLower()+numLinearRows_,
+  //	    rowLB_);
+  // std::copy(solver_->getRowUpper(),
+  //	    solver_->getRowUpper()+numLinearRows_,
+  //	    rowUB_);
 #endif
 }
 
@@ -328,10 +323,10 @@ AlpsTreeNode * DcoModel::createRoot() {
   DcoTreeNode * root = new DcoTreeNode();
   DcoNodeDesc * desc = new DcoNodeDesc(this);
   root->setDesc(desc);
-  std::vector<BcpsVariable *> cols = getVariables();
-  std::vector<BcpsConstraint *> rows = getConstraints();
-  int numCols = static_cast<int> (cols.size());
-  int numRows = static_cast<int> (rows.size());
+  std::vector<BcpsVariable *> & cols = getVariables();
+  std::vector<BcpsConstraint *> & rows = getConstraints();
+  int numCols = getNumCoreVariables();
+  int numRows = getNumCoreConstraints();
   int * varIndices1 = new int [numCols];
   int * varIndices2 = new int [numCols];
   int * varIndices3 = NULL;
