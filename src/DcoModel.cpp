@@ -131,8 +131,8 @@ void DcoModel::readInstance(char const * dataFile) {
   colLB_ = new double [numCols_];
   colUB_ = new double [numCols_];
   // == allocate row bounds
-  rowLB_ = new double [numRows_];
-  rowUB_ = new double [numRows_];
+  rowLB_ = new double [numLinearRows_];
+  rowUB_ = new double [numLinearRows_];
   // == copy bounds
   std::copy(reader->getColLower(), reader->getColLower()+numCols_, colLB_);
   std::copy(reader->getColUpper(), reader->getColUpper()+numCols_, colUB_);
@@ -212,7 +212,6 @@ void DcoModel::readAddLinearConstraints(CoinMpsIO * reader) {
   delete[] constraints;
 }
 
-// read conic part and add conic constraints to the model.
 void DcoModel::readAddConicConstraints(CoinMpsIO * reader) {
   int nOfCones = 0;
   int * coneStart = NULL;
@@ -283,6 +282,17 @@ void DcoModel::readAddConicConstraints(CoinMpsIO * reader) {
   delete[] coneStart;
   delete[] coneMembers;
   delete[] coneType;
+  // update rowLB_ and rowUB_, add conic row bounds
+  double * temp = rowLB_;
+  rowLB_ = new double[numLinearRows_+numConicRows_];
+  std::copy(temp, temp+numLinearRows_, rowLB_);
+  std::fill_n(rowLB_+numLinearRows_, numConicRows_, 0.0);
+  delete[] temp;
+  temp = rowUB_;
+  rowUB_ = new double[numLinearRows_+numConicRows_];
+  std::copy(temp, temp+numLinearRows_, rowUB_);
+  std::fill_n(rowUB_+numLinearRows_, numConicRows_, DISCO_INFINITY);
+  delete[] temp;
 }
 
 void DcoModel::preprocess() {
