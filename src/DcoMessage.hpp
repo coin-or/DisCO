@@ -64,6 +64,8 @@ enum DISCO_Message {
     // more general messages
     // out of memory
     DISCO_OUT_OF_MEMORY,
+    DISCO_NOT_IMPLEMENTED,
+
     ///
     DISCO_DUMMY_END
 };

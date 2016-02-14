@@ -9,7 +9,8 @@
 // #include <BcpsNodeDesc.h>
 
 #include <BcpsTreeNode.h>
-
+#include "DcoNodeDesc.hpp"
+#include "DcoModel.hpp"
 
 /*!
    DcoTreeNode inherits BcpsTreeNode. BcpsTreeNode inherits AlpsTreeNode.
@@ -100,35 +101,78 @@
 
  */
 
+// todo(aykut): how about adding a getBasis() and setBasis() to get basis from
+// desc_ and set basis in desc_? to DcoTreeNode class.
+// todo(aykut): Bcps has a generic process method? Should we use it?
+//
 
 class DcoTreeNode: public BcpsTreeNode {
 public:
+  ///@name Constructors and Destructors
+  //@{
+  /// Default constructor.
   DcoTreeNode();
+  /// Construct for a given description.
   DcoTreeNode(AlpsNodeDesc * & desc);
+  /// Destructor.
   virtual ~DcoTreeNode();
+  //@}
+  ///@name Virtual functions inherited from AlpsTreeNode
+  //@{
+  /// Create new tree nodes from the given description.
   virtual AlpsTreeNode * createNewTreeNode(AlpsNodeDesc *& desc) const;
+  /// Convert node description to explicit.
   virtual void convertToExplicit();
+  /// Convert node description to relative.
   virtual void convertToRelative();
-  virtual int generateConstraints(BcpsModel * bcps_model,
-				  BcpsConstraintPool * conPool);
-  virtual int generateVariables(BcpsModel * model,
-				BcpsVariablePool * varPool);
-  virtual int chooseBranchingObject(BcpsModel * bcps_model);
-  virtual int installSubProblem(BcpsModel * bcps_model);
-  virtual int handleBoundingStatus(int status, bool & keepOn, bool & fathomed);
+  /// Process node. Alps calls this function when it is picked from node pool.
   virtual int process(bool isRoot=false, bool rampUp=false);
-  /** Bounding procedure to estimate quality of this node. */
-  virtual int bound(BcpsModel * model);
-  /** This method must be invoked on a \c pregnant node (which has all the
-      information needed to create the children) and should create the
-      children's decriptions. The stati of the children
-      can be any of the ones \c process() can return. */
+  /// Branch this node. Alps calls this function to create children from this
+  /// node. Alps calls this function when the node status is
+  /// AlpsNodeStatusPregnant.
   virtual std::vector< CoinTriple<AlpsNodeDesc*, AlpsNodeStatus, double> >
   branch();
+  //@}
+  ///@name Virtual functions inherited from BcpsTreeNode
+  //@{
+  /// Generate constraints (cuts) and store them in the given constraint pool.
+  virtual int generateConstraints(BcpsModel * bcps_model,
+				  BcpsConstraintPool * conPool);
+  /// Generate variables (lift the problem) and store them in the given
+  /// variable pool.
+  virtual int generateVariables(BcpsModel * model,
+				BcpsVariablePool * varPool);
+  /// Choose a branching object.
+  virtual int chooseBranchingObject(BcpsModel * bcps_model);
+  /// Install subproblem to the solver.
+  virtual int installSubProblem(BcpsModel * bcps_model);
+  // todo(aykut) Should we use this?
+  //virtual int handleBoundingStatus(int status, bool & keepOn, bool & fathomed);
+  /// Bounds the problem by solving the subproblem corresponds to this node.
+  virtual int bound(BcpsModel * model);
+  //@}
+  ///@name Other functions
+  //@{
+  /// Get node description. Overwrites the one inherited from AlpsTreeNode.
+  DcoNodeDesc * getDesc() const;
+  /// Get model this node belongs. Overwrites the one inherited from AlpsTreeNode.
+  DcoModel * getModel() const;
+  //@}
 private:
   // these are disabled in AlpsTreeNode
   DcoTreeNode(DcoTreeNode const & other);
   DcoTreeNode & operator=(DcoTreeNode const & rhs);
+  /// Sets node status to pregnant and carries necessary operations.
+  void processSetPregnant();
+  /// This function is called after bound method is called. It checks solver
+  /// status.
+  void afterBound(DcoSubproblemStatus subproblem_status);
+  int boundingLoop(bool isRoot, bool rampUp);
+  /// decide what to do, keepBounding?, generate constraints?, generate
+  /// variables?. Fromerly known handleBoundStatus
+  void decide(DcoSubproblemStatus subproblem_status,
+	 bool & generateConstraints,
+	 bool & generateVariables);
 };
 
 #endif

@@ -37,37 +37,53 @@ AlpsTreeNode * DcoTreeNode::createNewTreeNode(AlpsNodeDesc *& desc) const {
 }
 
 void DcoTreeNode::convertToExplicit() {
-  std::cerr << "Not implemented yet!" << std::endl;
+  DcoNodeDesc * node_desc = dynamic_cast<DcoNodeDesc*>(getDesc());
+  DcoModel * model = dynamic_cast<DcoModel*>(node_desc->getModel());
+  CoinMessageHandler * message_handler = model->dcoMessageHandler_;
+  CoinMessages * messages = model->dcoMessages_;
+  message_handler->message(DISCO_NOT_IMPLEMENTED, *messages)
+    << __FILE__ << __LINE__ << CoinMessageEol;
   throw std::exception();
 }
 
 void DcoTreeNode::convertToRelative() {
-  std::cerr << "Not implemented yet!" << std::endl;
+  DcoNodeDesc * node_desc = dynamic_cast<DcoNodeDesc*>(getDesc());
+  DcoModel * model = dynamic_cast<DcoModel*>(node_desc->getModel());
+  CoinMessageHandler * message_handler = model->dcoMessageHandler_;
+  CoinMessages * messages = model->dcoMessages_;
+  message_handler->message(DISCO_NOT_IMPLEMENTED, *messages)
+    << __FILE__ << __LINE__ << CoinMessageEol;
   throw std::exception();
 }
 
 int DcoTreeNode::generateConstraints(BcpsModel * model,
 				     BcpsConstraintPool * conPool) {
-  std::cerr << "Not implemented yet!" << std::endl;
+  DcoModel * disco_model = dynamic_cast<DcoModel*>(model);
+  CoinMessageHandler * message_handler = disco_model->dcoMessageHandler_;
+  CoinMessages * messages = disco_model->dcoMessages_;
+  message_handler->message(DISCO_NOT_IMPLEMENTED, *messages)
+    << __FILE__ << __LINE__ << CoinMessageEol;
   throw std::exception();
   return 0;
 }
 
 int DcoTreeNode::generateVariables(BcpsModel * model,
 				   BcpsVariablePool * varPool) {
-  std::cerr << "Not implemented yet!" << std::endl;
+  DcoModel * disco_model = dynamic_cast<DcoModel*>(model);
+  CoinMessageHandler * message_handler = disco_model->dcoMessageHandler_;
+  CoinMessages * messages = disco_model->dcoMessages_;
+  message_handler->message(DISCO_NOT_IMPLEMENTED, *messages)
+    << __FILE__ << __LINE__ << CoinMessageEol;
   throw std::exception();
   return 0;
 }
 
 int DcoTreeNode::chooseBranchingObject(BcpsModel * model) {
-  std::cerr << "Not implemented yet!" << std::endl;
-  throw std::exception();
-  return 0;
-}
-
-int DcoTreeNode::handleBoundingStatus(int status, bool & keepOn, bool & fathomed) {
-  std::cerr << "Not implemented yet!" << std::endl;
+  DcoModel * disco_model = dynamic_cast<DcoModel*>(model);
+  CoinMessageHandler * message_handler = disco_model->dcoMessageHandler_;
+  CoinMessages * messages = disco_model->dcoMessages_;
+  message_handler->message(DISCO_NOT_IMPLEMENTED, *messages)
+    << __FILE__ << __LINE__ << CoinMessageEol;
   throw std::exception();
   return 0;
 }
@@ -82,19 +98,17 @@ int DcoTreeNode::handleBoundingStatus(int status, bool & keepOn, bool & fathomed
 
  */
 int DcoTreeNode::process(bool isRoot, bool rampUp) {
-  DcoNodeDesc * desc = dynamic_cast<DcoNodeDesc*>(getDesc());
-  DcoModel * model = dynamic_cast<DcoModel*>(desc->getModel());
+  AlpsNodeStatus status = getStatus();
+  DcoModel * model = getModel();
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
-  AlpsNodeStatus status = getStatus();
-  installSubProblem(model);
-  if (status==AlpsNodeStatusCandidate or
-      status==AlpsNodeStatusEvaluated) {
-    // generate cuts or branch
-    bound(model);
-  }
-  else if (status==AlpsNodeStatusPregnant) {
+  if (status==AlpsNodeStatusPregnant) {
     // branch
+    std::cout << "Gotta branch!" << std::endl;
+  }
+  else if (status==AlpsNodeStatusCandidate or
+	   status==AlpsNodeStatusEvaluated) {
+    boundingLoop(isRoot, rampUp);
   }
   else if (status==AlpsNodeStatusBranched or
 	   status==AlpsNodeStatusFathomed or
@@ -102,7 +116,39 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
     // this should not happen
     message_handler->message(DISCO_NODE_UNEXPECTEDSTATUS, *messages)
       << static_cast<int>(status) << CoinMessageEol;
+  }
+  return AlpsReturnStatusOk;
+}
 
+int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
+  AlpsNodeStatus status = getStatus();
+  DcoNodeDesc * desc = getDesc();
+  DcoModel * model = getModel();
+  CoinMessageHandler * message_handler = model->dcoMessageHandler_;
+  CoinMessages * messages = model->dcoMessages_;
+  bool keepBounding = true;
+  bool fathomed = false;
+  bool genConstraints = false;
+  bool genVariables = false;
+  BcpsConstraintPool * constraintPool = NULL;
+  BcpsVariablePool * variablePool = NULL;
+  installSubProblem(model);
+  while (keepBounding) {
+    keepBounding = false;
+    // solve subproblem corresponds to this node
+    DcoSubproblemStatus subproblem_status =
+      static_cast<DcoSubproblemStatus> (bound(model));
+    decide(subproblem_status, genConstraints, genVariables);
+    if (getStatus()==AlpsNodeStatusFathomed and !keepBounding) {
+      break;
+      // node is fathomed, nothing to do.
+    }
+    else if (keepBounding and genConstraints) {
+      generateConstraints(model, constraintPool);
+    }
+    else if (keepBounding and genVariables) {
+      generateVariables(model, variablePool);
+    }
   }
   return AlpsReturnStatusOk;
 }
@@ -111,7 +157,7 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
 // todo(aykut) Why do we need model as input?
 // desc_ is a member of AlpsTreeNode, and model_ is a member of AlpsNodeDesc.
 int DcoTreeNode::bound(BcpsModel * bcps_model) {
-  DcoLpStatus lp_status;
+  DcoSubproblemStatus subproblem_status;
   DcoModel * model = dynamic_cast<DcoModel*>(bcps_model);
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
@@ -126,7 +172,7 @@ int DcoTreeNode::bound(BcpsModel * bcps_model) {
   // solve problem loaded to the solver
   model->solver()->resolve();
   if (model->solver()->isAbandoned()) {
-    lp_status = DcoLpStatusAbandoned;
+    subproblem_status = DcoSubproblemStatusAbandoned;
   }
   else if (model->solver()->isProvenOptimal()) {
     // todo(aykut) if obj val is greater than 1e+30 we consider problem
@@ -134,10 +180,10 @@ int DcoTreeNode::bound(BcpsModel * bcps_model) {
     // infeasible. We add a high lower bound (1e+30) to the objective
     // function. This can be improved.
     if (model->solver()->getObjValue()>=1e+30) {
-      lp_status = DcoLpStatusPrimalInfeasible;
+      subproblem_status = DcoSubproblemStatusPrimalInfeasible;
     }
     else {
-      lp_status = DcoLpStatusOptimal;
+      subproblem_status = DcoSubproblemStatusOptimal;
       double objValue = model->solver()->getObjValue() *
 	model->solver()->getObjSense();
       // Update quality of this nodes.
@@ -145,25 +191,25 @@ int DcoTreeNode::bound(BcpsModel * bcps_model) {
     }
   }
   else if (model->solver()->isProvenPrimalInfeasible()) {
-    lp_status = DcoLpStatusPrimalInfeasible;
+    subproblem_status = DcoSubproblemStatusPrimalInfeasible;
   }
   else if (model->solver()->isProvenDualInfeasible()) {
-    lp_status = DcoLpStatusDualInfeasible;
+    subproblem_status = DcoSubproblemStatusDualInfeasible;
   }
   else if (model->solver()->isPrimalObjectiveLimitReached()) {
-    lp_status = DcoLpStatusPrimalObjLim;
+    subproblem_status = DcoSubproblemStatusPrimalObjLim;
   }
   else if (model->solver()->isDualObjectiveLimitReached()) {
-    lp_status = DcoLpStatusDualObjLim;
+    subproblem_status = DcoSubproblemStatusDualObjLim;
   }
   else if (model->solver()->isIterationLimitReached()) {
-    lp_status = DcoLpStatusIterLim;
+    subproblem_status = DcoSubproblemStatusIterLim;
   }
   else {
     message_handler->message(DISCO_SOLVER_UNKNOWN_STATUS, *messages)
       << CoinMessageEol;
   }
-  return lp_status;
+  return subproblem_status;
 }
 
 /**
@@ -407,8 +453,55 @@ int DcoTreeNode::installSubProblem(BcpsModel * bcps_model) {
     can be any of the ones \c process() can return. */
 std::vector< CoinTriple<AlpsNodeDesc*, AlpsNodeStatus, double> >
 DcoTreeNode::branch() {
-  std::cerr << "Not implemented yet!" << std::endl;
-  throw std::exception();
-  std::vector< CoinTriple<AlpsNodeDesc*, AlpsNodeStatus, double> > res;
+  // get description of this node
+  DcoNodeDesc * node_desc = getDesc();
+  // get model the node belongs
+  DcoModel * model = dynamic_cast<DcoModel*>(node_desc->getModel());
+  // get message handler and messages for loging
+  CoinMessageHandler * message_handler = model->dcoMessageHandler_;
+  CoinMessages * messages = model->dcoMessages_;
+  // check node status
+  if (getStatus()!=AlpsNodeStatusPregnant) {
+      message_handler->message(DISCO_NODE_UNEXPECTEDSTATUS, *messages)
+	<< static_cast<int>(getStatus()) << CoinMessageEol;
+  }  std::vector< CoinTriple<AlpsNodeDesc*, AlpsNodeStatus, double> > res;
   return res;
+}
+
+DcoNodeDesc * DcoTreeNode::getDesc() const {
+  return dynamic_cast<DcoNodeDesc*>(AlpsTreeNode::getDesc());
+}
+
+DcoModel * DcoTreeNode::getModel() const {
+  return getDesc()->getModel();
+}
+
+
+void DcoTreeNode::processSetPregnant() {
+  // get warm start basis from solver
+  // todo(aykut) This does not help much if the underlying solver is an IPM
+  // based solver.
+  DcoModel * model = getModel();
+  CoinWarmStartBasis * ws = dynamic_cast<CoinWarmStartBasis*>
+    (model->solver()->getWarmStart());
+  // store basis in the node desciption.
+  getDesc()->setBasis(ws);
+  // set status pregnant
+  setStatus(AlpsNodeStatusPregnant);
+}
+
+void DcoTreeNode::decide(DcoSubproblemStatus subproblem_status,
+			 bool & generateConstraints,
+			 bool & generateVariables) {
+  if (subproblem_status==DcoSubproblemStatusPrimalInfeasible or
+      subproblem_status==DcoSubproblemStatusDualInfeasible) {
+    // fathom
+    setStatus(AlpsNodeStatusFathomed);
+    return;
+  }
+  if (subproblem_status!=DcoSubproblemStatusOptimal) {
+    std::cout << "Subproblem is not optimal. Donnow what to do!"  << std::endl;
+    throw std::exception();
+  }
+  // subproblem is solved to optimality. Check feasibility of the solution.
 }

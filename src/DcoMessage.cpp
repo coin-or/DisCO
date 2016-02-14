@@ -66,7 +66,8 @@ static Dco_message us_english[]=
     {DISCO_SOLVER_UNKNOWN_STATUS,9301,1, "Unknown relaxation solver status."},
     // general messages
     {DISCO_OUT_OF_MEMORY,9901,1, "Out of memory, file: %s, line: %d."},
-    {DISCO_DUMMY_END, 999999, 0, ""}
+    {DISCO_NOT_IMPLEMENTED,9902,1, "Not implemented yet, file: %s, line: %d."},
+    {DISCO_DUMMY_END, 9999, 0, ""}
 };
 
 //#############################################################################

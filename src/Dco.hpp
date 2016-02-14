@@ -39,15 +39,15 @@ enum DcoLorentzConeType {
   DcoRotatedLorentzCone
 };
 
-enum DcoLpStatus{
-   DcoLpStatusOptimal,
-   DcoLpStatusAbandoned,
-   DcoLpStatusPrimalInfeasible,
-   DcoLpStatusDualInfeasible,
-   DcoLpStatusPrimalObjLim,
-   DcoLpStatusDualObjLim,
-   DcoLpStatusIterLim,
-   DcoLpStatusUnknown
+enum DcoSubproblemStatus{
+   DcoSubproblemStatusOptimal,
+   DcoSubproblemStatusAbandoned,
+   DcoSubproblemStatusPrimalInfeasible,
+   DcoSubproblemStatusDualInfeasible,
+   DcoSubproblemStatusPrimalObjLim,
+   DcoSubproblemStatusDualObjLim,
+   DcoSubproblemStatusIterLim,
+   DcoSubproblemStatusUnknown
 };
 
 //#############################################################################

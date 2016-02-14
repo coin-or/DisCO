@@ -31,6 +31,8 @@ public:
   void setBasis(CoinWarmStartBasis *& ws);
   /** Get warm start basis. */
   CoinWarmStartBasis * getBasis() const;
+  /// get DcoModel this node belongs.
+  DcoModel * getModel() const;
 };
 
 #endif

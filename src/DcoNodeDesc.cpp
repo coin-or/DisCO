@@ -61,3 +61,7 @@ void DcoNodeDesc::setBasis(CoinWarmStartBasis *& ws) {
 CoinWarmStartBasis * DcoNodeDesc::getBasis() const {
   return basis_;
 }
+
+DcoModel * DcoNodeDesc::getModel() const {
+  return dynamic_cast<DcoModel*>(AlpsNodeDesc::getModel());
+}
