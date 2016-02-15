@@ -27,6 +27,8 @@ public:
   int const * getIndices() const;
   double const * getValues() const;
   virtual OsiRowCut * createOsiRowCut(DcoModel * model);
+  /// return constraint type, linear or conic
+  virtual DcoConstraintType type() const {return DcoConstraintTypeLinear;}
 };
 
 #endif

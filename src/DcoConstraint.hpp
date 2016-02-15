@@ -3,6 +3,7 @@
 
 #include <OsiLorentzCone.hpp>
 #include <BcpsObject.h>
+#include "Dco.hpp"
 
 class OsiRowCut;
 class DcoModel;
@@ -52,12 +53,12 @@ class DcoModel;
 class DcoConstraint: public BcpsConstraint {
 public:
   DcoConstraint(double lb, double ub);
-  DcoConstraint(DcoConstraint const & other);
-  DcoConstraint operator=(DcoConstraint const & rhs);
   virtual ~DcoConstraint();
   /// Create an OsiRowCut based on this constraint. Returns NULL if this is a
   /// conic constraint.
   virtual OsiRowCut * createOsiRowCut(DcoModel * model) const {return NULL;}
+  /// return constraint type, linear or conic
+  virtual DcoConstraintType type() const = 0;
 private:
 };
 

@@ -166,11 +166,13 @@ void DcoModel::readInstance(char const * dataFile) {
 // Add variables to *this.
 void DcoModel::readAddVariables(CoinMpsIO * reader) {
   // get variable integrality constraints
+  numIntegerCols_ = 0;
   char const * is_integer = reader->integerColumns();
   DcoIntegralityType * i_type = new DcoIntegralityType[numCols_];
   for (int i=0; i<numCols_; ++i) {
     if (is_integer[i]) {
       i_type[i] = DcoIntegralityTypeInt;
+      numIntegerCols_++;
     }
     else {
       i_type[i] = DcoIntegralityTypeCont;
@@ -313,6 +315,33 @@ void DcoModel::approximateCones() {
 }
 
 bool DcoModel::setupSelf() {
+  // set integer column indices
+  std::vector<BcpsVariable*> & cols = getVariables();
+  int numCols = getNumCoreVariables();
+  integerCols_ = new int[numIntegerCols_];
+  for (int i=0, k=0; i<numCols; ++i) {
+    BcpsIntegral_t i_type = cols[i]->getIntType();
+    if (i_type=='I' or i_type=='B') {
+      integerCols_[k] = i;
+      k++;
+    }
+  }
+  // set relaxed array for integer columns
+  numRelaxedCols_ = numIntegerCols_;
+  relaxedCols_ = new int[numRelaxedCols_];
+  std::copy(integerCols_, integerCols_+numIntegerCols_,
+	    relaxedCols_);
+#if defined(__OA__)
+  // we relax conic constraint too when OA is used.
+  // set relaxed array for conic constraints
+  numRelaxedRows_ = numConicRows_;
+  relaxedRows_ = new int[numRelaxedRows_];
+  // todo(aykut) we assume conic rows start after linear rows.
+  // if not iterate over rows and determine their type (DcoConstraint::type())
+  for (int i=0; i<numRelaxedRows_; ++i) {
+    relaxedRows_[i] = numLinearRows_+i;
+  }
+#endif
 }
 
 void DcoModel::postprocess() {

@@ -31,6 +31,8 @@ public:
   DcoConicConstraint & operator=(DcoConicConstraint const & rhs);
   /// Destructor.
   virtual ~DcoConicConstraint();
+  /// return constraint type, linear or conic
+  virtual DcoConstraintType type() const {return DcoConstraintTypeConic;}
   /// Returns type of conic constraint.
   DcoLorentzConeType getType() const;
   /// Return size of cone, i.e., number of variables in the cone.

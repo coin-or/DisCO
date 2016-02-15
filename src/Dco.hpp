@@ -34,6 +34,11 @@
 
 #define DISCO_INFINITY 1e30
 
+enum DcoConstraintType {
+  DcoConstraintTypeLinear = 0,
+  DcoConstraintTypeConic
+};
+
 enum DcoLorentzConeType {
   DcoLorentzCone = 0,
   DcoRotatedLorentzCone
