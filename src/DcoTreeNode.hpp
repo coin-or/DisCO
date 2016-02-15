@@ -173,6 +173,8 @@ private:
   void decide(DcoSubproblemStatus subproblem_status,
 	 bool & generateConstraints,
 	 bool & generateVariables);
+  /// find number of infeasible integer variables.
+  void checkRelaxedCols(int & numInf);
 };
 
 #endif

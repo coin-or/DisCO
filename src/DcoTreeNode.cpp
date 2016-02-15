@@ -491,7 +491,37 @@ void DcoTreeNode::decide(DcoSubproblemStatus subproblem_status,
     throw std::exception();
   }
   // subproblem is solved to optimality. Check feasibility of the solution.
-  // iterate over objects and check their feasibility
-
+  // iterate over relaxed objects and check their feasibility
+  // == relaxed columns
+  int numInf;
+  checkRelaxedCols(numInf);
+  std::cout << "Number of infeasibility " << numInf << std::endl;
+  // column i is integral and integrality is relaxed in the subproblem
+#ifdef __OA__
+  // == relaxed rows
+#endif
   // what is in the subproblem and what is not in the subproblem?
+}
+
+void DcoTreeNode::checkRelaxedCols(int & numInf) {
+  DcoModel * model = getModel();
+  double const * sol = model->solver()->getColSolution();
+  // get integer tolerance
+  double tol = model->dcoPar()->entry(DcoParams::integerTol);
+  numInf = 0;
+  int numRelaxedCols = model->numRelaxedCols();
+  int const * relaxedCols = model->relaxedCols();
+  //std::vector<BcpsVariable*> & cols = getVariables();
+  // iterate over relaxed columns
+  for (int i=0; i<numRelaxedCols; ++i) {
+    double value = sol[relaxedCols[i]];
+    double down = floor(value);
+    double up = ceil(value);
+    if ((value-down)<tol or (up-value)<tol) {
+      continue;
+    }
+    else {
+      numInf++;
+    }
+  }
 }

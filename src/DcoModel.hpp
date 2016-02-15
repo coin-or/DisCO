@@ -187,6 +187,8 @@ public:
   //@{
   /// Approximate cones.
   void approximateCones();
+  /// return Dco Parameter
+  DcoParams const * dcoPar() const {return dcoPar_;}
   //@}
   ///@name Querry problem data
   //@{

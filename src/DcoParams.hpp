@@ -8,154 +8,149 @@
 
 class DcoParams: public AlpsParameterSet {
  public:
-  /** Character parameters. All of these variable are used as booleans
-      (ture = 1, false = 0). */
+  /// Character parameters. All of these variable are used as booleans
+  /// (ture = 1, false = 0). */
   enum chrParams {
-      /** Generate cuts during rampup.
-	  Default: true */
-      cutRampUp,
-      /** Presolve or not */
-      presolve,
-      /** Share constraints
-	  Default: false */
-      shareConstraints,
-      /** Share constraints
-	  Default: false */
-      shareVariables,
-      /** Share pseudocost during ramp up.
-	  Default: true */
-      sharePseudocostRampUp,
-      /** Share pseudocost during search
-	  Default: false */
-      sharePseudocostSearch,
-      //
-      endOfChrParams
+    /// Generate cuts during rampup. Default: true
+    cutRampUp,
+    /// Presolve or not
+    presolve,
+    ///Share constraints Default: false
+    shareConstraints,
+    /// Share constraints Default: false
+    shareVariables,
+    /// Share pseudocost during ramp up. Default: true
+    sharePseudocostRampUp,
+    /// Share pseudocost during search Default: false
+    sharePseudocostSearch,
+    //
+    endOfChrParams
   };
-  /** Integer paramters. */
+  /// Integer paramters.
   enum intParams {
-      /** Branching strategy.
-	  0: max infeasibilty,
-	  1: pseudocost,
-	  2: reliability,
-	  3: strong branching.
-	  4: bilevel branching
-      */
-      branchStrategy,
-      branchStrategyRampUp,
-      /** Cut generators control.
-	  -2: root,
-	  -1: auto,
-	  0: disable,
-	  any positive frequency
-      */
-      cutStrategy, /** All constraint generators */
-      cutGenerationFrequency,
-      cutPass,      /** The pass to generate cuts */
-      quickCutPass, /** The pass to generate cuts for quick branching */
-      cutCliqueStrategy,
-      cutGomoryStrategy,
-      cutFlowCoverStrategy,
-      cutKnapsackStrategy,
-      cutMirStrategy,
-      cutOddHoleStrategy,
-      cutProbingStrategy,
-      cutTwoMirStrategy,
-      cutCliqueFreq,
-      cutGomoryFreq,
-      cutFlowCoverFreq,
-      cutKnapsackFreq,
-      cutMirFreq,
-      cutOddHoleFreq,
-      cutProbingFreq,
-      cutTwoMirFreq,
-      /** -1 auto, 0, no, any integer frequency */
-      difference,
-      /** Heuristics control.
-	  DcoHeurStrategyRoot:     root,
-	  DcoHeurStrategyAuto:     auto,
-	  DcoHuerStrategyNone:     disable,
-	  DcoHeurStrategyPeriodic: every 't' nodes
-      */
-      heurStrategy, /** All heuristics */
-      heurCallFrequency,
-      heurRoundStrategy,
-      heurRoundFreq,
-      /** The look ahead of pseudocost. */
-      lookAhead,
-      /** The reliability of pseudocost. */
-      pseudoReliability,
-      /** Maximum tree depth of sharing pseudocost. */
-      sharePcostDepth,
-      /** Frequency of sharing pseudocost. */
-      sharePcostFrequency,
-      /** The number of candidate used in strong branching. Default: 10. */
-      strongCandSize,
-      /** conic cut parameters **/
-      /** Cut generators control.
-	  -2: root,
-	  -1: auto,
-	  0: disable,
-	  any positive frequency
-      */
-      conicCutStrategy, /** All constraint generators */
-      conicCutGenerationFrequency,
-      conicCutPass,      /** The pass to generate cuts */
-      quickConicCutPass, /** The pass to generate cuts for quick branching */
-      conicCutMirStrategy,
-      conicCutGD1Strategy,
-      conicCutGD2Strategy,
-      conicCutMirFreq,
-      conicCutGD1Freq,
-      conicCutGD2Freq,
-      logLevel,
-      ///
-      endOfIntParams
+    /** Branching strategy.
+	0: max infeasibilty,
+	1: pseudocost,
+	2: reliability,
+	3: strong branching.
+	4: bilevel branching
+    */
+    branchStrategy,
+    branchStrategyRampUp,
+    /** Cut generators control.
+	-2: root,
+	-1: auto,
+	0: disable,
+	any positive frequency
+    */
+    cutStrategy, /** All constraint generators */
+    cutGenerationFrequency,
+    cutPass,      /** The pass to generate cuts */
+    quickCutPass, /** The pass to generate cuts for quick branching */
+    cutCliqueStrategy,
+    cutGomoryStrategy,
+    cutFlowCoverStrategy,
+    cutKnapsackStrategy,
+    cutMirStrategy,
+    cutOddHoleStrategy,
+    cutProbingStrategy,
+    cutTwoMirStrategy,
+    cutCliqueFreq,
+    cutGomoryFreq,
+    cutFlowCoverFreq,
+    cutKnapsackFreq,
+    cutMirFreq,
+    cutOddHoleFreq,
+    cutProbingFreq,
+    cutTwoMirFreq,
+    /** -1 auto, 0, no, any integer frequency */
+    difference,
+    /** Heuristics control.
+	DcoHeurStrategyRoot:     root,
+	DcoHeurStrategyAuto:     auto,
+	DcoHuerStrategyNone:     disable,
+	DcoHeurStrategyPeriodic: every 't' nodes
+    */
+    heurStrategy, /** All heuristics */
+    heurCallFrequency,
+    heurRoundStrategy,
+    heurRoundFreq,
+    /** The look ahead of pseudocost. */
+    lookAhead,
+    /** The reliability of pseudocost. */
+    pseudoReliability,
+    /** Maximum tree depth of sharing pseudocost. */
+    sharePcostDepth,
+    /** Frequency of sharing pseudocost. */
+    sharePcostFrequency,
+    /** The number of candidate used in strong branching. Default: 10. */
+    strongCandSize,
+    /** conic cut parameters **/
+    /** Cut generators control.
+	-2: root,
+	-1: auto,
+	0: disable,
+	any positive frequency
+    */
+    conicCutStrategy, /** All constraint generators */
+    conicCutGenerationFrequency,
+    conicCutPass,      /** The pass to generate cuts */
+    quickConicCutPass, /** The pass to generate cuts for quick branching */
+    conicCutMirStrategy,
+    conicCutGD1Strategy,
+    conicCutGD2Strategy,
+    conicCutMirFreq,
+    conicCutGD1Freq,
+    conicCutGD2Freq,
+    logLevel,
+    ///
+    endOfIntParams
   };
 
   /** Double parameters. */
   enum dblParams {
-      /** Limit the max number cuts applied at a node.
-	  maxNumCons = (CutFactor - 1) * numCoreConstraints. */
-      cutFactor,
-      /** Cutoff any nodes whose objective value is higher than it. */
-      cutoff,
-      /** The value added to relaxation value when deciding fathom.
-	  Default:1.0e-6 */
-      cutoffInc,
-      /** Dense constraint factor.*/
-      denseConFactor,
-      /** Tolerance to treat as an integer. Default: 1.0e-5 */
-      integerTol,
-      /** Objective sense: min = 1.0, max = -1.0*/
-      objSense,
-      /** If the relative gap between best feasible and best relaxed fall into
-	  this gap, search stops. Default: 1.0e-6 */
-      optimalRelGap,
-      /** If the absolute gap between best feasible and best relaxed fall into
-	  this gap, search stops. Default: 1.0e-4 */
-      optimalAbsGap,
-      /** Weight used to calculate pseudocost. */
-      pseudoWeight,
-      /** Scaling indicator of a constraint.*/
-      scaleConFactor,
-      /** Tail off */
-      tailOff,
-      ///
-      endOfDblParams
+    /** Limit the max number cuts applied at a node.
+	maxNumCons = (CutFactor - 1) * numCoreConstraints. */
+    cutFactor,
+    /** Cutoff any nodes whose objective value is higher than it. */
+    cutoff,
+    /** The value added to relaxation value when deciding fathom.
+	Default:1.0e-6 */
+    cutoffInc,
+    /** Dense constraint factor.*/
+    denseConFactor,
+    /** Tolerance to treat as an integer. Default: 1.0e-5 */
+    integerTol,
+    /** Objective sense: min = 1.0, max = -1.0*/
+    objSense,
+    /** If the relative gap between best feasible and best relaxed fall into
+	this gap, search stops. Default: 1.0e-6 */
+    optimalRelGap,
+    /** If the absolute gap between best feasible and best relaxed fall into
+	this gap, search stops. Default: 1.0e-4 */
+    optimalAbsGap,
+    /** Weight used to calculate pseudocost. */
+    pseudoWeight,
+    /** Scaling indicator of a constraint.*/
+    scaleConFactor,
+    /** Tail off */
+    tailOff,
+    ///
+    endOfDblParams
   };
   /** String parameters. */
   enum strParams{
-      strDummy,
-      //
-      endOfStrParams
+    strDummy,
+    //
+    endOfStrParams
   };
   /** There are no string array parameters. */
   enum strArrayParams{
-      strArrayDummy,
-      ///
-      endOfStrArrayParams
+    strArrayDummy,
+    ///
+    endOfStrArrayParams
   };
- public:
+public:
   /**@name Constructors. */
   /*@{*/
   /** The default constructor creates a parameter set with from the template
@@ -179,7 +174,7 @@ class DcoParams: public AlpsParameterSet {
   /** Method for setting the default values for the parameters. */
   virtual void setDefaultEntries();
   /*@}*/
- public:
+public:
   //===========================================================================
   /** For user application:
    *   Following code are do NOT need to change.
@@ -204,18 +199,18 @@ class DcoParams: public AlpsParameterSet {
   inline double  entry(const dblParams key) const { return dpar_[key]; }
   ///
   inline const std::string&
-    entry(const strParams key) const { return spar_[key]; }
+  entry(const strParams key) const { return spar_[key]; }
   ///
   inline const std::vector<std::string>&
-    entry(const strArrayParams key) const { return sapar_[key]; }
+  entry(const strArrayParams key) const { return sapar_[key]; }
   /*@}*/
   //---------------------------------------------------------------------------
   /// char* is true(1) or false(0), not used
   void setEntry(const chrParams key, const char * val) {
-	  bpar_[key] = atoi(val) ? true : false; }
+    bpar_[key] = atoi(val) ? true : false; }
   /// char is true(1) or false(0), not used
   void setEntry(const chrParams key, const char val) {
-	  bpar_[key] = val ? true : false; }
+    bpar_[key] = val ? true : false; }
   /// This method is the one that ever been used.
   void setEntry(const chrParams key, const bool val) {
     bpar_[key] = val; }
