@@ -2057,7 +2057,6 @@ DcoModel::createRoot() {
 
     int *tempInd = NULL;
     BcpsObject **tempObj = NULL;
-
     desc->assignVars(0 /*numRem*/, tempInd,
 		     0 /*numAdd*/, tempObj,
 		     false, numVars, varIndices1, vlhe, /*Var hard lb*/
@@ -2423,6 +2422,8 @@ DcoModel::modelLog()
 void
 DcoModel::nodeLog(AlpsTreeNode *node, bool force)
 {
+  // Alps calls this function from exploreUnitwork. This function gets called
+  // at times when the log information is same.
     int nodeInterval =
 	broker_->getModel()->AlpsPar()->entry(AlpsParams::nodeLogInterval);
 
@@ -2439,7 +2440,7 @@ DcoModel::nodeLog(AlpsTreeNode *node, bool force)
 
     if (broker_->getProcType() == AlpsProcessTypeSerial) {
 	/* For serial code only */
-#if 0
+#if DISCO_DEBUG
 	std::cout << "==== Process " << broker_->getProcRank()
 		  << ": printLog = " << printLog
 		  << ", msgLevel = " << msgLevel
@@ -2475,7 +2476,7 @@ DcoModel::nodeLog(AlpsTreeNode *node, bool force)
 	    printLog = true;
 	}
 	if (printLog) {
-#if 0
+#if DISCO_DEBUG
 	    int numCols = getNumCols();
 	    int numRows = getNumRows();
 #endif
@@ -2487,7 +2488,7 @@ DcoModel::nodeLog(AlpsTreeNode *node, bool force)
 		/* Print header. */
 		std::cout << std::endl;
 		std::cout << "Nodes Done";         /*8 spaces*/
-#if 0
+#if DISCO_DEBUG
 		std::cout << "      ObjValue";   /*14 spaces*/
 		if (msgLevel > 2) {
 		    std::cout << "     Row";    /*8 Spaces*/
@@ -2514,7 +2515,7 @@ DcoModel::nodeLog(AlpsTreeNode *node, bool force)
 	    }
 
 	    /* Quality */
-#if 0
+#if DISCO_DEBUG
 	    if (node->getStatus() == AlpsNodeStatusFathomed) {
 		printf("      Fathomed");
 	    }
