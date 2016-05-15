@@ -3,7 +3,8 @@
 DcoSolution::DcoSolution() {
 }
 
-DcoSolution::DcoSolution(int size, double const * values, double q) {
+DcoSolution::DcoSolution(int size, double const * values, double quality):
+  BcpsSolution(size, values, quality) {
 }
 
 DcoSolution::~DcoSolution() {

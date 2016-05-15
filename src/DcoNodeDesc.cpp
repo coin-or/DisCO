@@ -20,7 +20,7 @@ DcoNodeDesc::DcoNodeDesc(DcoModel * model): BcpsNodeDesc(model) {
 
 DcoNodeDesc::~DcoNodeDesc() {
   if (basis_) {
-    delete[] basis_;
+    delete basis_;
   }
 }
 

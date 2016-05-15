@@ -5,8 +5,8 @@
 
 
 DcoLinearConstraint::DcoLinearConstraint(int size, int const * indices,
-					 double const * values, double lb,
-					 double ub):
+                                         double const * values, double lb,
+                                         double ub):
   DcoConstraint(lb, ub) {
   size_ = size;
   indices_ = new int[size];
@@ -64,14 +64,14 @@ double const * DcoLinearConstraint::getValues() const {
 }
 
 /** Create a OsiRowCut based on this constraint. */
-OsiRowCut * DcoLinearConstraint::createOsiRowCut(DcoModel * model) {
+OsiRowCut * DcoLinearConstraint::createOsiRowCut(DcoModel * model) const {
   double lower = CoinMax(getLbHard(), getLbSoft());
   double upper = CoinMin(getUbHard(), getUbSoft());
   OsiRowCut * cut = new OsiRowCut;
   if (!cut) {
     // Out of memory.
     model->dcoMessageHandler_->message(DISCO_OUT_OF_MEMORY,
-					    *(model->dcoMessages_))
+                                            *(model->dcoMessages_))
       << __FILE__ << __LINE__ << CoinMessageEol;
     throw CoinError("Out of memory", "createOsiRowCut", "DcoConstraint");
   }

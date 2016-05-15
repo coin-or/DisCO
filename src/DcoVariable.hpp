@@ -4,50 +4,94 @@
 #include <BcpsObject.h>
 #include "Dco.hpp"
 
-/**
-   DcoVariable inherits BcpsVariable. BcpsVariable inherits BcpsObject.
-   BcpsObject inherits AlpsKnowledge.
+/*!
+   Represents a DisCO variable. DcoVariable inherits BcpsVariable. BcpsVariable
+   inherits BcpsObject. BcpsObject inherits AlpsKnowledge.
    DcoVariable -> BcpsVariable -> BcpsObject -> AlpsKnowledge.
 
+   # AlpsKnowledge
    AlpsKnowledge is an abstract base class of any user-defined class that Alps
    has to know about in order to encode/decode. It has two fields
-   (AlpsEncoded *) and (KnowledgeType) type_.
+   (AlpsEncoded *) encoded_ and (KnowledgeType) type_.
 
+   # BcpsObject
    BcpsObject is a class for describing the objects that comprise a
    mathematical optimization problem. All that is assumed about an object is
    that it has bounds and might have integrality constraint.
 
+   Bcps object has the following fields
+
+   <ul>
+   <li> objectIndex_
+   <li> repType_
+   <li> intType_
+   <li> validRegion_
+   <li> status_
+   <li> lbHard_
+   <li> ubHard_
+   <li> lbSoft_
+   <li> ubSoft_
+   <li> hashValue_
+   <li> numInactive_
+   <li> effectiveness_
+   </ul>
+
+
+   BcpsVariable:
    BcpsVariable is a class that represents a variable. It does not have any
    field other than ones inherited from BcpsObject.
 
-   DcoModel:
-   Columns are stored in cols_ inherited from BcpsModel. We keep
+   In DcoModel columns are stored in cols_ inherited from BcpsModel. We keep
    number of integer variables at numIntegerCols_ and their indices at (int
    * intColIndices_). intColIndices_[0] gives the index of the first integer
-   in the cols_ array.
+   column in the cols_ array.
 
-   We will not keep objects_ separately. We will use constraints_ and
-   variables_ inherited from BcpsModel.
+   DcoModel objects are kept at constraints_ and variables_ inherited from
+   BcpsModel.
 
-
-  // indices of integer columns
-  // columns are stored in cols_ inherited from BcpsModel
-  ;  // size of numIntObjects_
-
-
-   Blis:
-   Integer variables are represented with DcoObjectInt. DcoObjectInt inherits
-   BcpsObject class.
-
+   In Blis, integer variables have their own class, BlisObjectInt.
+   BlisObjectInt inherits BcpsObject class.
  */
+
 class DcoVariable: public BcpsVariable {
 public:
+  ///@name Cosntructors and Destructors
+  //@{
+  /// Default constructor.
   DcoVariable();
-  DcoVariable(double lbh, double ubh, double lbs, double ubs);
-  DcoVariable(double lbh, double ubh, double lbs, double ubs,
-	      DcoIntegralityType it);
+  /// Constructor with lower and upper bounds.
+  DcoVariable(int index, double lbh, double ubh, double lbs, double ubs);
+  /// Constructor with bounds and integrality type.
+  DcoVariable(int index, double lbh, double ubh, double lbs, double ubs,
+              DcoIntegralityType it);
+  /// Copy constructor.
   DcoVariable(DcoVariable const & other);
+  /// Destructor.
   virtual ~DcoVariable();
+  //@}
+  ///@name Virtual Functions inherited from BcpsObject
+  //@{
+  virtual BcpsObject * clone() const;
+  /// Return the infeasibility of the variable. A variable can be infeasible
+  /// only when it is integer.
+  // todo(aykut) Why do we need model as input?
+  virtual double infeasibility(BcpsModel * bcps_model, int & preferredDir) const;
+  // virtual void feasibleRegion(BcpsModel *m) {}
+  /// Create a branch object from this variable.
+  virtual BcpsBranchObject * createBranchObject(BcpsModel * bcps_model, int way) const;
+  // virtual BcpsBranchObject * preferredNewFeasible(BcpsModel *m) const;
+  // virtual BcpsBranchObject * notPreferredNewFeasible(BcpsModel *m) const;
+  // virtual void resetBounds(BcpsModel *m);
+  // virtual bool boundBranch(BcpsModel *m) const;
+  // virtual void floorCeiling(double &floorValue,
+  //                        double &ceilingValue,
+  //                        double value,
+  //                        double tolerance) const;
+  // virtual double upEstimate() const;
+  // virtual double downEstimate() const;
+  // virtual void printDesc();
+  //@}
+
 };
 
 #endif

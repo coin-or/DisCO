@@ -29,19 +29,19 @@ class DcoParams: public AlpsParameterSet {
   /// Integer paramters.
   enum intParams {
     /** Branching strategy.
-	0: max infeasibilty,
-	1: pseudocost,
-	2: reliability,
-	3: strong branching.
-	4: bilevel branching
+        0: max infeasibilty,
+        1: pseudocost,
+        2: reliability,
+        3: strong branching.
+        4: bilevel branching
     */
     branchStrategy,
     branchStrategyRampUp,
     /** Cut generators control.
-	-2: root,
-	-1: auto,
-	0: disable,
-	any positive frequency
+        -2: root,
+        -1: auto,
+        0: disable,
+        any positive frequency
     */
     cutStrategy, /** All constraint generators */
     cutGenerationFrequency,
@@ -55,6 +55,9 @@ class DcoParams: public AlpsParameterSet {
     cutOddHoleStrategy,
     cutProbingStrategy,
     cutTwoMirStrategy,
+    cutIpmStrategy,
+    cutIpmIntStrategy,
+    cutOaStrategy,
     cutCliqueFreq,
     cutGomoryFreq,
     cutFlowCoverFreq,
@@ -63,13 +66,16 @@ class DcoParams: public AlpsParameterSet {
     cutOddHoleFreq,
     cutProbingFreq,
     cutTwoMirFreq,
+    cutIpmFreq,
+    cutIpmIntFreq,
+    cutOaFreq,
     /** -1 auto, 0, no, any integer frequency */
     difference,
     /** Heuristics control.
-	DcoHeurStrategyRoot:     root,
-	DcoHeurStrategyAuto:     auto,
-	DcoHuerStrategyNone:     disable,
-	DcoHeurStrategyPeriodic: every 't' nodes
+        DcoHeurStrategyRoot:     root,
+        DcoHeurStrategyAuto:     auto,
+        DcoHuerStrategyNone:     disable,
+        DcoHeurStrategyPeriodic: every 't' nodes
     */
     heurStrategy, /** All heuristics */
     heurCallFrequency,
@@ -87,21 +93,21 @@ class DcoParams: public AlpsParameterSet {
     strongCandSize,
     /** conic cut parameters **/
     /** Cut generators control.
-	-2: root,
-	-1: auto,
-	0: disable,
-	any positive frequency
+        -2: root,
+        -1: auto,
+        0: disable,
+        any positive frequency
     */
-    conicCutStrategy, /** All constraint generators */
-    conicCutGenerationFrequency,
-    conicCutPass,      /** The pass to generate cuts */
-    quickConicCutPass, /** The pass to generate cuts for quick branching */
-    conicCutMirStrategy,
-    conicCutGD1Strategy,
-    conicCutGD2Strategy,
-    conicCutMirFreq,
-    conicCutGD1Freq,
-    conicCutGD2Freq,
+    // conicCutStrategy, /** All constraint generators */
+    // conicCutGenerationFrequency,
+    // conicCutPass,      /** The pass to generate cuts */
+    // quickConicCutPass, /** The pass to generate cuts for quick branching */
+    // conicCutMirStrategy,
+    // conicCutGD1Strategy,
+    // conicCutGD2Strategy,
+    // conicCutMirFreq,
+    // conicCutGD1Freq,
+    // conicCutGD2Freq,
     logLevel,
     ///
     endOfIntParams
@@ -110,24 +116,26 @@ class DcoParams: public AlpsParameterSet {
   /** Double parameters. */
   enum dblParams {
     /** Limit the max number cuts applied at a node.
-	maxNumCons = (CutFactor - 1) * numCoreConstraints. */
+        maxNumCons = (CutFactor - 1) * numCoreConstraints. */
     cutFactor,
     /** Cutoff any nodes whose objective value is higher than it. */
     cutoff,
     /** The value added to relaxation value when deciding fathom.
-	Default:1.0e-6 */
-    cutoffInc,
+        Default:1.0e-6 */
+    objTol,
     /** Dense constraint factor.*/
     denseConFactor,
     /** Tolerance to treat as an integer. Default: 1.0e-5 */
     integerTol,
+    /** Tolerance to treat a cone feasible. Default: 1.0e-5 */
+    coneTol,
     /** Objective sense: min = 1.0, max = -1.0*/
     objSense,
     /** If the relative gap between best feasible and best relaxed fall into
-	this gap, search stops. Default: 1.0e-6 */
+        this gap, search stops. Default: 1.0e-6 */
     optimalRelGap,
     /** If the absolute gap between best feasible and best relaxed fall into
-	this gap, search stops. Default: 1.0e-4 */
+        this gap, search stops. Default: 1.0e-4 */
     optimalAbsGap,
     /** Weight used to calculate pseudocost. */
     pseudoWeight,
@@ -158,12 +166,12 @@ public:
       set. */
   DcoParams():
     AlpsParameterSet(
-		     static_cast<int>(endOfChrParams),
-		     static_cast<int>(endOfIntParams),
-		     static_cast<int>(endOfDblParams),
-		     static_cast<int>(endOfStrParams),
-		     static_cast<int>(endOfStrArrayParams)
-		     ) {
+                     static_cast<int>(endOfChrParams),
+                     static_cast<int>(endOfIntParams),
+                     static_cast<int>(endOfDblParams),
+                     static_cast<int>(endOfStrParams),
+                     static_cast<int>(endOfStrArrayParams)
+                     ) {
     createKeywordList();
     setDefaultEntries();
   }
@@ -246,7 +254,7 @@ public:
     for (int i = 0; i < endOfStrArrayParams; ++i) {
       buf.writeRep(sapar_[i].size());
       for (size_t j = 0; j < sapar_[i].size(); ++j)
-	buf.writeRep(sapar_[i][j]);
+        buf.writeRep(sapar_[i][j]);
     }
   }
   /** Unpack the parameter set from the buffer. */
@@ -266,9 +274,9 @@ public:
       buf.readRep(str_size);
       sapar_[i].reserve(str_size);
       for (size_t j = 0; j < str_size; ++j){
-	//	sapar_[i].unchecked_push_back(std::string());
-	sapar_[i].push_back(std::string());
-	buf.readRep(sapar_[i].back());
+        //	sapar_[i].unchecked_push_back(std::string());
+        sapar_[i].push_back(std::string());
+        buf.readRep(sapar_[i].back());
       }
     }
   }

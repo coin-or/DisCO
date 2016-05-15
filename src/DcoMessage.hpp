@@ -59,17 +59,27 @@ enum DISCO_Message {
     // tree node
     DISCO_NODE_BRANCHONINT,
     DISCO_NODE_UNEXPECTEDSTATUS,
+    // constraint generation
+    DISCO_INVALID_CUT_FREQUENCY,
     // relaxation solver messages
     DISCO_SOLVER_UNKNOWN_STATUS,
+    DISCO_SOLVER_FAILED,
     // more general messages
     // out of memory
     DISCO_OUT_OF_MEMORY,
     DISCO_NOT_IMPLEMENTED,
-
+    DISCO_UNKNOWN_CONETYPE,
+    DISCO_UNKNOWN_BRANCHSTRATEGY,
+    DISCO_UNKNOWN_CUTSTRATEGY,
     ///
     DISCO_DUMMY_END
 };
 
+enum DISCO_Debug_Level {
+    DISCO_DLOG_BRANCH = 8,
+    DISCO_DLOG_CUT = 16,
+    DISCO_DLOG_PROCESS = 32
+};
 //#############################################################################
 
 class DcoMessage : public CoinMessages {

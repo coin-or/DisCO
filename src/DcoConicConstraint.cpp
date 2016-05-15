@@ -1,8 +1,9 @@
 #include "DcoConicConstraint.hpp"
+#include <numeric>
 
 /// Initializes constraint from given data.
 DcoConicConstraint::DcoConicConstraint(DcoLorentzConeType type, int size,
-				       int const * members):
+                                       int const * members):
   DcoConstraint(0.0, DISCO_INFINITY) {
   coneType_ = type;
   size_ = size;
@@ -68,6 +69,51 @@ DcoConicConstraint::~DcoConicConstraint() {
   if (activeSupports_) {
     delete[] activeSupports_;
   }
+}
+
+double DcoConicConstraint::infeasibility(BcpsModel * m,
+                                         int & preferredWay) const {
+  DcoModel * model = dynamic_cast<DcoModel*>(m);
+  CoinMessageHandler * message_handler = model->dcoMessageHandler_;
+  CoinMessages * messages = model->dcoMessages_;
+  double infeasibility;
+  // get solution stored in solver
+  double const * sol = model->solver()->getColSolution();
+  // get related portion of the solution
+  double * par_sol = new double[size_];
+  for(int i=0; i<size_; ++i) {
+    par_sol[i] = sol[members_[i]];
+  }
+  // get cone tolerance
+  double cone_tol = model->dcoPar()->entry(DcoParams::coneTol);
+  if (coneType_==DcoLorentzCone) {
+    // infeasibility is
+    // |x_2n| - x_1, if |x_2n| - x_1 > coneTol
+    //  0 otherwise
+    double * p = par_sol;
+    double norm = std::inner_product(p+1, p+size_, p+1, 0.0);
+    norm = sqrt(norm);
+    infeasibility = norm - p[0];
+  }
+  else if (coneType_==DcoRotatedLorentzCone) {
+    // infeasibility is
+    // |x_3n|^2 - 2x_1x_2, if |x_3n|^2 - 2x_1x_2, > coneTol
+    //  0 otherwise
+    double * p = par_sol;
+    double ss = std::inner_product(p+2, p+size_, p+2, 0.0);
+    infeasibility = ss - 2.0*p[0]*p[1];
+  }
+  else {
+    // unknown cone type.
+    message_handler->message(DISCO_UNKNOWN_CONETYPE, *messages)
+      << __FILE__ << __LINE__ << CoinMessageEol;
+    throw std::exception();
+  }
+  if (infeasibility<=cone_tol) {
+    infeasibility = 0.0;
+  }
+  delete[] par_sol;
+  return infeasibility;
 }
 
 /// Returns type of conic constraint.

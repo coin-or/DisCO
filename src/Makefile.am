@@ -59,6 +59,14 @@ lib_LTLIBRARIES = libDisco.la
 
 # List all source files for this library, including headers
 libDisco_la_SOURCES = \
+	DcoConGenerator.hpp \
+	DcoConGenerator.cpp \
+	DcoLinearConGenerator.hpp \
+	DcoLinearConGenerator.cpp \
+	DcoConicConGenerator.hpp \
+	DcoConicConGenerator.cpp \
+	DcoBranchObject.cpp \
+	DcoBranchObject.hpp \
 	DcoBranchStrategyRel.cpp \
 	DcoBranchStrategyRel.hpp \
 	DcoBranchStrategyMaxInf.cpp \
@@ -87,8 +95,6 @@ libDisco_la_SOURCES = \
 	DcoTreeNode.hpp \
 	DcoVariable.cpp \
 	DcoVariable.hpp \
-	DcoMessage.cpp \
-	DcoMessage.hpp \
 	DcoConfig.hpp
 
 
@@ -128,6 +134,10 @@ DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
 # and that therefore should be installed in 'install/coin'
 includecoindir = $(includedir)/coin
 includecoin_HEADERS = \
+	DcoConGenerator.hpp \
+	DcoLinearConGenerator.hpp \
+	DcoConicConGenerator.hpp \
+	DcoBranchObject.hpp \
 	DcoBranchStrategyRel.hpp \
 	DcoBranchStrategyMaxInf.hpp \
 	DcoConstraint.hpp \

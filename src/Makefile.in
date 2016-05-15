@@ -93,11 +93,13 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 @DEPENDENCY_LINKING_TRUE@libDisco_la_DEPENDENCIES =  \
 @DEPENDENCY_LINKING_TRUE@	$(am__DEPENDENCIES_1)
-am_libDisco_la_OBJECTS = DcoBranchStrategyRel.lo \
-	DcoBranchStrategyMaxInf.lo DcoConstraint.lo \
+am_libDisco_la_OBJECTS = DcoConGenerator.lo DcoLinearConGenerator.lo \
+	DcoConicConGenerator.lo DcoBranchObject.lo \
+	DcoBranchStrategyRel.lo DcoBranchStrategyMaxInf.lo \
+	DcoBranchStrategyPseudo.lo DcoConstraint.lo \
 	DcoLinearConstraint.lo DcoConicConstraint.lo DcoMessage.lo \
 	DcoModel.lo DcoNodeDesc.lo DcoParams.lo DcoSolution.lo \
-	DcoSubTree.lo DcoTreeNode.lo DcoVariable.lo DcoMessage.lo
+	DcoSubTree.lo DcoTreeNode.lo DcoVariable.lo
 libDisco_la_OBJECTS = $(am_libDisco_la_OBJECTS)
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
@@ -364,10 +366,20 @@ lib_LTLIBRARIES = libDisco.la
 
 # List all source files for this library, including headers
 libDisco_la_SOURCES = \
+	DcoConGenerator.hpp \
+	DcoConGenerator.cpp \
+	DcoLinearConGenerator.hpp \
+	DcoLinearConGenerator.cpp \
+	DcoConicConGenerator.hpp \
+	DcoConicConGenerator.cpp \
+	DcoBranchObject.cpp \
+	DcoBranchObject.hpp \
 	DcoBranchStrategyRel.cpp \
 	DcoBranchStrategyRel.hpp \
 	DcoBranchStrategyMaxInf.cpp \
 	DcoBranchStrategyMaxInf.hpp \
+	DcoBranchStrategyPseudo.cpp \
+	DcoBranchStrategyPseudo.hpp \
 	DcoConstraint.cpp \
 	DcoConstraint.hpp \
 	DcoLinearConstraint.cpp \
@@ -392,8 +404,6 @@ libDisco_la_SOURCES = \
 	DcoTreeNode.hpp \
 	DcoVariable.cpp \
 	DcoVariable.hpp \
-	DcoMessage.cpp \
-	DcoMessage.hpp \
 	DcoConfig.hpp
 
 
@@ -425,8 +435,13 @@ DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
 # and that therefore should be installed in 'install/coin'
 includecoindir = $(includedir)/coin
 includecoin_HEADERS = \
+	DcoConGenerator.hpp \
+	DcoLinearConGenerator.hpp \
+	DcoConicConGenerator.hpp \
+	DcoBranchObject.hpp \
 	DcoBranchStrategyRel.hpp \
 	DcoBranchStrategyMaxInf.hpp \
+	DcoBranchStrategyPseudo.hpp \
 	DcoConstraint.hpp \
 	DcoLinearConstraint.hpp \
 	DcoConicConstraint.hpp \
@@ -572,10 +587,15 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchObject.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyMaxInf.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyPseudo.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyRel.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConGenerator.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConicConGenerator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConicConstraint.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConstraint.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoLinearConGenerator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoLinearConstraint.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoMain.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoMessage.Plo@am__quote@
