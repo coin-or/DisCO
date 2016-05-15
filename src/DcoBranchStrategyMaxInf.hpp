@@ -53,7 +53,6 @@ class DcoModel;
 class DcoBranchStrategyMaxInf: public BcpsBranchStrategy {
 public:
   DcoBranchStrategyMaxInf();
-  DcoBranchStrategyMaxInf(DcoBranchStrategyMaxInf const & other);
   DcoBranchStrategyMaxInf(DcoModel * model);
   virtual ~DcoBranchStrategyMaxInf();
   virtual BcpsBranchStrategy * clone() const;
@@ -66,6 +65,7 @@ public:
                                  BcpsBranchObject * bestSoFar);
 private:
   DcoBranchStrategyMaxInf & operator=(DcoBranchStrategyMaxInf const & rhs);
+  DcoBranchStrategyMaxInf(DcoBranchStrategyMaxInf const & other);
 };
 
 #endif

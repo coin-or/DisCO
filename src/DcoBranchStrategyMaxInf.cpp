@@ -4,9 +4,6 @@
 DcoBranchStrategyMaxInf::DcoBranchStrategyMaxInf() {
 }
 
-DcoBranchStrategyMaxInf::DcoBranchStrategyMaxInf(DcoBranchStrategyMaxInf const & other) {
-}
-
 DcoBranchStrategyMaxInf::DcoBranchStrategyMaxInf(DcoModel * model):
   BcpsBranchStrategy(model) {
 }
@@ -15,7 +12,8 @@ DcoBranchStrategyMaxInf::~DcoBranchStrategyMaxInf() {
 }
 
 BcpsBranchStrategy * DcoBranchStrategyMaxInf::clone() const {
-  return new DcoBranchStrategyMaxInf(*this);
+  DcoModel * model = dynamic_cast<DcoModel*>(model_);
+  return new DcoBranchStrategyMaxInf(model);
 }
 
 int DcoBranchStrategyMaxInf::createCandBranchObjects(int numPassesLeft,
@@ -97,7 +95,8 @@ int DcoBranchStrategyMaxInf::betterBranchObject(BcpsBranchObject * b,
       double best_value = bestSoFar->getValue();
       double best_dt_upper = ceil(best_value) - best_value;
       double best_dt_lower = best_value - floor(best_value);
-      double best_d = (best_dt_upper<best_dt_lower) ? best_dt_upper : best_dt_lower;
+      double best_d = (best_dt_upper<best_dt_lower) ?
+        best_dt_upper : best_dt_lower;
       if (d>best_d) {
         // update best
         bestSoFar = b;
