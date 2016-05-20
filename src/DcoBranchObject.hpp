@@ -4,19 +4,16 @@
 #include <BcpsBranchObject.h>
 #include "DcoModel.hpp"
 
-/**
-   Represents a DisCO branch object. DcoBranchObject inherits BcpsBranchObject.
+/*!
+  Represents a DisCO branch object. DcoBranchObject inherits BcpsBranchObject.
 
-   BcpsBranchObject:
-   BcpsBranchObject is an abstract base class for describing a branch object. A
-   branch object keeps data to create a branch. Data stored are type_, model_,
-   objectIndex_, upScore_, downScore_, direction_, value and numBranchesLeft_.
-   It has an interface that gets/sets these data. See BcpsBranchObject
-   documentation for details.
+  # DcoBranchObject
 
-   BcpsBranchObject stands for the most general branch objects, SOS, variable,
-   etc. DcoBranchObject is for a simple branch on an integral
-   variable. Implements BcpsBranchObject this in mind.
+  DcoBranchObject represents a branch object for a simple branch on an
+  integral variable.
+
+  Has two fields, ubDownBranch_ and lbUpBranch_.
+
  */
 
 class DcoBranchObject: virtual public BcpsBranchObject {
@@ -28,8 +25,13 @@ public:
   ///@name Constructor and Destructors.
   //@{
   /// Constructor.
-  DcoBranchObject(DcoModel * model, int colInd, int intScore, double dblScore,
-                  int direction, double value);
+  DcoBranchObject(DcoModel * model, int index, double score, double value);
+  /// Copy constructor.
+  DcoBranchObject(DcoBranchObject const & other);
+  /// Helpful Copy constructor.
+  DcoBranchObject(BcpsBranchObject const * other);
+  /// Copy assignment operator
+  DcoBranchObject & operator=(DcoBranchObject const & rhs);
   /// Destructor.
   virtual ~DcoBranchObject();
   //@}
@@ -37,16 +39,20 @@ public:
   ///@name Other functions
   //@{
   /// Clone this to a new object and return pointer to it.
-  virtual BcpsBranchObject * clone() const;
+  //virtual BcpsBranchObject * clone() const;
   //@}
 
-  ///@name Branch related functions.
-  //@{
-  /// Perform branching as specified by the branching object. Update the status
-  /// of this branching object.
+  ///@name Virtual functions inherited from BcpsBranchObject
+  /// The number of branch arms created for this branch object.
+  virtual int numBranches() const;
+  /// The number of branch arms left to be evaluated.
+  virtual int numBranchesLeft() const;
+  /// Spit out a branch and, update this or superclass fields if necessary.
   virtual double branch(bool normalBranch = false);
-  /// Return true if branching should fix object bounds.
-  virtual bool boundBranch() const;
+  /// Pack to an encoded object.
+  virtual AlpsReturnStatus encode(AlpsEncoded * encoded) const;
+  /// Unpack a branching object from an encoded object.
+  virtual AlpsReturnStatus decode(AlpsEncoded & encoded);
   //@}
 
   ///@name Bound getting functions.
@@ -57,6 +63,9 @@ public:
   double lbUpBranch() const { return lbUpBranch_; }
   //@}
 
+private:
+  /// Disable default constructor.
+  DcoBranchObject();
 };
 
 #endif
