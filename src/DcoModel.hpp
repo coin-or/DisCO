@@ -98,6 +98,27 @@ class CglConicCutGenerator;
 
    # DisCO ideas
 
+   # Style guides
+
+   <ul>
+
+   <li> If a function does not fit in the same line of its decleration in the
+   header file then it is not supposed to be there. Move it to .cpp file.
+
+   <li> All functions defined in .hpp are already inline since bla.bla version
+   of gcc. This makes inline key-words in the header files redundants.  I will
+   just remove them, since I can not bear redundant stuff floating around.
+
+   <li> Define pointers as "Type * name". * is not next to Type or variable
+   name. * is separate since it is neither part of the Type nor variable
+   name. This is the way recommended by Bjarne Stroustrup and it makes sense.
+
+   <il> We use const specifiers as suggested by Bjarne Stroustrup in his book.
+   Check the code to see how I declare const objects, check the book to see
+   why.
+
+   </ul>
+
 */
 
 class DcoModel: public BcpsModel {

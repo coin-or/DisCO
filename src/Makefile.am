@@ -71,6 +71,8 @@ libDisco_la_SOURCES = \
 	DcoBranchStrategyRel.hpp \
 	DcoBranchStrategyMaxInf.cpp \
 	DcoBranchStrategyMaxInf.hpp \
+	DcoBranchStrategyPseudo.cpp \
+	DcoBranchStrategyPseudo.hpp \
 	DcoConstraint.cpp \
 	DcoConstraint.hpp \
 	DcoLinearConstraint.cpp \
@@ -140,6 +142,7 @@ includecoin_HEADERS = \
 	DcoBranchObject.hpp \
 	DcoBranchStrategyRel.hpp \
 	DcoBranchStrategyMaxInf.hpp \
+	DcoBranchStrategyPseudo.hpp \
 	DcoConstraint.hpp \
 	DcoLinearConstraint.hpp \
 	DcoConicConstraint.hpp \

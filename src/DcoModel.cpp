@@ -10,6 +10,7 @@
 #include "DcoLinearConstraint.hpp"
 #include "DcoConicConstraint.hpp"
 #include "DcoBranchStrategyMaxInf.hpp"
+#include "DcoBranchStrategyPseudo.hpp"
 #include "DcoConGenerator.hpp"
 #include "DcoLinearConGenerator.hpp"
 #include "DcoConicConGenerator.hpp"
@@ -803,9 +804,9 @@ void DcoModel::setBranchingStrategy() {
   case DcoBranchingStrategyMaxInfeasibility:
     branchStrategy_ = new DcoBranchStrategyMaxInf(this);
     break;
-  // case DcoBranchingStrategyPseudoCost:
-  //   branchStrategy_ = new DcoBranchStrategyPseudo(this, 1);
-  //   break;
+  case DcoBranchingStrategyPseudoCost:
+    branchStrategy_ = new DcoBranchStrategyPseudo(this);
+    break;
   // case DcoBranchingStrategyReliability:
   //   branchStrategy_ = new DcoBranchStrategyRel(this, reliability);
   //   break;
