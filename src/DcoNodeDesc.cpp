@@ -1,8 +1,8 @@
 #include "DcoNodeDesc.hpp"
 
 DcoNodeDesc::DcoNodeDesc() {
-  // set if as left branch by default
-  branchedDir_ = DcoNodeBranchDirectionLeft;
+  // set if as down branch by default
+  branchedDir_ = DcoNodeBranchDirectionDown;
   branchedInd_ = -1;
   // set to 0.0 by default.
   branchedVal_ = 0.0;
@@ -10,8 +10,8 @@ DcoNodeDesc::DcoNodeDesc() {
 }
 
 DcoNodeDesc::DcoNodeDesc(DcoModel * model): BcpsNodeDesc(model) {
-  // set if as left branch by default
-  branchedDir_ = DcoNodeBranchDirectionLeft;
+  // set if as down branch by default
+  branchedDir_ = DcoNodeBranchDirectionDown;
   branchedInd_ = -1;
   // set to 0.0 by default.
   branchedVal_ = 0.0;
