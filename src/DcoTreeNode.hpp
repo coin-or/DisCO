@@ -181,7 +181,13 @@
    instances to OsiCut instances to add them to the solver. Why don't we keep
    them in OsiCut instances all along.
 
+   # Alps ideas/questions.
 
+   What happens to fathomed nodes?
+
+   When we create nodes we set quality to the parents objective value. Does it
+   ever get updated once node is solved? After cuts are generated?
+   Ans: it is updated in the DcoTreeNode::bound() function.
 
  */
 

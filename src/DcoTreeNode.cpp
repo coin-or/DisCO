@@ -134,7 +134,7 @@ int DcoTreeNode::generateConstraints(BcpsModel * model,
     // NOTE: only modify if user choose automatic.
     //------------------------------------------------
   }
-  // return value will make sense when ::process is implemented in Bcps level.
+  // return value will make sense when DcoTreeNode::process is implemented in Bcps level.
   return 0;
 }
 
@@ -291,9 +291,7 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
       // Maximum number of resolve during branching.
       int numBranchResolve = 10;
       // todo(aykut) why ub should be an input?
-      branchStrategy->createCandBranchObjects(numBranchResolve,
-                                              model->upperBound());
-      branchObject_ = branchStrategy->bestBranchObject();
+      branchStrategy->createCandBranchObjects(this);
       // prepare this node for branching, bookkeeping for differencing.
       // call pregnant setting routine
       processSetPregnant();
@@ -343,7 +341,7 @@ int DcoTreeNode::bound(BcpsModel * bcps_model) {
       subproblem_status = DcoSubproblemStatusOptimal;
       double objValue = model->solver()->getObjValue() *
         model->solver()->getObjSense();
-      // Update quality of this nodes.
+      // Update quality of this node
       quality_ = objValue;
     }
   }
@@ -655,16 +653,21 @@ DcoTreeNode::branch() {
         << static_cast<int>(getStatus()) << CoinMessageEol;
   }
 
+  //todo(aykut) update scores
+  //BcpsBranchStrategy * branchStrategy = model->branchStrategy();
+
+
   // get Alps phase
   AlpsPhase phase = knowledgeBroker_->getPhase();
 
   // get branch object
   DcoBranchObject const * branch_object =
     dynamic_cast<DcoBranchObject const *>(branchObject());
+
   // get index and value of branch variable.
   //int branch_var = model->relaxedCols()[branch_object->getObjectIndex()];
-  int branch_var = branch_object->getObjectIndex();
-  double branch_value = branch_object->getValue();
+  int branch_var = branch_object->index();
+  double branch_value = branch_object->value();
 
   // compute child nodes' warm start basis
   CoinWarmStartBasis * child_ws;
@@ -721,16 +724,16 @@ DcoTreeNode::branch() {
 
   // Down Node
   // == set other relevant fields of down node
-  down_node->setBranchedDir(DcoNodeBranchDirectionLeft);
-  down_node->setBranchedInd(branch_object->getObjectIndex());
+  down_node->setBranchedDir(DcoNodeBranchDirectionDown);
+  down_node->setBranchedInd(branch_object->index());
   down_node->setBranchedVal(branch_value);
   // == set warm start basis for the down node.
   down_node->setBasis(child_ws);
 
   // Up Node
   // == set other relevant fields of up node
-  up_node->setBranchedDir(DcoNodeBranchDirectionRight);
-  up_node->setBranchedInd(branch_object->getObjectIndex());
+  up_node->setBranchedDir(DcoNodeBranchDirectionUp);
+  up_node->setBranchedInd(branch_object->index());
   up_node->setBranchedVal(branch_value);
   // == set warm start basis for the up node.
   up_node->setBasis(child_ws);
