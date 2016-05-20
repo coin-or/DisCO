@@ -149,8 +149,8 @@ enum DcoBranchingObjectType {
 
 /** Node branch direction, is it a left node or right */
 enum DcoNodeBranchDir {
-    DcoNodeBranchDirectionLeft = 0,
-    DcoNodeBranchDirectionRight
+    DcoNodeBranchDirectionDown = 0,
+    DcoNodeBranchDirectionUp
 };
 
 /** Integral type */
