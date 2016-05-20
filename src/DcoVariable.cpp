@@ -65,13 +65,14 @@ double DcoVariable::infeasibility(BcpsModel * bcps_model,
 
 BcpsBranchObject * DcoVariable::createBranchObject(BcpsModel * bcps_model,
                                                    int direction) const {
-  // get its value from solver
   DcoModel * model = dynamic_cast<DcoModel*>(bcps_model);
   int var_index = getObjectIndex();
+  // get current value from solver
   double value = model->solver()->getColSolution()[var_index];
-  // todo(aykut) in BcpsBranchObject class constructor upscore is int,
-  // downscore is double, why?
-  BcpsBranchObject * bo = new DcoBranchObject(model, var_index, -1, -1.0, -1, value);
+  // todo(aykut) we do not know the score of branch object since we do not know
+  // the branching strategy.
+  double score = 0.0;
+  BcpsBranchObject * bo = new DcoBranchObject(model, var_index, score, value);
   //BcpsBranchObject(BcpsModel * model, int objectIndex, int upScore,
   //                 double downScore, int direction, double value)
   return bo;
