@@ -255,6 +255,8 @@ class DcoModel: public BcpsModel {
   void addConstraintGenerators();
   //@}
 
+  /// write parameters to oustream
+  void writeParameters(std::ostream& outstream) const;
 public:
   ///@name Message printing
   //@{

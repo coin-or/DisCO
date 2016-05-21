@@ -358,30 +358,174 @@ void DcoModel::readAddConicConstraints(CoinMpsIO * reader) {
   delete[] temp;
 }
 
+/** Write out parameters. */
+void
+DcoModel::writeParameters(std::ostream& outstream) const {
+  outstream << "\n================================================"
+            <<std::endl;
+  outstream << "ALPS Parameters: " << std::endl;
+  AlpsPar_->writeToStream(outstream);
+  outstream << "\n================================================"
+            <<std::endl;
+  outstream << "DISCO Parameters: " << std::endl;
+  dcoPar_->writeToStream(outstream);
+}
+
 void DcoModel::preprocess() {
-#ifdef __OA__
-  // approximateCones();
-  // // update row information
-  // numLinearRows_ = solver_->getNumRows();
-  // // update row bounds
-  // delete[] rowLB_;
-  // delete[] rowUB_;
-  // int numLinearRows_ = solver_->getNumRows();
-  // rowLB_ = new double [numLinearRows_];
-  // rowUB_ = new double [numLinearRows_];
-  // std::copy(solver_->getRowLower(),
-  //        solver_->getRowLower()+numLinearRows_,
-  //        rowLB_);
-  // std::copy(solver_->getRowUpper(),
-  //        solver_->getRowUpper()+numLinearRows_,
-  //        rowUB_);
-#endif
+  // write parameters used
+  //writeParameters(std::cout);
+  // generate ipm cuts first
+  // then generate 50 rounds of oa cuts
+
+  // this process will change the following data members, conLB_, conUB_, numRows_, numElems_
+  // what about cone objects and their positions? This should also be updated.
+  approximateCones();
+
+  // number of linear rows stored in the solver
+  int solver_rows = solver_->getNumRows();
+
+  // update row bounds
+  // == lower bound
+  delete[] rowLB_;
+  rowLB_ = new double[solver_rows+numConicRows_];
+  std::copy(solver_->getRowLower(), solver_->getRowLower()+solver_rows, rowLB_);
+  std::fill_n(rowLB_+solver_rows, numConicRows_, 0.0);
+  // == upper bound
+  delete[] rowUB_;
+  rowUB_ = new double[solver_rows+numConicRows_];
+  std::copy(solver_->getRowUpper(), solver_->getRowUpper()+solver_rows, rowUB_);
+  std::fill_n(rowUB_+solver_rows, numConicRows_, DISCO_INFINITY);
+
+  // re-order constraints data member.
+  // == copy conic constraint pointers
+  std::vector<BcpsConstraint*>
+    conic_constraints(constraints_.begin()+numLinearRows_, constraints_.end());
+  // pop conic constraints
+  for (int i=0; i<numConicRows_; ++i) {
+    constraints_.pop_back();
+  }
+  // == add new linear constraints to *this
+  CoinPackedMatrix const * matrix = solver_->getMatrixByRow();
+  int const * indices = matrix->getIndices();
+  double const * values = matrix->getElements();
+  int const * lengths = matrix->getVectorLengths();
+  int const * starts = matrix->getVectorStarts();
+  for (int i=numLinearRows_; i<solver_rows; ++i) {
+    BcpsConstraint * curr = new DcoLinearConstraint(lengths[i],
+                                                    indices+starts[i],
+                                                    values+starts[i],
+                                                    rowLB_[i],
+                                                    rowUB_[i]);
+    constraints_.push_back(curr);
+    curr = NULL;
+  }
+  // == add conic constraints to the end
+  for (int i=0; i<numConicRows_; ++i) {
+    constraints_.push_back(conic_constraints[i]);
+  }
+  conic_constraints.clear();
+
+  // update the rest of the row related data members
+  numLinearRows_ = solver_rows;
+  numRows_ = numLinearRows_ + numConicRows_;
 }
 
 void DcoModel::approximateCones() {
-  dcoMessageHandler_->message(DISCO_NOT_IMPLEMENTED, *dcoMessages_)
-    << __FILE__ << __LINE__ << CoinMessageEol;
-  throw std::exception();
+#ifdef __OA__
+  bool dual_infeasible = false;
+  int iter = 0;
+  int ipm_iter;
+  int oa_iter;
+  int num_ipm_cuts = 0;
+  int num_oa_cuts = 0;
+  // solve problem
+  solver_->resolve();
+  // get cone data in the required form
+  OsiLorentzConeType * coneTypes = new OsiLorentzConeType[numConicRows_];
+  int * coneSizes = new int[numConicRows_];
+  int ** coneMembers = new int*[numConicRows_];
+  for (int i=0; i<numConicRows_; ++i) {
+    DcoConicConstraint * con =
+      dynamic_cast<DcoConicConstraint*>(constraints_[numLinearRows_+i]);
+    DcoLorentzConeType type = con->getType();
+    if (type==DcoLorentzCone) {
+      coneTypes[i] = OSI_QUAD;
+    }
+    else if (type==DcoRotatedLorentzCone) {
+      coneTypes[i] = OSI_RQUAD;
+    }
+    else {
+      dcoMessageHandler_->message(DISCO_UNKNOWN_CONETYPE, *dcoMessages_)
+        << __FILE__ << __LINE__ << CoinMessageEol;
+    }
+    coneSizes[i] = con->getSize();
+    coneMembers[i] = new int[con->getSize()];
+    std::copy(con->getMembers(), con->getMembers()+con->getSize(), coneMembers[i]);
+  }
+  do {
+    // generate cuts
+    OsiCuts * ipm_cuts = new OsiCuts();
+    OsiCuts * oa_cuts = new OsiCuts();
+    CglConicCutGenerator * cg_ipm = new CglConicIPM();
+    CglConicCutGenerator * cg_oa = new CglConicOA();
+    // get cone info
+    int largest_cone_size = *std::max_element(coneSizes, coneSizes+numConicRows_);
+    cg_ipm->generateCuts(*solver_, *ipm_cuts, numConicRows_, coneTypes,
+                         coneSizes, coneMembers, largest_cone_size);
+    // cg_oa->generateCuts(*solver_, *oa_cuts, numCoreCones_, coneTypes_,
+    //                   coneSizes_, coneMembers_, largest_cone_size);
+    // if we do not get any cuts break the loop
+    if (ipm_cuts->sizeRowCuts()==0 && oa_cuts->sizeRowCuts()==0) {
+      break;
+    }
+    // if problem is unbounded do nothing, add cuts to the problem
+    // this will make lp relaxation infeasible
+    solver_->applyCuts(*ipm_cuts);
+    solver_->applyCuts(*oa_cuts);
+    solver_->resolve();
+    num_ipm_cuts += ipm_cuts->sizeRowCuts();
+    delete ipm_cuts;
+    delete oa_cuts;
+    delete cg_ipm;
+    delete cg_oa;
+    dual_infeasible = solver_->isProvenDualInfeasible();
+    iter++;
+  } while(dual_infeasible);
+  // add outer apprixmating cuts for 50 rounds
+  ipm_iter = iter;
+  iter = 0;
+  // todo(aykut): parametrize 50
+  while(iter<50) {
+    OsiCuts * oa_cuts = new OsiCuts();
+    CglConicCutGenerator * cg_oa = new CglConicOA();
+    cg_oa->generateCuts(*solver_, *oa_cuts, numConicRows_, coneTypes,
+                        coneSizes, coneMembers, 1);
+    int num_cuts = oa_cuts->sizeRowCuts();
+    num_oa_cuts += num_cuts;
+    if (num_cuts==0) {
+      // ifno cuts are produced break early
+      break;
+    }
+    solver_->applyCuts(*oa_cuts);
+    delete oa_cuts;
+    delete cg_oa;
+    iter++;
+  }
+  oa_iter = iter;
+  std::cout << "===== Preprocessing Summary =====" << std::endl;
+  std::cout << "IPM iterations " << ipm_iter << std::endl;
+  std::cout << "IPM cuts " << num_ipm_cuts << std::endl;
+  std::cout << "OA iterations " << oa_iter << std::endl;
+  std::cout << "OA cuts " << num_oa_cuts << std::endl;
+  std::cout << "Linear relaxation objective value " << solver_->getObjValue() << std::endl;
+  std::cout << "=================================" << std::endl;
+  delete coneTypes;
+  delete coneSizes;
+  for (int i=0; i<numConicRows_; ++i) {
+    delete[] coneMembers[i];
+  }
+  delete[] coneMembers;
+#endif
 }
 
 //todo(aykut) why does this return to bool?
