@@ -373,6 +373,8 @@ DcoModel::writeParameters(std::ostream& outstream) const {
 }
 
 void DcoModel::preprocess() {
+  // set message levels
+  setMessageLevel();
 
 
   // some bounds are improved if updated is true
@@ -570,8 +572,6 @@ bool DcoModel::setupSelf() {
     relaxedRows_[i] = numLinearRows_+i;
   }
 #endif
-  // set message levels
-  setMessageLevel();
 
   // set branch strategy
   setBranchingStrategy();
