@@ -49,17 +49,14 @@ OsiIpopt/*
 OSI-MOSEK/*
 OsiMosek/*
 ThirdParty/*
-acinclude.m4
-aclocal.m4
-autom4te.cache/*
+Data/*
+
+# Installation files
+lib/*
+share/*
+include/*
+
+# autotools auxilary files
 
 # emacs backup files
 *~
-
-# exclude dependat projects
-Osi
-OSI-CONIC
-OsiCplex
-OsiIpopt
-OSI-MOSEK
-ThirdParty
