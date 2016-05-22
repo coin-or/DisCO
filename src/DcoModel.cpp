@@ -15,6 +15,7 @@
 #include "DcoLinearConGenerator.hpp"
 #include "DcoConicConGenerator.hpp"
 #include "DcoSolution.hpp"
+#include "DcoPresolve.hpp"
 
 // MILP cuts
 #include <CglCutGenerator.hpp>
@@ -372,6 +373,16 @@ DcoModel::writeParameters(std::ostream& outstream) const {
 }
 
 void DcoModel::preprocess() {
+
+
+  // some bounds are improved if updated is true
+
+  // notes(aykut) this can only improve the bounds if the leading variable is
+  // bounded.  most of the time it is not. Things can get better if we use some
+  // other bound improvement first and it does improve the upper bound of
+  // leading variables.
+  bool updated = DcoPresolve::improve_bounds(this);
+
   // write parameters used
   //writeParameters(std::cout);
   // generate ipm cuts first

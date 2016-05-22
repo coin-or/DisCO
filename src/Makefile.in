@@ -99,7 +99,7 @@ am_libDisco_la_OBJECTS = DcoConGenerator.lo DcoLinearConGenerator.lo \
 	DcoBranchStrategyPseudo.lo DcoConstraint.lo \
 	DcoLinearConstraint.lo DcoConicConstraint.lo DcoMessage.lo \
 	DcoModel.lo DcoNodeDesc.lo DcoParams.lo DcoSolution.lo \
-	DcoSubTree.lo DcoTreeNode.lo DcoVariable.lo
+	DcoSubTree.lo DcoTreeNode.lo DcoVariable.lo DcoPresolve.lo
 libDisco_la_OBJECTS = $(am_libDisco_la_OBJECTS)
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
@@ -404,6 +404,7 @@ libDisco_la_SOURCES = \
 	DcoTreeNode.hpp \
 	DcoVariable.cpp \
 	DcoVariable.hpp \
+	DcoPresolve.cpp \
 	DcoConfig.hpp
 
 
@@ -602,6 +603,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoModel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoNodeDesc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoParams.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoPresolve.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoSolution.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoSubTree.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoTreeNode.Plo@am__quote@

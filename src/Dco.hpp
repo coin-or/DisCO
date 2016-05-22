@@ -78,7 +78,7 @@ enum DcoReturnStatus {
 
 //#############################################################################
 
-enum DcoCutStrategy{
+enum DcoCutStrategy {
    DcoCutStrategyNotSet = -1,
    DcoCutStrategyNone = 0,
    DcoCutStrategyRoot,
@@ -86,7 +86,7 @@ enum DcoCutStrategy{
    DcoCutStrategyPeriodic
 };
 
-enum DcoConicCutStrategy{
+enum DcoConicCutStrategy {
    DcoConicCutStrategyNotSet = -1,
    DcoConicCutStrategyNone = 0,
    DcoConicCutStrategyRoot,
@@ -94,13 +94,18 @@ enum DcoConicCutStrategy{
    DcoConicCutStrategyPeriodic
 };
 
-enum DcoHeurStrategy{
+enum DcoHeurStrategy {
    DcoHeurStrategyNotSet = -1,
    DcoHeurStrategyNone = 0,
    DcoHeurStrategyRoot,
    DcoHeurStrategyAuto,
    DcoHeurStrategyPeriodic,
    DcoHeurStrategyBeforeRoot // Before solving first relaxation
+};
+
+enum DcoHeurType {
+   DcoHeurTypeNotSet = -1,
+   DcoHeurTypeRounding
 };
 
 #if 0

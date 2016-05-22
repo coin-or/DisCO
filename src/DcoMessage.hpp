@@ -78,7 +78,8 @@ enum DISCO_Message {
 enum DISCO_Debug_Level {
     DISCO_DLOG_BRANCH = 8,
     DISCO_DLOG_CUT = 16,
-    DISCO_DLOG_PROCESS = 32
+    DISCO_DLOG_PROCESS = 32,
+    DISCO_DLOG_PRESOLVE = 64
 };
 //#############################################################################
 

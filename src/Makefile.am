@@ -97,6 +97,8 @@ libDisco_la_SOURCES = \
 	DcoTreeNode.hpp \
 	DcoVariable.cpp \
 	DcoVariable.hpp \
+	DcoPresolve.hpp \
+	DcoPresolve.cpp \
 	DcoConfig.hpp
 
 
@@ -156,6 +158,7 @@ includecoin_HEADERS = \
 	DcoSubTree.hpp \
 	DcoTreeNode.hpp \
 	DcoVariable.hpp \
+	DcoPresolve.hpp \
 	DcoConfig.hpp
 
 ########################################################################
