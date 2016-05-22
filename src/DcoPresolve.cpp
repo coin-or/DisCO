@@ -62,9 +62,11 @@ bool DcoPresolve::improve_bounds(DcoModel * model) {
       }
     }
     else if (type==DcoRotatedLorentzCone) {
-      model->dcoMessageHandler_->message(DISCO_NOT_IMPLEMENTED,
-                                         *model->dcoMessages_)
-        << __FILE__ << __LINE__ << CoinMessageEol;
+      model->dcoMessageHandler_->message(0, "Dco",
+                                         "Presolve is not implemented for "
+                                         "rotated cones yet, skipping...",
+                                         'G', DISCO_DLOG_PRESOLVE)
+        << CoinMessageEol;
     }
     else {
       model->dcoMessageHandler_->message(DISCO_UNKNOWN_CONETYPE,
