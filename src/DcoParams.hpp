@@ -47,6 +47,7 @@ class DcoParams: public AlpsParameterSet {
     cutGenerationFrequency,
     cutPass,      /** The pass to generate cuts */
     quickCutPass, /** The pass to generate cuts for quick branching */
+    cutDisable,   /** if no cuts calls is greater than this, disable cg */
     cutCliqueStrategy,
     cutGomoryStrategy,
     cutFlowCoverStrategy,

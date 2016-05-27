@@ -39,6 +39,8 @@ void DcoParams::createKeywordList() {
                             AlpsParameter(AlpsIntPar, cutPass)));
   keys_.push_back(make_pair(std::string("Dco_quickCutPass"),
                             AlpsParameter(AlpsIntPar, quickCutPass)));
+  keys_.push_back(make_pair(std::string("Dco_cutDisable"),
+                            AlpsParameter(AlpsIntPar, cutDisable)));
   keys_.push_back(make_pair(std::string("Dco_cutStrategy"),
                             AlpsParameter(AlpsIntPar, cutStrategy)));
   keys_.push_back(make_pair(std::string("Dco_cutGenerationFrequency"),
@@ -184,6 +186,7 @@ void DcoParams::setDefaultEntries() {
   setEntry(cutGenerationFrequency, 1);
   setEntry(cutPass, 20);
   setEntry(quickCutPass, 0);
+  setEntry(cutDisable, 20);
   setEntry(cutCliqueStrategy, DcoCutStrategyNotSet);
   setEntry(cutGomoryStrategy, DcoCutStrategyNotSet);
   setEntry(cutFlowCoverStrategy, DcoCutStrategyNotSet);
