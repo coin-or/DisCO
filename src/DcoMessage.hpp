@@ -61,6 +61,8 @@ enum DISCO_Message {
     DISCO_NODE_UNEXPECTEDSTATUS,
     // constraint generation
     DISCO_INVALID_CUT_FREQUENCY,
+    // heuristics
+    DISCO_INVALID_HEUR_FREQUENCY,
     // relaxation solver messages
     DISCO_SOLVER_UNKNOWN_STATUS,
     DISCO_SOLVER_FAILED,
@@ -79,7 +81,8 @@ enum DISCO_Debug_Level {
     DISCO_DLOG_BRANCH = 8,
     DISCO_DLOG_CUT = 16,
     DISCO_DLOG_PROCESS = 32,
-    DISCO_DLOG_PRESOLVE = 64
+    DISCO_DLOG_PRESOLVE = 64,
+    DISCO_DLOG_MPI = 128
 };
 //#############################################################################
 
