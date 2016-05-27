@@ -12,6 +12,7 @@
 
 class DcoConGenerator;
 class DcoSolution;
+class DcoHeuristic;
 
 class CglCutGenerator;
 class CglConicCutGenerator;
@@ -172,8 +173,6 @@ class DcoModel: public BcpsModel {
 
   ///@name Solution related
   //@{
-  /// Problem upper bound, obj value of best solution found so far.
-  double upperBound_;
   /// Current relative optimal gap.
   double currRelGap_;
   /// Current absolute optimal gap.
@@ -219,6 +218,15 @@ class DcoModel: public BcpsModel {
   int * relaxedRows_;
   //@}
 
+  ///@name Heuristics
+  //@{
+  DcoHeurStrategy heurStrategy_;
+  int heurFrequency_;
+  std::vector<DcoHeuristic*> heuristics_;
+  // get a specific heuristic
+  DcoHeuristic * heuristics(int i) { return heuristics_[i]; }
+  //@}
+
   ///@name Cut generator related.
   //@{
   /// global cut strategy, it will be set with respect to specific cut
@@ -253,6 +261,8 @@ class DcoModel: public BcpsModel {
   void setBranchingStrategy();
   /// Add constraint generators with respect to parameters.
   void addConstraintGenerators();
+  /// Add heuristics
+  void addHeuristics();
   //@}
 
   /// write parameters to oustream
@@ -301,7 +311,7 @@ public:
   /// store solution
   int storeSolution(DcoSolution * sol);
   /// get upper bound of the objective value
-  double upperBound() const { return upperBound_; }
+  double upperBound();
   //@}
 
   ///@name Querry problem data
@@ -345,7 +355,7 @@ public:
   /// Add constraint generator.
   void addConGenerator(DcoConGenerator * dco_gen);
   /// Get the number of constraint generators.
-  int numCutGenerators() const { return conGenerators_.size(); }
+  int numConGenerators() const { return conGenerators_.size(); }
   /// Get a specific constraint generator.
   DcoConGenerator * conGenerators(int i) const { return conGenerators_[i]; }
   /// Get global cut strategy. It will be set using specific cut strategies, to
@@ -387,6 +397,9 @@ public:
   virtual void postprocess();
   /// Create the root node.
   virtual AlpsTreeNode * createRoot();
+  /// This is called at the end of the AlpsKnowledgeBroker::rootSearch
+  /// Prints solution statistics
+  virtual void modelLog();
   //@}
 };
 

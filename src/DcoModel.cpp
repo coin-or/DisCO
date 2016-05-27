@@ -16,6 +16,8 @@
 #include "DcoConicConGenerator.hpp"
 #include "DcoSolution.hpp"
 #include "DcoPresolve.hpp"
+#include "DcoHeuristic.hpp"
+#include "DcoHeurRounding.hpp"
 
 // MILP cuts
 #include <CglCutGenerator.hpp>
@@ -55,8 +57,6 @@ DcoModel::DcoModel() {
   objCoef_ = NULL;
   numIntegerCols_ = 0;
   integerCols_ = NULL;
-  // todo(aykut) following two might create problems.
-  upperBound_ = ALPS_OBJ_MAX;
 
   currRelGap_ = 1e5;
   currAbsGap_ = 1e5;
@@ -75,6 +75,7 @@ DcoModel::DcoModel() {
   branchStrategy_ = NULL;
   rampUpBranchStrategy_ = NULL;
 
+  // cut and heuristics objects will be set in setupSelf.
 }
 
 DcoModel::~DcoModel() {
@@ -480,7 +481,8 @@ void DcoModel::approximateCones() {
     OsiCuts * ipm_cuts = new OsiCuts();
     OsiCuts * oa_cuts = new OsiCuts();
     CglConicCutGenerator * cg_ipm = new CglConicIPM();
-    CglConicCutGenerator * cg_oa = new CglConicOA();
+    CglConicCutGenerator * cg_oa =
+      new CglConicOA(dcoPar_->entry(DcoParams::coneTol));
     // get cone info
     int largest_cone_size = *std::max_element(coneSizes, coneSizes+numConicRows_);
     cg_ipm->generateCuts(*solver_, *ipm_cuts, numConicRows_, coneTypes,
@@ -508,9 +510,10 @@ void DcoModel::approximateCones() {
   ipm_iter = iter;
   iter = 0;
   // todo(aykut): parametrize 50
-  while(iter<50) {
+  while(iter<5) {
     OsiCuts * oa_cuts = new OsiCuts();
-    CglConicCutGenerator * cg_oa = new CglConicOA();
+    CglConicCutGenerator * cg_oa =
+      new CglConicOA(dcoPar_->entry(DcoParams::coneTol));
     cg_oa->generateCuts(*solver_, *oa_cuts, numConicRows_, coneTypes,
                         coneSizes, coneMembers, 1);
     int num_cuts = oa_cuts->sizeRowCuts();
@@ -579,6 +582,9 @@ bool DcoModel::setupSelf() {
   // add constraint generators
   addConstraintGenerators();
 
+  // add heuristics
+  addHeuristics();
+
   return true;
 }
 
@@ -628,8 +634,8 @@ void DcoModel::addConstraintGenerators() {
   cutStrategy_ = static_cast<DcoCutStrategy>
     (dcoPar_->entry(DcoParams::cutStrategy));
   // get cut generation frequency
-  cutGenerationFrequency_ = static_cast<DcoCutStrategy>
-    (dcoPar_->entry(DcoParams::cutGenerationFrequency));
+  cutGenerationFrequency_ =
+    dcoPar_->entry(DcoParams::cutGenerationFrequency);
   if (cutGenerationFrequency_ < 1) {
     // invalid cut fraquency given, change it to 1.
     dcoMessageHandler_->message(DISCO_INVALID_CUT_FREQUENCY,
@@ -713,9 +719,9 @@ void DcoModel::addConstraintGenerators() {
 
   // Add clique cut generator.
   if (cliqueStrategy == DcoCutStrategyNotSet) {
-    // Only at root by default
+    // Disable by default
     if (cutStrategy_ == DcoCutStrategyNotSet) {
-      cliqueStrategy = DcoCutStrategyRoot;
+      cliqueStrategy = DcoCutStrategyNone;
     }
     else if (cutStrategy_ == DcoCutStrategyPeriodic) {
       cliqueFreq = cutGenerationFrequency_;
@@ -758,7 +764,8 @@ void DcoModel::addConstraintGenerators() {
   // Add flow cover cut generator.
   if (fCoverStrategy == DcoCutStrategyNotSet) {
     if (cutStrategy_ == DcoCutStrategyNotSet) {
-      fCoverStrategy = DcoCutStrategyAuto;
+      // Disable by default
+      fCoverStrategy = DcoCutStrategyNone;
       fCoverFreq = cutGenerationFrequency_;
     }
     else if (cutStrategy_ == DcoCutStrategyPeriodic) {
@@ -777,8 +784,8 @@ void DcoModel::addConstraintGenerators() {
   // Add knapsack cut generator.
   if (knapStrategy == DcoCutStrategyNotSet) {
     if (cutStrategy_ == DcoCutStrategyNotSet) {
-      // Only at root by default
-      knapStrategy = DcoCutStrategyRoot;
+      // Disable by default
+      knapStrategy = DcoCutStrategyNone;
     }
     else if (cutStrategy_ == DcoCutStrategyPeriodic) {
       knapStrategy = cutStrategy_;
@@ -815,8 +822,8 @@ void DcoModel::addConstraintGenerators() {
   // Add Gomory cut generator.
   if (gomoryStrategy == DcoCutStrategyNotSet) {
     if (cutStrategy_ == DcoCutStrategyNotSet) {
-      // Only at root by default
-      gomoryStrategy = DcoCutStrategyRoot;
+      // Disable by default
+      gomoryStrategy = DcoCutStrategyNone;
     }
     else if (cutStrategy_ == DcoCutStrategyPeriodic) {
       gomoryStrategy = cutStrategy_;
@@ -844,8 +851,8 @@ void DcoModel::addConstraintGenerators() {
   // Add IPM cut generator
   if (ipmStrategy == DcoCutStrategyNotSet) {
     if (cutStrategy_ == DcoCutStrategyNotSet) {
-      // Only at root by default
-      ipmStrategy = DcoCutStrategyRoot;
+      // Disable by default
+      ipmStrategy = DcoCutStrategyNone;
     }
     else if (cutStrategy_ == DcoCutStrategyPeriodic) {
       ipmStrategy = cutStrategy_;
@@ -863,8 +870,8 @@ void DcoModel::addConstraintGenerators() {
   // Add IPM integer cut generator
   if (ipmintStrategy == DcoCutStrategyNotSet) {
     if (cutStrategy_ == DcoCutStrategyNotSet) {
-      // Only at root by default
-      ipmintStrategy = DcoCutStrategyRoot;
+      // Disable by default
+      ipmintStrategy = DcoCutStrategyNone;
     }
     else if (cutStrategy_ == DcoCutStrategyPeriodic) {
       ipmintStrategy = cutStrategy_;
@@ -894,7 +901,8 @@ void DcoModel::addConstraintGenerators() {
     }
   }
   if (oaStrategy != DcoCutStrategyNone) {
-    CglConicCutGenerator * oa_gen = new CglConicOA();
+    CglConicCutGenerator * oa_gen =
+      new CglConicOA(dcoPar_->entry(DcoParams::coneTol));
     addConGenerator(oa_gen, "OA", oaStrategy, oaFreq);
   }
 
@@ -951,10 +959,72 @@ void DcoModel::addConGenerator(CglConicCutGenerator * cgl_gen,
   conGenerators_.push_back(con_gen);
 }
 
+void DcoModel::addHeuristics() {
+  // // get cut strategy
+  // heurStrategy_ = static_cast<DcoHeurStrategy>
+  //   (dcoPar_->entry(DcoParams::heurStrategy));
+  // // get cut generation frequency
+  // heurFrequency_ =
+  //   dcoPar_->entry(DcoParams::heurFrequency);
+  // if (heurFrequency_ < 1) {
+  //   // invalid heur fraquency given, change it to 1.
+  //   dcoMessageHandler_->message(DISCO_INVALID_HEUR_FREQUENCY,
+  //                               *dcoMessages_)
+  //     << heurFrequency_
+  //     << 1
+  //     << CoinMessageEol;
+  //   heurFrequency_ = 1;
+  // }
+
+  // get heuristics strategies from parameters
+  DcoHeurStrategy roundingStrategy = static_cast<DcoHeurStrategy>
+    (dcoPar_->entry(DcoParams::heurRoundStrategy));
+  // get frequencies from parameters
+  int roundingFreq = dcoPar_->entry(DcoParams::heurRoundFreq);
+  // add heuristics
+  // == add rounding heuristics
+  if (roundingStrategy != DcoHeurStrategyNone) {
+    DcoHeuristic * round = new DcoHeurRounding(this, "rounding",
+                                               roundingStrategy, roundingFreq);
+    heuristics_.push_back(round);
+  }
+
+
+  // Adjust heurStrategy_ according to the strategies/frequencies of each
+  // heuristic. Set it to the most allowing one.
+  // if there is at least one periodic strategy, set it to periodic.
+  // if no periodic and there is at least one root, set it to root
+  // set it to None otherwise.
+  heurStrategy_ = DcoHeurStrategyNone;
+  heurFrequency_ = 100;
+  bool periodic_exists = false;
+  bool root_exists = false;
+  std::vector<DcoHeuristic*>::iterator it;
+  for (it=heuristics_.begin(); it!=heuristics_.end(); ++it) {
+    DcoHeurStrategy curr = (*it)->strategy();
+    if (curr==DcoHeurStrategyPeriodic) {
+      periodic_exists = true;
+      break;
+    }
+    else if (curr==DcoHeurStrategyRoot) {
+      root_exists = true;
+    }
+  }
+  if (periodic_exists) {
+    heurStrategy_ = DcoHeurStrategyPeriodic;
+    heurFrequency_ = 1;
+  }
+  else if (root_exists) {
+    heurStrategy_ = DcoHeurStrategyRoot;
+    // this is not relevant, since we will generate only in root.
+    heurFrequency_ = 100;
+  }
+}
 
 void DcoModel::setBranchingStrategy() {
     // set branching startegy
-  int brStrategy = dcoPar_->entry(DcoParams::branchStrategy);
+  int brStrategy = static_cast<DcoBranchingStrategy>
+    (dcoPar_->entry(DcoParams::branchStrategy));
   switch(brStrategy) {
   case DcoBranchingStrategyMaxInfeasibility:
     branchStrategy_ = new DcoBranchStrategyMaxInf(this);
@@ -978,14 +1048,15 @@ void DcoModel::setBranchingStrategy() {
   }
 
   // set ramp up branch strategy
-  brStrategy = dcoPar_->entry(DcoParams::branchStrategyRampUp);
+  brStrategy = static_cast<DcoBranchingStrategy>
+    (dcoPar_->entry(DcoParams::branchStrategyRampUp));
   switch(brStrategy) {
   case DcoBranchingStrategyMaxInfeasibility:
     rampUpBranchStrategy_ = new DcoBranchStrategyMaxInf(this);
     break;
-  // case DcoBranchingStrategyPseudoCost:
-  //   rampUpBranchStrategy_ = new DcoBranchStrategyPseudo(this, 1);
-  //   break;
+  case DcoBranchingStrategyPseudoCost:
+    rampUpBranchStrategy_ = new DcoBranchStrategyPseudo(this);
+    break;
   // case DcoBranchingStrategyReliability:
   //   rampUpBranchStrategy_ = new DcoBranchStrategyRel(this, reliability);
   //   break;
@@ -1132,11 +1203,52 @@ int DcoModel::storeSolution(DcoSolution * sol) {
   double quality = sol->getQuality();
   // Update cutoff and lp cutoff.
   double obj_tol = dcoPar_->entry(DcoParams::objTol);
-  if (quality+obj_tol < upperBound_) {
+  if (quality+obj_tol < upperBound()) {
     // Store in Alps pool, assumes minimization.
     getKnowledgeBroker()->addKnowledge(AlpsKnowledgeTypeSolution,
                                        sol,
                                        objSense_ * quality);
   }
   return AlpsReturnStatusOk;
+}
+
+double DcoModel::upperBound() {
+  return getKnowledgeBroker()->getBestQuality();
+}
+
+/// This is called at the end of the AlpsKnowledgeBroker::rootSearch
+/// Prints solution statistics
+void DcoModel::modelLog() {
+  if (broker_->getProcType() == AlpsProcessTypeSerial) {
+    for (int k=0; k<conGenerators_.size(); ++k) {
+      if (conGenerators(k)->stats().numCalls() > 0) {
+        dcoMessageHandler_->message(DISCO_CUT_STAT_FINAL,
+                                        *dcoMessages_)
+          << conGenerators(k)->name()
+          << conGenerators(k)->stats().numCalls()
+          << conGenerators(k)->stats().numConsGenerated()
+          << conGenerators(k)->stats().time()
+          << conGenerators(k)->strategy()
+          << CoinMessageEol;
+      }
+    }
+    for (int k=0; k<heuristics_.size(); ++k) {
+      if (heuristics(k)->stats().numCalls() > 0) {
+        dcoMessageHandler_->message(DISCO_HEUR_STAT_FINAL,
+                                    *dcoMessages_)
+          << heuristics(k)->name()
+          << heuristics(k)->stats().numCalls()
+          << heuristics(k)->stats().numSolutions()
+          << heuristics(k)->stats().time()
+          << heuristics(k)->strategy()
+          << CoinMessageEol;
+      }
+    }
+  }
+  else if (broker_->getProcType()==AlpsProcessTypeMaster) {
+    dcoMessageHandler_->message(0, "Dco",
+                                "Don't know how to log in parallel mode.",
+                                'G', DISCO_DLOG_MPI)
+      << CoinMessageEol;
+  }
 }
