@@ -1,28 +1,19 @@
 #include "DcoConGenerator.hpp"
 
+void DcoConGeneratorStats::reset() {
+  numConsGenerated_ = 0;
+  numConsUsed_ = 0;
+  time_ = 0.0;
+  numCalls_ = 0;
+  numNoConsCalls_ = 0;
+}
+
 DcoConGenerator::DcoConGenerator(DcoModel * model,
                                  char const * name,
                                  DcoCutStrategy strategy,
                                  int frequency):
   name_(name), model_(model), strategy_(strategy), frequency_(frequency) {
-}
-
-DcoConGenerator::DcoConGenerator(DcoConGenerator const & other):
-  name_(other.name()), model_(other.model()),
-  strategy_(other.strategy()), frequency_(other.frequency()) {
-}
-
-DcoConGenerator & DcoConGenerator::operator=(DcoConGenerator const & rhs) {
-  name_ = rhs.name();
-  model_ = rhs.model();
-  strategy_ = rhs.strategy();
-  frequency_ = rhs.frequency();
-  numConsGenerated_ = rhs.numConsGenerated();
-  numConsUsed_ = rhs.numConsUsed();
-  time_ = rhs.time();
-  calls_ = rhs.calls();
-  noConsCalls_ = rhs.noConsCalls();
-  return *this;
+  stats_.reset();
 }
 
 DcoConGenerator::~DcoConGenerator() {
