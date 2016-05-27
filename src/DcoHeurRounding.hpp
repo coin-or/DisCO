@@ -37,10 +37,16 @@
 
 /*!
   Implements simple rounding heuristic described in Achterberg's dissretation.
+
+  # Ideas:
+  When rounding solutions we can round integer leading variables up.
+
 */
 
 /** Heuristic base class */
-class DcoHeurRounding {
+class DcoHeurRounding: virtual public DcoHeuristic {
+  void bound_fix(int * down_fix, int * up_fix);
+  void bound_fix2(char sense, int row_index, int * down_fix, int * up_fix);
 public:
   ///@name Constructors and Destructor.
   //@{

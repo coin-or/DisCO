@@ -66,7 +66,7 @@ public:
 
   ///@name Update statistics
   //@{
-  void addCalls(int c=1) { calls_ += c; }
+  void addCalls(int c=1) { numCalls_ += c; }
   void addNoSolCalls(int n=1) { numNoSolCalls_ += n; }
   void addTime(double t) { time_ += t; }
   void addNumSolutions(int n=1) { numSolutions_ += n; }
@@ -122,7 +122,7 @@ public:
   //@{
   DcoModel * model() const { return model_; }
   DcoHeurType type() const { return type_; }
-  std::string & name() const { return name_; }
+  std::string & name() { return name_; }
   DcoHeurStrategy strategy() const { return strategy_; }
   int frequency() const { return frequency_; }
   DcoHeurStats & stats() { return stats_; }

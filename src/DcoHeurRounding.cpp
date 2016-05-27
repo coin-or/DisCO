@@ -21,7 +21,12 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
+#include <CoinMessageHandler.hpp>
+//#include <CoinMessage.hpp>
+
 #include "DcoHeurRounding.hpp"
+#include "DcoModel.hpp"
+#include "DcoMessage.hpp"
 
 DcoHeurRounding::DcoHeurRounding(DcoModel * model, char const * name,
                                  DcoHeurStrategy strategy, int frequency)
@@ -30,360 +35,133 @@ DcoHeurRounding::DcoHeurRounding(DcoModel * model, char const * name,
 }
 
 DcoSolution * DcoHeurRounding::searchSolution() {
-  if (strategy_ == DcoHeurStrategyNone) {
+  if (strategy() == DcoHeurStrategyNone) {
     // This heuristic has been disabled.
     return NULL;
   }
-  int num_cols = model->numRelaxedCols();
+  DcoModel * dcom = model();
+  // get required pointers for log messages
+  CoinMessageHandler * message_handler = dcom->dcoMessageHandler_;
+  CoinMessages * messages = dcom->dcoMessages_;
+
+  // call bound_fix function to find up_fix and down_fix
+  int num_cols = dcom->numRelaxedCols();
+  // if down_fix[i] is 0 variable i can be fixed to its lower bound.
   int * down_fix = new int[num_cols]();
   int * up_fix = new int[num_cols]();
-  int num_rows = model->numRows();
+  // == compute up and down fixes
+  bound_fix(down_fix, up_fix);
+
+  // check up_fix and down_fix
+}
+
+void DcoHeurRounding::bound_fix(int * down_fix, int * up_fix) {
+  DcoModel * dcom = model();
+  // get required pointers for log messages
+  CoinMessageHandler * message_handler = dcom->dcoMessageHandler_;
+  CoinMessages * messages = dcom->dcoMessages_;
+
+  int num_cols = dcom->numRelaxedCols();
+  int num_rows = dcom->solver()->getNumRows();
+  char const * row_sense = dcom->solver()->getRowSense();
+
+  double infinity = dcom->solver()->getInfinity();
   // iterate over rows and update up and down fixed.
   for (int i=0; i<num_rows; ++i) {
-
-
+    if (row_sense[i]=='R') {
+      if (dcom->solver()->getColUpper()[i]>=infinity
+          and dcom->solver()->getColLower()[i]<=-infinity) {
+        // both upper and lower bound are not finite,
+        // do nothing
+        continue;
+      }
+      // upper bound is infinity
+      if (dcom->solver()->getColUpper()[i]>=infinity) {
+        bound_fix2('G', i, down_fix, up_fix);
+        continue;
+      }
+      // lower bound is negative infinity
+      if (dcom->solver()->getColLower()[i]<=-infinity) {
+        bound_fix2('L', i, down_fix, up_fix);
+        continue;
+      }
+      // bounds are not infinity if we are here
+      // note that once we have R rows with finite bounds
+      // bound fixing procedure is same as E rows.
+      bound_fix2('E', i, down_fix, up_fix);
+    }
+    else if (row_sense[i]=='N') {
+      // row is not restricted, do nothing
+      continue;
+    }
+    else if (row_sense[i]=='E' or row_sense[i]=='L' or row_sense[i]=='G') {
+      bound_fix2(row_sense[i], i, down_fix, up_fix);
+    }
+    else {
+      // unknown row sense
+      std::stringstream error;
+      error << "Unknown row sense "
+            << row_sense[i];
+      message_handler->message(9998, "Dco", error.str().c_str(),
+                               'E', 0)
+        << CoinMessageEol;
+    }
   }
+}
 
+void DcoHeurRounding::bound_fix2(char sense, int row_index, int * down_fix, int * up_fix) {
+  //char row_sense = dcom->solver()->getRowSense()[row_index];
 
-
-
-
-
-    //std::cout << "HERE!!" << std::endl;
-
-    //------------------------------------------------------
-    // Start to search solution ...
-    //------------------------------------------------------
-
-    //double start = CoinCpuTime();
-
-    // Get a copy of original matrix (and by row for rounding);
-    matrix_ = *(model_->solver()->getMatrixByCol());
-    matrixByRow_ = *(model_->solver()->getMatrixByRow());
-    seed_ = 1;
-
-#if defined(__OA__)
-    OsiSolverInterface * solver = model_->solver();
-#else
-    OsiConicSolverInterface * solver = model_->solver();
-#endif
-    const double * lower = solver->getColLower();
-    const double * upper = solver->getColUpper();
-    const double * rowLower = solver->getRowLower();
-    const double * rowUpper = solver->getRowUpper();
-    const double * solution = solver->getColSolution();
-    const double * objective = solver->getObjCoefficients();
-    double integerTolerance = 1.0e-5;
-    //model_->getDblParam(DcoModel::DcoIntegerTolerance);
-    double primalTolerance;
-    solver->getDblParam(OsiPrimalTolerance, primalTolerance);
-
-    int numberRows = matrix_.getNumRows();
-
-    int numberIntegers = model_->getNumIntObjects();
-    const int * integerVariable = model_->getIntColIndices();
-    int i;
-    double direction = solver->getObjSense();
-    double newSolutionValue = direction * solver->getObjValue();
-
-    // Column copy
-    const double * element = matrix_.getElements();
-    const int * row = matrix_.getIndices();
-    const int * columnStart = matrix_.getVectorStarts();
-    const int * columnLength = matrix_.getVectorLengths();
-    // Row copy
-    const double * elementByRow = matrixByRow_.getElements();
-    const int * column = matrixByRow_.getIndices();
-    const int * rowStart = matrixByRow_.getVectorStarts();
-    const int * rowLength = matrixByRow_.getVectorLengths();
-
-    // Get solution array for heuristic solution
-    int numberColumns = solver->getNumCols();
-    double * newSolution = new double [numberColumns];
-    memcpy(newSolution, solution, numberColumns * sizeof(double));
-
-    double * rowActivity = new double[numberRows];
-    memset(rowActivity, 0, numberRows*sizeof(double));
-    for (i = 0; i < numberColumns; i++) {
-        int j;
-        double value = newSolution[i];
-        if (value) {
-            for (j = columnStart[i];
-                 j < columnStart[i] + columnLength[i]; j++) {
-                int iRow = row[j];
-                rowActivity[iRow] += value*element[j];
-            }
-        }
+  CoinPackedMatrix const * matrix = model()->solver()->getMatrixByRow();
+  int const * indices = matrix->getIndices();
+  double const * values = matrix->getElements();
+  int const * lengths = matrix->getVectorLengths();
+  int const * starts = matrix->getVectorStarts();
+  double tailoff = model()->dcoPar()->entry(DcoParams::tailOff);
+  // iterate over varaibles of row row_index
+  for (int i=starts[row_index]; i<starts[row_index]+lengths[row_index]; ++i) {
+    if (-tailoff<=values[i] and values[i]<=tailoff) {
+      // coeffciient is very close to 0. log warning message
+      std::stringstream warning;
+      warning << "Coefficient of variable "
+              << indices[i]
+              << " in row "
+              << row_index
+              << " is "
+              << values[i]
+              << ", very close to 0.";
+      model()->dcoMessageHandler_->message(3000, "Dco", warning.str().c_str(),
+                                           'W', 0)
+        << CoinMessageEol;
     }
-    // check was feasible - if not adjust (cleaning may move)
-    for (i = 0; i < numberRows; i++) {
-        if(rowActivity[i] < rowLower[i]) {
-            //assert (rowActivity[i]>rowLower[i]-1000.0*primalTolerance);
-            rowActivity[i] = rowLower[i];
-        } else if(rowActivity[i] > rowUpper[i]) {
-            //assert (rowActivity[i]<rowUpper[i]+1000.0*primalTolerance);
-            rowActivity[i] = rowUpper[i];
-        }
+    if (sense=='E') {
+      up_fix[indices[i]]++;
+      down_fix[indices[i]]++;
     }
-    for (i = 0; i < numberIntegers; i++) {
-        int iColumn = integerVariable[i];
-        double value = newSolution[iColumn];
-        if (fabs(floor(value + 0.5) - value) > integerTolerance) {
-            double below = floor(value);
-            double newValue = newSolution[iColumn];
-            double cost = direction * objective[iColumn];
-            double move;
-            if (cost > 0.0) {
-                // try up
-                move = 1.0 - (value - below);
-            } else if (cost < 0.0) {
-                // try down
-                move = below - value;
-            } else {
-                // won't be able to move unless we can grab another variable
-                // just for now go down
-                move = below-value;
-            }
-            newValue += move;
-            newSolution[iColumn] = newValue;
-            newSolutionValue += move * cost;
-            int j;
-            for (j = columnStart[iColumn];
-                 j < columnStart[iColumn] + columnLength[iColumn]; j++) {
-                int iRow = row[j];
-                rowActivity[iRow] += move * element[j];
-            }
-        }
+    else if (sense=='L') {
+      if (values[i]>0) {
+        up_fix[indices[i]]++;
+      }
+      else {
+        down_fix[indices[i]]++;
+      }
     }
-
-    double penalty = 0.0;
-
-    // see if feasible
-    for (i = 0; i < numberRows; i++) {
-        double value = rowActivity[i];
-        double thisInfeasibility = 0.0;
-        if (value < rowLower[i] - primalTolerance)
-            thisInfeasibility = value - rowLower[i];
-        else if (value > rowUpper[i] + primalTolerance)
-            thisInfeasibility = value - rowUpper[i];
-        if (thisInfeasibility) {
-            // See if there are any slacks I can use to fix up
-            // maybe put in coding for multiple slacks?
-            double bestCost = 1.0e50;
-            int k;
-            int iBest = -1;
-            double addCost = 0.0;
-            double newValue = 0.0;
-            double changeRowActivity = 0.0;
-            double absInfeasibility = fabs(thisInfeasibility);
-            for (k = rowStart[i]; k < rowStart[i] + rowLength[i]; k++) {
-                int iColumn = column[k];
-                if (columnLength[iColumn] == 1) {
-                    double currentValue = newSolution[iColumn];
-                    double elementValue = elementByRow[k];
-                    double lowerValue = lower[iColumn];
-                    double upperValue = upper[iColumn];
-                    double gap = rowUpper[i] - rowLower[i];
-                    double absElement = fabs(elementValue);
-                    if (thisInfeasibility * elementValue > 0.0) {
-                        // we want to reduce
-                        if ((currentValue - lowerValue) * absElement >=
-                            absInfeasibility) {
-
-                            // possible - check if integer
-                            double distance = absInfeasibility / absElement;
-                            double thisCost =
-                                -direction * objective[iColumn] * distance;
-                            if (solver->isInteger(iColumn)) {
-                                distance = ceil(distance - primalTolerance);
-                                assert (currentValue - distance >=
-                                        lowerValue - primalTolerance);
-                                if (absInfeasibility - distance * absElement
-                                    < -gap - primalTolerance)
-                                    thisCost = 1.0e100; // no good
-                                else
-                                    thisCost =
-                                        -direction*objective[iColumn]*distance;
-                            }
-                            if (thisCost < bestCost) {
-                                bestCost = thisCost;
-                                iBest = iColumn;
-                                addCost = thisCost;
-                                newValue = currentValue - distance;
-                                changeRowActivity = -distance * elementValue;
-                            }
-                        }
-                    } else {
-                        // we want to increase
-                        if ((upperValue - currentValue) * absElement >=
-                            absInfeasibility) {
-                            // possible - check if integer
-                            double distance = absInfeasibility / absElement;
-                            double thisCost =
-                                direction * objective[iColumn] * distance;
-                            if (solver->isInteger(iColumn)) {
-                                distance = ceil(distance - 1.0e-7);
-                                assert (currentValue - distance <=
-                                        upperValue + primalTolerance);
-                                if (absInfeasibility - distance * absElement
-                                    < -gap - primalTolerance)
-                                    thisCost = 1.0e100; // no good
-                                else
-                                    thisCost =
-                                        direction*objective[iColumn]*distance;
-                            }
-                            if (thisCost < bestCost) {
-                                bestCost = thisCost;
-                                iBest = iColumn;
-                                addCost = thisCost;
-                                newValue = currentValue + distance;
-                                changeRowActivity = distance * elementValue;
-                            }
-                        }
-                    }
-                }
-            }
-            if (iBest >= 0) {
-                /*printf("Infeasibility of %g on row %d cost %g\n",
-                  thisInfeasibility,i,addCost);*/
-                newSolution[iBest] = newValue;
-                thisInfeasibility = 0.0;
-                newSolutionValue += addCost;
-                rowActivity[i] += changeRowActivity;
-            }
-            penalty += fabs(thisInfeasibility);
-        }
+    else if (sense=='G') {
+      if (values[i]>0) {
+        down_fix[indices[i]]++;
+      }
+      else {
+        up_fix[indices[i]]++;
+      }
     }
-
-    // Could also set SOS (using random) and repeat
-    if (!penalty) {
-        // Got a feasible solution. Try to improve.
-        //seed_++;
-        //CoinSeedRandom(seed_);
-        // Random number between 0 and 1.
-
-        double randomNumber = CoinDrand48();
-        int iPass;
-        int start[2];
-        int end[2];
-        int iRandom = (int) (randomNumber * ((double) numberIntegers));
-        start[0] = iRandom;
-        end[0] = numberIntegers;
-        start[1] = 0;
-        end[1] = iRandom;
-        for (iPass = 0; iPass < 2; iPass++) {
-            int i;
-            for (i = start[iPass]; i < end[iPass]; i++) {
-                int iColumn = integerVariable[i];
-#ifdef DISCO_DEBUG
-                double value = newSolution[iColumn];
-                assert(fabs(floor(value + 0.5) - value) < integerTolerance);
-#endif
-                double cost = direction * objective[iColumn];
-                double move = 0.0;
-                if (cost > 0.0)
-                    move = -1.0;
-                else if (cost < 0.0)
-                    move = 1.0;
-                while (move) {
-                    bool good = true;
-                    double newValue = newSolution[iColumn] + move;
-                    if (newValue < lower[iColumn] - primalTolerance||
-                        newValue > upper[iColumn] + primalTolerance) {
-                        move = 0.0;
-                    } else {
-                        // see if we can move
-                        int j;
-                        for (j = columnStart[iColumn];
-                             j < columnStart[iColumn] + columnLength[iColumn];
-                             j++) {
-                            int iRow = row[j];
-                            double newActivity =
-                                rowActivity[iRow] + move*element[j];
-                            if (newActivity < rowLower[iRow] - primalTolerance
-                                ||
-                                newActivity > rowUpper[iRow]+primalTolerance) {
-                                good = false;
-                                break;
-                            }
-                        }
-                        if (good) {
-                            newSolution[iColumn] = newValue;
-                            newSolutionValue += move * cost;
-                            int j;
-                            for (j = columnStart[iColumn];
-                                 j < columnStart[iColumn] +
-                                     columnLength[iColumn]; j++) {
-                                int iRow = row[j];
-                                rowActivity[iRow] += move*element[j];
-                            }
-                        } else {
-                            move=0.0;
-                        }
-                    }
-                }
-            }
-        }
-        if (newSolutionValue < solutionValue) {
-            // paranoid check
-            memset(rowActivity, 0, numberRows * sizeof(double));
-            for (i = 0; i < numberColumns; i++) {
-                int j;
-                double value = newSolution[i];
-                if (value) {
-                    for (j = columnStart[i];
-                         j < columnStart[i] + columnLength[i]; j++) {
-                        int iRow = row[j];
-                        rowActivity[iRow] += value * element[j];
-                    }
-                }
-            }
-            // check was approximately feasible
-            bool feasible = true;
-            for (i = 0; i < numberRows; i++) {
-                if(rowActivity[i] < rowLower[i]) {
-                    if (rowActivity[i] < rowLower[i] - 1000.0*primalTolerance)
-                        feasible = false;
-                } else if(rowActivity[i] > rowUpper[i]) {
-                    if (rowActivity[i] > rowUpper[i] + 1000.0*primalTolerance)
-                        feasible = false;
-                }
-            }
-            if (feasible) {
-                // new solution
-                memcpy(betterSolution, newSolution,
-                       numberColumns * sizeof(double));
-                solutionValue = newSolutionValue;
-                //printf("** Solution of %g found by rounding\n",newSolutionValue);
-                foundBetter = true;
-
-            } else {
-                // Can easily happen
-                //printf("Debug DcoHeurRound giving bad solution\n");
-            }
-        }
+    else {
+      // unknown row sense
+      std::stringstream error;
+      error << "Unexpected row sense "
+            << sense;
+      model()->dcoMessageHandler_->message(9998, "Dco", error.str().c_str(),
+                                           'E', 0)
+        << CoinMessageEol;
     }
-    delete [] newSolution;
-    delete [] rowActivity;
-
-    //------------------------------------------------------
-    // Adjust strategy
-    //------------------------------------------------------
-
-    // Let Dco do this, 12/17/06
-    //++calls_;
-    //if (foundBetter) ++numSolutions_;
-    //time_ += (CoinCpuTime() - start);
-
-    if (noSolsCalls_ > DISCO_HEUR_ROUND_DISABLE) {
-        if (strategy_ == DcoHeurStrategyAuto) {
-            strategy_ = DcoHeurStrategyNone;
-        }
-    }
-
-    // Increase count by 1
-    addCalls(1);
-
-    return foundBetter;
-
+  }
 }
