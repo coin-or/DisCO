@@ -94,7 +94,7 @@ int DcoTreeNode::generateConstraints(BcpsModel * model,
   CoinMessages * messages = disco_model->dcoMessages_;
 
   // number of constraint generators in model
-  int num_cg = disco_model->numCutGenerators();
+  int num_cg = disco_model->numConGenerators();
   for (int i=0; i<num_cg; ++i) {
     bool do_use = false;
     DcoConGenerator * cg = disco_model->conGenerators(i);
@@ -111,28 +111,26 @@ int DcoTreeNode::generateConstraints(BcpsModel * model,
     bool must_resolve = cg->generateConstraints(*conPool);
     double cut_time = CoinCpuTime() - start_time;
     // Statistics
-    cg->addTime(cut_time);
-    cg->addCalls(1);
+    cg->stats().addTime(cut_time);
+    cg->stats().addNumCalls(1);
     int num_cons_generated = conPool->getNumConstraints() - pre_num_cons;
     if (num_cons_generated == 0) {
-      cg->addNoConsCalls(1);
+      cg->stats().addNumNoConsCalls(1);
     }
     else {
-      cg->addNumConsGenerated(num_cons_generated);
+      cg->stats().addNumConsGenerated(num_cons_generated);
     }
-    // if (must_resolve) {
-    //   // todo(aykut) conic cuts may need to resolve?
-    //   // TODO: Only probing will return ture.
-    //   if (static_cast<DcoLpStatus> (bound(model)) != DcoLpStatusOptimal) {
-    //     // probing resolve failed.
-    //     std::cerr << "Probing resolve failed."  << std::endl;
-    //     break;
-    //   }
-    // }
-    //------------------------------------------------
-    // Modify control.
-    // NOTE: only modify if user choose automatic.
-    //------------------------------------------------
+
+    // debug msg
+    std::stringstream debug_msg;
+    debug_msg << "Called " << cg->name() << ", generated "
+              << num_cons_generated << " cuts in "
+        << cut_time << " seconds.";
+    message_handler->message(0, "Dco", debug_msg.str().c_str(),
+                             'G', DISCO_DLOG_CUT)
+      << CoinMessageEol;
+    // end of debug
+
   }
   // return value will make sense when DcoTreeNode::process is implemented in Bcps level.
   return 0;
@@ -261,10 +259,35 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
     // solve subproblem corresponds to this node
     DcoSubproblemStatus subproblem_status =
       static_cast<DcoSubproblemStatus> (bound(model));
+
+    // debug print objective value after bounding
+    std::stringstream debug_msg;
+    debug_msg << "Subproblem solved. Obj value "
+              << model->solver()->getObjValue();
+    message_handler->message(0, "Dco", debug_msg.str().c_str(),
+                             'G', DISCO_DLOG_PROCESS);
+    // end of debug stuff
+
+
     // decide what to do
     branchConstrainOrPrice(subproblem_status, keepBounding, do_branch,
                            genConstraints,
                            genVariables);
+
+    // debug message
+    // reset debug message
+    debug_msg.str(std::string());
+    debug_msg << "BCP function decided to"
+              << " keep bounding "
+              << keepBounding
+              << " branch "
+              << do_branch
+              << " generate cons "
+              << genConstraints;
+    message_handler->message(0, "Dco", debug_msg.str().c_str(),
+                             'G', DISCO_DLOG_PROCESS);
+    // end of debug stuff
+
     if (getStatus()==AlpsNodeStatusFathomed) {
       // node is fathomed, nothing to do.
       break;
@@ -638,15 +661,6 @@ DcoTreeNode::branch() {
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
 
-  // debug stuff
-  std::stringstream debug_msg;
-  debug_msg << "Branching node ";
-  debug_msg << this;
-  message_handler->message(0, "Dco", debug_msg.str().c_str(),
-                           'G', DISCO_DLOG_BRANCH)
-    << CoinMessageEol;
-  // end of debug stuff
-
   // check node status, this should be a pregnant node.
   if (getStatus()!=AlpsNodeStatusPregnant) {
       message_handler->message(DISCO_NODE_UNEXPECTEDSTATUS, *messages)
@@ -655,7 +669,6 @@ DcoTreeNode::branch() {
 
   //todo(aykut) update scores
   //BcpsBranchStrategy * branchStrategy = model->branchStrategy();
-
 
   // get Alps phase
   AlpsPhase phase = knowledgeBroker_->getPhase();
@@ -668,6 +681,19 @@ DcoTreeNode::branch() {
   //int branch_var = model->relaxedCols()[branch_object->getObjectIndex()];
   int branch_var = branch_object->index();
   double branch_value = branch_object->value();
+
+  // debug stuff
+  std::stringstream debug_msg;
+  debug_msg << "Branching node "
+            << this
+            << " variable "
+            << branch_var
+            << " value "
+            << branch_value;
+  message_handler->message(0, "Dco", debug_msg.str().c_str(),
+                           'G', DISCO_DLOG_BRANCH)
+    << CoinMessageEol;
+  // end of debug stuff
 
   // compute child nodes' warm start basis
   CoinWarmStartBasis * child_ws;
@@ -872,6 +898,9 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
       subproblem_status==DcoSubproblemStatusDualInfeasible) {
     // subproblem is infeasible, fathom
     keepBounding = false;
+    branch = false;
+    generateConstraints = false;
+    generateVariables = false;
     setStatus(AlpsNodeStatusFathomed);
     return;
   }
@@ -882,20 +911,15 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
   }
 
   // subproblem is solved to optimality. Check feasibility of the solution.
-  bool feasible = true;
   int numColsInf;
   int numRowsInf;
-  branch = true;
   DcoSolution * sol = model->feasibleSolution(numColsInf, numRowsInf);
   if (numColsInf) {
-    feasible = false;
     // default strategy is to branch, for now
     keepBounding = false;
+    branch = true;
     generateVariables = false;
     generateConstraints = false;
-    message_handler->message(0, "Dco", "Some columns are infeasible. "
-                             "Decided to branch.", 'G', DISCO_DLOG_BRANCH)
-      << CoinMessageEol;
     return;
 
   }
@@ -904,22 +928,41 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
     // check conic feasibility
     message_handler->message(0, "Dco", "All columns are feasible. "
                              "Checking conic feasibility...",
-                             'G', DISCO_DLOG_BRANCH)
+                             'G', DISCO_DLOG_PROCESS)
       << CoinMessageEol;
     // numRowInf will have the number of infeasible conic constraints.
     // since we relax rows corresponding to conic constraints only.
     if (numRowsInf) {
       message_handler->message(0, "Dco", "Some conic constraints are "
                                "infeasible. Decided to generate cuts.",
-                               'G', DISCO_DLOG_BRANCH)
+                               'G', DISCO_DLOG_PROCESS)
         << CoinMessageEol;
 
-      feasible = false;
-      // all cols are feasible, keep bounding and generateConstraints
-      keepBounding = true;
-      generateVariables = false;
-      generateConstraints = true;
-      return;
+      if (model->upperBound() < model->solver()->getObjValue()) {
+        // clear stored string
+        std::stringstream msg;
+        msg << "Subproblem objective value is greater than problem upper bound."
+            << " The node is set for fathoming.";
+        message_handler->message(0, "Dco", msg.str().c_str(),
+                                 'G', DISCO_DLOG_PROCESS)
+          << CoinMessageEol;
+        // set status as fathomed
+        setStatus(AlpsNodeStatusFathomed);
+        // stop bounding
+        keepBounding = false;
+        branch = false;
+        generateVariables = false;
+        generateConstraints = false;
+        return;
+      }
+      else {
+        // all cols are feasible, keep bounding and generateConstraints
+        keepBounding = true;
+        branch = false;
+        generateVariables = false;
+        generateConstraints = true;
+        return;
+      }
     }
   }
   if (sol) {
@@ -928,9 +971,9 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
     message_handler->message(0, "Dco", "Node is feasible, fathoming... ",
                              'G', DISCO_DLOG_BRANCH)
       << CoinMessageEol;
-    feasible = true;
     // default strategy is to branch, for now
     keepBounding = false;
+    branch = false;
     generateVariables = false;
     generateConstraints = false;
     setStatus(AlpsNodeStatusFathomed);
@@ -940,9 +983,6 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
                              'E')
       << CoinMessageEol;
   }
-
-  // if still feasible then check solution quality, store solution
-  // set status to fathom
 }
 
 //todo(aykut) replace this with DcoModel::feasibleSolution????
@@ -969,12 +1009,14 @@ void DcoTreeNode::checkRelaxedCols(int & numInf) {
   }
 }
 
+// todo(aykut) this should go into the con generator. process the cuts given
+// by cgl in disco con generator.
 void DcoTreeNode::applyConstraints(BcpsConstraintPool const & conPool) {
   DcoModel * model = getModel();
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
   double scale_par = model->dcoPar()->entry(DcoParams::scaleConFactor);
-
+  double tailoff = model->dcoPar()->entry(DcoParams::tailOff);
   double const * sol = model->solver()->getColSolution();
 
   // Tranform constraints to Osi cut so that easily add them to LP.
@@ -1007,8 +1049,8 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const & conPool) {
     // check whether cut is dense.
     if(length > 100) {
       // discard the cut
-      cuts_to_del.push_back(i);
-      continue;
+      //cuts_to_del.push_back(i);
+      //continue;
     }
 
     // check cut scaling
@@ -1022,7 +1064,6 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const & conPool) {
       if (elements[k]==0.0) {
         // if a coef is exactly 0, ignore it.
         // what if all coef is zero?
-        cuts_to_del.push_back(i);
         continue;
       }
       if (fabs(elements[k]) > maxElem) {
@@ -1042,8 +1083,8 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const & conPool) {
 
     if (scaleFactor > scale_par) {
       // skip the cut since it is badly scaled.
-      cuts_to_del.push_back(i);
-      continue;
+      //cuts_to_del.push_back(i);
+      //continue;
     }
 
     // Check whether the cut is weak.
@@ -1060,10 +1101,12 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const & conPool) {
       violation = CoinMax(violation, activity-rowUpper);
     }
 
-    // todo(aykut) this should be a parameter.
-    if (violation < 1.0e-8) {
+    if (violation < tailoff) {
       // cut is weak, skip it.
       cuts_to_del.push_back(i);
+      message_handler->message(0, "Dco", "Cut is ignored since the activity "
+                               " is less than tail off value.",
+                               'G', DISCO_DLOG_CUT);
       continue;
     }
 
@@ -1076,6 +1119,9 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const & conPool) {
     }
     cuts_to_add[num_add++] = curr_con->createOsiRowCut(model);
   }
+
+  // update statistics of the cut generator
+
 
   // Add cuts to lp and adjust basis.
   CoinWarmStartBasis * ws = dynamic_cast<CoinWarmStartBasis*>
