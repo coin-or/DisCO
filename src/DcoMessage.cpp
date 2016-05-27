@@ -65,13 +65,16 @@ typedef struct {
 // 200-299 DcoTreeNode information messages
 // 300-399 Constraint generation information messages
 // 400-499 Relaxation solver information messages
+// 500-599 Heuristics messages
 // 6200-6299 DcoTreeNode warnings
 // 6300-6399 Constraint generation warnings
 // 6400-6499 Relaxation solver warnings
+// 6500-6599 Heuristics warnings
 // 9200-9299 DcoTreeNode error messages
 // 9900-9999 general error messages
 // 9300-9399 Constraint generation errors
-// 6400-6499 Relaxation solver errors
+// 9400-9499 Relaxation solver errors
+// 9500-9599 Heuristics errors
 //
 //
 
@@ -114,6 +117,8 @@ static Dco_message us_english[]=
     {DISCO_NODE_UNEXPECTEDSTATUS,9202,1, "Unexpected node status %d"},
     // constraint generation
     {DISCO_INVALID_CUT_FREQUENCY,9301,1, "%d is not a valid cut frequency, changed it to %d."},
+    // heuristics
+    {DISCO_INVALID_HEUR_FREQUENCY,9301,1, "%d is not a valid heuristic frequency, changed it to %d."},
     // relaxation solver messages
     {DISCO_SOLVER_UNKNOWN_STATUS,9401,1, "Unknown relaxation solver status."},
     {DISCO_SOLVER_FAILED,9402,1, "Relaxation solver failed to solve the subproblem."},
