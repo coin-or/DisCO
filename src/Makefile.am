@@ -99,6 +99,10 @@ libDisco_la_SOURCES = \
 	DcoVariable.hpp \
 	DcoPresolve.hpp \
 	DcoPresolve.cpp \
+	DcoHeuristic.hpp \
+	DcoHeuristic.cpp \
+	DcoHeurRounding.hpp \
+	DcoHeurRounding.cpp \
 	DcoConfig.hpp
 
 
