@@ -17,14 +17,10 @@ public:
                        char const * name = NULL,
                        DcoCutStrategy strategy = DcoCutStrategyAuto,
                        int frequency = 1);
-  /// Copy constructor.
-  DcoConicConGenerator(DcoConicConGenerator const & other);
   /// Destructor.
   virtual ~DcoConicConGenerator();
   //@}
 
-  /// Copy assignment operator.
-  DcoConicConGenerator & operator=(DcoConicConGenerator const & rhs);
 
   ///@name Constraint generator functions
   //@{
@@ -35,7 +31,12 @@ public:
   // Get cut generator.
   CglConicCutGenerator const * generator() const { return generator_; }
 private:
+  /// Disable default constructor
   DcoConicConGenerator();
+  /// Disable copy constructor.
+  DcoConicConGenerator(DcoConicConGenerator const & other);
+  /// Disable copy assignment operator.
+  DcoConicConGenerator & operator=(DcoConicConGenerator const & rhs);
 };
 
 #endif

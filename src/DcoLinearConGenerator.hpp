@@ -22,25 +22,26 @@ public:
                         char const * name = NULL,
                         DcoCutStrategy strategy = DcoCutStrategyAuto,
                         int frequency = 1);
-  /// Copy constructor.
-  DcoLinearConGenerator(DcoLinearConGenerator const & other);
   /// Destructor.
   virtual ~DcoLinearConGenerator();
   //@}
 
   ///@name Constraint generator functions
   //@{
-  /// Generate constraints and add them to the pool.
+  /// Generate constraints and add them to the pool.  return true if resolve is
+  /// needed (because the state of the solver interface has been modified).
   virtual bool generateConstraints(BcpsConstraintPool & conPool);
   //@}
 
-  /// Copy assignment operator.
-  DcoLinearConGenerator & operator=(DcoLinearConGenerator const & rhs);
   // Get cut generator.
   CglCutGenerator const * generator() const { return generator_; }
 private:
   /// Default constructor is not allowed.
   DcoLinearConGenerator();
+  /// Disable copy constructor.
+  DcoLinearConGenerator(DcoLinearConGenerator const & other);
+  /// Disable copy assignment operator.
+  DcoLinearConGenerator & operator=(DcoLinearConGenerator const & rhs);
 };
 
 #endif

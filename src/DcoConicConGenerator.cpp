@@ -15,22 +15,9 @@ DcoConicConGenerator::DcoConicConGenerator(DcoModel * model,
   generator_ = generator;
 }
 
-/// Copy constructor.
-DcoConicConGenerator::DcoConicConGenerator(DcoConicConGenerator const & other)
-  : DcoConGenerator(other) {
-  generator_ = other.generator()->clone();
-}
-
 /// Destructor.
 DcoConicConGenerator::~DcoConicConGenerator() {
   delete generator_;
-}
-
-/// Copy assignment operator.
-DcoConicConGenerator &
-DcoConicConGenerator::operator=(DcoConicConGenerator const & rhs) {
-  generator_ = rhs.generator()->clone();
-  return *this;
 }
 
 /// Generate constraints and add them to the pool.
