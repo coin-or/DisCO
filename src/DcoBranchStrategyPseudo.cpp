@@ -145,12 +145,14 @@ void DcoBranchStrategyPseudo::update_statistics(DcoTreeNode * node) {
 
     // debug stuff
     std::stringstream debug_msg;
-    debug_msg << "Updating down pseudocost of ";
-    debug_msg << node->getDesc()->getBranchedInd();
-    debug_msg << " from ";
-    debug_msg << old;
-    debug_msg << " to ";
-    debug_msg << down_derivative_[branched_index];
+    debug_msg << "Updating down pseudocost of "
+              << node->getDesc()->getBranchedInd()
+              << " from "
+              << old
+              << " to "
+              << down_derivative_[branched_index]
+              << " frac value "
+              << frac;
     message_handler->message(0, "Dco", debug_msg.str().c_str(),
                              'G', DISCO_DLOG_BRANCH)
       << CoinMessageEol;
@@ -166,12 +168,14 @@ void DcoBranchStrategyPseudo::update_statistics(DcoTreeNode * node) {
 
       // debug stuff
     std::stringstream debug_msg;
-    debug_msg << "Updating up pseudocost of ";
-    debug_msg << node->getDesc()->getBranchedInd();
-    debug_msg << " from ";
-    debug_msg << old;
-    debug_msg << " to ";
-    debug_msg << up_derivative_[branched_index];
+    debug_msg << "Updating up pseudocost of "
+              << node->getDesc()->getBranchedInd()
+              << " from "
+              << old
+              << " to "
+              << up_derivative_[branched_index]
+              << " frac value "
+              << frac;
     message_handler->message(0, "Dco", debug_msg.str().c_str(),
                              'G', DISCO_DLOG_BRANCH)
       << CoinMessageEol;
