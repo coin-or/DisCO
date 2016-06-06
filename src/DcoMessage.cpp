@@ -22,17 +22,20 @@
  *===========================================================================*/
 
 #include "DcoMessage.hpp"
-#include <cstring>
 
-//#############################################################################
+#include <cstring>
+#include <map>
+
+// Define grumpy messages
+std::map<DISCO_Grumpy_Msg_Type, char const *> grumpyMessage;
+std::map<DcoNodeBranchDir, char> grumpyDirection;
+
 typedef struct {
     DISCO_Message internalNumber;
     int externalNumber;              // or continuation
     char detail;
     const char * message;
 } Dco_message;
-
-//#############################################################################
 
 // From CoinMessages documentation
 // <3000 are informational ('I')
@@ -66,6 +69,8 @@ typedef struct {
 // 300-399 Constraint generation information messages
 // 400-499 Relaxation solver information messages
 // 500-599 Heuristics messages
+// 900     Grumpy messages
+//
 // 6200-6299 DcoTreeNode warnings
 // 6300-6399 Constraint generation warnings
 // 6400-6499 Relaxation solver warnings
@@ -117,11 +122,17 @@ static Dco_message us_english[]=
     {DISCO_NODE_UNEXPECTEDSTATUS,9202,1, "Unexpected node status %d"},
     // constraint generation
     {DISCO_INVALID_CUT_FREQUENCY,9301,1, "%d is not a valid cut frequency, changed it to %d."},
-    // heuristics
-    {DISCO_INVALID_HEUR_FREQUENCY,9301,1, "%d is not a valid heuristic frequency, changed it to %d."},
     // relaxation solver messages
     {DISCO_SOLVER_UNKNOWN_STATUS,9401,1, "Unknown relaxation solver status."},
     {DISCO_SOLVER_FAILED,9402,1, "Relaxation solver failed to solve the subproblem."},
+    // heuristics
+    {DISCO_INVALID_HEUR_FREQUENCY,9301,1, "%d is not a valid heuristic frequency, changed it to %d."},
+    // grumpy messages
+    // time, node status, node id, parent id, branch direction, obj val [,sum
+    // of column infeasibilities, count of infeasible cols]
+    {DISCO_GRUMPY_MESSAGE_LONG, 900, DISCO_DLOG_GRUMPY, "%.6f %s %d %d %c %.6f %.6f %d"},
+    {DISCO_GRUMPY_MESSAGE_MED, 900, DISCO_DLOG_GRUMPY, "%.6f %s %d %d %c %.6f"},
+    {DISCO_GRUMPY_MESSAGE_SHORT, 900, DISCO_DLOG_GRUMPY, "%.6f %s %d %d %c"},
     // general messages
     {DISCO_OUT_OF_MEMORY,9901,1, "Out of memory, file: %s, line: %d."},
     {DISCO_NOT_IMPLEMENTED,9902,1, "Not implemented yet, file: %s, line: %d."},
@@ -130,8 +141,6 @@ static Dco_message us_english[]=
     {DISCO_UNKNOWN_CUTSTRATEGY,9905,1, "Unknown cut strategy %d"},
     {DISCO_DUMMY_END, 9999, 0, ""}
 };
-
-//#############################################################################
 
 /* Constructor */
 DcoMessage::DcoMessage(Language language):
@@ -158,4 +167,15 @@ DcoMessage::DcoMessage(Language language):
       message++;
     }
   }
+  // initialize grumpy message node status map
+  grumpyMessage[DISCO_GRUMPY_BRANCHED] = "branched";
+  grumpyMessage[DISCO_GRUMPY_CANDIDATE] = "candidate";
+  grumpyMessage[DISCO_GRUMPY_HEURISTIC] = "heuristic";
+  grumpyMessage[DISCO_GRUMPY_INTEGER] = "integer";
+  grumpyMessage[DISCO_GRUMPY_FATHOMED] = "fathomed";
+  grumpyMessage[DISCO_GRUMPY_PREGNANT] = "pregnant";
+  grumpyMessage[DISCO_GRUMPY_INFEASIBLE] = "infeasible";
+  // initialize grumpy direction map
+  grumpyDirection[DcoNodeBranchDirectionDown] = 'L';
+  grumpyDirection[DcoNodeBranchDirectionUp] = 'R';
 }

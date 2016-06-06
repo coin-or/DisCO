@@ -18,6 +18,9 @@
 // STL headers
 #include <vector>
 
+extern std::map<DISCO_Grumpy_Msg_Type, char const *> grumpyMessage;
+extern std::map<DcoNodeBranchDir, char> grumpyDirection;
+
 // define structs that will be used in creating nodes.
 struct SparseVector {
   int * ind;
@@ -137,6 +140,8 @@ int DcoTreeNode::generateConstraints(BcpsModel * model,
 }
 
 
+//todo(aykut) if all columns are feasible, fix columns and call IPM. If the
+// resulting solution is better update UB. Fathom otherwise.
 void DcoTreeNode::decide_using_cg(bool & do_use,
                                   DcoConGenerator const * cg) const {
   DcoModel * model = getModel();
@@ -226,6 +231,28 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
     << CoinMessageEol;
   // end of debug stuff
 
+  // check if this can be fathomed
+  double quality = getQuality();
+  if (quality > model->cutOff()) {
+    message_handler->message(0, "Dco", "Node fathomed due to parent quality.",
+                             'G', DISCO_DLOG_PROCESS);
+    setStatus(AlpsNodeStatusFathomed);
+
+    // grumpy message
+    model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_MED,
+                                       *model->dcoMessages_)
+      << model->getKnowledgeBroker()->timer().getTime()
+      << grumpyMessage[DISCO_GRUMPY_FATHOMED]
+      << getIndex()+1
+      << getParentIndex()+1
+      << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
+      << model->objSense()*getQuality()
+      << CoinMessageEol;
+    // end of grumpy message
+
+    return AlpsReturnStatusOk;
+  }
+
   if (status==AlpsNodeStatusCandidate or
       status==AlpsNodeStatusEvaluated) {
     boundingLoop(isRoot, rampUp);
@@ -267,6 +294,25 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
     message_handler->message(0, "Dco", debug_msg.str().c_str(),
                              'G', DISCO_DLOG_PROCESS);
     // end of debug stuff
+
+    // grumpy message
+    if (getStatus()==AlpsNodeStatusCandidate) {
+      double sum_inf = 0.0;
+      for (int i=0; i<model->branchStrategy()->numBranchObjects(); ++i) {
+        sum_inf += model->branchStrategy()->branchObjects()[i]->value();
+      }
+      message_handler->message(DISCO_GRUMPY_MESSAGE_LONG, *messages)
+        << model->getKnowledgeBroker()->timer().getTime()
+        << grumpyMessage[DISCO_GRUMPY_CANDIDATE]
+        << getIndex()+1
+        << getParentIndex()+1
+        << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
+        << model->objSense()*getQuality()
+        << sum_inf
+        << model->branchStrategy()->numBranchObjects()
+        << CoinMessageEol;
+    }
+    // end of grumpy message
 
 
     // decide what to do
@@ -775,6 +821,23 @@ DcoTreeNode::branch() {
   res.push_back(CoinMakeTriple(static_cast<AlpsNodeDesc*>(up_node),
                                AlpsNodeStatusCandidate,
                                model->solver()->getObjValue()));
+
+  // grumpy message
+  double sum_inf = 0.0;
+  for (int i=0; i<model->branchStrategy()->numBranchObjects(); ++i) {
+    sum_inf += model->branchStrategy()->branchObjects()[i]->value();
+  }
+  message_handler->message(DISCO_GRUMPY_MESSAGE_LONG, *messages)
+    << model->getKnowledgeBroker()->timer().getTime()
+    << grumpyMessage[DISCO_GRUMPY_BRANCHED]
+    << getIndex()+1
+    << getParentIndex()+1
+    << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
+    << model->objSense()*getQuality()
+    << sum_inf
+    << model->branchStrategy()->numBranchObjects()
+    << CoinMessageEol;
+  // end of grumpy message
   return res;
 }
 
@@ -881,6 +944,23 @@ void DcoTreeNode::processSetPregnant() {
   getDesc()->setBasis(ws);
   // set status pregnant
   setStatus(AlpsNodeStatusPregnant);
+
+  // grumpy message
+  double sum_inf = 0.0;
+  for (int i=0; i<model->branchStrategy()->numBranchObjects(); ++i) {
+    sum_inf += model->branchStrategy()->branchObjects()[i]->value();
+  }
+  model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_LONG, *model->dcoMessages_)
+    << model->getKnowledgeBroker()->timer().getTime()
+    << grumpyMessage[DISCO_GRUMPY_PREGNANT]
+    << getIndex()+1
+    << getParentIndex()+1
+    << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
+    << model->objSense()*getQuality()
+    << sum_inf
+    << model->branchStrategy()->numBranchObjects()
+    << CoinMessageEol;
+  // end of grumpy message
 }
 
 void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
@@ -896,18 +976,37 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
   // infeasible or optimal.
   if (subproblem_status==DcoSubproblemStatusPrimalInfeasible or
       subproblem_status==DcoSubproblemStatusDualInfeasible) {
+
+    // debug message
+    message_handler->message(0, "Dco", "Subproblem is infeasible."
+                             " Status set to fathom",
+                             'G', DISCO_DLOG_PROCESS)
+      << CoinMessageEol;
+    // end of debug message
+
     // subproblem is infeasible, fathom
     keepBounding = false;
     branch = false;
     generateConstraints = false;
     generateVariables = false;
+
+    // grumpy message
+    model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_SHORT,
+                                       *model->dcoMessages_)
+      << model->getKnowledgeBroker()->timer().getTime()
+      << grumpyMessage[DISCO_GRUMPY_INFEASIBLE]
+      << getIndex()+1
+      << getParentIndex()+1
+      << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
+      << CoinMessageEol;
+    // end of grumpy message
+
     setStatus(AlpsNodeStatusFathomed);
     return;
   }
   if (subproblem_status!=DcoSubproblemStatusOptimal) {
     message_handler->message(DISCO_SOLVER_FAILED, *messages)
       << CoinMessageEol;
-    throw std::exception();
   }
 
   // subproblem is solved to optimality. Check feasibility of the solution.
@@ -921,24 +1020,14 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
     generateVariables = false;
     generateConstraints = false;
     return;
-
   }
   else {
     // all columns are feasible
     // check conic feasibility
-    message_handler->message(0, "Dco", "All columns are feasible. "
-                             "Checking conic feasibility...",
-                             'G', DISCO_DLOG_PROCESS)
-      << CoinMessageEol;
     // numRowInf will have the number of infeasible conic constraints.
     // since we relax rows corresponding to conic constraints only.
     if (numRowsInf) {
-      message_handler->message(0, "Dco", "Some conic constraints are "
-                               "infeasible. Decided to generate cuts.",
-                               'G', DISCO_DLOG_PROCESS)
-        << CoinMessageEol;
-
-      if (model->upperBound() < model->solver()->getObjValue()) {
+      if (model->cutOff() < model->solver()->getObjValue()) {
         // clear stored string
         std::stringstream msg;
         msg << "Subproblem objective value is greater than problem upper bound."
@@ -946,8 +1035,21 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
         message_handler->message(0, "Dco", msg.str().c_str(),
                                  'G', DISCO_DLOG_PROCESS)
           << CoinMessageEol;
+
+        // grumpy message
+        model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_MED,
+                                           *model->dcoMessages_)
+          << model->getKnowledgeBroker()->timer().getTime()
+          << grumpyMessage[DISCO_GRUMPY_FATHOMED]
+          << getIndex()+1
+          << getParentIndex()+1
+          << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
+          << model->objSense()*getQuality()
+          << CoinMessageEol;
+        // end of grumpy message
+
         // set status as fathomed
-        setStatus(AlpsNodeStatusFathomed);
+        setStatus(AlpsNodeStatusEvaluated);
         // stop bounding
         keepBounding = false;
         branch = false;
@@ -971,6 +1073,19 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
     message_handler->message(0, "Dco", "Node is feasible, fathoming... ",
                              'G', DISCO_DLOG_BRANCH)
       << CoinMessageEol;
+
+    // grumpy message
+    model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_MED,
+                                       *model->dcoMessages_)
+      << model->getKnowledgeBroker()->timer().getTime()
+      << grumpyMessage[DISCO_GRUMPY_INTEGER]
+      << getIndex()+1
+      << getParentIndex()+1
+      << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
+      << model->objSense()*getQuality()
+      << CoinMessageEol;
+    // end of grumpy message
+
     // default strategy is to branch, for now
     keepBounding = false;
     branch = false;
@@ -1105,7 +1220,7 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const & conPool) {
       // cut is weak, skip it.
       cuts_to_del.push_back(i);
       message_handler->message(0, "Dco", "Cut is ignored since the activity "
-                               " is less than tail off value.",
+                               "is less than tail off value.",
                                'G', DISCO_DLOG_CUT);
       continue;
     }

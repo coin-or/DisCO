@@ -24,6 +24,8 @@
 #ifndef DcoMessage_hpp_
 #define DcoMessage_hpp_
 
+#include <Dco.hpp>
+
 //#############################################################################
 
 #if defined(_MSC_VER)
@@ -61,11 +63,15 @@ enum DISCO_Message {
     DISCO_NODE_UNEXPECTEDSTATUS,
     // constraint generation
     DISCO_INVALID_CUT_FREQUENCY,
-    // heuristics
-    DISCO_INVALID_HEUR_FREQUENCY,
     // relaxation solver messages
     DISCO_SOLVER_UNKNOWN_STATUS,
     DISCO_SOLVER_FAILED,
+    // heuristics
+    DISCO_INVALID_HEUR_FREQUENCY,
+    // grumpy messages
+    DISCO_GRUMPY_MESSAGE_LONG,
+    DISCO_GRUMPY_MESSAGE_MED,
+    DISCO_GRUMPY_MESSAGE_SHORT,
     // more general messages
     // out of memory
     DISCO_OUT_OF_MEMORY,
@@ -78,12 +84,25 @@ enum DISCO_Message {
 };
 
 enum DISCO_Debug_Level {
-    DISCO_DLOG_BRANCH = 8,
-    DISCO_DLOG_CUT = 16,
-    DISCO_DLOG_PROCESS = 32,
-    DISCO_DLOG_PRESOLVE = 64,
-    DISCO_DLOG_MPI = 128
+  DISCO_DLOG_BRANCH = 8,
+  DISCO_DLOG_CUT = 16,
+  DISCO_DLOG_PROCESS = 32,
+  DISCO_DLOG_PRESOLVE = 64,
+  DISCO_DLOG_MPI = 128,
+  DISCO_DLOG_GRUMPY = 32
 };
+
+enum DISCO_Grumpy_Msg_Type {
+  DISCO_GRUMPY_BRANCHED = 0,
+  DISCO_GRUMPY_CANDIDATE,
+  DISCO_GRUMPY_HEURISTIC,
+  DISCO_GRUMPY_INTEGER,
+  DISCO_GRUMPY_FATHOMED,
+  DISCO_GRUMPY_PREGNANT,
+  DISCO_GRUMPY_INFEASIBLE
+};
+
+
 //#############################################################################
 
 class DcoMessage : public CoinMessages {
