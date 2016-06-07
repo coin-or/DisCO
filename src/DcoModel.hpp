@@ -177,6 +177,8 @@ class DcoModel: public BcpsModel {
   double currRelGap_;
   /// Current absolute optimal gap.
   double currAbsGap_;
+  /// quality of best solution so far
+  double cutOff_;
   //@}
 
   ///@name Variable selection function.
@@ -310,8 +312,10 @@ public:
   DcoParams const * dcoPar() const {return dcoPar_;}
   /// store solution
   int storeSolution(DcoSolution * sol);
-  /// get upper bound of the objective value
-  double upperBound();
+  /// get upper bound of the objective value for minimization
+  double cutOff();
+  /// set objective limit for the solver
+  void setCutOff(double quality);
   //@}
 
   ///@name Querry problem data
@@ -330,6 +334,8 @@ public:
   double * rowLB() {return rowLB_;}
   /// Get row upper bounds.
   double * rowUB() {return rowUB_;}
+  /// Get objective sense, 1 for min, -1 for max
+  double objSense() const { return objSense_; }
   //@}
 
   ///@name Querry relaxed problem objects
@@ -401,6 +407,10 @@ public:
   /// Prints solution statistics
   virtual void modelLog();
   //@}
+
+  /// report feasibility of the best solution
+  void reportFeasibility();
+
 };
 
 #endif

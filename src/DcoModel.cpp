@@ -41,6 +41,8 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <numeric>
+#include <cmath>
 
 DcoModel::DcoModel() {
   solver_ = NULL;
@@ -60,6 +62,7 @@ DcoModel::DcoModel() {
 
   currRelGap_ = 1e5;
   currAbsGap_ = 1e5;
+  cutOff_ = COIN_DBL_MAX;
   activeNode_ = NULL;
   dcoPar_ = new DcoParams();
   numNodes_ = 0;
@@ -251,7 +254,7 @@ void DcoModel::readAddVariables(CoinMpsIO * reader) {
   BcpsVariable ** variables = new BcpsVariable*[numCols_];
   for (int i=0; i<numCols_; ++i) {
     variables[i] = new DcoVariable(i, colLB_[i], colUB_[i], colLB_[i],
-                                   colLB_[i], i_type[i]);
+                                   colUB_[i], i_type[i]);
   }
   setVariables(variables, numCols_);
   // variables[i] are now owned by BcpsModel, do not free them.
@@ -573,6 +576,26 @@ bool DcoModel::setupSelf() {
   // if not iterate over rows and determine their type (DcoConstraint::type())
   for (int i=0; i<numRelaxedRows_; ++i) {
     relaxedRows_[i] = numLinearRows_+i;
+  }
+
+  // set leading variable lower bounds to 0
+  for (int i=numLinearRows_; i<numLinearRows_+numConicRows_; ++i) {
+    DcoConicConstraint * con =
+      dynamic_cast<DcoConicConstraint*> (constraints_[i]);
+    if (con->getType()==DcoLorentzCone) {
+      //todo(aykut) assumes variable indices in reader and variable
+      // indices in disco are same
+      variables_[con->getMembers()[0]]->setLbHard(0.0);
+    }
+    else if (con->getType()==DcoRotatedLorentzCone) {
+      variables_[con->getMembers()[0]]->setLbHard(0.0);
+      variables_[con->getMembers()[1]]->setLbHard(0.0);
+    }
+    else {
+      dcoMessageHandler_->message(DISCO_UNKNOWN_CONETYPE,
+                                  *dcoMessages_)
+        << con->getType() << CoinMessageEol;
+    }
   }
 #endif
 
@@ -1148,6 +1171,10 @@ DcoSolution * DcoModel::feasibleSolution(int & numInfColumns,
   numInfColumns = 0;
   numInfRows = 0;
 
+  // for debug purposes we will keep the largest column and row infeasibility
+  double col_inf = 0.0;
+  double row_inf = 0.0;
+
   // check feasibility of relxed columns, ie. integrality constraints
   // get vector of variables
   std::vector<BcpsVariable*> & cols = getVariables();
@@ -1159,6 +1186,9 @@ DcoSolution * DcoModel::feasibleSolution(int & numInfColumns,
     double infeas = curr->infeasibility(this, preferredDir);
     if (infeas>0) {
       numInfColumns++;
+      if (col_inf<infeas) {
+        col_inf = infeas;
+      }
     }
   }
 
@@ -1173,8 +1203,24 @@ DcoSolution * DcoModel::feasibleSolution(int & numInfColumns,
     double infeas = curr->infeasibility(this, preferredDir);
     if (infeas>0) {
       numInfRows++;
+      if (row_inf<infeas) {
+        row_inf = infeas;
+      }
     }
   }
+
+  // debug stuff
+  // report largest column and row infeasibilities
+  std::stringstream debug_msg;
+  debug_msg << "Column infeasibility "
+            << col_inf
+            << " Row infeasibility "
+            << row_inf;
+  dcoMessageHandler_->message(0, "Dco", debug_msg.str().c_str(),
+                              'G', DISCO_DLOG_PROCESS)
+    << CoinMessageEol;
+  // end of debug stuff
+
 
   // create DcoSolution instance if feasbile
   DcoSolution * dco_sol = 0;
@@ -1184,12 +1230,13 @@ DcoSolution * DcoModel::feasibleSolution(int & numInfColumns,
     dco_sol = new DcoSolution(numCols_, sol, quality);
 
     // debug stuff
-    std::stringstream debug_msg;
+    // flush stream
+    debug_msg.str(std::string());
     debug_msg << "Solution found. ";
     debug_msg << "Obj value ";
     debug_msg << quality;
     dcoMessageHandler_->message(0, "Dco", debug_msg.str().c_str(),
-                                'G', DISCO_DLOG_CUT)
+                                'G', DISCO_DLOG_PROCESS)
       << CoinMessageEol;
     // end of debug stuff
 
@@ -1202,18 +1249,24 @@ DcoSolution * DcoModel::feasibleSolution(int & numInfColumns,
 int DcoModel::storeSolution(DcoSolution * sol) {
   double quality = sol->getQuality();
   // Update cutoff and lp cutoff.
-  double obj_tol = dcoPar_->entry(DcoParams::objTol);
-  if (quality+obj_tol < upperBound()) {
-    // Store in Alps pool, assumes minimization.
-    getKnowledgeBroker()->addKnowledge(AlpsKnowledgeTypeSolution,
-                                       sol,
-                                       objSense_ * quality);
-  }
+  setCutOff(quality);
+  // Store in Alps pool, assumes minimization.
+  getKnowledgeBroker()->addKnowledge(AlpsKnowledgeTypeSolution,
+                                     sol,
+                                     objSense_ * quality);
+
+  // // debug write mps file to disk
+  // std::cout << "writing problem to disk..." << std::endl;
+  // std::stringstream problem;
+  // problem << broker_->getNumNodesProcessed();
+  // solver_->writeMps(problem.str().c_str(), "mps", 0.0);
+  // // end of problem writing
   return AlpsReturnStatusOk;
 }
 
-double DcoModel::upperBound() {
-  return getKnowledgeBroker()->getBestQuality();
+double DcoModel::cutOff() {
+  return cutOff_;
+  //return getKnowledgeBroker()->getBestQuality();
 }
 
 /// This is called at the end of the AlpsKnowledgeBroker::rootSearch
@@ -1250,5 +1303,80 @@ void DcoModel::modelLog() {
                                 "Don't know how to log in parallel mode.",
                                 'G', DISCO_DLOG_MPI)
       << CoinMessageEol;
+  }
+}
+
+void DcoModel::reportFeasibility() {
+  // get solution
+  DcoSolution * dcosol =
+    dynamic_cast<DcoSolution*>
+    (broker_->getBestKnowledge(AlpsKnowledgeTypeSolution).first);
+  // conic constraints
+  double const * sol = dcosol->getValues();
+
+  // integrality
+  dcoMessageHandler_->message(0, "Dco", "Integrality Report",
+                              'G', DISCO_DLOG_PROCESS)
+    << CoinMessageEol;
+  std::stringstream msg;
+  for (int i=0; i<numRelaxedCols_; ++i) {
+    msg << "x["
+        << relaxedCols_[i]
+        << "] = "
+        << sol[relaxedCols_[i]];
+    dcoMessageHandler_->message(0, "Dco", msg.str().c_str(),
+                                'G', DISCO_DLOG_PROCESS)
+      << CoinMessageEol;
+    msg.str(std::string());
+  }
+
+  // conic constraints
+  dcoMessageHandler_->message(0, "Dco", "Conic Feasibility",
+                              'G', DISCO_DLOG_PROCESS)
+    << CoinMessageEol;
+  int prefered;
+  for (int i=numLinearRows_; i<numLinearRows_+numConicRows_; ++i) {
+    DcoConicConstraint * con =
+      dynamic_cast<DcoConicConstraint*> (constraints_[i]);
+    int const * members = con->getMembers();
+    DcoLorentzConeType type = con->getType();
+    int size = con->getSize();
+
+    double * values = new double[size];
+    for (int i=0; i<size; ++i) {
+      values[i] = sol[members[i]];
+    }
+    double term1;
+    double term2;
+    if (type==DcoLorentzCone) {
+      term1 = values[0];
+      term2 = std::inner_product(values+1, values+size, values+1, 0.0);
+      term2 = sqrt(term2);
+    }
+    else if (type==DcoRotatedLorentzCone) {
+      term1 = 2.0*sol[members[0]]*sol[members[1]];
+      term2 = std::inner_product(values+2, values+size, values+2, 0.0);
+    }
+    else {
+      dcoMessageHandler_->message(DISCO_UNKNOWN_CONETYPE,
+                                  *dcoMessages_)
+        << type << CoinMessageEol;
+    }
+    msg << "Cone "
+        << i - numLinearRows_
+        << " "
+        << term1-term2;
+    dcoMessageHandler_->message(0, "Dco", msg.str().c_str(),
+                                'G', DISCO_DLOG_PROCESS)
+      << CoinMessageEol;
+    msg.str(std::string());
+  }
+}
+
+void DcoModel::setCutOff(double quality) {
+  double obj_tol = dcoPar_->entry(DcoParams::objTol);
+  if (quality+obj_tol < cutOff_) {
+    cutOff_ = quality+obj_tol;
+    solver_->setDblParam(OsiDualObjectiveLimit, objSense_*cutOff_);
   }
 }
