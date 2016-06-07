@@ -44,6 +44,7 @@ int main(int argc, char *argv[]) {
   broker.search(&model);
   // Report the best solution found and its ojective value
   broker.printBestSolution();
+  model.reportFeasibility();
   delete solver;
   return 0;
 }
