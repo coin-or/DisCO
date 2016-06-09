@@ -178,7 +178,7 @@ class DcoModel: public BcpsModel {
   /// Current absolute optimal gap.
   double currAbsGap_;
   /// quality of best solution so far
-  double cutOff_;
+  double bestQuality_;
   //@}
 
   ///@name Variable selection function.
@@ -313,9 +313,7 @@ public:
   /// store solution
   int storeSolution(DcoSolution * sol);
   /// get upper bound of the objective value for minimization
-  double cutOff();
-  /// set objective limit for the solver
-  void setCutOff(double quality);
+  double bestQuality();
   //@}
 
   ///@name Querry problem data
