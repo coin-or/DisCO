@@ -62,7 +62,7 @@ DcoModel::DcoModel() {
 
   currRelGap_ = 1e5;
   currAbsGap_ = 1e5;
-  cutOff_ = COIN_DBL_MAX;
+  bestQuality_ = COIN_DBL_MAX;
   activeNode_ = NULL;
   dcoPar_ = new DcoParams();
   numNodes_ = 0;
@@ -1248,12 +1248,14 @@ DcoSolution * DcoModel::feasibleSolution(int & numInfColumns,
 // todo(aykut) what if objsense is -1 and problem is maximization?
 int DcoModel::storeSolution(DcoSolution * sol) {
   double quality = sol->getQuality();
-  // Update cutoff and lp cutoff.
-  setCutOff(quality);
   // Store in Alps pool, assumes minimization.
   getKnowledgeBroker()->addKnowledge(AlpsKnowledgeTypeSolution,
                                      sol,
                                      objSense_ * quality);
+  if (quality<bestQuality_) {
+    bestQuality_ = quality;
+    solver_->setDblParam(OsiDualObjectiveLimit, objSense_*quality);
+  }
 
   // // debug write mps file to disk
   // std::cout << "writing problem to disk..." << std::endl;
@@ -1264,8 +1266,8 @@ int DcoModel::storeSolution(DcoSolution * sol) {
   return AlpsReturnStatusOk;
 }
 
-double DcoModel::cutOff() {
-  return cutOff_;
+double DcoModel::bestQuality() {
+  return bestQuality_;
   //return getKnowledgeBroker()->getBestQuality();
 }
 
@@ -1370,13 +1372,5 @@ void DcoModel::reportFeasibility() {
                                 'G', DISCO_DLOG_PROCESS)
       << CoinMessageEol;
     msg.str(std::string());
-  }
-}
-
-void DcoModel::setCutOff(double quality) {
-  double obj_tol = dcoPar_->entry(DcoParams::objTol);
-  if (quality+obj_tol < cutOff_) {
-    cutOff_ = quality+obj_tol;
-    solver_->setDblParam(OsiDualObjectiveLimit, objSense_*cutOff_);
   }
 }
