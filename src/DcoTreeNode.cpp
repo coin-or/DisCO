@@ -203,15 +203,6 @@ int DcoTreeNode::chooseBranchingObject(BcpsModel * model) {
   return 0;
 }
 
-/**
-   This function will process the node.
-   <ul>
-   <il> If it is candidate or evaluated, decide to either generate cut or branch.
-   <il> If it is pregnant, branch.
-   <il> If it is branched, fathomed or discarded raise error.
-   </ul>
-
- */
 int DcoTreeNode::process(bool isRoot, bool rampUp) {
   AlpsNodeStatus status = getStatus();
   DcoModel * model = getModel();
@@ -232,12 +223,10 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
   // end of debug stuff
 
   // check if this can be fathomed
-  double quality = getQuality();
-  if (quality > model->cutOff()) {
+  if (getQuality() > model->bestQuality()) {
     message_handler->message(0, "Dco", "Node fathomed due to parent quality.",
                              'G', DISCO_DLOG_PROCESS);
     setStatus(AlpsNodeStatusFathomed);
-
     // grumpy message
     model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_MED,
                                        *model->dcoMessages_)
@@ -249,7 +238,6 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
       << model->objSense()*getQuality()
       << CoinMessageEol;
     // end of grumpy message
-
     return AlpsReturnStatusOk;
   }
 
@@ -289,14 +277,20 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
 
     // debug print objective value after bounding
     std::stringstream debug_msg;
-    debug_msg << "Subproblem solved. Obj value "
-              << model->solver()->getObjValue();
+    debug_msg << "Subproblem solved. "
+              << "status "
+              << subproblem_status
+              << " Obj value "
+              << quality_
+              << " estimate "
+              << solEstimate_;
     message_handler->message(0, "Dco", debug_msg.str().c_str(),
                              'G', DISCO_DLOG_PROCESS);
     // end of debug stuff
 
     // grumpy message
-    if (getStatus()==AlpsNodeStatusCandidate) {
+    if (subproblem_status==DcoSubproblemStatusOptimal &&
+        getStatus()==AlpsNodeStatusCandidate) {
       double sum_inf = 0.0;
       for (int i=0; i<model->branchStrategy()->numBranchObjects(); ++i) {
         sum_inf += model->branchStrategy()->branchObjects()[i]->value();
@@ -344,14 +338,20 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
       applyConstraints(*constraintPool);
       // clear constraint pool
       constraintPool->freeGuts();
+      // set status to evaluated
+      setStatus(AlpsNodeStatusEvaluated);
     }
     else if (keepBounding and genVariables) {
       generateVariables(model, variablePool);
       // add variables to the model
+      // set status to evaluated
+      setStatus(AlpsNodeStatusEvaluated);
     }
     else if (keepBounding==false and do_branch==false) {
       // put node back into the list.
       // this means do not change the node status and end processing the node.
+      // set status to evaluated
+      setStatus(AlpsNodeStatusEvaluated);
     }
     else if (keepBounding==false and do_branch) {
       // branch
@@ -397,6 +397,8 @@ int DcoTreeNode::bound(BcpsModel * bcps_model) {
   model->solver()->resolve();
   if (model->solver()->isAbandoned()) {
     subproblem_status = DcoSubproblemStatusAbandoned;
+    quality_ = ALPS_OBJ_MAX;
+    solEstimate_ = ALPS_OBJ_MAX;
   }
   else if (model->solver()->isProvenOptimal()) {
     // todo(aykut) if obj val is greater than 1e+30 we consider problem
@@ -405,6 +407,8 @@ int DcoTreeNode::bound(BcpsModel * bcps_model) {
     // function. This can be improved.
     if (model->solver()->getObjValue()>=1e+30) {
       subproblem_status = DcoSubproblemStatusPrimalInfeasible;
+      quality_ = ALPS_OBJ_MAX;
+      solEstimate_ = ALPS_OBJ_MAX;
     }
     else {
       subproblem_status = DcoSubproblemStatusOptimal;
@@ -412,19 +416,28 @@ int DcoTreeNode::bound(BcpsModel * bcps_model) {
         model->solver()->getObjSense();
       // Update quality of this node
       quality_ = objValue;
+      solEstimate_ = objValue;
     }
   }
   else if (model->solver()->isProvenPrimalInfeasible()) {
     subproblem_status = DcoSubproblemStatusPrimalInfeasible;
+    quality_ = ALPS_OBJ_MAX;
+    solEstimate_ = ALPS_OBJ_MAX;
   }
   else if (model->solver()->isProvenDualInfeasible()) {
     subproblem_status = DcoSubproblemStatusDualInfeasible;
+    quality_ = ALPS_OBJ_MAX;
+    solEstimate_ = ALPS_OBJ_MAX;
   }
   else if (model->solver()->isPrimalObjectiveLimitReached()) {
     subproblem_status = DcoSubproblemStatusPrimalObjLim;
+    quality_ = ALPS_OBJ_MAX;
+    solEstimate_ = ALPS_OBJ_MAX;
   }
   else if (model->solver()->isDualObjectiveLimitReached()) {
     subproblem_status = DcoSubproblemStatusDualObjLim;
+    quality_ = ALPS_OBJ_MAX;
+    solEstimate_ = ALPS_OBJ_MAX;
   }
   else if (model->solver()->isIterationLimitReached()) {
     subproblem_status = DcoSubproblemStatusIterLim;
@@ -713,6 +726,18 @@ DcoTreeNode::branch() {
         << static_cast<int>(getStatus()) << CoinMessageEol;
   }
 
+  // create return value and push the down and up nodes.
+  std::vector< CoinTriple<AlpsNodeDesc*, AlpsNodeStatus, double> > res;
+  // fathom if quality is bad
+  if (quality_ > model->bestQuality()) {
+    // clear stored string
+    message_handler->message(0, "Dco", "Bad quality. No need for "
+                             "branching, fathom.",
+                             'G', DISCO_DLOG_PROCESS)
+      << CoinMessageEol;
+    setStatus(AlpsNodeStatusFathomed);
+    return res;
+  }
   //todo(aykut) update scores
   //BcpsBranchStrategy * branchStrategy = model->branchStrategy();
 
@@ -813,8 +838,7 @@ DcoTreeNode::branch() {
   // Alps does this. We do not need to change the status here
   //status_ = AlpsNodeStatusBranched;
 
-  // create return value and push the down and up nodes.
-  std::vector< CoinTriple<AlpsNodeDesc*, AlpsNodeStatus, double> > res;
+  // push the down and up nodes.
   res.push_back(CoinMakeTriple(static_cast<AlpsNodeDesc*>(down_node),
                                AlpsNodeStatusCandidate,
                                model->solver()->getObjValue()));
@@ -838,6 +862,11 @@ DcoTreeNode::branch() {
     << model->branchStrategy()->numBranchObjects()
     << CoinMessageEol;
   // end of grumpy message
+  setStatus(AlpsNodeStatusBranched);
+
+  // are these should be in alps level?
+  //up_node->setSolEstimate(quality_);
+  //down_node->setSolEstimate(quality_);
   return res;
 }
 
@@ -1002,6 +1031,8 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
     // end of grumpy message
 
     setStatus(AlpsNodeStatusFathomed);
+    quality_ = ALPS_OBJ_MAX;
+    solEstimate_ = ALPS_OBJ_MAX;
     return;
   }
   if (subproblem_status!=DcoSubproblemStatusOptimal) {
@@ -1027,7 +1058,7 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
     // numRowInf will have the number of infeasible conic constraints.
     // since we relax rows corresponding to conic constraints only.
     if (numRowsInf) {
-      if (model->cutOff() < model->solver()->getObjValue()) {
+      if (quality_ > model->bestQuality()) {
         // clear stored string
         std::stringstream msg;
         msg << "Subproblem objective value is greater than problem upper bound."
@@ -1049,7 +1080,7 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
         // end of grumpy message
 
         // set status as fathomed
-        setStatus(AlpsNodeStatusEvaluated);
+        setStatus(AlpsNodeStatusFathomed);
         // stop bounding
         keepBounding = false;
         branch = false;
@@ -1091,6 +1122,8 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
     branch = false;
     generateVariables = false;
     generateConstraints = false;
+
+    solEstimate_ = quality_;
     setStatus(AlpsNodeStatusFathomed);
   }
   else {
