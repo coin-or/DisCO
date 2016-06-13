@@ -270,11 +270,6 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
   BcpsVariablePool * variablePool = new BcpsVariablePool();
   installSubProblem(model);
 
-  // write problem to the disk
-  std::stringstream pname;
-  pname << getIndex();
-  model->solver()->writeMps(pname.str().c_str(), "mps", 0.0);
-
   while (keepBounding) {
     keepBounding = false;
     // solve subproblem corresponds to this node
@@ -523,6 +518,8 @@ int DcoTreeNode::installSubProblem(BcpsModel * bcps_model) {
   // column and row lower bounds
   // todo(aykut) why do we need to write them to model->colLB_ fields?
   // is it enough to have a local array?
+  // this creates a bug unless you restore the bounds to original values.
+  // this should be fixed.
   double * colLB = model->colLB();
   double * colUB = model->colUB();
   double * rowLB = model->rowLB();
@@ -702,14 +699,6 @@ int DcoTreeNode::installSubProblem(BcpsModel * bcps_model) {
   if (pws != NULL) {
     model->solver()->setWarmStart(pws);
   }
-
-  // write mps file after problem is installed.
-  // std::cout << "Writing problem corresponding to node " << this << std::endl;
-  // std::stringstream ss;
-  // ss << this;
-  // model->solver()->writeMps(ss.str().c_str(), "mps", 0.0);
-  // end of mps file writing
-
   return status;
   //  End of 7
 }
@@ -1109,6 +1098,11 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
     }
   }
   if (sol) {
+    sol->setDepth(depth_);
+    //todo(aykut) solution has an index field I beleive that should be filled
+    //in Alps level.
+    sol->setIndex(model->getKnowledgeBroker()->getNumKnowledges(AlpsKnowledgeTypeSolution));
+
     model->storeSolution(sol);
     // set node status to fathomed.
     message_handler->message(0, "Dco", "Node is feasible, fathoming... ",
