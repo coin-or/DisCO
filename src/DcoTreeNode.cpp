@@ -269,6 +269,12 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
   BcpsConstraintPool * constraintPool = new BcpsConstraintPool();
   BcpsVariablePool * variablePool = new BcpsVariablePool();
   installSubProblem(model);
+
+  // write problem to the disk
+  std::stringstream pname;
+  pname << getIndex();
+  model->solver()->writeMps(pname.str().c_str(), "mps", 0.0);
+
   while (keepBounding) {
     keepBounding = false;
     // solve subproblem corresponds to this node
@@ -803,8 +809,12 @@ DcoTreeNode::branch() {
 
     double ub_down_branch = branch_object->ubDownBranch();
     double lb_up_branch = branch_object->lbUpBranch();
-    double lb = model->colLB()[branch_var];
-    double ub = model->colUB()[branch_var];
+    // todo(aykut) where does colLB and colUB get updated?
+    // I think they should stay as they created.
+    //double lb = model->colLB()[branch_var];
+    //double ub = model->colUB()[branch_var];
+    double lb = model->getVariables()[branch_var]->getLbHard();
+    double ub = model->getVariables()[branch_var]->getUbHard();
     down_node->setVarHardBound(1,
                              &branch_var,
                              &lb,
