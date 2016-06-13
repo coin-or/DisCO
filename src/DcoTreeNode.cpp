@@ -232,8 +232,8 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
                                        *model->dcoMessages_)
       << model->getKnowledgeBroker()->timer().getTime()
       << grumpyMessage[DISCO_GRUMPY_FATHOMED]
-      << getIndex()+1
-      << getParentIndex()+1
+      << getIndex()
+      << getParentIndex()
       << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
       << model->objSense()*getQuality()
       << CoinMessageEol;
@@ -304,8 +304,8 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
       message_handler->message(DISCO_GRUMPY_MESSAGE_LONG, *messages)
         << model->getKnowledgeBroker()->timer().getTime()
         << grumpyMessage[DISCO_GRUMPY_CANDIDATE]
-        << getIndex()+1
-        << getParentIndex()+1
+        << getIndex()
+        << getParentIndex()
         << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
         << model->objSense()*getQuality()
         << sum_inf
@@ -864,8 +864,8 @@ DcoTreeNode::branch() {
   message_handler->message(DISCO_GRUMPY_MESSAGE_LONG, *messages)
     << model->getKnowledgeBroker()->timer().getTime()
     << grumpyMessage[DISCO_GRUMPY_BRANCHED]
-    << getIndex()+1
-    << getParentIndex()+1
+    << getIndex()
+    << getParentIndex()
     << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
     << model->objSense()*getQuality()
     << sum_inf
@@ -992,8 +992,8 @@ void DcoTreeNode::processSetPregnant() {
   model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_LONG, *model->dcoMessages_)
     << model->getKnowledgeBroker()->timer().getTime()
     << grumpyMessage[DISCO_GRUMPY_PREGNANT]
-    << getIndex()+1
-    << getParentIndex()+1
+    << getIndex()
+    << getParentIndex()
     << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
     << model->objSense()*getQuality()
     << sum_inf
@@ -1034,8 +1034,8 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
                                        *model->dcoMessages_)
       << model->getKnowledgeBroker()->timer().getTime()
       << grumpyMessage[DISCO_GRUMPY_INFEASIBLE]
-      << getIndex()+1
-      << getParentIndex()+1
+      << getIndex()
+      << getParentIndex()
       << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
       << CoinMessageEol;
     // end of grumpy message
@@ -1082,8 +1082,8 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
                                            *model->dcoMessages_)
           << model->getKnowledgeBroker()->timer().getTime()
           << grumpyMessage[DISCO_GRUMPY_FATHOMED]
-          << getIndex()+1
-          << getParentIndex()+1
+          << getIndex()
+          << getParentIndex()
           << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
           << model->objSense()*getQuality()
           << CoinMessageEol;
@@ -1120,8 +1120,8 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
                                        *model->dcoMessages_)
       << model->getKnowledgeBroker()->timer().getTime()
       << grumpyMessage[DISCO_GRUMPY_INTEGER]
-      << getIndex()+1
-      << getParentIndex()+1
+      << getIndex()
+      << getParentIndex()
       << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
       << model->objSense()*getQuality()
       << CoinMessageEol;
