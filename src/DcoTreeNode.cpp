@@ -291,7 +291,8 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
 
     // grumpy message
     if (subproblem_status==DcoSubproblemStatusOptimal &&
-        getStatus()==AlpsNodeStatusCandidate) {
+        getStatus()==AlpsNodeStatusCandidate or
+        getStatus()==AlpsNodeStatusEvaluated) {
       double sum_inf = 0.0;
       for (int i=0; i<model->branchStrategy()->numBranchObjects(); ++i) {
         sum_inf += model->branchStrategy()->branchObjects()[i]->value();
@@ -422,23 +423,23 @@ int DcoTreeNode::bound(BcpsModel * bcps_model) {
   }
   else if (model->solver()->isProvenPrimalInfeasible()) {
     subproblem_status = DcoSubproblemStatusPrimalInfeasible;
-    quality_ = ALPS_OBJ_MAX;
-    solEstimate_ = ALPS_OBJ_MAX;
+    //quality_ = ALPS_OBJ_MAX;
+    //solEstimate_ = ALPS_OBJ_MAX;
   }
   else if (model->solver()->isProvenDualInfeasible()) {
     subproblem_status = DcoSubproblemStatusDualInfeasible;
-    quality_ = ALPS_OBJ_MAX;
-    solEstimate_ = ALPS_OBJ_MAX;
+    //quality_ = ALPS_OBJ_MAX;
+    //solEstimate_ = ALPS_OBJ_MAX;
   }
   else if (model->solver()->isPrimalObjectiveLimitReached()) {
     subproblem_status = DcoSubproblemStatusPrimalObjLim;
-    quality_ = ALPS_OBJ_MAX;
-    solEstimate_ = ALPS_OBJ_MAX;
+    //quality_ = ALPS_OBJ_MAX;
+    //solEstimate_ = ALPS_OBJ_MAX;
   }
   else if (model->solver()->isDualObjectiveLimitReached()) {
     subproblem_status = DcoSubproblemStatusDualObjLim;
-    quality_ = ALPS_OBJ_MAX;
-    solEstimate_ = ALPS_OBJ_MAX;
+    //quality_ = ALPS_OBJ_MAX;
+    //solEstimate_ = ALPS_OBJ_MAX;
   }
   else if (model->solver()->isIterationLimitReached()) {
     subproblem_status = DcoSubproblemStatusIterLim;
