@@ -399,8 +399,8 @@ int DcoTreeNode::bound(BcpsModel * bcps_model) {
   model->solver()->resolve();
   if (model->solver()->isAbandoned()) {
     subproblem_status = DcoSubproblemStatusAbandoned;
-    quality_ = ALPS_OBJ_MAX;
-    solEstimate_ = ALPS_OBJ_MAX;
+    //quality_ = ALPS_OBJ_MAX;
+    //solEstimate_ = ALPS_OBJ_MAX;
   }
   else if (model->solver()->isProvenOptimal()) {
     // todo(aykut) if obj val is greater than 1e+30 we consider problem
@@ -839,13 +839,16 @@ DcoTreeNode::branch() {
   //status_ = AlpsNodeStatusBranched;
 
   // push the down and up nodes.
+  double quality = model->solver()->getObjValue();
+  if (parent_!=NULL) {
+    quality = parent_->getQuality();
+  }
   res.push_back(CoinMakeTriple(static_cast<AlpsNodeDesc*>(down_node),
                                AlpsNodeStatusCandidate,
-                               model->solver()->getObjValue()));
+                               quality));
   res.push_back(CoinMakeTriple(static_cast<AlpsNodeDesc*>(up_node),
                                AlpsNodeStatusCandidate,
-                               model->solver()->getObjValue()));
-
+                               quality));
   // grumpy message
   double sum_inf = 0.0;
   for (int i=0; i<model->branchStrategy()->numBranchObjects(); ++i) {
@@ -1031,8 +1034,8 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
     // end of grumpy message
 
     setStatus(AlpsNodeStatusFathomed);
-    quality_ = ALPS_OBJ_MAX;
-    solEstimate_ = ALPS_OBJ_MAX;
+    //quality_ = ALPS_OBJ_MAX;
+    //solEstimate_ = ALPS_OBJ_MAX;
     return;
   }
   if (subproblem_status!=DcoSubproblemStatusOptimal) {
