@@ -224,9 +224,10 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
 
   // check if this can be fathomed
   if (getQuality() > model->bestQuality()) {
+    // debug message
     message_handler->message(0, "Dco", "Node fathomed due to parent quality.",
                              'G', DISCO_DLOG_PROCESS);
-    setStatus(AlpsNodeStatusFathomed);
+    // end of debug message
     // grumpy message
     model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_MED,
                                        *model->dcoMessages_)
@@ -238,6 +239,7 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
       << model->objSense()*getQuality()
       << CoinMessageEol;
     // end of grumpy message
+    setStatus(AlpsNodeStatusFathomed);
     return AlpsReturnStatusOk;
   }
 
