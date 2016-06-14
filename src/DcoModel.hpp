@@ -131,9 +131,11 @@ class DcoModel: public BcpsModel {
 #endif
   ///@name Variable and constraint bounds.
   //@{
-  /// Column lower bound.
+  /// Column lower bound. Currently this is used when installing subproblems in
+  /// each node.
   double * colLB_;
-  /// Column upper bound.
+  /// Column upper bound. Currently this is used when installing subproblems in
+  /// each node.
   double * colUB_;
   /// Row lower bound.
   double * rowLB_;
