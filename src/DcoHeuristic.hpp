@@ -122,10 +122,11 @@ public:
   //@{
   DcoModel * model() const { return model_; }
   DcoHeurType type() const { return type_; }
-  std::string & name() { return name_; }
+  std::string const & name() const { return name_; }
   DcoHeurStrategy strategy() const { return strategy_; }
   int frequency() const { return frequency_; }
   DcoHeurStats & stats() { return stats_; }
+  DcoHeurStats const & stats() const { return stats_; }
   //@}
 
   ///@name Set methods

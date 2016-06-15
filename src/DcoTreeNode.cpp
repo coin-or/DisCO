@@ -14,6 +14,8 @@
 #include "DcoConGenerator.hpp"
 #include "DcoSolution.hpp"
 #include "DcoBranchObject.hpp"
+#include "DcoHeuristic.hpp"
+#include "DcoHeurRounding.hpp"
 
 // STL headers
 #include <vector>
@@ -312,6 +314,8 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
     }
     // end of grumpy message
 
+    // call heuristics to search for a solution
+    callHeuristics();
 
     // decide what to do
     branchConstrainOrPrice(subproblem_status, keepBounding, do_branch,
@@ -379,6 +383,32 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
   delete constraintPool;
   delete variablePool;
   return AlpsReturnStatusOk;
+}
+
+void DcoTreeNode::callHeuristics() {
+  AlpsNodeStatus status = getStatus();
+  DcoNodeDesc * desc = getDesc();
+  DcoModel * model = getModel();
+  CoinMessageHandler * message_handler = model->dcoMessageHandler_;
+  CoinMessages * messages = model->dcoMessages_;
+  int num_heur = model->numHeuristics();
+  DcoSolution * sol;
+  for (int i=0; i<num_heur; ++i) {
+    DcoHeuristic * curr = model->heuristics(i);
+    sol = curr->searchSolution();
+    if (sol) {
+      model->storeSolution(sol);
+      // debug log
+      message_handler->message(DISCO_HEUR_SOL_FOUND, *messages)
+        << curr->name()
+        << sol->getQuality();
+    }
+    else {
+      // debug message
+      message_handler->message(DISCO_HEUR_NOSOL_FOUND, *messages)
+        << curr->name();
+    }
+  }
 }
 
 /** Bounding procedure to estimate quality of this node. */

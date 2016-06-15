@@ -35,6 +35,8 @@ DcoHeurRounding::DcoHeurRounding(DcoModel * model, char const * name,
 }
 
 DcoSolution * DcoHeurRounding::searchSolution() {
+  /// todo(aykut) disable heuristic search for now.
+  return NULL:
   if (strategy() == DcoHeurStrategyNone) {
     // This heuristic has been disabled.
     return NULL;
@@ -44,15 +46,16 @@ DcoSolution * DcoHeurRounding::searchSolution() {
   CoinMessageHandler * message_handler = dcom->dcoMessageHandler_;
   CoinMessages * messages = dcom->dcoMessages_;
 
-  // call bound_fix function to find up_fix and down_fix
-  int num_cols = dcom->numRelaxedCols();
+  // call bound_fix function to compute find up_fix and down_fix
+  int num_rel_cols = dcom->numRelaxedCols();
   // if down_fix[i] is 0 variable i can be fixed to its lower bound.
-  int * down_fix = new int[num_cols]();
-  int * up_fix = new int[num_cols]();
+  int * down_fix = new int[num_rel_cols]();
+  int * up_fix = new int[num_rel_cols]();
   // == compute up and down fixes
   bound_fix(down_fix, up_fix);
 
   // check up_fix and down_fix
+  return NULL;
 }
 
 void DcoHeurRounding::bound_fix(int * down_fix, int * up_fix) {
@@ -61,7 +64,7 @@ void DcoHeurRounding::bound_fix(int * down_fix, int * up_fix) {
   CoinMessageHandler * message_handler = dcom->dcoMessageHandler_;
   CoinMessages * messages = dcom->dcoMessages_;
 
-  int num_cols = dcom->numRelaxedCols();
+  int num_rel_cols = dcom->numRelaxedCols();
   int num_rows = dcom->solver()->getNumRows();
   char const * row_sense = dcom->solver()->getRowSense();
 

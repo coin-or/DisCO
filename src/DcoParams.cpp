@@ -211,8 +211,9 @@ void DcoParams::setDefaultEntries() {
   setEntry(cutIpmIntFreq, 1);
   setEntry(cutOaFreq, 1);
   setEntry(difference, -1);
-  setEntry(heurStrategy, DcoHeurStrategyAuto);
-  setEntry(heurRoundStrategy, DcoHeurStrategyNotSet);
+  setEntry(heurStrategy, DcoHeurStrategyPeriodic);
+  setEntry(heurCallFrequency, 1);
+  setEntry(heurRoundStrategy, DcoHeurStrategyPeriodic);
   setEntry(heurRoundFreq, 1);
   setEntry(lookAhead, 4);
   setEntry(pseudoReliability, 8);

@@ -38,15 +38,13 @@
 
 //#############################################################################
 
+//todo(aykut) order these messages properly before publishing in github.
 enum DISCO_Message {
     DISCO_CUTOFF_INC,
-    DISCO_CUT_STAT_FINAL,
-    DISCO_CUT_STAT_NODE,
+    DISCO_CUT_STATS_FINAL,
+    DISCO_CUT_STATS_NODE,
     DISCO_GAP_NO,
     DISCO_GAP_YES,
-    DISCO_HEUR_BEFORE_ROOT,
-    DISCO_HEUR_STAT_FINAL,
-    DISCO_HEUR_STAT_NODE,
     DISCO_ROOT_PROCESS,
     DISCO_ROOT_TIME,
     // reading mps files
@@ -67,7 +65,12 @@ enum DISCO_Message {
     DISCO_SOLVER_UNKNOWN_STATUS,
     DISCO_SOLVER_FAILED,
     // heuristics
+    DISCO_HEUR_BEFORE_ROOT,
+    DISCO_HEUR_STATS_FINAL,
+    DISCO_HEUR_STATS_NODE,
     DISCO_INVALID_HEUR_FREQUENCY,
+    DISCO_HEUR_SOL_FOUND,
+    DISCO_HEUR_NOSOL_FOUND,
     // grumpy messages
     DISCO_GRUMPY_MESSAGE_LONG,
     DISCO_GRUMPY_MESSAGE_MED,
@@ -89,7 +92,9 @@ enum DISCO_Debug_Level {
   DISCO_DLOG_PROCESS = 32,
   DISCO_DLOG_PRESOLVE = 64,
   DISCO_DLOG_MPI = 128,
-  DISCO_DLOG_GRUMPY = 32
+  DISCO_DLOG_GRUMPY = 32,
+  DISCO_DLOG_HEURISTIC = 32
+
 };
 
 enum DISCO_Grumpy_Msg_Type {

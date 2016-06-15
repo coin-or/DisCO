@@ -99,13 +99,10 @@ typedef struct {
 static Dco_message us_english[]=
 {
     {DISCO_CUTOFF_INC, 43, 1, "Objective coefficients are multiples of %g"},
-    {DISCO_CUT_STAT_FINAL, 53, 1, "Called %s cut generator %d times, generated %d cuts, CPU time %.4f seconds, current strategy %d"},
-    {DISCO_CUT_STAT_NODE, 55, 1, "Node %d, called %s cut generator %d times, generated %d cuts, CPU time %.4f seconds, current strategy %d"},
+    {DISCO_CUT_STATS_FINAL, 53, 1, "Called %s cut generator %d times, generated %d cuts, CPU time %.4f seconds, current strategy %d"},
+    {DISCO_CUT_STATS_NODE, 55, 1, "Node %d, called %s cut generator %d times, generated %d cuts, CPU time %.4f seconds, current strategy %d"},
     {DISCO_GAP_NO, 57, 1, "Relative optimality gap is infinity because no solution was found"},
     {DISCO_GAP_YES, 58, 1, "Relative optimality gap is %.2f%%"},
-    {DISCO_HEUR_BEFORE_ROOT, 60, 1, "%s heuristic found a solution; quality is %g"},
-    {DISCO_HEUR_STAT_FINAL, 63, 1, "Called %s heuristic %d times, found %d solutions, CPU time %.4f seconds, current strategy %d"},
-    {DISCO_HEUR_STAT_NODE, 65, 1, "Node %d, called %s heuristic %d times, found %d solutions, CPU time %.4f seconds, current strategy %d"},
     {DISCO_ROOT_PROCESS, 30, 1, "Processing the root node (%d rows, %d columns)"},
     {DISCO_ROOT_TIME, 35, 1, "Processing the first root relaxation took CPU time %.4f seconds"},
     // reading mps files
@@ -126,7 +123,12 @@ static Dco_message us_english[]=
     {DISCO_SOLVER_UNKNOWN_STATUS,9401,1, "Unknown relaxation solver status."},
     {DISCO_SOLVER_FAILED,9402,1, "Relaxation solver failed to solve the subproblem."},
     // heuristics
-    {DISCO_INVALID_HEUR_FREQUENCY,9301,1, "%d is not a valid heuristic frequency, changed it to %d."},
+    {DISCO_HEUR_BEFORE_ROOT, 501, 4, "%s heuristic found a solution; quality is %g"},
+    {DISCO_HEUR_STATS_FINAL, 502, 1, "Called %s heuristic %d times, found %d solutions, CPU time %.4f seconds, current strategy %d"},
+    {DISCO_HEUR_STATS_NODE, 503, DISCO_DLOG_HEURISTIC, "Node %d, called %s heuristic %d times, found %d solutions, CPU time %.4f seconds, current strategy %d"},
+    {DISCO_INVALID_HEUR_FREQUENCY, 9501, 1, "%d is not a valid heuristic frequency, changed it to %d."},
+    {DISCO_HEUR_SOL_FOUND, 504, DISCO_DLOG_HEURISTIC, "%s heuristic found solution, quality %f."},
+    {DISCO_HEUR_NOSOL_FOUND, 505, DISCO_DLOG_HEURISTIC, "%s heuristic is called and no solution is found."},
     // grumpy messages
     // time, node status, node id, parent id, branch direction, obj val [,sum
     // of column infeasibilities, count of infeasible cols]

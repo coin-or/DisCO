@@ -227,8 +227,6 @@ class DcoModel: public BcpsModel {
   DcoHeurStrategy heurStrategy_;
   int heurFrequency_;
   std::vector<DcoHeuristic*> heuristics_;
-  // get a specific heuristic
-  DcoHeuristic * heuristics(int i) { return heuristics_[i]; }
   //@}
 
   ///@name Cut generator related.
@@ -373,6 +371,17 @@ public:
   /// calls, it will be set to periodic.
   void setCutStrategy(DcoCutStrategy strategy) {cutStrategy_ = strategy;}
   //@}
+
+  ///@name Heuristics related
+  //@{
+  // get number of heuristics
+  int numHeuristics() const { return heuristics_.size(); }
+  // get a constant specific heuristic, for reading statistics.
+  DcoHeuristic const * heuristics(int i) const { return heuristics_[i]; }
+  // get a specific heuristic, for solution search
+  DcoHeuristic * heuristics(int i) { return heuristics_[i]; }
+  //@}
+
 
   /// Check feasiblity of subproblem solution, store number of infeasible
   /// columns and rows.

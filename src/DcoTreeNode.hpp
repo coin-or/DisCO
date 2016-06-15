@@ -205,7 +205,8 @@ class DcoTreeNode: public BcpsTreeNode {
   /// Copies node description of this node to given child node.
   /// New node is explicitly stored in the memory (no differencing).
   void copyFullNode(DcoNodeDesc * child_node) const;
-
+  /// Call heuristics to search for solutions.
+  void callHeuristics();
 public:
   ///@name Constructors and Destructors
   //@{

@@ -125,11 +125,16 @@ DcoModel::~DcoModel() {
   if (relaxedRows_) {
     delete[] relaxedRows_;
   }
-  std::vector<DcoConGenerator*>::iterator it;
-  for (it=conGenerators_.begin(); it!=conGenerators_.end(); ++it) {
+  for (std::vector<DcoConGenerator*>::iterator it=conGenerators_.begin();
+       it!=conGenerators_.end(); ++it) {
     delete *it;
   }
   conGenerators_.clear();
+  for (std::vector<DcoHeuristic*>::iterator it=heuristics_.begin();
+       it!=heuristics_.end(); ++it) {
+    delete *it;
+  }
+  heuristics_.clear();
 }
 
 #if defined(__OA__)
@@ -983,27 +988,31 @@ void DcoModel::addConGenerator(CglConicCutGenerator * cgl_gen,
 }
 
 void DcoModel::addHeuristics() {
-  // // get cut strategy
-  // heurStrategy_ = static_cast<DcoHeurStrategy>
-  //   (dcoPar_->entry(DcoParams::heurStrategy));
-  // // get cut generation frequency
-  // heurFrequency_ =
-  //   dcoPar_->entry(DcoParams::heurFrequency);
-  // if (heurFrequency_ < 1) {
-  //   // invalid heur fraquency given, change it to 1.
-  //   dcoMessageHandler_->message(DISCO_INVALID_HEUR_FREQUENCY,
-  //                               *dcoMessages_)
-  //     << heurFrequency_
-  //     << 1
-  //     << CoinMessageEol;
-  //   heurFrequency_ = 1;
-  // }
+  // todo(aykut) this function (heuristic adding process) can be improved
+  // since global parameters are ignored with this design.
 
-  // get heuristics strategies from parameters
+  // get global heuristic strategy
+  heurStrategy_ = static_cast<DcoHeurStrategy>
+    (dcoPar_->entry(DcoParams::heurStrategy));
+  // get global heuristic call frequency
+  heurFrequency_ =
+    dcoPar_->entry(DcoParams::heurCallFrequency);
+  if (heurFrequency_ < 1) {
+    // invalid heur fraquency given, change it to 1.
+    dcoMessageHandler_->message(DISCO_INVALID_HEUR_FREQUENCY,
+                                *dcoMessages_)
+      << heurFrequency_
+      << 1
+      << CoinMessageEol;
+    heurFrequency_ = 1;
+  }
+
+  // get rounding heuristics strategy from parameters
   DcoHeurStrategy roundingStrategy = static_cast<DcoHeurStrategy>
     (dcoPar_->entry(DcoParams::heurRoundStrategy));
-  // get frequencies from parameters
+  // get rounding heuristic frequency from parameters
   int roundingFreq = dcoPar_->entry(DcoParams::heurRoundFreq);
+
   // add heuristics
   // == add rounding heuristics
   if (roundingStrategy != DcoHeurStrategyNone) {
@@ -1019,7 +1028,7 @@ void DcoModel::addHeuristics() {
   // if no periodic and there is at least one root, set it to root
   // set it to None otherwise.
   heurStrategy_ = DcoHeurStrategyNone;
-  heurFrequency_ = 100;
+  heurFrequency_ = -1;
   bool periodic_exists = false;
   bool root_exists = false;
   std::vector<DcoHeuristic*>::iterator it;
@@ -1040,7 +1049,7 @@ void DcoModel::addHeuristics() {
   else if (root_exists) {
     heurStrategy_ = DcoHeurStrategyRoot;
     // this is not relevant, since we will generate only in root.
-    heurFrequency_ = 100;
+    heurFrequency_ = -1;
   }
 }
 
@@ -1277,7 +1286,7 @@ void DcoModel::modelLog() {
   if (broker_->getProcType() == AlpsProcessTypeSerial) {
     for (int k=0; k<conGenerators_.size(); ++k) {
       if (conGenerators(k)->stats().numCalls() > 0) {
-        dcoMessageHandler_->message(DISCO_CUT_STAT_FINAL,
+        dcoMessageHandler_->message(DISCO_CUT_STATS_FINAL,
                                         *dcoMessages_)
           << conGenerators(k)->name()
           << conGenerators(k)->stats().numCalls()
@@ -1289,7 +1298,7 @@ void DcoModel::modelLog() {
     }
     for (int k=0; k<heuristics_.size(); ++k) {
       if (heuristics(k)->stats().numCalls() > 0) {
-        dcoMessageHandler_->message(DISCO_HEUR_STAT_FINAL,
+        dcoMessageHandler_->message(DISCO_HEUR_STATS_FINAL,
                                     *dcoMessages_)
           << heuristics(k)->name()
           << heuristics(k)->stats().numCalls()
