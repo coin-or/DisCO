@@ -7,7 +7,7 @@
 #include "Dco.hpp"
 
 class DcoParams: public AlpsParameterSet {
- public:
+public:
   /// Character parameters. All of these variable are used as booleans
   /// (ture = 1, false = 0). */
   enum chrParams {
@@ -23,6 +23,9 @@ class DcoParams: public AlpsParameterSet {
     sharePseudocostRampUp,
     /// Share pseudocost during search Default: false
     sharePseudocostSearch,
+    /// presolve boolean parameters
+    presolveKeepIntegers,
+    presolveTransform,
     //
     endOfChrParams
   };
@@ -110,6 +113,8 @@ class DcoParams: public AlpsParameterSet {
     // conicCutGD1Freq,
     // conicCutGD2Freq,
     logLevel,
+    // presolve parameters
+    presolveNumPass,
     ///
     endOfIntParams
   };
@@ -144,6 +149,8 @@ class DcoParams: public AlpsParameterSet {
     scaleConFactor,
     /** Tail off */
     tailOff,
+    /// presolve parameters
+    presolveTolerance,
     ///
     endOfDblParams
   };

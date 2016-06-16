@@ -133,6 +133,8 @@ void DcoParams::createKeywordList() {
   //                           AlpsParameter(AlpsIntPar, conicCutGD2Freq)));
   keys_.push_back(make_pair(std::string("Dco_logLevel"),
                             AlpsParameter(AlpsIntPar, logLevel)));
+  keys_.push_back(make_pair(std::string("Dco_presolveNumPass"),
+                            AlpsParameter(AlpsIntPar, presolveNumPass)));
   //--------------------------------------------------------
   // Double Parameters.
   //--------------------------------------------------------
@@ -177,6 +179,9 @@ void DcoParams::setDefaultEntries() {
   setEntry(shareVariables, false);
   setEntry(sharePseudocostRampUp, true);
   setEntry(sharePseudocostSearch, false);
+  // presolve parameters
+  setEntry(presolveKeepIntegers, true);
+  setEntry(presolveTransform, true);
   //-------------------------------------------------------------
   // Int Parameters.
   //-------------------------------------------------------------
@@ -232,6 +237,7 @@ void DcoParams::setDefaultEntries() {
   // setEntry(conicCutGD1Freq, 1);
   // setEntry(conicCutGD2Freq, 1);
   setEntry(logLevel, 2);
+  setEntry(presolveNumPass, 5);
   //-------------------------------------------------------------
   // Double Parameters
   //-------------------------------------------------------------
@@ -247,6 +253,7 @@ void DcoParams::setDefaultEntries() {
   setEntry(pseudoWeight, 0.8);
   setEntry(scaleConFactor, 1000000.0);
   setEntry(tailOff, 1e-7);
+  setEntry(presolveTolerance, 0.0);
   //-------------------------------------------------------------
   // String Parameters
   //-------------------------------------------------------------

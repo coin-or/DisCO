@@ -392,7 +392,7 @@ void DcoModel::preprocess() {
   // bounded.  most of the time it is not. Things can get better if we use some
   // other bound improvement first and it does improve the upper bound of
   // leading variables.
-  bool updated = DcoPresolve::improve_bounds(this);
+  //bool updated = DcoPresolve::improve_bounds(this);
 
   // write parameters used
   //writeParameters(std::cout);
