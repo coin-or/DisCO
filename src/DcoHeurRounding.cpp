@@ -36,7 +36,7 @@ DcoHeurRounding::DcoHeurRounding(DcoModel * model, char const * name,
 
 DcoSolution * DcoHeurRounding::searchSolution() {
   /// todo(aykut) disable heuristic search for now.
-  return NULL:
+  return NULL;
   if (strategy() == DcoHeurStrategyNone) {
     // This heuristic has been disabled.
     return NULL;
