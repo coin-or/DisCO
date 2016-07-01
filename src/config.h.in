@@ -18,6 +18,9 @@
 /* Define to 1 if the Mosek package is available */
 #undef COIN_HAS_MOSEK
 
+/* Define to 1 if the Mpi package is available */
+#undef COIN_HAS_MPI
+
 /* Define to 1 if the Sample package is available */
 #undef COIN_HAS_SAMPLE
 

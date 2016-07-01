@@ -492,7 +492,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os ALWAYS_FALSE_TRUE ALWAYS_FALSE_FALSE have_svnversion DISCO_SVN_REV CDEFS ADD_CFLAGS DBG_CFLAGS OPT_CFLAGS sol_cc_compiler CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT COIN_CC_IS_CL_TRUE COIN_CC_IS_CL_FALSE MPICC CXXDEFS ADD_CXXFLAGS DBG_CXXFLAGS OPT_CXXFLAGS CXX CXXFLAGS ac_ct_CXX COIN_CXX_IS_CL_TRUE COIN_CXX_IS_CL_FALSE MPICXX EGREP LN_S INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT LIBTOOLM4 have_autoconf have_automake have_svn BUILDTOOLSDIR AUX_DIR abs_source_dir abs_lib_dir abs_include_dir abs_bin_dir HAVE_EXTERNALS_TRUE HAVE_EXTERNALS_FALSE host host_cpu host_vendor host_os ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL ac_c_preproc_warn_flag ac_cxx_preproc_warn_flag RPATH_FLAGS DEPENDENCY_LINKING_TRUE DEPENDENCY_LINKING_FALSE LT_LDFLAGS PKG_CONFIG ac_ct_PKG_CONFIG COIN_HAS_PKGCONFIG_TRUE COIN_HAS_PKGCONFIG_FALSE COIN_PKG_CONFIG_PATH COIN_PKG_CONFIG_PATH_UNINSTALLED COINDEPEND_LIBS COINDEPEND_CFLAGS COINDEPEND_DATA COINDEPEND_DEPENDENCIES COINDEPEND_LIBS_INSTALLED COINDEPEND_CFLAGS_INSTALLED COINDEPEND_DATA_INSTALLED DISCOLIB_CFLAGS DISCOLIB_LIBS DISCOLIB_PCLIBS DISCOLIB_PCREQUIRES DISCOLIB_DEPENDENCIES DISCOLIB_CFLAGS_INSTALLED DISCOLIB_LIBS_INSTALLED COIN_HAS_COINDEPEND_TRUE COIN_HAS_COINDEPEND_FALSE COLA_LIBS COLA_CFLAGS COLA_DATA COLA_DEPENDENCIES COLA_LIBS_INSTALLED COLA_CFLAGS_INSTALLED COLA_DATA_INSTALLED COIN_HAS_COLA_TRUE COIN_HAS_COLA_FALSE SAMPLE_LIBS SAMPLE_CFLAGS SAMPLE_DATA SAMPLE_DEPENDENCIES SAMPLE_LIBS_INSTALLED SAMPLE_CFLAGS_INSTALLED SAMPLE_DATA_INSTALLED COIN_HAS_SAMPLE_TRUE COIN_HAS_SAMPLE_FALSE CPLEX_LIBS CPLEX_CFLAGS CPLEX_DATA CPLEX_DEPENDENCIES CPLEX_LIBS_INSTALLED CPLEX_CFLAGS_INSTALLED CPLEX_DATA_INSTALLED COIN_HAS_CPLEX_TRUE COIN_HAS_CPLEX_FALSE MOSEK_LIBS MOSEK_CFLAGS MOSEK_DATA MOSEK_DEPENDENCIES MOSEK_LIBS_INSTALLED MOSEK_CFLAGS_INSTALLED MOSEK_DATA_INSTALLED COIN_HAS_MOSEK_TRUE COIN_HAS_MOSEK_FALSE OA_SOCO_SOLVER_TRUE OA_SOCO_SOLVER_FALSE COLA_SOCO_SOLVER_TRUE COLA_SOCO_SOLVER_FALSE MOSEK_SOCO_SOLVER_TRUE MOSEK_SOCO_SOLVER_FALSE CPLEX_SOCO_SOLVER_TRUE CPLEX_SOCO_SOLVER_FALSE coin_have_doxygen coin_have_latex coin_doxy_usedot coin_doxy_tagname coin_doxy_logname COIN_HAS_DOXYGEN_TRUE COIN_HAS_DOXYGEN_FALSE COIN_HAS_LATEX_TRUE COIN_HAS_LATEX_FALSE coin_doxy_tagfiles coin_doxy_excludes LIBEXT VPATH_DISTCLEANFILES ABSBUILDDIR LIB@&t@OBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os ALWAYS_FALSE_TRUE ALWAYS_FALSE_FALSE have_svnversion DISCO_SVN_REV CDEFS ADD_CFLAGS DBG_CFLAGS OPT_CFLAGS sol_cc_compiler CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT COIN_CC_IS_CL_TRUE COIN_CC_IS_CL_FALSE MPICC CXXDEFS ADD_CXXFLAGS DBG_CXXFLAGS OPT_CXXFLAGS CXX CXXFLAGS ac_ct_CXX COIN_CXX_IS_CL_TRUE COIN_CXX_IS_CL_FALSE MPICXX EGREP LN_S INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT LIBTOOLM4 have_autoconf have_automake have_svn BUILDTOOLSDIR AUX_DIR abs_source_dir abs_lib_dir abs_include_dir abs_bin_dir HAVE_EXTERNALS_TRUE HAVE_EXTERNALS_FALSE host host_cpu host_vendor host_os ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL ac_c_preproc_warn_flag ac_cxx_preproc_warn_flag RPATH_FLAGS DEPENDENCY_LINKING_TRUE DEPENDENCY_LINKING_FALSE LT_LDFLAGS PKG_CONFIG ac_ct_PKG_CONFIG COIN_HAS_PKGCONFIG_TRUE COIN_HAS_PKGCONFIG_FALSE COIN_PKG_CONFIG_PATH COIN_PKG_CONFIG_PATH_UNINSTALLED COINDEPEND_LIBS COINDEPEND_CFLAGS COINDEPEND_DATA COINDEPEND_DEPENDENCIES COINDEPEND_LIBS_INSTALLED COINDEPEND_CFLAGS_INSTALLED COINDEPEND_DATA_INSTALLED DISCOLIB_CFLAGS DISCOLIB_LIBS DISCOLIB_PCLIBS DISCOLIB_PCREQUIRES DISCOLIB_DEPENDENCIES DISCOLIB_CFLAGS_INSTALLED DISCOLIB_LIBS_INSTALLED COIN_HAS_COINDEPEND_TRUE COIN_HAS_COINDEPEND_FALSE COLA_LIBS COLA_CFLAGS COLA_DATA COLA_DEPENDENCIES COLA_LIBS_INSTALLED COLA_CFLAGS_INSTALLED COLA_DATA_INSTALLED COIN_HAS_COLA_TRUE COIN_HAS_COLA_FALSE SAMPLE_LIBS SAMPLE_CFLAGS SAMPLE_DATA SAMPLE_DEPENDENCIES SAMPLE_LIBS_INSTALLED SAMPLE_CFLAGS_INSTALLED SAMPLE_DATA_INSTALLED COIN_HAS_SAMPLE_TRUE COIN_HAS_SAMPLE_FALSE MPIINCDIR MPILIB COIN_HAS_MPI_TRUE COIN_HAS_MPI_FALSE CPLEX_LIBS CPLEX_CFLAGS CPLEX_DATA CPLEX_DEPENDENCIES CPLEX_LIBS_INSTALLED CPLEX_CFLAGS_INSTALLED CPLEX_DATA_INSTALLED COIN_HAS_CPLEX_TRUE COIN_HAS_CPLEX_FALSE MOSEK_LIBS MOSEK_CFLAGS MOSEK_DATA MOSEK_DEPENDENCIES MOSEK_LIBS_INSTALLED MOSEK_CFLAGS_INSTALLED MOSEK_DATA_INSTALLED COIN_HAS_MOSEK_TRUE COIN_HAS_MOSEK_FALSE OA_SOCO_SOLVER_TRUE OA_SOCO_SOLVER_FALSE COLA_SOCO_SOLVER_TRUE COLA_SOCO_SOLVER_FALSE MOSEK_SOCO_SOLVER_TRUE MOSEK_SOCO_SOLVER_FALSE CPLEX_SOCO_SOLVER_TRUE CPLEX_SOCO_SOLVER_FALSE coin_have_doxygen coin_have_latex coin_doxy_usedot coin_doxy_tagname coin_doxy_logname COIN_HAS_DOXYGEN_TRUE COIN_HAS_DOXYGEN_FALSE COIN_HAS_LATEX_TRUE COIN_HAS_LATEX_FALSE coin_doxy_tagfiles coin_doxy_excludes LIBEXT VPATH_DISTCLEANFILES ABSBUILDDIR LIB@&t@OBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -1121,6 +1121,7 @@ Optional Features:
   --disable-interpackage-dependencies 
                           disables deduction of Makefile dependencies from
                           package linker flags
+  --disable-mpi-libcheck skip the link check at configuration time
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -1148,6 +1149,8 @@ Optional Packages:
   --with-sample-lib linker flags for using package Sample
   --with-sample-incdir directory with header files for using package Sample
   --with-sample-datadir directory with data files for using package Sample
+  --with-mpi-incdir specify the header file directory for library Mpi
+  --with-mpi-lib specify the flags used to link with the library Mpi
   --with-cplex-lib linker flags for using package Cplex
   --with-cplex-incdir directory with header files for using package Cplex
   --with-cplex-datadir directory with data files for using package Cplex
@@ -22260,6 +22263,198 @@ fi
 
 
 #############################################################################
+#                              check MPI libraries                          #
+#############################################################################
+
+ 
+  echo "$as_me:$LINENO: checking if user provides library for Mpi" >&5
+echo $ECHO_N "checking if user provides library for Mpi... $ECHO_C" >&6
+
+# Check for header file directory
+
+  
+# Check whether --with-mpi-incdir or --without-mpi-incdir was given.
+if test "${with_mpi_incdir+set}" = set; then
+  withval="$with_mpi_incdir"
+  MPIINCDIR=`cd $withval; pwd`
+fi; 
+
+# Check for library directory
+
+  
+# Check whether --with-mpi-lib or --without-mpi-lib was given.
+if test "${with_mpi_lib+set}" = set; then
+  withval="$with_mpi_lib"
+  MPILIB=$withval
+fi; 
+
+# Switch to disable library check if requested
+
+  # Check whether --enable-mpi-libcheck or --disable-mpi-libcheck was given.
+if test "${enable_mpi_libcheck+set}" = set; then
+  enableval="$enable_mpi_libcheck"
+  mpi_libcheck=$enableval
+else
+  mpi_libcheck=yes
+fi; 
+
+# At this point, if we're going to use the library, both LBRYINCDIR and
+# LBRYLIB must be defined and not empty.
+
+  if test x"$MPIINCDIR" != x || test x"$MPILIB" != x; then
+    if test x"$MPIINCDIR" = x || test x"$MPILIB" = x; then
+      { { echo "$as_me:$LINENO: error: You need to specify both an include directory and link flags to use library Mpi. Use --with-mpi-incdir of environment variable $MPIINCDIR to specify the include directory. Use --with-mpi-lib or environment variable $MPILIB to specify link flags." >&5
+echo "$as_me: error: You need to specify both an include directory and link flags to use library Mpi. Use --with-mpi-incdir of environment variable $MPIINCDIR to specify the include directory. Use --with-mpi-lib or environment variable $MPILIB to specify link flags." >&2;}
+   { (exit 1); exit 1; }; }
+    fi
+    coin_has_mpi=true
+    echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+  else
+    coin_has_mpi=false
+    echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+  fi
+
+# If we have instructions for use, consider header and link checks.
+
+  if test $coin_has_mpi = true; then
+
+# If argument 3 (file) is given, check for the file. Typically this will be a
+# header file, but that's not assumed.
+
+    if test -r $MPIINCDIR/mpi.h; then
+  
+  :
+else
+  { { echo "$as_me:$LINENO: error: Cannot find file mpi.h in $MPIINCDIR" >&5
+echo "$as_me: error: Cannot find file mpi.h in $MPIINCDIR" >&2;}
+   { (exit 1); exit 1; }; }
+  :
+fi
+
+
+# Now see if we can link the function. There are arguments for and against
+# assuming argument 3 is a header file declaring the function. A correct
+# function declaration is the main argument in favour. Having to cope with
+# possible dependencies or other oddities are the main arguments against.
+# Force the use of C as the best single choice amongst C++, C, and Fortran.
+# Obviously, this has limits.
+
+    if test x"$mpi_libcheck" != xno; then
+	   coin_save_LIBS="$LIBS"
+	   LIBS="$MPILIB "
+	   coin_MPI_link=no
+	   ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+	   for fnm in MPI_Irecv ; do
+	     echo "$as_me:$LINENO: checking whether symbol $fnm is available with MPI" >&5
+echo $ECHO_N "checking whether symbol $fnm is available with MPI... $ECHO_C" >&6
+	     cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+int
+main ()
+{
+$fnm()
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+		  coin_MPI_link=yes
+		  break
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+	   done
+	   ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+           LIBS="$coin_save_LIBS"
+	   if test x"$coin_MPI_link" != xyes ; then
+	     { { echo "$as_me:$LINENO: error: Cannot find symbol(s) MPI_Irecv with MPI" >&5
+echo "$as_me: error: Cannot find symbol(s) MPI_Irecv with MPI" >&2;}
+   { (exit 1); exit 1; }; }
+	   fi
+	 fi
+
+
+# If we make it this far, we've verified the file and linked the function. Add
+# the necessary link flags to AlpsLib_{PC}LIBS and define the preprocessor symbol
+# COIN_HAS_LBRY.
+
+    
+      ALPSLIB_LIBS="$MPILIB $ALPSLIB_LIBS"
+      ALPSLIB_PCLIBS="$MPILIB $ALPSLIB_PCLIBS"
+      ALPSLIB_LIBS_INSTALLED="$MPILIB $ALPSLIB_LIBS_INSTALLED"
+    
+    
+    
+cat >>confdefs.h <<\_ACEOF
+@%:@define COIN_HAS_MPI 1
+_ACEOF
+
+  fi
+
+# Arrange for configure to substitute LBRYINCDIR and LBRYLIB and create the
+# automake conditional. These actions must occur unconditionally.
+
+  
+  
+   
+
+if test $coin_has_mpi = true; then
+  COIN_HAS_MPI_TRUE=
+  COIN_HAS_MPI_FALSE='#'
+else
+  COIN_HAS_MPI_TRUE='#'
+  COIN_HAS_MPI_FALSE=
+fi
+
+
+
+#############################################################################
 #                            Third party solvers                            #
 #############################################################################
 
@@ -23306,7 +23501,7 @@ case $dco_soco_solver in
 echo "${ECHO_T}oa" >&6
      if test $coin_has_coindepend = unavailable || test $coin_has_coindepend = skipping; \
      then
-	 found_package=false
+         found_package=false
      fi
    ;;
    cola)
@@ -23314,7 +23509,7 @@ echo "${ECHO_T}oa" >&6
 echo "${ECHO_T}Cola" >&6
      if test $coin_has_cola = unavailable || test $coin_has_cola = skipping; \
      then
-	 found_package=false
+         found_package=false
      fi
    ;;
    mosek)
@@ -23322,7 +23517,7 @@ echo "${ECHO_T}Cola" >&6
 echo "${ECHO_T}Mosek" >&6
      if test $coin_has_mosek = false; \
      then
-	 found_package=false
+         found_package=false
      fi
    ;;
    cplex)
@@ -23330,7 +23525,7 @@ echo "${ECHO_T}Mosek" >&6
 echo "${ECHO_T}Cplex" >&6
      if test $coin_has_cplex = false; \
      then
-	 found_package=false
+         found_package=false
      fi
    ;;
   *)
@@ -23910,6 +24105,13 @@ if test -z "${COIN_HAS_SAMPLE_TRUE}" && test -z "${COIN_HAS_SAMPLE_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"COIN_HAS_SAMPLE\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"COIN_HAS_SAMPLE\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${COIN_HAS_MPI_TRUE}" && test -z "${COIN_HAS_MPI_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"COIN_HAS_MPI\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"COIN_HAS_MPI\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -24673,6 +24875,10 @@ s,@SAMPLE_CFLAGS_INSTALLED@,$SAMPLE_CFLAGS_INSTALLED,;t t
 s,@SAMPLE_DATA_INSTALLED@,$SAMPLE_DATA_INSTALLED,;t t
 s,@COIN_HAS_SAMPLE_TRUE@,$COIN_HAS_SAMPLE_TRUE,;t t
 s,@COIN_HAS_SAMPLE_FALSE@,$COIN_HAS_SAMPLE_FALSE,;t t
+s,@MPIINCDIR@,$MPIINCDIR,;t t
+s,@MPILIB@,$MPILIB,;t t
+s,@COIN_HAS_MPI_TRUE@,$COIN_HAS_MPI_TRUE,;t t
+s,@COIN_HAS_MPI_FALSE@,$COIN_HAS_MPI_FALSE,;t t
 s,@CPLEX_LIBS@,$CPLEX_LIBS,;t t
 s,@CPLEX_CFLAGS@,$CPLEX_CFLAGS,;t t
 s,@CPLEX_DATA@,$CPLEX_DATA,;t t

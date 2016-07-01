@@ -108,6 +108,12 @@ AC_COIN_CHECK_PACKAGE(Cola, [cola],     [DiscoLib])
 AC_COIN_CHECK_PACKAGE(Sample, [coindatasample])
 
 #############################################################################
+#                              check MPI libraries                          #
+#############################################################################
+
+AC_COIN_CHECK_USER_LIBRARY([Mpi], [MPI], [mpi.h], [MPI_Irecv], [], [AlpsLib])
+
+#############################################################################
 #                            Third party solvers                            #
 #############################################################################
 
@@ -121,9 +127,9 @@ AC_COIN_CHECK_PACKAGE(Mosek,  [osimosek],  [DiscoLib])
 AC_MSG_CHECKING([for DisCO default solver])
 AC_ARG_WITH([soco-solver],
 [AC_HELP_STRING([--with-soco-solver@<:@=socosolver@:>@],
-		[specify the SOCO solver in small
-		letters(default socosolver=oa)])],
-		[dco_soco_solver=$withval],[dco_soco_solver=oa])
+                [specify the SOCO solver in small
+                letters(default socosolver=oa)])],
+                [dco_soco_solver=$withval],[dco_soco_solver=oa])
 
 found_package=true
 case $dco_soco_solver in
@@ -131,28 +137,28 @@ case $dco_soco_solver in
     AC_MSG_RESULT(oa)
      if [test $coin_has_coindepend = unavailable || test $coin_has_coindepend = skipping]; \
      then
-	 found_package=false
+         found_package=false
      fi
    ;;
    cola)
     AC_MSG_RESULT(Cola)
      if [test $coin_has_cola = unavailable || test $coin_has_cola = skipping]; \
      then
-	 found_package=false
+         found_package=false
      fi
    ;;
    mosek)
      AC_MSG_RESULT(Mosek)
      if test $coin_has_mosek = false; \
      then
-	 found_package=false
+         found_package=false
      fi
    ;;
    cplex)
      AC_MSG_RESULT(Cplex)
      if test $coin_has_cplex = false; \
      then
-	 found_package=false
+         found_package=false
      fi
    ;;
   *)
@@ -202,12 +208,12 @@ AC_COIN_DOXYGEN(CoinUtils Osi Clp Cgl Alps Bcps CglConic Cola OsiConic OsiCplex 
 # Here list all the files that configure should create (except for the
 # configuration header file)
 AC_CONFIG_FILES([Makefile
-		 examples/VRP/Makefile
-		 src/Makefile
-		 src/disco.par
-		 test/Makefile
-		 disco.pc
-		 disco-uninstalled.pc])
+                 examples/VRP/Makefile
+                 src/Makefile
+                 src/disco.par
+                 test/Makefile
+                 disco.pc
+                 disco-uninstalled.pc])
 
 AC_CONFIG_FILES([doxydoc/doxygen.conf])
 
