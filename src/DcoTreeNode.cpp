@@ -51,7 +51,8 @@ AlpsTreeNode * DcoTreeNode::createNewTreeNode(AlpsNodeDesc *& desc) const {
   DcoNodeDesc * dco_node = dynamic_cast<DcoNodeDesc*>(desc);
   int branched_index = dco_node->getBranchedInd();
   double branched_value = dco_node->getBranchedVal();
-  DcoModel * model = dynamic_cast<DcoModel*>(desc->getModel());
+
+  DcoModel * model = dynamic_cast<DcoModel*>(broker_->getModel());
 
   double dist_to_floor = branched_value - floor(branched_value);
   double dist_to_ceil = ceil(branched_value) - branched_value;
@@ -72,7 +73,7 @@ AlpsTreeNode * DcoTreeNode::createNewTreeNode(AlpsNodeDesc *& desc) const {
 
 void DcoTreeNode::convertToExplicit() {
   DcoNodeDesc * node_desc = dynamic_cast<DcoNodeDesc*>(getDesc());
-  DcoModel * model = dynamic_cast<DcoModel*>(node_desc->getModel());
+  DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
   message_handler->message(DISCO_NOT_IMPLEMENTED, *messages)
@@ -82,7 +83,7 @@ void DcoTreeNode::convertToExplicit() {
 
 void DcoTreeNode::convertToRelative() {
   DcoNodeDesc * node_desc = dynamic_cast<DcoNodeDesc*>(getDesc());
-  DcoModel * model = dynamic_cast<DcoModel*>(node_desc->getModel());
+  DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
   message_handler->message(DISCO_NOT_IMPLEMENTED, *messages)
@@ -146,7 +147,7 @@ int DcoTreeNode::generateConstraints(BcpsModel * model,
 // resulting solution is better update UB. Fathom otherwise.
 void DcoTreeNode::decide_using_cg(bool & do_use,
                                   DcoConGenerator const * cg) const {
-  DcoModel * model = getModel();
+  DcoModel * model = dynamic_cast<DcoModel*> (broker_->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
   DcoCutStrategy strategy = cg->strategy();
@@ -207,7 +208,7 @@ int DcoTreeNode::chooseBranchingObject(BcpsModel * model) {
 
 int DcoTreeNode::process(bool isRoot, bool rampUp) {
   AlpsNodeStatus status = getStatus();
-  DcoModel * model = getModel();
+  DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
 
@@ -225,7 +226,7 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
   // end of debug stuff
 
   // check if this can be fathomed
-  if (getQuality() > model->bestQuality()) {
+  if (getQuality() > broker()->getBestQuality()) {
     // debug message
     message_handler->message(0, "Dco", "Node fathomed due to parent quality.",
                              'G', DISCO_DLOG_PROCESS);
@@ -233,7 +234,7 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
     // grumpy message
     model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_MED,
                                        *model->dcoMessages_)
-      << model->getKnowledgeBroker()->timer().getTime()
+      << broker()->timer().getTime()
       << grumpyMessage[DISCO_GRUMPY_FATHOMED]
       << getIndex()
       << getParentIndex()
@@ -262,7 +263,7 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
 int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
   AlpsNodeStatus status = getStatus();
   DcoNodeDesc * desc = getDesc();
-  DcoModel * model = getModel();
+  DcoModel * model = dynamic_cast<DcoModel*>(broker_->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
   bool keepBounding = true;
@@ -302,7 +303,7 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
         sum_inf += model->branchStrategy()->branchObjects()[i]->value();
       }
       message_handler->message(DISCO_GRUMPY_MESSAGE_LONG, *messages)
-        << model->getKnowledgeBroker()->timer().getTime()
+        << broker()->timer().getTime()
         << grumpyMessage[DISCO_GRUMPY_CANDIDATE]
         << getIndex()
         << getParentIndex()
@@ -388,7 +389,7 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
 void DcoTreeNode::callHeuristics() {
   AlpsNodeStatus status = getStatus();
   DcoNodeDesc * desc = getDesc();
-  DcoModel * model = getModel();
+  DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
   int num_heur = model->numHeuristics();
@@ -397,6 +398,10 @@ void DcoTreeNode::callHeuristics() {
     DcoHeuristic * curr = model->heuristics(i);
     sol = curr->searchSolution();
     if (sol) {
+      // set depth
+      setDepth(depth_);
+      // set index
+      setIndex(index_);
       model->storeSolution(sol);
       // debug log
       message_handler->message(DISCO_HEUR_SOL_FOUND, *messages)
@@ -555,16 +560,12 @@ int DcoTreeNode::installSubProblem(BcpsModel * bcps_model) {
   // this should be fixed.
   double * colLB = model->colLB();
   double * colUB = model->colUB();
-  double * rowLB = model->rowLB();
-  double * rowUB = model->rowUB();
   CoinFillN(colLB, numCoreCols, -ALPS_DBL_MAX);
   CoinFillN(colUB, numCoreCols, ALPS_DBL_MAX);
-  CoinFillN(rowLB, numCoreLinearRows, -ALPS_DBL_MAX);
-  CoinFillN(rowUB, numCoreLinearRows, ALPS_DBL_MAX);
   // generate path to root from this
   std::vector<AlpsTreeNode*> leafToRootPath;
   leafToRootPath.push_back(this);
-  if (knowledgeBroker_->getPhase() != AlpsPhaseRampup) {
+  if (broker_->getPhase() != AlpsPhaseRampup) {
     AlpsTreeNode * parent = parent_;
     while(parent) {
       leafToRootPath.push_back(parent);
@@ -743,7 +744,7 @@ int DcoTreeNode::installSubProblem(BcpsModel * bcps_model) {
 std::vector< CoinTriple<AlpsNodeDesc*, AlpsNodeStatus, double> >
 DcoTreeNode::branch() {
   // get model the node belongs
-  DcoModel * model = getModel();
+  DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
   // get message handler and messages for loging
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
@@ -757,7 +758,7 @@ DcoTreeNode::branch() {
   // create return value and push the down and up nodes.
   std::vector< CoinTriple<AlpsNodeDesc*, AlpsNodeStatus, double> > res;
   // fathom if quality is bad
-  if (quality_ > model->bestQuality()) {
+  if (quality_ > broker()->getBestQuality()) {
     // clear stored string
     message_handler->message(0, "Dco", "Bad quality. No need for "
                              "branching, fathom.",
@@ -770,7 +771,7 @@ DcoTreeNode::branch() {
   //BcpsBranchStrategy * branchStrategy = model->branchStrategy();
 
   // get Alps phase
-  AlpsPhase phase = knowledgeBroker_->getPhase();
+  AlpsPhase phase = broker()->getPhase();
 
   // get branch object
   DcoBranchObject const * branch_object =
@@ -887,7 +888,7 @@ DcoTreeNode::branch() {
     sum_inf += model->branchStrategy()->branchObjects()[i]->value();
   }
   message_handler->message(DISCO_GRUMPY_MESSAGE_LONG, *messages)
-    << model->getKnowledgeBroker()->timer().getTime()
+    << broker()->timer().getTime()
     << grumpyMessage[DISCO_GRUMPY_BRANCHED]
     << getIndex()
     << getParentIndex()
@@ -909,7 +910,7 @@ DcoTreeNode::branch() {
 // New node is explicitly stored in the memory (no differencing).
 void DcoTreeNode::copyFullNode(DcoNodeDesc * child_node) const {
   // get model the node belongs
-  DcoModel * model = getModel();
+  DcoModel * model = dynamic_cast<DcoModel*>(broker_->getModel());
   // get message handler and messages for loging
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
@@ -992,16 +993,11 @@ DcoNodeDesc * DcoTreeNode::getDesc() const {
   return dynamic_cast<DcoNodeDesc*>(AlpsTreeNode::getDesc());
 }
 
-DcoModel * DcoTreeNode::getModel() const {
-  return getDesc()->getModel();
-}
-
-
 void DcoTreeNode::processSetPregnant() {
   // get warm start basis from solver
   // todo(aykut) This does not help much if the underlying solver is an IPM
   // based solver.
-  DcoModel * model = getModel();
+  DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
   CoinWarmStartBasis * ws = dynamic_cast<CoinWarmStartBasis*>
     (model->solver()->getWarmStart());
   // store basis in the node desciption.
@@ -1015,7 +1011,7 @@ void DcoTreeNode::processSetPregnant() {
     sum_inf += model->branchStrategy()->branchObjects()[i]->value();
   }
   model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_LONG, *model->dcoMessages_)
-    << model->getKnowledgeBroker()->timer().getTime()
+    << broker()->timer().getTime()
     << grumpyMessage[DISCO_GRUMPY_PREGNANT]
     << getIndex()
     << getParentIndex()
@@ -1032,7 +1028,7 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
                                          bool & branch,
                                          bool & generateConstraints,
                                          bool & generateVariables) {
-  DcoModel * model = getModel();
+  DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
 
@@ -1057,7 +1053,7 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
     // grumpy message
     model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_SHORT,
                                        *model->dcoMessages_)
-      << model->getKnowledgeBroker()->timer().getTime()
+      << broker()->timer().getTime()
       << grumpyMessage[DISCO_GRUMPY_INFEASIBLE]
       << getIndex()
       << getParentIndex()
@@ -1093,7 +1089,7 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
     // numRowInf will have the number of infeasible conic constraints.
     // since we relax rows corresponding to conic constraints only.
     if (numRowsInf) {
-      if (quality_ > model->bestQuality()) {
+      if (quality_ > broker()->getBestQuality()) {
         // clear stored string
         std::stringstream msg;
         msg << "Subproblem objective value is greater than problem upper bound."
@@ -1105,7 +1101,7 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
         // grumpy message
         model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_MED,
                                            *model->dcoMessages_)
-          << model->getKnowledgeBroker()->timer().getTime()
+          << broker()->timer().getTime()
           << grumpyMessage[DISCO_GRUMPY_FATHOMED]
           << getIndex()
           << getParentIndex()
@@ -1137,7 +1133,7 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
     sol->setDepth(depth_);
     //todo(aykut) solution has an index field I beleive that should be filled
     //in Alps level.
-    sol->setIndex(model->getKnowledgeBroker()->getNumKnowledges(AlpsKnowledgeTypeSolution));
+    sol->setIndex(broker()->getNumKnowledges(AlpsKnowledgeTypeSolution));
 
     model->storeSolution(sol);
     // set node status to fathomed.
@@ -1148,7 +1144,7 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
     // grumpy message
     model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_MED,
                                        *model->dcoMessages_)
-      << model->getKnowledgeBroker()->timer().getTime()
+      << broker()->timer().getTime()
       << grumpyMessage[DISCO_GRUMPY_INTEGER]
       << getIndex()
       << getParentIndex()
@@ -1175,7 +1171,7 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
 
 //todo(aykut) replace this with DcoModel::feasibleSolution????
 void DcoTreeNode::checkRelaxedCols(int & numInf) {
-  DcoModel * model = getModel();
+  DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
   double const * sol = model->solver()->getColSolution();
   // get integer tolerance
   double tol = model->dcoPar()->entry(DcoParams::integerTol);
@@ -1200,7 +1196,7 @@ void DcoTreeNode::checkRelaxedCols(int & numInf) {
 // todo(aykut) this should go into the con generator. process the cuts given
 // by cgl in disco con generator.
 void DcoTreeNode::applyConstraints(BcpsConstraintPool const & conPool) {
-  DcoModel * model = getModel();
+  DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
   double scale_par = model->dcoPar()->entry(DcoParams::scaleConFactor);
@@ -1348,4 +1344,35 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const & conPool) {
 
   delete[] cuts_to_add;
   delete ws;
+}
+
+/// Pack this into an encoded object.
+AlpsReturnStatus DcoTreeNode::encode(AlpsEncoded * encoded) const {
+  // return value
+  AlpsReturnStatus status;
+  status = AlpsTreeNode::encode(encoded);
+  return status;
+}
+
+/// Unpack into a new DcoTreeNode object and return a pointer to it.
+AlpsKnowledge * DcoTreeNode::decode(AlpsEncoded & encoded) const {
+  // return value
+  AlpsReturnStatus status;
+  // todo(aykut) we are decoing, how do we know the model to assign the new
+  // node is same as the model_ of this? Is this due to fact that they are in
+  // the same processor?
+  AlpsNodeDesc * new_node_desc = new DcoNodeDesc();
+  DcoTreeNode * new_node = new DcoTreeNode(new_node_desc);
+  new_node_desc = NULL;
+  status = new_node->decodeToSelf(encoded);
+  return new_node;
+}
+
+/// Unpack into this from an encoded object.
+AlpsReturnStatus DcoTreeNode::decodeToSelf(AlpsEncoded & encoded) {
+  // get pointers related to message logging.
+  // return value
+  AlpsReturnStatus status;
+  status = AlpsTreeNode::decodeToSelf(encoded);
+  return status;
 }

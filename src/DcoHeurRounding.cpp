@@ -1,25 +1,4 @@
-/*===========================================================================*
- * This file is part of the BiCePS Linear Integer Solver (BLIS).             *
- *                                                                           *
- * BLIS is distributed under the Eclipse Public License as part of the       *
- * COIN-OR repository (http://www.coin-or.org).                              *
- *                                                                           *
- * Authors:                                                                  *
- *                                                                           *
- *          Yan Xu, Lehigh University                                        *
- *          Ted Ralphs, Lehigh University                                    *
- *                                                                           *
- * Conceptual Design:                                                        *
- *                                                                           *
- *          Yan Xu, Lehigh University                                        *
- *          Ted Ralphs, Lehigh University                                    *
- *          Laszlo Ladanyi, IBM T.J. Watson Research Center                  *
- *          Matthew Saltzman, Clemson University                             *
- *                                                                           *
- *                                                                           *
- * Copyright (C) 2001-2015, Lehigh University, Yan Xu, and Ted Ralphs.       *
- * All Rights Reserved.                                                      *
- *===========================================================================*/
+#include <numeric>
 
 #include <CoinMessageHandler.hpp>
 //#include <CoinMessage.hpp>
@@ -27,6 +6,10 @@
 #include "DcoHeurRounding.hpp"
 #include "DcoModel.hpp"
 #include "DcoMessage.hpp"
+#include "DcoModel.hpp"
+#include "DcoSolution.hpp"
+#include "DcoConicConstraint.hpp"
+
 
 DcoHeurRounding::DcoHeurRounding(DcoModel * model, char const * name,
                                  DcoHeurStrategy strategy, int frequency)
@@ -35,6 +18,366 @@ DcoHeurRounding::DcoHeurRounding(DcoModel * model, char const * name,
 }
 
 DcoSolution * DcoHeurRounding::searchSolution() {
+  if (strategy() == DcoHeurStrategyNone) {
+    // This heuristic has been disabled.
+    return NULL;
+  }
+  else if (strategy() == DcoHeurStrategyAuto) {
+    // todo(aykut) the disable threshold should be a parameter in DcoParams.
+    if (stats().numNoSolCalls() > DISCO_HEUR_ROUND_DISABLE) {
+      return NULL;
+    }
+  }
+  DcoSolution * dco_sol = NULL;
+  // get pointers for message logging
+  CoinMessageHandler * message_handler = model()->dcoMessageHandler_;
+  CoinMessages * messages = model()->dcoMessages_;
+  // update statistics
+  stats().addCalls();
+
+  // Get a copy of original matrix (and by row for rounding);
+  CoinPackedMatrix const * matrix = model()->solver()->getMatrixByCol();
+  CoinPackedMatrix const * matrixByRow = model()->solver()->getMatrixByRow();
+
+#if defined(__OA__)
+  OsiSolverInterface * solver = model()->solver();
+#else
+  OsiConicSolverInterface * solver = model()->solver();
+#endif
+  double const * colLower = solver->getColLower();
+  double const * colUpper = solver->getColUpper();
+  double const * rowLower = solver->getRowLower();
+  double const * rowUpper = solver->getRowUpper();
+  double const * obj = solver->getObjCoefficients();
+  double integerTol = model()->dcoPar()->entry(DcoParams::integerTol);
+  double primalTolerance;
+  solver->getDblParam(OsiPrimalTolerance, primalTolerance);
+
+  int numRows = matrix->getNumRows();
+  int numIntegers = model()->numIntegerCols();
+  int const * integerCols = model()->integerCols();
+  double direction = solver->getObjSense();
+  double sol_quality = direction * solver->getObjValue();
+  //double newSolutionValue = direction * solver->getObjValue();
+
+  // Column copy
+  double const * element = matrix->getElements();
+  int const * row = matrix->getIndices();
+  int const * columnStart = matrix->getVectorStarts();
+  int const * columnLength = matrix->getVectorLengths();
+  // Row copy
+  double const * elementByRow = matrixByRow->getElements();
+  int const * column = matrixByRow->getIndices();
+  int const * rowStart = matrixByRow->getVectorStarts();
+  int const * rowLength = matrixByRow->getVectorLengths();
+
+  // Get solution array for heuristic solution
+  int numCols = solver->getNumCols();
+  double * sol = new double [numCols];
+  std::copy(solver->getColSolution(), solver->getColSolution()+numCols, sol);
+
+  double * rowActivity = new double[numRows]();
+
+  for (int i=0; i<numCols; i++) {
+    double value = sol[i];
+    if (value) {
+      for (int j=columnStart[i]; j<columnStart[i]+columnLength[i]; j++) {
+        int iRow = row[j];
+        rowActivity[iRow] += value*element[j];
+      }
+    }
+  }
+  // check was feasible - if not adjust (cleaning may move)
+  for (int i=0; i< numRows; i++) {
+    if(rowActivity[i] < rowLower[i]) {
+      rowActivity[i] = rowLower[i];
+    }
+    else if(rowActivity[i] > rowUpper[i]) {
+      rowActivity[i] = rowUpper[i];
+    }
+  }
+  for (int i=0; i<numIntegers; i++) {
+    int iColumn = integerCols[i];
+    double value = sol[iColumn];
+    if (fabs(floor(value + 0.5) - value) > integerTol) {
+      double below = floor(value);
+      double newValue = sol[iColumn];
+      double cost = direction * obj[iColumn];
+      double move;
+      if (cost > 0.0) {
+        // try up
+        move = 1.0 - (value - below);
+      }
+      else if (cost < 0.0) {
+        // try down
+        move = below - value;
+      }
+      else {
+        // won't be able to move unless we can grab another variable
+        // just for now go down
+        move = below-value;
+      }
+      newValue += move;
+      sol[iColumn] = newValue;
+      sol_quality += move * cost;
+      for (int j=columnStart[iColumn];
+           j<columnStart[iColumn]+columnLength[iColumn]; j++) {
+        int iRow = row[j];
+        rowActivity[iRow] += move * element[j];
+      }
+    }
+  }
+
+  double penalty = 0.0;
+  // see if feasible
+  for (int i=0; i< numRows; i++) {
+    double value = rowActivity[i];
+    double thisInfeasibility = 0.0;
+    if (value < rowLower[i] - primalTolerance) {
+      thisInfeasibility = value - rowLower[i];
+    }
+    else if (value > rowUpper[i] + primalTolerance) {
+      thisInfeasibility = value - rowUpper[i];
+    }
+    if (thisInfeasibility) {
+      // See if there are any slacks I can use to fix up
+      // maybe put in coding for multiple slacks?
+      double bestCost = 1.0e50;
+      int iBest = -1;
+      double addCost = 0.0;
+      double newValue = 0.0;
+      double changeRowActivity = 0.0;
+      double absInfeasibility = fabs(thisInfeasibility);
+      for (int k=rowStart[i]; k<rowStart[i]+rowLength[i]; k++) {
+        int iColumn = column[k];
+        if (columnLength[iColumn] == 1) {
+          double currentValue = sol[iColumn];
+          double elementValue = elementByRow[k];
+          double lowerValue = colLower[iColumn];
+          double upperValue = colUpper[iColumn];
+          double gap = rowUpper[i] - rowLower[i];
+          double absElement = fabs(elementValue);
+          if (thisInfeasibility * elementValue > 0.0) {
+            // we want to reduce
+            if ((currentValue - lowerValue) * absElement >=
+                absInfeasibility) {
+
+              // possible - check if integer
+              double distance = absInfeasibility / absElement;
+              double thisCost =
+                -direction * obj[iColumn] * distance;
+              if (solver->isInteger(iColumn)) {
+                distance = ceil(distance - primalTolerance);
+                assert (currentValue - distance >=
+                        lowerValue - primalTolerance);
+                if (absInfeasibility - distance * absElement
+                    < -gap - primalTolerance)
+                  thisCost = 1.0e100; // no good
+                else
+                  thisCost =
+                    -direction*obj[iColumn]*distance;
+              }
+              if (thisCost < bestCost) {
+                bestCost = thisCost;
+                iBest = iColumn;
+                addCost = thisCost;
+                newValue = currentValue - distance;
+                changeRowActivity = -distance * elementValue;
+              }
+            }
+          }
+          else {
+            // we want to increase
+            if ((upperValue - currentValue) * absElement >=
+                absInfeasibility) {
+              // possible - check if integer
+              double distance = absInfeasibility / absElement;
+              double thisCost =
+                direction * obj[iColumn] * distance;
+              if (solver->isInteger(iColumn)) {
+                distance = ceil(distance - 1.0e-7);
+                assert (currentValue - distance <=
+                        upperValue + primalTolerance);
+                if (absInfeasibility - distance * absElement
+                    < -gap - primalTolerance)
+                  thisCost = 1.0e100; // no good
+                else
+                  thisCost =
+                    direction*obj[iColumn]*distance;
+              }
+              if (thisCost < bestCost) {
+                bestCost = thisCost;
+                iBest = iColumn;
+                addCost = thisCost;
+                newValue = currentValue + distance;
+                changeRowActivity = distance * elementValue;
+              }
+            }
+          }
+        }
+      }
+      if (iBest >= 0) {
+        /*printf("Infeasibility of %g on row %d cost %g\n",
+          thisInfeasibility,i,addCost);*/
+        sol[iBest] = newValue;
+        thisInfeasibility = 0.0;
+        sol_quality += addCost;
+        rowActivity[i] += changeRowActivity;
+      }
+      penalty += fabs(thisInfeasibility);
+    }
+  }
+
+  // Could also set SOS (using random) and repeat
+  if (!penalty) {
+    // Got a feasible solution. Try to improve.
+    //seed_++;
+    //CoinSeedRandom(seed_);
+    // Random number between 0 and 1.
+
+    double randomNumber = CoinDrand48();
+    int start[2];
+    int end[2];
+    int iRandom = (int) (randomNumber * ((double) numIntegers));
+    start[0] = iRandom;
+    end[0] = numIntegers;
+    start[1] = 0;
+    end[1] = iRandom;
+    // todo(aykut) number of passes is a parameter, use it. set default value
+    // to 2.
+    for (int iPass = 0; iPass<2; iPass++) {
+      for (int i=start[iPass]; i<end[iPass]; i++) {
+        int iColumn = integerCols[i];
+#ifdef DISCO_DEBUG
+        double value = sol[iColumn];
+        assert(fabs(floor(value + 0.5) - value) < integerTol);
+#endif
+        double cost = direction * obj[iColumn];
+        double move = 0.0;
+        if (cost > 0.0)
+          move = -1.0;
+        else if (cost < 0.0)
+          move = 1.0;
+        while (move) {
+          bool good = true;
+          double newValue = sol[iColumn] + move;
+          if (newValue < colLower[iColumn] - primalTolerance||
+              newValue > colUpper[iColumn] + primalTolerance) {
+            move = 0.0;
+          }
+          else {
+            // see if we can move
+            for (int j=columnStart[iColumn];
+                 j<columnStart[iColumn]+columnLength[iColumn]; j++) {
+              int iRow = row[j];
+              double newActivity =
+                rowActivity[iRow] + move*element[j];
+              if (newActivity < rowLower[iRow] - primalTolerance
+                  ||
+                  newActivity > rowUpper[iRow]+primalTolerance) {
+                good = false;
+                break;
+              }
+            }
+            if (good) {
+              sol[iColumn] = newValue;
+              sol_quality += move * cost;
+              for (int j=columnStart[iColumn];
+                   j<columnStart[iColumn]+columnLength[iColumn]; j++) {
+                int iRow = row[j];
+                rowActivity[iRow] += move*element[j];
+              }
+            }
+            else {
+              move=0.0;
+            }
+          }
+        }
+      }
+    }
+    // paranoid check
+    std::fill_n(rowActivity, numRows, 0.0);
+    for (int i=0; i<numCols; i++) {
+      double value = sol[i];
+      if (value) {
+        for (int j=columnStart[i]; j<columnStart[i]+columnLength[i]; j++) {
+          int iRow = row[j];
+          rowActivity[iRow] += value * element[j];
+        }
+      }
+    }
+
+
+    // check was approximately feasible
+    bool feasible = true;
+    for (int i=0; i<numRows; i++) {
+      if (rowActivity[i] < rowLower[i]) {
+        if (rowActivity[i] < rowLower[i] - 1000.0*primalTolerance)
+          feasible = false;
+      }
+      else if (rowActivity[i] > rowUpper[i]) {
+        if (rowActivity[i] > rowUpper[i] + 1000.0*primalTolerance)
+          feasible = false;
+      }
+    }
+    if (feasible!=false) {
+      // check whether the solution is conic feasible
+      double cone_tol = model()->dcoPar()->entry(DcoParams::coneTol);
+      int prefered;
+      int num_linear_rows = model()->getNumCoreLinearConstraints();
+      int num_conic_rows = model()->getNumCoreConicConstraints();
+      for (int i=num_linear_rows; i<num_linear_rows+num_conic_rows; ++i) {
+        DcoConicConstraint * con =
+          dynamic_cast<DcoConicConstraint*> (model()->getConstraints()[i]);
+        int const * members = con->coneMembers();
+        DcoLorentzConeType type = con->coneType();
+        int size = con->coneSize();
+        double * values = new double[size];
+        for (int i=0; i<size; ++i) {
+          values[i] = sol[members[i]];
+        }
+        double term1;
+        double term2;
+        if (type==DcoLorentzCone) {
+          term1 = values[0];
+          term2 = std::inner_product(values+1, values+size, values+1, 0.0);
+          term2 = sqrt(term2);
+        }
+        else if (type==DcoRotatedLorentzCone) {
+          term1 = 2.0*sol[members[0]]*sol[members[1]];
+          term2 = std::inner_product(values+2, values+size, values+2, 0.0);
+        }
+        else {
+          message_handler->message(DISCO_UNKNOWN_CONETYPE,
+                                   *messages)
+            << type << CoinMessageEol;
+        }
+        if (term1-term2<-cone_tol) {
+          feasible = false;
+          break;
+        }
+      }
+    }
+
+    if (feasible) {
+      // new solution found, store solution.
+      dco_sol = new DcoSolution(numCols, sol, sol_quality);
+      stats().addNumSolutions();
+    }
+    else {
+      // update statistics
+      stats().addNoSolCalls();
+      // Can easily happen
+      //printf("Debug DcoHeurRound giving bad solution\n");
+    }
+  }
+  delete [] sol;
+  delete [] rowActivity;
+  return dco_sol;
+}
+
+
+DcoSolution * DcoHeurRounding::searchSolution2() {
   /// todo(aykut) disable heuristic search for now.
   return NULL;
   if (strategy() == DcoHeurStrategyNone) {

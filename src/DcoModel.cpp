@@ -54,20 +54,17 @@ DcoModel::DcoModel() {
   numRows_ = 0;
   numLinearRows_ = 0;
   numConicRows_ = 0;
-  matrix_ = NULL;
   objSense_ = 0.0;
   objCoef_ = NULL;
   numIntegerCols_ = 0;
   integerCols_ = NULL;
+  isInteger_ = NULL;
+  matrix_ = NULL;
+  coneStart_ = NULL;
+  coneMembers_ = NULL;
+  coneType_ = NULL;
 
-  currRelGap_ = 1e5;
-  currAbsGap_ = 1e5;
-  bestQuality_ = COIN_DBL_MAX;
-  activeNode_ = NULL;
   dcoPar_ = new DcoParams();
-  numNodes_ = 0;
-  numIterations_ = 0;;
-  aveIterations_ = 0;
   numRelaxedCols_ = 0;
   relaxedCols_ = NULL;
   numRelaxedRows_ = 0;
@@ -83,9 +80,6 @@ DcoModel::DcoModel() {
 
 DcoModel::~DcoModel() {
   // solver_ is freed in main function.
-  if (matrix_) {
-    delete matrix_;
-  }
   if (colLB_) {
     delete[] colLB_;
   }
@@ -101,14 +95,29 @@ DcoModel::~DcoModel() {
   if (objCoef_) {
     delete[] objCoef_;
   }
+  if (integerCols_) {
+    delete[] integerCols_;
+  }
+  if (isInteger_) {
+    delete[] isInteger_;
+  }
+  if (matrix_) {
+    delete matrix_;
+  }
+  if (coneStart_) {
+    delete[] coneStart_;
+  }
+  if (coneMembers_) {
+    delete[] coneMembers_;
+  }
+  if (coneType_) {
+    delete[] coneType_;
+  }
   if (branchStrategy_) {
     delete branchStrategy_;
   }
   if (rampUpBranchStrategy_) {
     delete rampUpBranchStrategy_;
-  }
-  if (activeNode_) {
-    delete activeNode_;
   }
   if (dcoPar_) {
     delete dcoPar_;
@@ -147,6 +156,10 @@ void DcoModel::setSolver(OsiConicSolverInterface * solver) {
 }
 #endif
 
+// reads problem from the given file and sets the fields required by setupself
+// only.
+// setupSelf needs dcoPar, objSense_, variables_ and constraints_
+// dcoPar_ is already set up by the AlpsKnowledgeBroker::initializeSearch().
 void DcoModel::readInstance(char const * dataFile) {
   // get input file name
   std::string input_file(dataFile);
@@ -157,81 +170,44 @@ void DcoModel::readInstance(char const * dataFile) {
                                 *dcoMessages_) << CoinMessageEol;
   }
 
-  // read mps file
+  // mps file reader
   CoinMpsIO * reader = new CoinMpsIO;
-
-  // get log level parameters
-  int dcoLogLevel =  dcoPar_->entry(DcoParams::logLevel);
-  reader->messageHandler()->setLogLevel(dcoLogLevel);
+  // set reader log level
+  reader->messageHandler()->setLogLevel(dcoPar_->entry(DcoParams::logLevel));
   reader->readMps(dataFile, "");
   numCols_ = reader->getNumCols();
-  numLinearRows_ = reader->getNumRows();
-  matrix_ = new CoinPackedMatrix(*(reader->getMatrixByCol()));
 
-  // == allocate variable bounds
+  // allocate variable bounds
   colLB_ = new double [numCols_];
   colUB_ = new double [numCols_];
-
-  // == allocate row bounds
-  rowLB_ = new double [numLinearRows_];
-  rowUB_ = new double [numLinearRows_];
-
-  // == copy bounds
+  // set col bounds
   std::copy(reader->getColLower(), reader->getColLower()+numCols_, colLB_);
   std::copy(reader->getColUpper(), reader->getColUpper()+numCols_, colUB_);
-  std::copy(reader->getRowLower(), reader->getRowLower()+numLinearRows_, rowLB_);
-  std::copy(reader->getRowUpper(), reader->getRowUpper()+numLinearRows_, rowUB_);
 
-  // == set objective sense
+  // set objective sense
   // todo(aykut) we should ask reader about the objective sense
   objSense_ = dcoPar_->entry(DcoParams::objSense);
 
-  // == allocate objective coefficients
+  // set objective coefficients
   objCoef_ = new double [numCols_];
   double const * reader_obj = reader->getObjCoefficients();
-  if (objSense_ > 0.0) {
-    std::copy(reader_obj, reader_obj+numCols_, objCoef_);
-  }
-  else {
-    for (int i = 0; i<numCols_; ++i) {
-      objCoef_[i] = -reader_obj[i];
-    }
-  }
-  // == load data to solver
-  solver_->loadProblem(*matrix_, colLB_, colUB_, objCoef_,
-                       rowLB_, rowUB_);
-  // == add variables to the model
-  readAddVariables(reader);
-  // == add linear constraints to the model
-  readAddLinearConstraints(reader);
-  // == add conic constraints to the model
-  readAddConicConstraints(reader);
-  delete reader;
-}
+  std::copy(reader_obj, reader_obj+numCols_, objCoef_);
 
-
-void DcoModel::readParameters(const int argnum,
-                              const char * const * arglist) {
-  AlpsPar()->readFromArglist(argnum, arglist);
-  dcoPar_->readFromArglist(argnum, arglist);
-}
-
-// Add variables to *this.
-void DcoModel::readAddVariables(CoinMpsIO * reader) {
+  // set integer columns
   // get variable integrality constraints
   numIntegerCols_ = 0;
-  DcoIntegralityType * i_type = new DcoIntegralityType[numCols_];
-
-  // may return NULL, especially when there are no integer variables.
+  integerCols_ = new int[numCols_];
+  isInteger_ = new int[numCols_];
+  // may return NULL
   char const * is_integer = reader->integerColumns();
-  if (is_integer!=NULL) {
+  if (is_integer!=NULL and strcmp(is_integer, "")) {
     for (int i=0; i<numCols_; ++i) {
       if (is_integer[i]) {
-        i_type[i] = DcoIntegralityTypeInt;
-        numIntegerCols_++;
+        integerCols_[numIntegerCols_++] = i;
+        isInteger_[i] = 1;
       }
       else {
-        i_type[i] = DcoIntegralityTypeCont;
+        isInteger_[i] = 0;
       }
     }
   }
@@ -246,35 +222,102 @@ void DcoModel::readAddVariables(CoinMpsIO * reader) {
                                 'W', 0)
       << CoinMessageEol;
     for (int i=0; i<numCols_; ++i) {
-      if (reader->isContinuous(i)) {
-        i_type[i] = DcoIntegralityTypeCont;
+      if (!reader->isContinuous(i)) {
+        integerCols_[numIntegerCols_++] = i;
+        isInteger_[i] = 1;
       }
       else {
-        i_type[i] = DcoIntegralityTypeInt;
-        numIntegerCols_++;
+        isInteger_[i] = 0;
       }
     }
   }
+  // resize integerCols_
+  int * temp = new int[numIntegerCols_];
+  std::copy(integerCols_, integerCols_+numIntegerCols_, temp);
+  delete[] integerCols_;
+  integerCols_ = temp;
+
+  // read conic part
+  int reader_return = reader->readConicMps(NULL, coneStart_, coneMembers_,
+                                           coneType_, numConicRows_);
+  // when there is no conic section, status is -3.
+  if (reader_return==-3) {
+    dcoMessageHandler_->message(DISCO_READ_NOCONES,
+                                *dcoMessages_);
+  }
+  else if (reader_return!=0) {
+    dcoMessageHandler_->message(DISCO_READ_MPSERROR,
+                                *dcoMessages_) << reader_return
+                                               << CoinMessageEol;
+  }
+  // == log cone information messages
+  if (numConicRows_) {
+    dcoMessageHandler_->message(DISCO_READ_CONESTATS1,
+                                *dcoMessages_) << numConicRows_
+                                               << CoinMessageEol;
+    for (int i=0; i<numConicRows_; ++i) {
+      dcoMessageHandler_->message(DISCO_READ_CONESTATS2,
+                                  *dcoMessages_)
+        << i
+        << coneStart_[i+1] - coneStart_[i]
+        << coneType_[i]
+        << CoinMessageEol;
+    }
+  }
+
+  // store number of constraints in the problem
+  numLinearRows_ = reader->getNumRows();
+  numRows_ = numLinearRows_ + numConicRows_;
+
+  // allocate row bounds
+  rowLB_ = new double [numRows_];
+  rowUB_ = new double [numRows_];
+  // set row bounds for linear rows
+  std::copy(reader->getRowLower(), reader->getRowLower()+numLinearRows_, rowLB_);
+  std::copy(reader->getRowUpper(), reader->getRowUpper()+numLinearRows_, rowUB_);
+  // set conic row bounds
+  std::fill_n(rowLB_+numLinearRows_, numConicRows_, 0.0);
+  std::fill_n(rowUB_+numLinearRows_, numConicRows_, DISCO_INFINITY);
+
+  matrix_ = new CoinPackedMatrix(*reader->getMatrixByRow());
+
+  // free Coin MPS reader
+  delete reader;
+}
+
+
+void DcoModel::readParameters(const int argnum,
+                              const char * const * arglist) {
+  AlpsPar()->readFromArglist(argnum, arglist);
+  dcoPar_->readFromArglist(argnum, arglist);
+}
+
+// Add variables to *this.
+void DcoModel::setupAddVariables() {
   // add variables
   BcpsVariable ** variables = new BcpsVariable*[numCols_];
   for (int i=0; i<numCols_; ++i) {
-    variables[i] = new DcoVariable(i, colLB_[i], colUB_[i], colLB_[i],
-                                   colUB_[i], i_type[i]);
+    variables[i] = new DcoVariable(i, colLB_[i], colUB_[i],
+                                   colLB_[i], colUB_[i]);
+    if (isInteger_[i]) {
+      variables[i]->setIntType('I');
+    }
+    else {
+      variables[i]->setIntType('C');
+    }
   }
   setVariables(variables, numCols_);
   // variables[i] are now owned by BcpsModel, do not free them.
   delete[] variables;
-  delete[] i_type;
 }
 
-void DcoModel::readAddLinearConstraints(CoinMpsIO * reader) {
+void DcoModel::setupAddLinearConstraints() {
   // == add constraints to *this
   BcpsConstraint ** constraints = new BcpsConstraint*[numLinearRows_];
-  CoinPackedMatrix const * matrix = reader->getMatrixByRow();
-  int const * indices = matrix->getIndices();
-  double const * values = matrix->getElements();
-  int const * lengths = matrix->getVectorLengths();
-  int const * starts = matrix->getVectorStarts();
+  int const * indices = matrix_->getIndices();
+  double const * values = matrix_->getElements();
+  int const * lengths = matrix_->getVectorLengths();
+  int const * starts = matrix_->getVectorStarts();
   for (int i=0; i<numLinearRows_; ++i) {
     constraints[i] = new DcoLinearConstraint(lengths[i], indices+starts[i],
                                              values+starts[i], rowLB_[i],
@@ -285,92 +328,32 @@ void DcoModel::readAddLinearConstraints(CoinMpsIO * reader) {
   delete[] constraints;
 }
 
-void DcoModel::readAddConicConstraints(CoinMpsIO * reader) {
-  int nOfCones = 0;
-  int * coneStart = NULL;
-  int * coneMembers = NULL;
-  int * coneType = NULL;
-  int reader_return = reader->readConicMps(NULL, coneStart, coneMembers,
-                                       coneType, nOfCones);
-  // when there is no conic section status is -3.
-  if (reader_return==-3) {
-    dcoMessageHandler_->message(DISCO_READ_NOCONES,
-                                *dcoMessages_);
-  }
-  else if (reader_return!=0) {
-    dcoMessageHandler_->message(DISCO_READ_MPSERROR,
-                                *dcoMessages_) << reader_return
-                                              << CoinMessageEol;
-  }
-  // store number of cones in the problem
-  numConicRows_ = nOfCones;
-  // log cone information messages
-  if (nOfCones) {
-    dcoMessageHandler_->message(DISCO_READ_CONESTATS1,
-                                *dcoMessages_) << nOfCones
-                                               << CoinMessageEol;
-    for (int i=0; i<nOfCones; ++i) {
-      dcoMessageHandler_->message(DISCO_READ_CONESTATS2,
-                                  *dcoMessages_)
-        << i
-        << coneStart[i+1] - coneStart[i]
-        << coneType[i]
-        << CoinMessageEol;
-    }
-  }
+void DcoModel::setupAddConicConstraints() {
   // iterate over cones and add them to the model
-  for (int i=0; i<nOfCones; ++i) {
-    if (coneType[i]!=1 and coneType[i]!=2) {
+  for (int i=0; i<numConicRows_; ++i) {
+    if (coneType_[i]!=1 and coneType_[i]!=2) {
       dcoMessageHandler_->message(DISCO_READ_CONEERROR,
                                   *dcoMessages_) << CoinMessageEol;
     }
-    int num_members = coneStart[i+1]-coneStart[i];
-    if (coneType[i]==2 and num_members<3) {
+    int num_members = coneStart_[i+1]-coneStart_[i];
+    if (coneType_[i]==2 and num_members<3) {
       dcoMessageHandler_->message(DISCO_READ_ROTATEDCONESIZE,
                                   *dcoMessages_) << CoinMessageEol;
     }
     DcoLorentzConeType type;
-    if (coneType[i]==1) {
+    if (coneType_[i]==1) {
       type = DcoLorentzCone;
     }
-    else if (coneType[i]==2) {
+    else if (coneType_[i]==2) {
       type = DcoRotatedLorentzCone;
     }
     addConstraint(new DcoConicConstraint(type, num_members,
-                                         coneMembers+coneStart[i]));
-    // cone_[i] = new OsiLorentzCone(type, num_members,
-    //                            coneMembers+coneStart[i]);
-#ifndef __OA__
-    OsiLorentzConeType osi_type;
-    if (coneType[i]==1) {
-      osi_type = OSI_QUAD;
-    }
-    else if (coneType[i]==2) {
-      osi_type = OSI_RQUAD;
-    }
-    solver_->addConicConstraint(osi_type, coneStart[i+1]-coneStart[i],
-                                coneMembers+coneStart[i]);
-#endif
+                                         coneMembers_+coneStart_[i]));
   }
-  delete[] coneStart;
-  delete[] coneMembers;
-  delete[] coneType;
-  // update rowLB_ and rowUB_, add conic row bounds
-  double * temp = rowLB_;
-  rowLB_ = new double[numLinearRows_+numConicRows_];
-  std::copy(temp, temp+numLinearRows_, rowLB_);
-  std::fill_n(rowLB_+numLinearRows_, numConicRows_, 0.0);
-  delete[] temp;
-  temp = rowUB_;
-  rowUB_ = new double[numLinearRows_+numConicRows_];
-  std::copy(temp, temp+numLinearRows_, rowUB_);
-  std::fill_n(rowUB_+numLinearRows_, numConicRows_, DISCO_INFINITY);
-  delete[] temp;
 }
 
-/** Write out parameters. */
-void
-DcoModel::writeParameters(std::ostream& outstream) const {
+/// Write out parameters.
+void DcoModel::writeParameters(std::ostream& outstream) const {
   outstream << "\n================================================"
             <<std::endl;
   outstream << "ALPS Parameters: " << std::endl;
@@ -382,78 +365,84 @@ DcoModel::writeParameters(std::ostream& outstream) const {
 }
 
 void DcoModel::preprocess() {
-  // set message levels
-  setMessageLevel();
+  // // set message levels
+  // setMessageLevel();
 
 
-  // some bounds are improved if updated is true
+  // // some bounds are improved if updated is true
 
-  // notes(aykut) this can only improve the bounds if the leading variable is
-  // bounded.  most of the time it is not. Things can get better if we use some
-  // other bound improvement first and it does improve the upper bound of
-  // leading variables.
-  //bool updated = DcoPresolve::improve_bounds(this);
+  // // notes(aykut) this can only improve the bounds if the leading variable is
+  // // bounded.  most of the time it is not. Things can get better if we use some
+  // // other bound improvement first and it does improve the upper bound of
+  // // leading variables.
+  // //bool updated = DcoPresolve::improve_bounds(this);
 
-  // write parameters used
-  //writeParameters(std::cout);
-  // generate ipm cuts first
-  // then generate 50 rounds of oa cuts
+  // // write parameters used
+  // //writeParameters(std::cout);
+  // // generate ipm cuts first
+  // // then generate 50 rounds of oa cuts
 
-  // this process will change the following data members, conLB_, conUB_, numRows_, numElems_
-  // what about cone objects and their positions? This should also be updated.
-  approximateCones();
+  // // this process will change the following data members, conLB_, conUB_, numRows_, numElems_
+  // // what about cone objects and their positions? This should also be updated.
+  // //approximateCones();
 
-  // number of linear rows stored in the solver
-  int solver_rows = solver_->getNumRows();
+  // // number of linear rows stored in the solver
+  // int solver_rows = solver_->getNumRows();
 
-  // update row bounds
-  // == lower bound
-  delete[] rowLB_;
-  rowLB_ = new double[solver_rows+numConicRows_];
-  std::copy(solver_->getRowLower(), solver_->getRowLower()+solver_rows, rowLB_);
-  std::fill_n(rowLB_+solver_rows, numConicRows_, 0.0);
-  // == upper bound
-  delete[] rowUB_;
-  rowUB_ = new double[solver_rows+numConicRows_];
-  std::copy(solver_->getRowUpper(), solver_->getRowUpper()+solver_rows, rowUB_);
-  std::fill_n(rowUB_+solver_rows, numConicRows_, DISCO_INFINITY);
+  // // update row bounds
+  // // == lower bound
+  // delete[] rowLB_;
+  // rowLB_ = new double[solver_rows+numConicRows_];
+  // std::copy(solver_->getRowLower(), solver_->getRowLower()+solver_rows, rowLB_);
+  // std::fill_n(rowLB_+solver_rows, numConicRows_, 0.0);
+  // // == upper bound
+  // delete[] rowUB_;
+  // rowUB_ = new double[solver_rows+numConicRows_];
+  // std::copy(solver_->getRowUpper(), solver_->getRowUpper()+solver_rows, rowUB_);
+  // std::fill_n(rowUB_+solver_rows, numConicRows_, DISCO_INFINITY);
 
-  // re-order constraints data member.
-  // == copy conic constraint pointers
-  std::vector<BcpsConstraint*>
-    conic_constraints(constraints_.begin()+numLinearRows_, constraints_.end());
-  // pop conic constraints
-  for (int i=0; i<numConicRows_; ++i) {
-    constraints_.pop_back();
-  }
-  // == add new linear constraints to *this
-  CoinPackedMatrix const * matrix = solver_->getMatrixByRow();
-  int const * indices = matrix->getIndices();
-  double const * values = matrix->getElements();
-  int const * lengths = matrix->getVectorLengths();
-  int const * starts = matrix->getVectorStarts();
-  for (int i=numLinearRows_; i<solver_rows; ++i) {
-    BcpsConstraint * curr = new DcoLinearConstraint(lengths[i],
-                                                    indices+starts[i],
-                                                    values+starts[i],
-                                                    rowLB_[i],
-                                                    rowUB_[i]);
-    constraints_.push_back(curr);
-    curr = NULL;
-  }
-  // == add conic constraints to the end
-  for (int i=0; i<numConicRows_; ++i) {
-    constraints_.push_back(conic_constraints[i]);
-  }
-  conic_constraints.clear();
+  // // re-order constraints data member.
+  // // == copy conic constraint pointers
+  // std::vector<BcpsConstraint*>
+  //   conic_constraints(constraints_.begin()+numLinearRows_, constraints_.end());
+  // // pop conic constraints
+  // for (int i=0; i<numConicRows_; ++i) {
+  //   constraints_.pop_back();
+  // }
+  // // == add new linear constraints to *this
+  // CoinPackedMatrix const * matrix = solver_->getMatrixByRow();
+  // int const * indices = matrix->getIndices();
+  // double const * values = matrix->getElements();
+  // int const * lengths = matrix->getVectorLengths();
+  // int const * starts = matrix->getVectorStarts();
+  // for (int i=numLinearRows_; i<solver_rows; ++i) {
+  //   BcpsConstraint * curr = new DcoLinearConstraint(lengths[i],
+  //                                                   indices+starts[i],
+  //                                                   values+starts[i],
+  //                                                   rowLB_[i],
+  //                                                   rowUB_[i]);
+  //   constraints_.push_back(curr);
+  //   curr = NULL;
+  // }
+  // // == add conic constraints to the end
+  // for (int i=0; i<numConicRows_; ++i) {
+  //   constraints_.push_back(conic_constraints[i]);
+  // }
+  // conic_constraints.clear();
 
-  // update the rest of the row related data members
-  numLinearRows_ = solver_rows;
-  numRows_ = numLinearRows_ + numConicRows_;
+  // // update the rest of the row related data members
+  // numLinearRows_ = solver_rows;
+  // numRows_ = numLinearRows_ + numConicRows_;
 }
 
 void DcoModel::approximateCones() {
 #ifdef __OA__
+  // need to load problem to the solver.
+
+  // load problem to the solver
+  solver_->loadProblem(*matrix_, colLB_, colUB_, objCoef_,
+                       rowLB_, rowUB_);
+
   bool dual_infeasible = false;
   int iter = 0;
   int ipm_iter;
@@ -469,7 +458,7 @@ void DcoModel::approximateCones() {
   for (int i=0; i<numConicRows_; ++i) {
     DcoConicConstraint * con =
       dynamic_cast<DcoConicConstraint*>(constraints_[numLinearRows_+i]);
-    DcoLorentzConeType type = con->getType();
+    DcoLorentzConeType type = con->coneType();
     if (type==DcoLorentzCone) {
       coneTypes[i] = OSI_QUAD;
     }
@@ -480,9 +469,10 @@ void DcoModel::approximateCones() {
       dcoMessageHandler_->message(DISCO_UNKNOWN_CONETYPE, *dcoMessages_)
         << __FILE__ << __LINE__ << CoinMessageEol;
     }
-    coneSizes[i] = con->getSize();
-    coneMembers[i] = new int[con->getSize()];
-    std::copy(con->getMembers(), con->getMembers()+con->getSize(), coneMembers[i]);
+    coneSizes[i] = con->coneSize();
+    coneMembers[i] = new int[con->coneSize()];
+    std::copy(con->coneMembers(), con->coneMembers()+con->coneSize(),
+              coneMembers[i]);
   }
   do {
     // generate cuts
@@ -549,60 +539,120 @@ void DcoModel::approximateCones() {
     delete[] coneMembers[i];
   }
   delete[] coneMembers;
+
+  // CoinPackedMatrix const * matrix_row = solver_->getMatrixByRow();
+  // int const * indices = matrix_row->getIndices();
+  // double const * values = matrix_row->getElements();
+  // int const * star = matrix_row->getVectorStarts();
+  // int const * siz = matrix_row->getVectorLengths();
+  // double const * llb = solver_->getColLower();
+  // double const * uub = solver_->getColUpper();
+
+  // // move conic constraints to the end.
+  // std::vector<BcpsConstraint*> new_cons;
+  // for (int i=numLinearRows_; i<matrix->getMajorDim(); ++i) {
+  //   new_cons.push_back(new DcoLinearConstraint(siz[i], indices+star[i],
+  //                                         values+star[i], llb[i], uub[i]));
+  // }
+  // std::vector<BcpsConstraint*> conic_cons(constraints_.begin()+numLinearRows_,
+  //                                        constraints_.end());
+  // constraints_.erase(constraints_.begin()+numLinearRows_, constraints_.end());
+  // std::vector<BcpsConstraint*>::const_iterator it;
+  // for (it=new_cons.begin(); it!=new_cons.end(); ++it) {
+  //   constraints_.push_back(*it);
+  // }
+  // for (it=conic_cons.begin(); it!=conic_cons.end(); ++it) {
+  //   constraints_.push_back(*it);
+  // }
+  // numLinearRows_ = solver_->getNumRows();
+  // numRows_ = numLinearRows_ + numConicRows_;
+  // delete[] rowLB_;
+  // rowLB_ = new double[numRows_];
+  // std::copy(solver_->getRowLower(),
+  //           solver_->getRowLower()+numLinearRows_, rowLB_);
+  // delete[] rowUB_;
+  // rowUB_ = new double[numRows_];
+  // std::copy(solver_->getRowUpper(),
+  //           solver_->getRowUpper()+numLinearRows_, rowUB_);
+  // std::fill_n(rowLB_+numLinearRows_, numConicRows_, 0.0);
+  // std::fill_n(rowUB_+numLinearRows_, numConicRows_, DISCO_INFINITY);
+
+  // set rowLB_
+  // set rowUB_
+  // set numLinearRows_
+  // set numRows_
+
+
+
+  // we need to add the generated cuts to constraints_.
 #endif
 }
 
 //todo(aykut) why does this return to bool?
 // should be fixed in Alps level.
-bool DcoModel::setupSelf() {
 
-  // set integer column indices
-  std::vector<BcpsVariable*> & cols = getVariables();
-  int numCols = getNumCoreVariables();
-  integerCols_ = new int[numIntegerCols_];
-  for (int i=0, k=0; i<numCols; ++i) {
-    BcpsIntegral_t i_type = cols[i]->getIntType();
-    if (i_type=='I' or i_type=='B') {
-      integerCols_[k] = i;
-      k++;
-    }
-  }
+// relase redundant memory once the fields are set.
+bool DcoModel::setupSelf() {
   // set relaxed array for integer columns
   numRelaxedCols_ = numIntegerCols_;
   relaxedCols_ = new int[numRelaxedCols_];
   std::copy(integerCols_, integerCols_+numIntegerCols_,
             relaxedCols_);
+
+  // load problem to the solver
+  solver_->loadProblem(*matrix_, colLB_, colUB_, objCoef_,
+                       rowLB_, rowUB_);
+
 #if defined(__OA__)
-  // we relax conic constraint too when OA is used.
+  // we relax conic constraints when OA is used.
   // set relaxed array for conic constraints
   numRelaxedRows_ = numConicRows_;
   relaxedRows_ = new int[numRelaxedRows_];
-  // todo(aykut) we assume conic rows start after linear rows.
-  // if not iterate over rows and determine their type (DcoConstraint::type())
+  // notes(aykut) we assume conic rows start after linear rows.
   for (int i=0; i<numRelaxedRows_; ++i) {
     relaxedRows_[i] = numLinearRows_+i;
   }
 
   // set leading variable lower bounds to 0
-  for (int i=numLinearRows_; i<numLinearRows_+numConicRows_; ++i) {
-    DcoConicConstraint * con =
-      dynamic_cast<DcoConicConstraint*> (constraints_[i]);
-    if (con->getType()==DcoLorentzCone) {
-      //todo(aykut) assumes variable indices in reader and variable
-      // indices in disco are same
-      variables_[con->getMembers()[0]]->setLbHard(0.0);
+  for (int i=0; i<numConicRows_; ++i) {
+    if (coneType_[i]==1) {
+      colLB_[coneMembers_[coneStart_[i]]] = 0.0;
+      solver_->setColLower(coneMembers_[coneStart_[i]], 0.0);
     }
-    else if (con->getType()==DcoRotatedLorentzCone) {
-      variables_[con->getMembers()[0]]->setLbHard(0.0);
-      variables_[con->getMembers()[1]]->setLbHard(0.0);
+    else if (coneType_[i]==2) {
+      colLB_[coneMembers_[coneStart_[i]]] = 0.0;
+      colLB_[coneMembers_[coneStart_[i]+1]] = 0.0;
+      solver_->setColLower(coneMembers_[coneStart_[i]], 0.0);
+      solver_->setColLower(coneMembers_[coneStart_[i]+1], 0.0);
     }
     else {
       dcoMessageHandler_->message(DISCO_UNKNOWN_CONETYPE,
                                   *dcoMessages_)
-        << con->getType() << CoinMessageEol;
+        << coneType_[i] << CoinMessageEol;
     }
   }
+#else
+  // add conic constraints to the solver
+  for (int i=0; i<numConicRows_; ++i) {
+    // do not relax conic constraints, add them to the conic solver
+    OsiLorentzConeType osi_type;
+    if (coneType_[i]==1) {
+      osi_type = OSI_QUAD;
+    }
+    else if (coneType_[i]==2) {
+      osi_type = OSI_RQUAD;
+    }
+    solver_->addConicConstraint(osi_type, coneStart_[i+1]-coneStart_[i],
+                              coneMembers_+coneStart_[i]);
+  }
 #endif
+
+  // create disco variables
+  setupAddVariables();
+  // create disco constraints, linear
+  setupAddLinearConstraints();
+  // create disco constraints, conic
+  setupAddConicConstraints();
 
   // set branch strategy
   setBranchingStrategy();
@@ -612,6 +662,16 @@ bool DcoModel::setupSelf() {
 
   // add heuristics
   addHeuristics();
+
+  // free redundant data
+  // delete matrix_;
+  // matrix_ = NULL;
+  // delete[] coneStart_;
+  // coneStart_ = NULL;
+  // delete[] coneMembers_;
+  // coneMembers_ = NULL;
+  // delete[] coneType_;
+  // coneType_ = NULL;
 
   return true;
 }
@@ -648,7 +708,7 @@ void DcoModel::setMessageLevel() {
 #endif
 
   // todo(aykut) create different parameters for Alps and Bcps.
-  getKnowledgeBroker()->messageHandler()->setLogLevel(alps_log_level);
+  broker()->messageHandler()->setLogLevel(alps_log_level);
   bcpsMessageHandler()->setLogLevel(alps_log_level);
   dcoMessageHandler_->setLogLevel(dco_log_level);
 
@@ -991,6 +1051,7 @@ void DcoModel::addHeuristics() {
   // todo(aykut) this function (heuristic adding process) can be improved
   // since global parameters are ignored with this design.
 
+  heuristics_.clear();
   // get global heuristic strategy
   heurStrategy_ = static_cast<DcoHeurStrategy>
     (dcoPar_->entry(DcoParams::heurStrategy));
@@ -1258,26 +1319,12 @@ DcoSolution * DcoModel::feasibleSolution(int & numInfColumns,
 int DcoModel::storeSolution(DcoSolution * sol) {
   double quality = sol->getQuality();
   // Store in Alps pool, assumes minimization.
-  getKnowledgeBroker()->addKnowledge(AlpsKnowledgeTypeSolution,
+  broker()->addKnowledge(AlpsKnowledgeTypeSolution,
                                      sol,
                                      objSense_ * quality);
-  if (quality<bestQuality_) {
-    bestQuality_ = quality;
-    solver_->setDblParam(OsiDualObjectiveLimit, objSense_*quality);
-  }
-
-  // // debug write mps file to disk
-  // std::cout << "writing problem to disk..." << std::endl;
-  // std::stringstream problem;
-  // problem << broker_->getNumNodesProcessed();
-  // solver_->writeMps(problem.str().c_str(), "mps", 0.0);
-  // // end of problem writing
+  double best_quality = broker()->getBestQuality();
+  solver_->setDblParam(OsiDualObjectiveLimit, objSense_*best_quality);
   return AlpsReturnStatusOk;
-}
-
-double DcoModel::bestQuality() {
-  return bestQuality_;
-  //return getKnowledgeBroker()->getBestQuality();
 }
 
 /// This is called at the end of the AlpsKnowledgeBroker::rootSearch
@@ -1349,13 +1396,13 @@ void DcoModel::reportFeasibility() {
   for (int i=numLinearRows_; i<numLinearRows_+numConicRows_; ++i) {
     DcoConicConstraint * con =
       dynamic_cast<DcoConicConstraint*> (constraints_[i]);
-    int const * members = con->getMembers();
-    DcoLorentzConeType type = con->getType();
-    int size = con->getSize();
+    int const * members = con->coneMembers();
+    DcoLorentzConeType type = con->coneType();
+    int size = con->coneSize();
 
     double * values = new double[size];
-    for (int i=0; i<size; ++i) {
-      values[i] = sol[members[i]];
+    for (int j=0; j<size; ++j) {
+      values[j] = sol[members[j]];
     }
     double term1;
     double term2;
@@ -1382,4 +1429,93 @@ void DcoModel::reportFeasibility() {
       << CoinMessageEol;
     msg.str(std::string());
   }
+}
+
+/// The method that encodes the this instance of model into the given
+/// #AlpsEncoded object.
+AlpsReturnStatus DcoModel::encode(AlpsEncoded * encoded) const {
+  AlpsReturnStatus status;
+  // encode Alps parts
+  status = AlpsModel::encode(encoded);
+  if (status!=AlpsReturnStatusOk) {
+    dcoMessageHandler_->message(DISCO_UNEXPECTED_ENCODE_STATUS, *dcoMessages_)
+      << __FILE__ << __LINE__ << CoinMessageEol;
+  }
+  // encode number of constraints
+  encoded->writeRep(numCols_);
+  encoded->writeRep(colLB_, numCols_);
+  encoded->writeRep(colUB_, numCols_);
+  encoded->writeRep(numLinearRows_);
+  encoded->writeRep(numConicRows_);
+  encoded->writeRep(rowLB_, numRows_);
+  encoded->writeRep(rowUB_, numRows_);
+  encoded->writeRep(objSense_);
+  encoded->writeRep(objCoef_, numCols_);
+  encoded->writeRep(numIntegerCols_);
+  encoded->writeRep(integerCols_, numIntegerCols_);
+  encoded->writeRep(isInteger_, numCols_);
+  // encode cone info
+  encoded->writeRep(coneStart_, numConicRows_);
+  encoded->writeRep(coneType_, numConicRows_);
+  encoded->writeRep(coneMembers_, coneStart_[numConicRows_]);
+  // encode matrix
+  encoded->writeRep(matrix_->getNumElements());
+  encoded->writeRep(matrix_->getVectorStarts(), numLinearRows_);
+  encoded->writeRep(matrix_->getVectorLengths(), numLinearRows_);
+  encoded->writeRep(matrix_->getIndices(), matrix_->getNumElements());
+  encoded->writeRep(matrix_->getElements(), matrix_->getNumElements());
+  // encode parameters
+  dcoPar_->pack(*encoded);
+  encoded->writeRep(objSense_);
+  return status;
+}
+
+/// The method that decodes the given #AlpsEncoded object into a new #DcoModel
+/// instance and returns a pointer to it.
+AlpsKnowledge * DcoModel::decode(AlpsEncoded & encoded) const {
+  std::cerr << "not implemented yet." << std::endl;
+  return NULL;
+}
+
+AlpsReturnStatus DcoModel::decodeToSelf(AlpsEncoded & encoded) {
+  AlpsReturnStatus status;
+  // decode Alps parts
+  status = AlpsModel::decodeToSelf(encoded);
+  if (status!=AlpsReturnStatusOk) {
+    dcoMessageHandler_->message(DISCO_UNEXPECTED_DECODE_STATUS, *dcoMessages_)
+      << __FILE__ << __LINE__ << CoinMessageEol;
+  }
+  encoded.readRep(numCols_);
+  encoded.readRep(colLB_, numCols_);
+  encoded.readRep(colUB_, numCols_);
+  encoded.readRep(numLinearRows_);
+  encoded.readRep(numConicRows_);
+  numRows_ = numLinearRows_+numConicRows_;
+  encoded.readRep(rowLB_, numRows_);
+  encoded.readRep(rowUB_, numRows_);
+  encoded.readRep(objSense_);
+  encoded.readRep(objCoef_, numCols_);
+  encoded.readRep(numIntegerCols_);
+  encoded.readRep(integerCols_, numIntegerCols_);
+  encoded.readRep(isInteger_, numCols_);
+  // decode cone info
+  encoded.readRep(coneStart_, numConicRows_);
+  encoded.readRep(coneType_, numConicRows_);
+  encoded.readRep(coneMembers_, coneStart_[numConicRows_]);
+  // decode matrix
+  int num_elem;
+  int * starts;
+  int * lengths;
+  int * indices;
+  double * elements;
+  encoded.readRep(num_elem);
+  encoded.readRep(starts, numLinearRows_);
+  encoded.readRep(lengths, numLinearRows_);
+  encoded.readRep(indices, num_elem);
+  encoded.readRep(elements, num_elem);
+  matrix_ = new CoinPackedMatrix(false, numCols_, numLinearRows_, num_elem,
+                                 elements, indices, starts, lengths, 0.0, 0.0);
+  dcoPar_->unpack(encoded);
+  encoded.readRep(objSense_);
+  return status;
 }

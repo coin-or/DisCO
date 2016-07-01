@@ -54,6 +54,10 @@
  */
 
 class DcoVariable: public BcpsVariable {
+  // double objCoef_;
+  // int size_;
+  // int * indices_;
+  // double * values_;
 public:
   ///@name Cosntructors and Destructors
   //@{
@@ -61,14 +65,28 @@ public:
   DcoVariable();
   /// Constructor with lower and upper bounds.
   DcoVariable(int index, double lbh, double ubh, double lbs, double ubs);
-  /// Constructor with bounds and integrality type.
-  DcoVariable(int index, double lbh, double ubh, double lbs, double ubs,
-              DcoIntegralityType it);
+  // /// Constructor with bounds and integrality type.
+  // DcoVariable(int index, double lbh, double ubh, double lbs, double ubs,
+  //             DcoIntegralityType it, double objCoef, int size,
+  //             int const * indices, double const * values);
   /// Copy constructor.
   DcoVariable(DcoVariable const & other);
   /// Destructor.
   virtual ~DcoVariable();
   //@}
+
+  ///@ Get column information
+  //@{
+  /// Get objective coefficient
+  // double objCoef() const { return objCoef_; }
+  // /// Get size.
+  // int size() const { return size_; }
+  // /// Get indices.
+  // int const * indices() const { return indices_; }
+  // /// Get values.
+  // double const * values() const { return values_; }
+  //@}
+
   ///@name Virtual Functions inherited from BcpsObject
   //@{
   virtual BcpsObject * clone() const;
@@ -79,6 +97,7 @@ public:
   // virtual void feasibleRegion(BcpsModel *m) {}
   /// Create a branch object from this variable.
   virtual BcpsBranchObject * createBranchObject(BcpsModel * bcps_model, int way) const;
+
   // virtual BcpsBranchObject * preferredNewFeasible(BcpsModel *m) const;
   // virtual BcpsBranchObject * notPreferredNewFeasible(BcpsModel *m) const;
   // virtual void resetBounds(BcpsModel *m);
@@ -92,6 +111,18 @@ public:
   // virtual void printDesc();
   //@}
 
+  ///@name Encode and Decode functions
+  //@{
+  /// Get encode from #AlpsKnowledge
+  using AlpsKnowledge::encode;
+  /// Encode this to an AlpsEncoded object.
+  virtual AlpsReturnStatus encode(AlpsEncoded * encoded) const;
+  /// Decode a given AlpsEncoded object to a new DcoVariable object and return
+  /// a pointer to it.
+  virtual AlpsKnowledge * decode(AlpsEncoded & encoded) const;
+  /// Decode a given AlpsEncoded object into self.
+  virtual AlpsReturnStatus decodeToSelf(AlpsEncoded & encoded);
+  //@}
 };
 
 #endif

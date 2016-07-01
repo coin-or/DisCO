@@ -16,7 +16,7 @@
 
   AlpsNodeDesc is an abstract base class for Alps application node data. It
   does not have any pure virtual functions but it will have (this will get
-  fixed.). It has one field only and t is model_. It only provides interface
+  fixed.). It has one field only and it is model_. It only provides interface
   for encode and decode functions.
 
   # BcpsNodeDesc
@@ -80,8 +80,20 @@ public:
   void setBasis(CoinWarmStartBasis *& ws);
   /** Get warm start basis. */
   CoinWarmStartBasis * getBasis() const;
-  /// get DcoModel this node belongs.
-  DcoModel * getModel() const;
+
+  ///@name Encode and Decode functions
+  //@{
+  /// Encode this to an AlpsEncoded object.
+  virtual AlpsReturnStatus encode(AlpsEncoded * encoded) const;
+  /// Decode a given AlpsEncoded object to an AlpsKnowledge object and return a
+  /// pointer to it.
+  virtual AlpsNodeDesc * decode(AlpsEncoded & encoded) const;
+  // todo(aykut) this should be a pure virtual function in Alps level
+  // we can overload this function here due to cv-qualifier.
+  /// Decode a given AlpsEncoded object into self.
+  virtual AlpsReturnStatus decodeToSelf(AlpsEncoded & encoded);
+  //@}
+
 };
 
 #endif

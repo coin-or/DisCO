@@ -24,6 +24,7 @@ class DcoLinearConstraint: virtual public DcoConstraint {
   double * values_;
   //@}
 public:
+  DcoLinearConstraint();
   DcoLinearConstraint(int size, int const * indices, double const * values,
                       double lb, double ub);
   DcoLinearConstraint(DcoLinearConstraint const & other);
@@ -34,7 +35,20 @@ public:
   double const * getValues() const;
   virtual OsiRowCut * createOsiRowCut(DcoModel * model) const;
   /// return constraint type, linear or conic
-  virtual DcoConstraintType type() const {return DcoConstraintTypeLinear;}
+  virtual DcoConstraintType constraintType() const {return DcoConstraintTypeLinear;}
+
+  ///@name Encode and Decode functions
+  //@{
+  /// Encode this to an AlpsEncoded object.
+  virtual AlpsReturnStatus encode(AlpsEncoded * encoded);
+  /// Decode a given AlpsEncoded object to an AlpsKnowledge object and return a
+  /// pointer to it.
+  virtual AlpsKnowledge * decode(AlpsEncoded & encoded) const;
+  // todo(aykut) this should be a pure virtual function in Alps level
+  // we can overload this function here due to cv-qualifier.
+  /// Decode a given AlpsEncoded object into self.
+  AlpsReturnStatus decodeToSelf(AlpsEncoded & encoded);
+  //@}
 };
 
 #endif

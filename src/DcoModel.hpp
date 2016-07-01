@@ -56,6 +56,21 @@ class CglConicCutGenerator;
 
    # Heuristics
 
+   # setupSelf()
+
+   In serial code this function is called after readInstance() method.
+
+   In parallel code it is called after readInstance() in the master
+   processor. In other processors it is called after the received encoded
+   object (AlpsEncoded instance) is decoded to self. This decode part covers
+   the following fields, variables_, constraints_, dcoPar_ and objSense_.
+
+   setupSelf() should genrate all fields of DcoModel from the 4 data fields
+   mentioned above (variables_, constraints_, dcoPar_ and objSense_).
+
+   This function also loads the problem defined by self to the solver. It
+   sets/creates branching strategy, cut generator and heuristics object.
+
    # Bcps ideas for future
 
    We keep relaxed cols/rows (the whole object or integrality of the object) in
@@ -129,18 +144,35 @@ class DcoModel: public BcpsModel {
 #else
   OsiConicSolverInterface * solver_;
 #endif
+
+  ///==========================================================================
+  /// Fields that will be set by ::readInstance() and sent to other processors
+  /// through network. ::setupSelf() will use these fields to set the rest.
+  ///==========================================================================
   ///@name Variable and constraint bounds.
   //@{
-  /// Column lower bound. Currently this is used when installing subproblems in
-  /// each node.
+  // colLB_ and colUB_ used when installing subproblems in
+  // each node. Having it a class member we do not need to allocate and delete
+  // memory every time a subproblem is installed to the solver in a node.
+  /// Column lower bound, corresponds to the last subproblem installed.
   double * colLB_;
-  /// Column upper bound. Currently this is used when installing subproblems in
-  /// each node.
+  /// Column upper bound, corresponds to the last subproblem installed.
   double * colUB_;
   /// Row lower bound.
   double * rowLB_;
   /// Row upper bound.
   double * rowUB_;
+  //@}
+
+  ///@name Constraint matrix (linear part) and conic constraints. These can be
+  /// freed at the end of ::setupSelf()
+  //@{
+  /// Constraint matrix.
+  CoinPackedMatrix * matrix_;
+  /// We keep cones in basic form for now, it is easier to send/receive
+  int * coneStart_;
+  int * coneMembers_;
+  int * coneType_;
   //@}
 
   ///@name Number of columns and rows
@@ -155,9 +187,6 @@ class DcoModel: public BcpsModel {
   int numConicRows_;
   //@}
 
-  /// Problem matrix (linear constraints only).
-  CoinPackedMatrix * matrix_;
-
   ///@name Objective function
   //@{
   double objSense_;
@@ -171,18 +200,14 @@ class DcoModel: public BcpsModel {
   /// Indices of integer columns. Columns are stored in cols_ inherited from
   /// BcpsModel. Size of numIntegerCols_.
   int * integerCols_;
+  int * isInteger_;
   //@}
+  ///==========================================================================
 
-  ///@name Solution related
-  //@{
-  /// Current relative optimal gap.
-  double currRelGap_;
-  /// Current absolute optimal gap.
-  double currAbsGap_;
-  /// quality of best solution so far
-  double bestQuality_;
-  //@}
-
+  ///==========================================================================
+  /// Fields that will be set by ::setupSelf(). constraints_ and variables_
+  /// inherited from BcpsModel will also set by ::setupSelf().
+  ///==========================================================================
   ///@name Variable selection function.
   //@{
   /// Branchs strategy.
@@ -191,23 +216,10 @@ class DcoModel: public BcpsModel {
   BcpsBranchStrategy * rampUpBranchStrategy_;
   //@}
 
-  /// Active node.
-  AlpsTreeNode * activeNode_;
-
   ///@name Dco parameters.
   //@{
   /// DisCO parameter.
   DcoParams * dcoPar_;
-  //@}
-
-  ///@name Statistics
-  //@{
-  /// Number of processed nodes.
-  int numNodes_;
-  /// Number of lp(Simplex) iterations.
-  int numIterations_;
-  /// Average number of lp iterations to solve a subproblem.
-  int aveIterations_;
   //@}
 
   ///@name Relaxed objects data.
@@ -242,17 +254,18 @@ class DcoModel: public BcpsModel {
   /// Constraint generators.
   std::vector<DcoConGenerator*> conGenerators_;
   //@}
+  ///==========================================================================
 
 
   // Private Functions
   ///@name Read Helpers
   //@{
   /// Add variables to the model. Helps readInstance function.
-  void readAddVariables(CoinMpsIO * reader);
+  void setupAddVariables();
   /// Add linear constraints to the model. Helps readInstance function.
-  void readAddLinearConstraints(CoinMpsIO * reader);
+  void setupAddLinearConstraints();
   /// Add conic constraints to the model. Helps readInstance function.
-  void readAddConicConstraints(CoinMpsIO * reader);
+  void setupAddConicConstraints();
   //@}
 
   ///@name Setup Helpers
@@ -269,6 +282,7 @@ class DcoModel: public BcpsModel {
 
   /// write parameters to oustream
   void writeParameters(std::ostream& outstream) const;
+
 public:
   ///@name Message printing
   //@{
@@ -334,6 +348,10 @@ public:
   double * rowUB() {return rowUB_;}
   /// Get objective sense, 1 for min, -1 for max
   double objSense() const { return objSense_; }
+  /// Get number of integer variables.
+  int numIntegerCols() const { return numIntegerCols_; }
+  /// Get indices of integer variables. Size of numIntegerCols().
+  int const * integerCols() const { return integerCols_; }
   //@}
 
   ///@name Querry relaxed problem objects
@@ -415,6 +433,28 @@ public:
   /// This is called at the end of the AlpsKnowledgeBroker::rootSearch
   /// Prints solution statistics
   virtual void modelLog();
+  //@}
+
+  ///@name Encode and Decode functions
+  //@{
+
+  // note(aykut): It is enough to encode the DcoModel fields that are minimal
+  // (less network communication).  setupSelf() will be called by Alps to set
+  // up the rest of the fields that can be constructed/computed from the set
+  // ones.
+
+  // This grabs function "#AlpsEncoded * AlpsKnowledge::encoding() const"
+  // inherited from #AlpsKnowledge. It will not get into overload resoulution
+  // since we declare "#AlpsEncoded * encode() const" here.
+  using AlpsKnowledge::encode;
+  /// The method that encodes the this instance of model into the given
+  /// #AlpsEncoded object.
+  virtual AlpsReturnStatus encode(AlpsEncoded * encoded) const;
+  /// The method that decodes the given #AlpsEncoded object into a new #DcoModel
+  /// instance and returns a pointer to it.
+  virtual AlpsKnowledge * decode(AlpsEncoded & encoded) const;
+  /// The method that decodes this instance from the given #AlpsEncoded object.
+  virtual AlpsReturnStatus decodeToSelf(AlpsEncoded & encoded);
   //@}
 
   /// report feasibility of the best solution

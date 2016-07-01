@@ -5,8 +5,10 @@
 #include <cmath>
 
 DcoVariable::DcoVariable() {
-  std::cerr << "Not implemented yet!" << std::endl;
-  throw std::exception();
+  // objCoef_ = 0.0;
+  // size_ = 0;
+  // indices_ = NULL;
+  // values_ = NULL;
 }
 
 DcoVariable::DcoVariable(int index, double lbh, double ubh, double lbs, double ubs):
@@ -14,23 +16,37 @@ DcoVariable::DcoVariable(int index, double lbh, double ubh, double lbs, double u
   setObjectIndex(index);
 }
 
-DcoVariable::DcoVariable(int index, double lbh, double ubh, double lbs, double ubs,
-                         DcoIntegralityType it): BcpsVariable(lbh, ubh, lbs, ubs) {
-  BcpsIntegral_t type;
-  if (it==DcoIntegralityTypeCont) {
-    type = 'C';
-  }
-  else {
-    type = 'I';
-  }
-  setIntType(type);
-  setObjectIndex(index);
-}
+// DcoVariable::DcoVariable(int index, double lbh, double ubh, double lbs,
+//                          double ubs, DcoIntegralityType it, double objCoef,
+//                          int size, int const * indices, double const * values)
+//   : BcpsVariable(lbh, ubh, lbs, ubs) {
+//   BcpsIntegral_t type;
+//   if (it==DcoIntegralityTypeCont) {
+//     type = 'C';
+//   }
+//   else {
+//     type = 'I';
+//   }
+//   setIntType(type);
+//   setObjectIndex(index);
+//   objCoef_ = objCoef;
+//   size_ = size;
+//   indices_ = new int[size];
+//   std::copy(indices, indices+size, indices_);
+//   values_ = new double[size];
+//   std::copy(values, values+size, values_);
+// }
 
 DcoVariable::DcoVariable(DcoVariable const & other) {
 }
 
 DcoVariable::~DcoVariable() {
+  // if (indices_) {
+  //   delete[] indices_;
+  // }
+  // if (values_) {
+  //   delete[] values_;
+  // }
 }
 
 BcpsObject * DcoVariable::clone() const {
@@ -76,4 +92,38 @@ BcpsBranchObject * DcoVariable::createBranchObject(BcpsModel * bcps_model,
   //BcpsBranchObject(BcpsModel * model, int objectIndex, int upScore,
   //                 double downScore, int direction, double value)
   return bo;
+}
+
+/// Encode this to an AlpsEncoded object.
+AlpsReturnStatus DcoVariable::encode(AlpsEncoded * encoded) const {
+  std::cerr << "Not implemented, "
+            << "file: " <<  __FILE__
+            << "line: " << __LINE__
+            << std::endl;
+  throw std::exception();
+  return AlpsReturnStatusOk;
+}
+
+/// Decode a given AlpsEncoded object to a new DcoVariable object and return
+/// a pointer to it.
+AlpsKnowledge * DcoVariable::decode(AlpsEncoded & encoded) const {
+  AlpsReturnStatus status;
+  std::cerr << "Not implemented, "
+            << "file: " <<  __FILE__
+            << "line: " << __LINE__
+            << std::endl;
+  throw std::exception();
+  DcoVariable * new_var = new DcoVariable();
+  return new_var;
+}
+
+/// Decode a given AlpsEncoded object into self.
+AlpsReturnStatus DcoVariable::decodeToSelf(AlpsEncoded & encoded) {
+  AlpsReturnStatus status;
+  std::cerr << "Not implemented, "
+            << "file: " <<  __FILE__
+            << "line: " << __LINE__
+            << std::endl;
+  throw std::exception();
+  return AlpsReturnStatusOk;
 }

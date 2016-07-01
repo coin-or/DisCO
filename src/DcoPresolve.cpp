@@ -17,12 +17,12 @@ bool DcoPresolve::improve_bounds(DcoModel * model) {
     DcoConicConstraint * curr =
       dynamic_cast<DcoConicConstraint*>(model->getConstraints()[i]);
     // get type
-    DcoLorentzConeType type = curr->getType();
+    DcoLorentzConeType type = curr->coneType();
     if (type==DcoLorentzCone) {
-      int lead_index = curr->getMembers()[0];
+      int lead_index = curr->coneMembers()[0];
       double lead_bound = colub[lead_index];
       // set lower and upper bounds of the other cone members
-      for (int j=1; j<curr->getSize(); j++) {
+      for (int j=1; j<curr->coneSize(); j++) {
         // if lower bound is less than -lead_bound, update it
         if (collb[j]<-lead_bound) {
           // debug stuff

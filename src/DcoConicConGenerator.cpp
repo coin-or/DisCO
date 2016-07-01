@@ -42,10 +42,10 @@ bool DcoConicConGenerator::generateConstraints(BcpsConstraintPool & conPool) {
   for (int i=0; i<num_cones; ++i) {
     DcoConicConstraint * curr = dynamic_cast<DcoConicConstraint*>
       (rows[model->relaxedRows()[i]]);
-    sizes[i] = curr->getSize();
+    sizes[i] = curr->coneSize();
     members[i] = new int[sizes[i]];
-    std::copy(curr->getMembers(), curr->getMembers()+sizes[i], members[i]);
-    DcoLorentzConeType tt = curr->getType();
+    std::copy(curr->coneMembers(), curr->coneMembers()+sizes[i], members[i]);
+    DcoLorentzConeType tt = curr->coneType();
     if (tt==DcoLorentzCone) {
       types[i] = OSI_QUAD;
     }

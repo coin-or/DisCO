@@ -75,6 +75,9 @@ enum DISCO_Message {
     DISCO_GRUMPY_MESSAGE_LONG,
     DISCO_GRUMPY_MESSAGE_MED,
     DISCO_GRUMPY_MESSAGE_SHORT,
+    // Parallelization related messages
+    DISCO_UNEXPECTED_ENCODE_STATUS,
+    DISCO_UNEXPECTED_DECODE_STATUS,
     // more general messages
     // out of memory
     DISCO_OUT_OF_MEMORY,
@@ -86,14 +89,19 @@ enum DISCO_Message {
     DISCO_DUMMY_END
 };
 
+//todo(aykut) for now bit masking for debug level after 128
+// does not work sice the bit masking is done with a char, 8 bits,
+// having masking done with an int would make things wonderfull since
+// DisCO has many levels of debug messages. Contact Coinutils guys
+// to see how feasible is this.
 enum DISCO_Debug_Level {
   DISCO_DLOG_BRANCH = 8,
   DISCO_DLOG_CUT = 16,
   DISCO_DLOG_PROCESS = 32,
   DISCO_DLOG_PRESOLVE = 64,
   DISCO_DLOG_MPI = 128,
-  DISCO_DLOG_GRUMPY = 32,
-  DISCO_DLOG_HEURISTIC = 32
+  DISCO_DLOG_GRUMPY = 32, // 256
+  DISCO_DLOG_HEURISTIC = 32 // 512
 
 };
 

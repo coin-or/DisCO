@@ -69,6 +69,7 @@ typedef struct {
 // 300-399 Constraint generation information messages
 // 400-499 Relaxation solver information messages
 // 500-599 Heuristics messages
+// 600-649 Parallelization related messages
 // 900     Grumpy messages
 //
 // 6200-6299 DcoTreeNode warnings
@@ -80,6 +81,7 @@ typedef struct {
 // 9300-9399 Constraint generation errors
 // 9400-9499 Relaxation solver errors
 // 9500-9599 Heuristics errors
+// 9600-9649 Parallelization related error messages
 //
 //
 
@@ -135,6 +137,10 @@ static Dco_message us_english[]=
     {DISCO_GRUMPY_MESSAGE_LONG, 900, DISCO_DLOG_GRUMPY, "%.6f %s %d %d %c %.6f %.6f %d"},
     {DISCO_GRUMPY_MESSAGE_MED, 900, DISCO_DLOG_GRUMPY, "%.6f %s %d %d %c %.6f"},
     {DISCO_GRUMPY_MESSAGE_SHORT, 900, DISCO_DLOG_GRUMPY, "%.6f %s %d %d %c"},
+    // Parallelization related messages
+    {DISCO_UNEXPECTED_ENCODE_STATUS, 9601, 0, "Unexpected encode return value, file: %s, line: %d."},
+    {DISCO_UNEXPECTED_DECODE_STATUS, 9602, 0, "Unexpected decode return value, file: %s, line: %d."},
+
     // general messages
     {DISCO_OUT_OF_MEMORY,9901,1, "Out of memory, file: %s, line: %d."},
     {DISCO_NOT_IMPLEMENTED,9902,1, "Not implemented yet, file: %s, line: %d."},

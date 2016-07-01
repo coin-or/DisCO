@@ -207,6 +207,21 @@ class DcoTreeNode: public BcpsTreeNode {
   void copyFullNode(DcoNodeDesc * child_node) const;
   /// Call heuristics to search for solutions.
   void callHeuristics();
+  /// Sets node status to pregnant and carries necessary operations.
+  void processSetPregnant();
+  /// This function is called after bound method is called. It checks solver
+  /// status.
+  void afterBound(DcoSubproblemStatus subproblem_status);
+  int boundingLoop(bool isRoot, bool rampUp);
+  /// decide what to do, keepBounding?, generate constraints?, generate
+  /// variables?. Fromerly known handleBoundStatus
+  void branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
+                              bool & keepBounding,
+                              bool & branch,
+                              bool & generateConstraints,
+                              bool & generateVariables);
+  /// find number of infeasible integer variables.
+  void checkRelaxedCols(int & numInf);
 public:
   ///@name Constructors and Destructors
   //@{
@@ -264,29 +279,25 @@ public:
   //@{
   /// Get node description. Overwrites the one inherited from AlpsTreeNode.
   DcoNodeDesc * getDesc() const;
-  /// Get model this node belongs. Overwrites the one inherited from AlpsTreeNode.
-  DcoModel * getModel() const;
+  //@}
+
+  ///@name Encode and Decode functions for parallel execution
+  //@{
+  /// Get encode from #AlpsKnowledge
+  using AlpsKnowledge::encode;
+  /// Pack this into an encoded object.
+  virtual AlpsReturnStatus encode(AlpsEncoded * encoded) const;
+  /// Unpack into this from an encoded object.
+  virtual AlpsReturnStatus decodeToSelf(AlpsEncoded & encoded);
+  /// Unpack into a new DcoTreeNode object and return a
+  /// pointer to it.
+  virtual AlpsKnowledge * decode(AlpsEncoded & encoded) const;
   //@}
 
 private:
-  // these are disabled in AlpsTreeNode
+  // These are disabled in AlpsTreeNode
   DcoTreeNode(DcoTreeNode const & other);
   DcoTreeNode & operator=(DcoTreeNode const & rhs);
-  /// Sets node status to pregnant and carries necessary operations.
-  void processSetPregnant();
-  /// This function is called after bound method is called. It checks solver
-  /// status.
-  void afterBound(DcoSubproblemStatus subproblem_status);
-  int boundingLoop(bool isRoot, bool rampUp);
-  /// decide what to do, keepBounding?, generate constraints?, generate
-  /// variables?. Fromerly known handleBoundStatus
-  void branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
-                              bool & keepBounding,
-                              bool & branch,
-                              bool & generateConstraints,
-                              bool & generateVariables);
-  /// find number of infeasible integer variables.
-  void checkRelaxedCols(int & numInf);
 };
 
 #endif

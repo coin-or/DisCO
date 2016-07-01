@@ -3,6 +3,11 @@
 #include <CoinHelperFunctions.hpp>
 #include <OsiRowCut.hpp>
 
+DcoLinearConstraint::DcoLinearConstraint() {
+  size_ = 0;
+  indices_ = NULL;
+  values_ = NULL;
+}
 
 DcoLinearConstraint::DcoLinearConstraint(int size, int const * indices,
                                          double const * values, double lb,
@@ -63,7 +68,7 @@ double const * DcoLinearConstraint::getValues() const {
   return values_;
 }
 
-/** Create a OsiRowCut based on this constraint. */
+/// Create a OsiRowCut based on this constraint.
 OsiRowCut * DcoLinearConstraint::createOsiRowCut(DcoModel * model) const {
   double lower = CoinMax(getLbHard(), getLbSoft());
   double upper = CoinMin(getUbHard(), getUbSoft());
@@ -80,4 +85,46 @@ OsiRowCut * DcoLinearConstraint::createOsiRowCut(DcoModel * model) const {
   cut->setUb(upper);
   cut->setRow(size_, indices_, values_);
   return cut;
+}
+
+
+/// Encode this to an AlpsEncoded object.
+AlpsReturnStatus DcoLinearConstraint::encode(AlpsEncoded * encoded) {
+  std::cerr << "Not implemented, "
+            << "file: " <<  __FILE__
+            << "line: " << __LINE__
+            << std::endl;
+  throw std::exception();
+  return AlpsReturnStatusOk;
+}
+
+/// Decode a given AlpsEncoded object to an AlpsKnowledge object and return a
+/// pointer to it.
+AlpsKnowledge * DcoLinearConstraint::decode(AlpsEncoded & encoded) const {
+  std::cerr << "Not implemented, "
+            << "file: " <<  __FILE__
+            << "line: " << __LINE__
+            << std::endl;
+  throw std::exception();
+  DcoLinearConstraint * con = new DcoLinearConstraint();
+  // if (status!=AlpsReturnStatusOk) {
+  //   std::cerr << "Unexpected decode status, "
+  //             << "file: " <<  __FILE__
+  //             << "line: " << __LINE__
+  //             << std::endl;
+  //   throw std::exception();
+  // }
+  return con;
+}
+
+// todo(aykut) this should be a pure virtual function in Alps level
+// we can overload this function here due to cv-qualifier.
+/// Decode a given AlpsEncoded object into self.
+AlpsReturnStatus DcoLinearConstraint::decodeToSelf(AlpsEncoded & encoded) {
+  std::cerr << "Not implemented, "
+            << "file: " <<  __FILE__
+            << "line: " << __LINE__
+            << std::endl;
+  throw std::exception();
+  return AlpsReturnStatusOk;
 }

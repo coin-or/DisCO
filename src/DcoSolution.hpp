@@ -22,6 +22,20 @@ public:
   virtual ~DcoSolution();
   virtual BcpsSolution * selectNonzeros(const double etol=1e-5) const;
   virtual BcpsSolution * selectFractional(const double etol=1e-5) const;
+
+  ///@name Encode and Decode functions
+  //@{
+  /// Get encode defined in AlpsKnowledge.
+  /// Encodes the solution into AlpsEncoded object and return pointer to it.
+  using AlpsKnowledge::encode;
+  /// Encode this into the given AlpsEncoded object.
+  virtual AlpsReturnStatus encode(AlpsEncoded * encoded) const;
+  /// Decodes the given object into a new solution and returns the pointer to
+  /// it.
+  virtual AlpsKnowledge * decode(AlpsEncoded & encoded) const;
+  /// Decode the given AlpsEncoded object into this.
+  virtual AlpsReturnStatus decodeToSelf(AlpsEncoded & encoded);
+  //@}
 private:
   DcoSolution(DcoSolution const & other);
   DcoSolution & operator=(DcoSolution const & rhs);

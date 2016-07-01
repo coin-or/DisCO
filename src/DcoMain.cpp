@@ -1,6 +1,8 @@
 #include <OsiClpSolverInterface.hpp>
 
 #include "DcoModel.hpp"
+#include "DcoSolution.hpp"
+#include "DcoTreeNode.hpp"
 
 #if  COIN_HAS_MPI
 #include "AlpsKnowledgeBrokerMPI.h"
@@ -37,6 +39,13 @@ int main(int argc, char *argv[]) {
 #else
   AlpsKnowledgeBrokerSerial broker(argc, argv, model);
 #endif
+
+  // Register model, solution, and tree node
+  broker.registerClass(AlpsKnowledgeTypeModel, new DcoModel);
+  broker.registerClass(AlpsKnowledgeTypeSolution, new DcoSolution);
+  broker.registerClass(AlpsKnowledgeTypeNode, new DcoTreeNode);
+
+
   // Search for best solution
   //todo(aykut) log levels are set at setupSelf. Maybe they should be set
   //earlier.

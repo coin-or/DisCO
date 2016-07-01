@@ -55,13 +55,14 @@ class DcoModel;
 
 class DcoConstraint: public BcpsConstraint {
 public:
+  DcoConstraint() {}
   DcoConstraint(double lb, double ub);
   virtual ~DcoConstraint();
   /// Create an OsiRowCut based on this constraint. Returns NULL if this is a
   /// conic constraint.
   virtual OsiRowCut * createOsiRowCut(DcoModel * model) const = 0;
   /// return constraint type, linear or conic
-  virtual DcoConstraintType type() const = 0;
+  virtual DcoConstraintType constraintType() const = 0;
 private:
 };
 
