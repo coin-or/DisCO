@@ -3,6 +3,7 @@
 #include "DcoModel.hpp"
 #include "DcoSolution.hpp"
 #include "DcoTreeNode.hpp"
+#include "DcoBranchObject.hpp"
 
 #if  COIN_HAS_MPI
 #include "AlpsKnowledgeBrokerMPI.h"
@@ -11,6 +12,19 @@
 #endif
 
 int main(int argc, char *argv[]) {
+
+  // print host info and sleep
+  // this is for debugging
+  // {
+  //   int i = 0;
+  //   char hostname[256];
+  //   gethostname(hostname, sizeof(hostname));
+  //   printf("PID %d on %s ready for attach\n", getpid(), hostname);
+  //   fflush(stdout);
+  //   while (0 == i)
+  //     sleep(5);
+  // }
+
 #if defined(__OA__)
   // todo(aykut) what about setting solver log level
   OsiSolverInterface * solver = new OsiClpSolverInterface();
@@ -36,23 +50,23 @@ int main(int argc, char *argv[]) {
   model.setSolver(solver);
 #ifdef  COIN_HAS_MPI
   AlpsKnowledgeBrokerMPI broker(argc, argv, model);
+
 #else
   AlpsKnowledgeBrokerSerial broker(argc, argv, model);
 #endif
-
+  //broker.passInMessageHandler(model.dcoMessageHandler_);
   // Register model, solution, and tree node
   broker.registerClass(AlpsKnowledgeTypeModel, new DcoModel);
   broker.registerClass(AlpsKnowledgeTypeSolution, new DcoSolution);
   broker.registerClass(AlpsKnowledgeTypeNode, new DcoTreeNode);
-
+  broker.registerClass(AlpsKnowledgeTypeNodeDesc, new DcoNodeDesc);
+  broker.registerClass(999, new DcoBranchObject(-1, 0.0, 0.0));
 
   // Search for best solution
-  //todo(aykut) log levels are set at setupSelf. Maybe they should be set
-  //earlier.
-  // since broker starts printing logs before setupSelf is even called.
   broker.search(&model);
   // Report the best solution found and its ojective value
   broker.printBestSolution();
+
   model.reportFeasibility();
   delete solver;
   return 0;
