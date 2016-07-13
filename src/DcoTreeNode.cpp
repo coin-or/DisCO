@@ -67,18 +67,164 @@ AlpsTreeNode * DcoTreeNode::createNewTreeNode(AlpsNodeDesc *& desc) const {
 
   // Create a new tree node
   DcoTreeNode * node = new DcoTreeNode(desc);
+  node->setBroker(broker_);
   desc = NULL;
   return node;
 }
 
 void DcoTreeNode::convertToExplicit() {
   DcoNodeDesc * node_desc = dynamic_cast<DcoNodeDesc*>(getDesc());
-  DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
+  DcoModel * model = dynamic_cast<DcoModel*>(broker_->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
-  message_handler->message(DISCO_NOT_IMPLEMENTED, *messages)
-    << __FILE__ << __LINE__ << CoinMessageEol;
-  throw std::exception();
+
+  if (explicit_) {
+    return;
+  }
+  // debug stuff
+  std::stringstream debug_msg;
+  debug_msg << "Proc["
+            << broker_->getProcRank()
+            << "] converting "
+            << this
+            << " to explicit.";
+  message_handler->message(0, "Dco", debug_msg.str().c_str(),
+                           'G', DISCO_DLOG_MPI)
+    << CoinMessageEol;
+  // end of debug stuff
+
+  explicit_ = 1;
+
+  int num_cols = model->solver()->getNumCols();
+  // this will keep bound information, lower and upper
+  Bound hard_bound;
+  hard_bound.lower.ind = new int[num_cols];
+  hard_bound.lower.val = new double[num_cols];
+  hard_bound.upper.ind = new int[num_cols];
+  hard_bound.upper.val = new double[num_cols];
+  std::fill_n(hard_bound.lower.val, num_cols, ALPS_DBL_MAX);
+  std::fill_n(hard_bound.upper.val, num_cols, -ALPS_DBL_MAX);
+
+  Bound soft_bound;
+  soft_bound.lower.ind = new int[num_cols];
+  soft_bound.lower.val = new double[num_cols];
+  soft_bound.upper.ind = new int[num_cols];
+  soft_bound.upper.val = new double[num_cols];
+  std::fill_n(soft_bound.lower.val, num_cols, ALPS_DBL_MAX);
+  std::fill_n(soft_bound.upper.val, num_cols, -ALPS_DBL_MAX);
+
+  for (int k = 0; k < num_cols; ++k) {
+    hard_bound.lower.ind[k] = k;
+    hard_bound.upper.ind[k] = k;
+    soft_bound.lower.ind[k] = k;
+    soft_bound.upper.ind[k] = k;
+  }
+
+  //--------------------------------------------------
+  // Travel back to a full node, then collect diff (add/rem col/row,
+  // hard/soft col/row bounds) from the node full to this node.
+  //--------------------------------------------------------
+
+  AlpsTreeNode * parent = parent_;
+
+  std::vector<AlpsTreeNode*> leafToRootPath;
+  leafToRootPath.push_back(this);
+
+  while(parent) {
+    leafToRootPath.push_back(parent);
+    if (parent->getExplicit()) {
+      // Reach an explicit node, then stop.
+      break;
+    }
+    else {
+      parent = parent->getParent();
+    }
+  }
+
+  //------------------------------------------------------
+  // Travel back from this node to the explicit node to
+  // collect full description.
+  //------------------------------------------------------
+  for(int i=static_cast<int> (leafToRootPath.size()-1); i>-1; --i) {
+    DcoNodeDesc * curr = dynamic_cast<DcoNodeDesc*>((leafToRootPath.at(i))->
+                                           getDesc());
+    //--------------------------------------
+    // Full variable hard bounds.
+    //--------------------------------------
+    int numModify = curr->getVars()->lbHard.numModify;
+    for (int k=0; k<numModify; ++k) {
+      int index = curr->getVars()->lbHard.posModify[k];
+      double value = curr->getVars()->lbHard.entries[k];
+      hard_bound.lower.val[index] = value;
+    }
+
+    numModify = curr->getVars()->ubHard.numModify;
+    for (int k=0; k<numModify; ++k) {
+      int index = curr->getVars()->ubHard.posModify[k];
+      double value = curr->getVars()->ubHard.entries[k];
+      hard_bound.upper.val[index] = value;
+    }
+
+    //--------------------------------------
+    // Full variable soft bounds.
+    //--------------------------------------
+    numModify = curr->getVars()->lbSoft.numModify;
+    for (int k=0; k<numModify; ++k) {
+      int index = curr->getVars()->lbSoft.posModify[k];
+      double value = curr->getVars()->lbSoft.entries[k];
+      soft_bound.lower.val[index] = value;
+    }
+
+    numModify = curr->getVars()->ubSoft.numModify;
+    for (int k=0; k<numModify; ++k) {
+      int index = curr->getVars()->ubSoft.posModify[k];
+      double value = curr->getVars()->ubSoft.entries[k];
+      soft_bound.upper.val[index] = value;
+    }
+
+
+
+  } // EOF for (path)
+
+  //------------------------------------------
+  // Record hard variable bounds. FULL set.
+  //------------------------------------------
+  node_desc->assignVarHardBound(num_cols,
+                                hard_bound.lower.ind,
+                                hard_bound.lower.val,
+                                num_cols,
+                                hard_bound.upper.ind,
+                                hard_bound.upper.val);
+
+  //------------------------------------------
+  // Recode soft variable bound. Modified.
+  //------------------------------------------
+  int numSoftVarLowers=0;
+  int numSoftVarUppers=0;
+  for (int k=0; k<num_cols; ++k) {
+    if (soft_bound.lower.val[k] < ALPS_BND_MAX) {
+      soft_bound.lower.ind[numSoftVarLowers] = k;
+      soft_bound.lower.val[numSoftVarLowers++] = soft_bound.lower.val[k];
+    }
+    if (soft_bound.upper.val[k] > -ALPS_BND_MAX) {
+      soft_bound.upper.ind[numSoftVarUppers] = k;
+      soft_bound.upper.val[numSoftVarUppers++] = soft_bound.upper.val[k];
+    }
+  }
+  // Assign it anyway so to delete memory(fVarSoftLBInd,etc.)
+  node_desc->assignVarSoftBound(numSoftVarLowers,
+                                soft_bound.lower.ind,
+                                soft_bound.lower.val,
+                                numSoftVarUppers,
+                                soft_bound.upper.ind,
+                                soft_bound.upper.val);
+
+  //--------------------------------------------------
+  // Clear path vector.
+  //--------------------------------------------------
+  leafToRootPath.clear();
+  assert(leafToRootPath.size() == 0);
+
 }
 
 void DcoTreeNode::convertToRelative() {
@@ -92,10 +238,9 @@ void DcoTreeNode::convertToRelative() {
 }
 
 /// Generate constraints for the problem.
-int DcoTreeNode::generateConstraints(BcpsModel * model,
-                                     BcpsConstraintPool * conPool) {
+int DcoTreeNode::generateConstraints(BcpsConstraintPool * conPool) {
   // todo(aykut) why do we need this status?
-  DcoModel * disco_model = dynamic_cast<DcoModel*>(model);
+  DcoModel * disco_model = dynamic_cast<DcoModel*>(broker_->getModel());
   CoinMessageHandler * message_handler = disco_model->dcoMessageHandler_;
   CoinMessages * messages = disco_model->dcoMessages_;
 
@@ -185,9 +330,8 @@ void DcoTreeNode::decide_using_cg(bool & do_use,
 }
 
 
-int DcoTreeNode::generateVariables(BcpsModel * model,
-                                   BcpsVariablePool * varPool) {
-  DcoModel * disco_model = dynamic_cast<DcoModel*>(model);
+int DcoTreeNode::generateVariables(BcpsVariablePool * varPool) {
+  DcoModel * disco_model = dynamic_cast<DcoModel*>(broker_->getModel());
   CoinMessageHandler * message_handler = disco_model->dcoMessageHandler_;
   CoinMessages * messages = disco_model->dcoMessages_;
   message_handler->message(DISCO_NOT_IMPLEMENTED, *messages)
@@ -196,8 +340,8 @@ int DcoTreeNode::generateVariables(BcpsModel * model,
   return 0;
 }
 
-int DcoTreeNode::chooseBranchingObject(BcpsModel * model) {
-  DcoModel * disco_model = dynamic_cast<DcoModel*>(model);
+int DcoTreeNode::chooseBranchingObject() {
+  DcoModel * disco_model = dynamic_cast<DcoModel*>(broker_->getModel());
   CoinMessageHandler * message_handler = disco_model->dcoMessageHandler_;
   CoinMessages * messages = disco_model->dcoMessages_;
   message_handler->message(DISCO_NOT_IMPLEMENTED, *messages)
@@ -226,7 +370,8 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
   // end of debug stuff
 
   // check if this can be fathomed
-  if (getQuality() > broker()->getBestQuality()) {
+  double tailoff = model->dcoPar()->entry(DcoParams::tailOff);
+  if (getQuality() > broker()->getBestQuality() - tailoff) {
     // debug message
     message_handler->message(0, "Dco", "Node fathomed due to parent quality.",
                              'G', DISCO_DLOG_PROCESS);
@@ -273,13 +418,12 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
   bool genVariables = false;
   BcpsConstraintPool * constraintPool = new BcpsConstraintPool();
   BcpsVariablePool * variablePool = new BcpsVariablePool();
-  installSubProblem(model);
+  installSubProblem();
 
   while (keepBounding) {
     keepBounding = false;
     // solve subproblem corresponds to this node
-    DcoSubproblemStatus subproblem_status =
-      static_cast<DcoSubproblemStatus> (bound(model));
+    BcpsSubproblemStatus subproblem_status = bound();
 
     // debug print objective value after bounding
     std::stringstream debug_msg;
@@ -295,7 +439,7 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
     // end of debug stuff
 
     // grumpy message
-    if (subproblem_status==DcoSubproblemStatusOptimal &&
+    if (subproblem_status==BcpsSubproblemStatusOptimal &&
         getStatus()==AlpsNodeStatusCandidate or
         getStatus()==AlpsNodeStatusEvaluated) {
       double sum_inf = 0.0;
@@ -342,16 +486,16 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
       break;
     }
     else if (keepBounding and genConstraints) {
-      generateConstraints(model, constraintPool);
+      generateConstraints(constraintPool);
       // add constraints to the model
-      applyConstraints(*constraintPool);
+      applyConstraints(constraintPool);
       // clear constraint pool
       constraintPool->freeGuts();
       // set status to evaluated
       setStatus(AlpsNodeStatusEvaluated);
     }
     else if (keepBounding and genVariables) {
-      generateVariables(model, variablePool);
+      generateVariables(variablePool);
       // add variables to the model
       // set status to evaluated
       setStatus(AlpsNodeStatusEvaluated);
@@ -416,12 +560,10 @@ void DcoTreeNode::callHeuristics() {
   }
 }
 
-/** Bounding procedure to estimate quality of this node. */
-// todo(aykut) Why do we need model as input?
-// desc_ is a member of AlpsTreeNode, and model_ is a member of AlpsNodeDesc.
-int DcoTreeNode::bound(BcpsModel * bcps_model) {
-  DcoSubproblemStatus subproblem_status;
-  DcoModel * model = dynamic_cast<DcoModel*>(bcps_model);
+/// Bounding procedure to estimate quality of this node.
+BcpsSubproblemStatus DcoTreeNode::bound() {
+  BcpsSubproblemStatus subproblem_status;
+  DcoModel * model = dynamic_cast<DcoModel*>(broker_->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
   AlpsNodeStatus node_status = getStatus();
@@ -435,9 +577,7 @@ int DcoTreeNode::bound(BcpsModel * bcps_model) {
   // solve problem loaded to the solver
   model->solver()->resolve();
   if (model->solver()->isAbandoned()) {
-    subproblem_status = DcoSubproblemStatusAbandoned;
-    //quality_ = ALPS_OBJ_MAX;
-    //solEstimate_ = ALPS_OBJ_MAX;
+    subproblem_status = BcpsSubproblemStatusAbandoned;
   }
   else if (model->solver()->isProvenOptimal()) {
     // todo(aykut) if obj val is greater than 1e+30 we consider problem
@@ -445,12 +585,12 @@ int DcoTreeNode::bound(BcpsModel * bcps_model) {
     // infeasible. We add a high lower bound (1e+30) to the objective
     // function. This can be improved.
     if (model->solver()->getObjValue()>=1e+30) {
-      subproblem_status = DcoSubproblemStatusPrimalInfeasible;
+      subproblem_status = BcpsSubproblemStatusPrimalInfeasible;
       quality_ = ALPS_OBJ_MAX;
       solEstimate_ = ALPS_OBJ_MAX;
     }
     else {
-      subproblem_status = DcoSubproblemStatusOptimal;
+      subproblem_status = BcpsSubproblemStatusOptimal;
       double objValue = model->solver()->getObjValue() *
         model->solver()->getObjSense();
       // Update quality of this node
@@ -459,27 +599,19 @@ int DcoTreeNode::bound(BcpsModel * bcps_model) {
     }
   }
   else if (model->solver()->isProvenPrimalInfeasible()) {
-    subproblem_status = DcoSubproblemStatusPrimalInfeasible;
-    //quality_ = ALPS_OBJ_MAX;
-    //solEstimate_ = ALPS_OBJ_MAX;
+    subproblem_status = BcpsSubproblemStatusPrimalInfeasible;
   }
   else if (model->solver()->isProvenDualInfeasible()) {
-    subproblem_status = DcoSubproblemStatusDualInfeasible;
-    //quality_ = ALPS_OBJ_MAX;
-    //solEstimate_ = ALPS_OBJ_MAX;
+    subproblem_status = BcpsSubproblemStatusDualInfeasible;
   }
   else if (model->solver()->isPrimalObjectiveLimitReached()) {
-    subproblem_status = DcoSubproblemStatusPrimalObjLim;
-    //quality_ = ALPS_OBJ_MAX;
-    //solEstimate_ = ALPS_OBJ_MAX;
+    subproblem_status = BcpsSubproblemStatusPrimalObjLim;
   }
   else if (model->solver()->isDualObjectiveLimitReached()) {
-    subproblem_status = DcoSubproblemStatusDualObjLim;
-    //quality_ = ALPS_OBJ_MAX;
-    //solEstimate_ = ALPS_OBJ_MAX;
+    subproblem_status = BcpsSubproblemStatusDualObjLim;
   }
   else if (model->solver()->isIterationLimitReached()) {
-    subproblem_status = DcoSubproblemStatusIterLim;
+    subproblem_status = BcpsSubproblemStatusIterLim;
   }
   else {
     message_handler->message(DISCO_SOLVER_UNKNOWN_STATUS, *messages)
@@ -488,7 +620,7 @@ int DcoTreeNode::bound(BcpsModel * bcps_model) {
   return subproblem_status;
 }
 
-int DcoTreeNode::installSubProblem(BcpsModel * bcps_model) {
+int DcoTreeNode::installSubProblem() {
   // load the problem in this node to the solver
   //
   //
@@ -504,7 +636,7 @@ int DcoTreeNode::installSubProblem(BcpsModel * bcps_model) {
   //  7. Set basis (should not need modify)
   //======================================================
   AlpsReturnStatus status = AlpsReturnStatusOk;
-  DcoModel * model = dynamic_cast<DcoModel*>(bcps_model);
+  DcoModel * model = dynamic_cast<DcoModel*>(broker_->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
   DcoNodeDesc * desc = dynamic_cast<DcoNodeDesc*>(getDesc());
@@ -777,6 +909,30 @@ DcoTreeNode::branch() {
   DcoBranchObject const * branch_object =
     dynamic_cast<DcoBranchObject const *>(branchObject());
 
+  if (branch_object==NULL) {
+    // branch
+    BcpsBranchStrategy * branchStrategy = model->branchStrategy();
+    // todo(aykut) following should be a parameter
+    // Maximum number of resolve during branching.
+    int numBranchResolve = 10;
+    branchStrategy->createCandBranchObjects(this);
+
+    // fathom if no branch object found
+    if (branchStrategy->numBranchObjects()==0) {
+      // clear stored string
+      message_handler->message(0, "Dco",
+                               "No branch objects found, fathom.",
+                               'G', DISCO_DLOG_PROCESS)
+        << CoinMessageEol;
+      setStatus(AlpsNodeStatusFathomed);
+      return res;
+    }
+    // prepare this node for branching, bookkeeping for differencing.
+    // call pregnant setting routine
+    //processSetPregnant();
+  }
+
+  assert(branch_object);
   // get index and value of branch variable.
   //int branch_var = model->relaxedCols()[branch_object->getObjectIndex()];
   int branch_var = branch_object->index();
@@ -802,7 +958,9 @@ DcoTreeNode::branch() {
 
   // create new node descriptions
   DcoNodeDesc * down_node = new DcoNodeDesc(model);
+  down_node->setBroker(broker_);
   DcoNodeDesc * up_node = new DcoNodeDesc(model);
+  up_node->setBroker(broker_);
   if (phase == AlpsPhaseRampup) {
     // Store a full description in the child nodes
 
@@ -1023,7 +1181,7 @@ void DcoTreeNode::processSetPregnant() {
   // end of grumpy message
 }
 
-void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
+void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
                                          bool & keepBounding,
                                          bool & branch,
                                          bool & generateConstraints,
@@ -1034,8 +1192,8 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
 
   // check whether the subproblem solved properly, solver status should be
   // infeasible or optimal.
-  if (subproblem_status==DcoSubproblemStatusPrimalInfeasible or
-      subproblem_status==DcoSubproblemStatusDualInfeasible) {
+  if (subproblem_status==BcpsSubproblemStatusPrimalInfeasible or
+      subproblem_status==BcpsSubproblemStatusDualInfeasible) {
 
     // debug message
     message_handler->message(0, "Dco", "Subproblem is infeasible."
@@ -1066,7 +1224,7 @@ void DcoTreeNode::branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
     //solEstimate_ = ALPS_OBJ_MAX;
     return;
   }
-  if (subproblem_status!=DcoSubproblemStatusOptimal) {
+  if (subproblem_status!=BcpsSubproblemStatusOptimal) {
     message_handler->message(DISCO_SOLVER_FAILED, *messages)
       << CoinMessageEol;
   }
@@ -1195,7 +1353,7 @@ void DcoTreeNode::checkRelaxedCols(int & numInf) {
 
 // todo(aykut) this should go into the con generator. process the cuts given
 // by cgl in disco con generator.
-void DcoTreeNode::applyConstraints(BcpsConstraintPool const & conPool) {
+void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
   DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
@@ -1204,7 +1362,7 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const & conPool) {
   double const * sol = model->solver()->getColSolution();
 
   // Tranform constraints to Osi cut so that easily add them to LP.
-  int num_cuts = conPool.getNumConstraints();
+  int num_cuts = conPool->getNumConstraints();
   OsiRowCut const ** cuts_to_add = new OsiRowCut const * [num_cuts];
   int num_add = 0;
   std::vector<int> cuts_to_del;
@@ -1220,7 +1378,7 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const & conPool) {
   //------------------------------------------
   for (int i=0; i<num_cuts; ++i) {
     DcoLinearConstraint * curr_con =
-      dynamic_cast<DcoLinearConstraint*>(conPool.getConstraint(i));
+      dynamic_cast<DcoLinearConstraint*>(conPool->getConstraint(i));
     int length = curr_con->getSize();
     double const * elements = curr_con->getValues();
     int const * indices = curr_con->getIndices();
@@ -1334,7 +1492,7 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const & conPool) {
   std::stringstream debug_msg;
   debug_msg << num_add;
   debug_msg << " out of ";
-  debug_msg << conPool.getNumConstraints();
+  debug_msg << conPool->getNumConstraints();
   debug_msg << "  cuts added to the solver.";
   message_handler->message(0, "Dco", debug_msg.str().c_str(),
                            'G', DISCO_DLOG_CUT)
@@ -1348,9 +1506,28 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const & conPool) {
 
 /// Pack this into an encoded object.
 AlpsReturnStatus DcoTreeNode::encode(AlpsEncoded * encoded) const {
+  // get pointers for message logging
+  assert(broker_);
+  DcoModel * model = dynamic_cast<DcoModel*>(broker_->getModel());
+  CoinMessageHandler * message_handler = model->dcoMessageHandler_;
+  CoinMessages * messages = model->dcoMessages_;
+
   // return value
   AlpsReturnStatus status;
   status = AlpsTreeNode::encode(encoded);
+  assert(status==AlpsReturnStatusOk);
+  status = BcpsTreeNode::encode(encoded);
+  assert(status==AlpsReturnStatusOk);
+
+  // debug stuff
+  std::stringstream debug_msg;
+  debug_msg << "Proc[" << broker_->getProcRank() << "]"
+            << " node " << this << " encoded." << std::endl;
+  message_handler->message(0, "Dco", debug_msg.str().c_str(),
+                              'G', DISCO_DLOG_MPI)
+    << CoinMessageEol;
+  // end of debug stuff
+
   return status;
 }
 
@@ -1363,16 +1540,36 @@ AlpsKnowledge * DcoTreeNode::decode(AlpsEncoded & encoded) const {
   // the same processor?
   AlpsNodeDesc * new_node_desc = new DcoNodeDesc();
   DcoTreeNode * new_node = new DcoTreeNode(new_node_desc);
+  new_node->setBroker(broker_);
   new_node_desc = NULL;
   status = new_node->decodeToSelf(encoded);
+  assert(status==AlpsReturnStatusOk);
   return new_node;
 }
 
 /// Unpack into this from an encoded object.
 AlpsReturnStatus DcoTreeNode::decodeToSelf(AlpsEncoded & encoded) {
   // get pointers related to message logging.
+  assert(broker_);
+  DcoModel * model = dynamic_cast<DcoModel*>(broker_->getModel());
+  CoinMessageHandler * message_handler = model->dcoMessageHandler_;
+  CoinMessages * messages = model->dcoMessages_;
+
   // return value
   AlpsReturnStatus status;
   status = AlpsTreeNode::decodeToSelf(encoded);
+  assert(status==AlpsReturnStatusOk);
+  status = BcpsTreeNode::decodeToSelf(encoded);
+  assert(status==AlpsReturnStatusOk);
+
+  // debug stuff
+  std::stringstream debug_msg;
+  debug_msg << "Proc[" << broker_->getProcRank() << "]"
+            << " node decoded into " << this << "." << std::endl;
+  message_handler->message(0, "Dco", debug_msg.str().c_str(),
+                              'G', DISCO_DLOG_MPI)
+    << CoinMessageEol;
+  // end of debug stuff
+
   return status;
 }

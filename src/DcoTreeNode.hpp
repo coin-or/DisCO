@@ -205,21 +205,12 @@ class DcoTreeNode: public BcpsTreeNode {
   /// Copies node description of this node to given child node.
   /// New node is explicitly stored in the memory (no differencing).
   void copyFullNode(DcoNodeDesc * child_node) const;
-  /// Call heuristics to search for solutions.
-  void callHeuristics();
   /// Sets node status to pregnant and carries necessary operations.
   void processSetPregnant();
   /// This function is called after bound method is called. It checks solver
   /// status.
   void afterBound(DcoSubproblemStatus subproblem_status);
   int boundingLoop(bool isRoot, bool rampUp);
-  /// decide what to do, keepBounding?, generate constraints?, generate
-  /// variables?. Fromerly known handleBoundStatus
-  void branchConstrainOrPrice(DcoSubproblemStatus subproblem_status,
-                              bool & keepBounding,
-                              bool & branch,
-                              bool & generateConstraints,
-                              bool & generateVariables);
   /// find number of infeasible integer variables.
   void checkRelaxedCols(int & numInf);
 public:
@@ -242,6 +233,8 @@ public:
   /// Convert node description to relative.
   virtual void convertToRelative();
   /// Process node. Alps calls this function when it is picked from node pool.
+  // todo(aykut): We do not use the implementation given by BcpsTreeNode yet, but that is
+  // the future.
   virtual int process(bool isRoot=false, bool rampUp=false);
   /// Branch this node. Alps calls this function to create children from this
   /// node. Alps calls this function when the node status is
@@ -253,27 +246,28 @@ public:
   ///@name Virtual functions inherited from BcpsTreeNode
   //@{
   /// Generate constraints (cuts) and store them in the given constraint pool.
-  virtual int generateConstraints(BcpsModel * bcps_model,
-                                  BcpsConstraintPool * conPool);
+  virtual int generateConstraints(BcpsConstraintPool * conPool);
   /// Generate variables (lift the problem) and store them in the given
   /// variable pool.
-  virtual int generateVariables(BcpsModel * model,
-                                BcpsVariablePool * varPool);
+  virtual int generateVariables(BcpsVariablePool * varPool);
   /// Choose a branching object.
-  virtual int chooseBranchingObject(BcpsModel * bcps_model);
+  virtual int chooseBranchingObject();
   /// Install subproblem corresponding to this node to the solver.
-  virtual int installSubProblem(BcpsModel * bcps_model);
-  // todo(aykut) Should we use this?
-  //virtual int handleBoundingStatus(int status, bool & keepOn, bool & fathomed);
+  virtual int installSubProblem();
+  /// decide what to do, keepBounding?, generate constraints?, generate
+  /// variables?. Fromerly known handleBoundStatus
+  virtual void branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
+                                      bool & keepBounding,
+                                      bool & branch,
+                                      bool & generateConstraints,
+                                      bool & generateVariables);
   /// Bounds the problem by solving the subproblem corresponds to this node.
-  virtual int bound(BcpsModel * model);
+  virtual BcpsSubproblemStatus bound();
+  /// Call heuristics to search for solutions.
+  virtual void callHeuristics();
+  /// Apply given constraints
+  virtual void applyConstraints(BcpsConstraintPool const * conPool);
   //@}
-
-  ///@name apply constraints
-  //@{
-  void applyConstraints(BcpsConstraintPool const & conPool);
-  //@}
-
 
   ///@name Other functions
   //@{
