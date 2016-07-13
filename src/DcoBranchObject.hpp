@@ -25,7 +25,7 @@ public:
   ///@name Constructor and Destructors.
   //@{
   /// Constructor.
-  DcoBranchObject(DcoModel * model, int index, double score, double value);
+  DcoBranchObject(int index, double score, double value);
   /// Copy constructor.
   DcoBranchObject(DcoBranchObject const & other);
   /// Helpful Copy constructor.
@@ -49,10 +49,6 @@ public:
   virtual int numBranchesLeft() const;
   /// Spit out a branch and, update this or superclass fields if necessary.
   virtual double branch(bool normalBranch = false);
-  /// Pack to an encoded object.
-  virtual AlpsReturnStatus encode(AlpsEncoded * encoded) const;
-  /// Unpack a branching object from an encoded object.
-  virtual AlpsReturnStatus decode(AlpsEncoded & encoded);
   //@}
 
   ///@name Bound getting functions.
@@ -62,6 +58,18 @@ public:
   /// Get lower bound of the up branch.
   double lbUpBranch() const { return lbUpBranch_; }
   //@}
+
+  ///@name Encode and Decode functions
+  ///@{
+  using AlpsKnowledge::encode;
+  /// Encode the content of this into the given AlpsEncoded object.
+  virtual AlpsReturnStatus encode(AlpsEncoded * encoded) const;
+  /// Decode the given AlpsEncoded object into a new AlpsKnowledge object and
+  /// return a pointer to it.
+  virtual AlpsKnowledge * decode(AlpsEncoded & encoded) const;
+  /// Decode the given AlpsEncoded object into this.
+  virtual AlpsReturnStatus decodeToSelf(AlpsEncoded & encoded);
+  ///@}
 
 private:
   /// Disable default constructor.
