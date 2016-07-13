@@ -8,6 +8,7 @@
 #include "Dco.hpp"
 
 /*!
+
   Represents subproblem data, ie. tree node data. This class stores a branch
   and bound tree node data. Inherits BcpsNodeDesc. BcpsNodeDesc inherits
   AlpsNodeDesc.

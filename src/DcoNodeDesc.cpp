@@ -68,6 +68,8 @@ AlpsReturnStatus DcoNodeDesc::encode(AlpsEncoded * encoded) const {
   // return value
   AlpsReturnStatus status;
   status = AlpsNodeDesc::encode(encoded);
+  // todo(aykut) rename this function in Bcps level?
+  status = BcpsNodeDesc::encodeBcps(encoded);
   assert(status==AlpsReturnStatusOk);
   encoded->writeRep(branchedDir_);
   encoded->writeRep(branchedInd_);
@@ -112,6 +114,9 @@ AlpsReturnStatus DcoNodeDesc::decodeToSelf(AlpsEncoded & encoded) {
   // todo(aykut): return value, never updated in this function
   AlpsReturnStatus status = AlpsReturnStatusOk;
   status = AlpsNodeDesc::decodeToSelf(encoded);
+  // todo(aykut) rename this function in Bcps level?
+  status = BcpsNodeDesc::decodeBcps(encoded);
+
   assert(status==AlpsReturnStatusOk);
   encoded.readRep(branchedDir_);
   encoded.readRep(branchedInd_);
