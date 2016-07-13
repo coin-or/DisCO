@@ -97,9 +97,11 @@ DcoModel::~DcoModel() {
   }
   if (integerCols_) {
     delete[] integerCols_;
+    integerCols_=NULL;
   }
   if (isInteger_) {
     delete[] isInteger_;
+    isInteger_=NULL;
   }
   if (matrix_) {
     delete matrix_;
@@ -290,6 +292,7 @@ void DcoModel::readParameters(const int argnum,
                               const char * const * arglist) {
   AlpsPar()->readFromArglist(argnum, arglist);
   dcoPar_->readFromArglist(argnum, arglist);
+  setMessageLevel();
 }
 
 // Add variables to *this.
@@ -305,6 +308,7 @@ void DcoModel::setupAddVariables() {
     else {
       variables[i]->setIntType('C');
     }
+    variables[i]->setBroker(broker_);
   }
   setVariables(variables, numCols_);
   // variables[i] are now owned by BcpsModel, do not free them.
@@ -322,6 +326,7 @@ void DcoModel::setupAddLinearConstraints() {
     constraints[i] = new DcoLinearConstraint(lengths[i], indices+starts[i],
                                              values+starts[i], rowLB_[i],
                                              rowUB_[i]);
+    constraints[i]->setBroker(broker_);
   }
   setConstraints(constraints, numLinearRows_);
   // constraints[i] are owned by BcpsModel. Do not free them here.
@@ -347,8 +352,11 @@ void DcoModel::setupAddConicConstraints() {
     else if (coneType_[i]==2) {
       type = DcoRotatedLorentzCone;
     }
-    addConstraint(new DcoConicConstraint(type, num_members,
-                                         coneMembers_+coneStart_[i]));
+    DcoConicConstraint * cc =
+      new DcoConicConstraint(type, num_members,
+                             coneMembers_+coneStart_[i]);
+    cc->setBroker(broker_);
+    addConstraint(cc);
   }
 }
 
@@ -377,62 +385,13 @@ void DcoModel::preprocess() {
   // // leading variables.
   // //bool updated = DcoPresolve::improve_bounds(this);
 
-  // // write parameters used
-  // //writeParameters(std::cout);
-  // // generate ipm cuts first
-  // // then generate 50 rounds of oa cuts
+  // write parameters used
+  //writeParameters(std::cout);
 
-  // // this process will change the following data members, conLB_, conUB_, numRows_, numElems_
-  // // what about cone objects and their positions? This should also be updated.
-  // //approximateCones();
+  // approximation of cones will update numLinearRows_, numRows_, rowLB_,
+  // rowUB_, matrix_.
+  approximateCones();
 
-  // // number of linear rows stored in the solver
-  // int solver_rows = solver_->getNumRows();
-
-  // // update row bounds
-  // // == lower bound
-  // delete[] rowLB_;
-  // rowLB_ = new double[solver_rows+numConicRows_];
-  // std::copy(solver_->getRowLower(), solver_->getRowLower()+solver_rows, rowLB_);
-  // std::fill_n(rowLB_+solver_rows, numConicRows_, 0.0);
-  // // == upper bound
-  // delete[] rowUB_;
-  // rowUB_ = new double[solver_rows+numConicRows_];
-  // std::copy(solver_->getRowUpper(), solver_->getRowUpper()+solver_rows, rowUB_);
-  // std::fill_n(rowUB_+solver_rows, numConicRows_, DISCO_INFINITY);
-
-  // // re-order constraints data member.
-  // // == copy conic constraint pointers
-  // std::vector<BcpsConstraint*>
-  //   conic_constraints(constraints_.begin()+numLinearRows_, constraints_.end());
-  // // pop conic constraints
-  // for (int i=0; i<numConicRows_; ++i) {
-  //   constraints_.pop_back();
-  // }
-  // // == add new linear constraints to *this
-  // CoinPackedMatrix const * matrix = solver_->getMatrixByRow();
-  // int const * indices = matrix->getIndices();
-  // double const * values = matrix->getElements();
-  // int const * lengths = matrix->getVectorLengths();
-  // int const * starts = matrix->getVectorStarts();
-  // for (int i=numLinearRows_; i<solver_rows; ++i) {
-  //   BcpsConstraint * curr = new DcoLinearConstraint(lengths[i],
-  //                                                   indices+starts[i],
-  //                                                   values+starts[i],
-  //                                                   rowLB_[i],
-  //                                                   rowUB_[i]);
-  //   constraints_.push_back(curr);
-  //   curr = NULL;
-  // }
-  // // == add conic constraints to the end
-  // for (int i=0; i<numConicRows_; ++i) {
-  //   constraints_.push_back(conic_constraints[i]);
-  // }
-  // conic_constraints.clear();
-
-  // // update the rest of the row related data members
-  // numLinearRows_ = solver_rows;
-  // numRows_ = numLinearRows_ + numConicRows_;
 }
 
 void DcoModel::approximateCones() {
@@ -442,7 +401,6 @@ void DcoModel::approximateCones() {
   // load problem to the solver
   solver_->loadProblem(*matrix_, colLB_, colUB_, objCoef_,
                        rowLB_, rowUB_);
-
   bool dual_infeasible = false;
   int iter = 0;
   int ipm_iter;
@@ -452,28 +410,27 @@ void DcoModel::approximateCones() {
   // solve problem
   solver_->resolve();
   // get cone data in the required form
+  // todo(aykut) think about updating cut library for the input format
   OsiLorentzConeType * coneTypes = new OsiLorentzConeType[numConicRows_];
   int * coneSizes = new int[numConicRows_];
-  int ** coneMembers = new int*[numConicRows_];
+  int const ** coneMembers = new int const *[numConicRows_];
   for (int i=0; i<numConicRows_; ++i) {
-    DcoConicConstraint * con =
-      dynamic_cast<DcoConicConstraint*>(constraints_[numLinearRows_+i]);
-    DcoLorentzConeType type = con->coneType();
-    if (type==DcoLorentzCone) {
+    if (coneType_[i]==1) {
       coneTypes[i] = OSI_QUAD;
     }
-    else if (type==DcoRotatedLorentzCone) {
+    else if (coneType_[i]==2) {
       coneTypes[i] = OSI_RQUAD;
     }
     else {
       dcoMessageHandler_->message(DISCO_UNKNOWN_CONETYPE, *dcoMessages_)
         << __FILE__ << __LINE__ << CoinMessageEol;
     }
-    coneSizes[i] = con->coneSize();
-    coneMembers[i] = new int[con->coneSize()];
-    std::copy(con->coneMembers(), con->coneMembers()+con->coneSize(),
-              coneMembers[i]);
+    coneSizes[i] = coneStart_[i+1]-coneStart_[i];
+    coneMembers[i] = coneMembers_ + coneStart_[i];
   }
+  // used to decide on number of iterations in outer approximation
+  int largest_cone_size = *std::max_element(coneSizes,
+                                            coneSizes+numConicRows_);
   do {
     // generate cuts
     OsiCuts * ipm_cuts = new OsiCuts();
@@ -482,7 +439,6 @@ void DcoModel::approximateCones() {
     CglConicCutGenerator * cg_oa =
       new CglConicOA(dcoPar_->entry(DcoParams::coneTol));
     // get cone info
-    int largest_cone_size = *std::max_element(coneSizes, coneSizes+numConicRows_);
     cg_ipm->generateCuts(*solver_, *ipm_cuts, numConicRows_, coneTypes,
                          coneSizes, coneMembers, largest_cone_size);
     // cg_oa->generateCuts(*solver_, *oa_cuts, numCoreCones_, coneTypes_,
@@ -508,7 +464,7 @@ void DcoModel::approximateCones() {
   ipm_iter = iter;
   iter = 0;
   // todo(aykut): parametrize 50
-  while(iter<5) {
+  while(iter<largest_cone_size) {
     OsiCuts * oa_cuts = new OsiCuts();
     CglConicCutGenerator * cg_oa =
       new CglConicOA(dcoPar_->entry(DcoParams::coneTol));
@@ -531,60 +487,30 @@ void DcoModel::approximateCones() {
   std::cout << "IPM cuts " << num_ipm_cuts << std::endl;
   std::cout << "OA iterations " << oa_iter << std::endl;
   std::cout << "OA cuts " << num_oa_cuts << std::endl;
-  std::cout << "Linear relaxation objective value " << solver_->getObjValue() << std::endl;
+  std::cout << "Linear relaxation objective value "
+            << solver_->getObjValue() << std::endl;
   std::cout << "=================================" << std::endl;
   delete coneTypes;
   delete coneSizes;
-  for (int i=0; i<numConicRows_; ++i) {
-    delete[] coneMembers[i];
-  }
   delete[] coneMembers;
 
-  // CoinPackedMatrix const * matrix_row = solver_->getMatrixByRow();
-  // int const * indices = matrix_row->getIndices();
-  // double const * values = matrix_row->getElements();
-  // int const * star = matrix_row->getVectorStarts();
-  // int const * siz = matrix_row->getVectorLengths();
-  // double const * llb = solver_->getColLower();
-  // double const * uub = solver_->getColUpper();
-
-  // // move conic constraints to the end.
-  // std::vector<BcpsConstraint*> new_cons;
-  // for (int i=numLinearRows_; i<matrix->getMajorDim(); ++i) {
-  //   new_cons.push_back(new DcoLinearConstraint(siz[i], indices+star[i],
-  //                                         values+star[i], llb[i], uub[i]));
-  // }
-  // std::vector<BcpsConstraint*> conic_cons(constraints_.begin()+numLinearRows_,
-  //                                        constraints_.end());
-  // constraints_.erase(constraints_.begin()+numLinearRows_, constraints_.end());
-  // std::vector<BcpsConstraint*>::const_iterator it;
-  // for (it=new_cons.begin(); it!=new_cons.end(); ++it) {
-  //   constraints_.push_back(*it);
-  // }
-  // for (it=conic_cons.begin(); it!=conic_cons.end(); ++it) {
-  //   constraints_.push_back(*it);
-  // }
-  // numLinearRows_ = solver_->getNumRows();
-  // numRows_ = numLinearRows_ + numConicRows_;
-  // delete[] rowLB_;
-  // rowLB_ = new double[numRows_];
-  // std::copy(solver_->getRowLower(),
-  //           solver_->getRowLower()+numLinearRows_, rowLB_);
-  // delete[] rowUB_;
-  // rowUB_ = new double[numRows_];
-  // std::copy(solver_->getRowUpper(),
-  //           solver_->getRowUpper()+numLinearRows_, rowUB_);
-  // std::fill_n(rowLB_+numLinearRows_, numConicRows_, 0.0);
-  // std::fill_n(rowUB_+numLinearRows_, numConicRows_, DISCO_INFINITY);
-
-  // set rowLB_
-  // set rowUB_
-  // set numLinearRows_
-  // set numRows_
-
-
-
-  // we need to add the generated cuts to constraints_.
+  // get updated data from solver
+  delete matrix_;
+  matrix_ = new CoinPackedMatrix(*solver_->getMatrixByRow());
+  // update number of rows
+  numLinearRows_ = solver_->getNumRows();
+  numRows_ = numLinearRows_+numConicRows_;
+  // update row bounds
+  delete[] rowLB_;
+  rowLB_ = new double[numRows_];
+  std::copy(solver_->getRowLower(),
+            solver_->getRowLower()+numLinearRows_, rowLB_);
+  std::fill_n(rowLB_+numLinearRows_, numConicRows_, 0.0);
+  delete[] rowUB_;
+  rowUB_ = new double[numRows_];
+  std::copy(solver_->getRowUpper(),
+            solver_->getRowUpper()+numLinearRows_, rowUB_);
+  std::fill_n(rowUB_+numLinearRows_, numConicRows_, DISCO_INFINITY);
 #endif
 }
 
@@ -593,6 +519,9 @@ void DcoModel::approximateCones() {
 
 // relase redundant memory once the fields are set.
 bool DcoModel::setupSelf() {
+  // set message level again. We call this in readInstance() too.
+  // this is so due to parallelization.
+  setMessageLevel();
   // set relaxed array for integer columns
   numRelaxedCols_ = numIntegerCols_;
   relaxedCols_ = new int[numRelaxedCols_];
@@ -1298,6 +1227,7 @@ DcoSolution * DcoModel::feasibleSolution(int & numInfColumns,
     double const * sol = solver()->getColSolution();
     double quality = solver()->getObjValue();
     dco_sol = new DcoSolution(numCols_, sol, quality);
+    dco_sol->setBroker(broker_);
 
     // debug stuff
     // flush stream
@@ -1365,6 +1295,10 @@ void DcoModel::modelLog() {
 }
 
 void DcoModel::reportFeasibility() {
+  // return if there is no solution to report
+  if (broker_->getNumKnowledges(AlpsKnowledgeTypeSolution)==0) {
+    return;
+  }
   // get solution
   DcoSolution * dcosol =
     dynamic_cast<DcoSolution*>
@@ -1467,6 +1401,16 @@ AlpsReturnStatus DcoModel::encode(AlpsEncoded * encoded) const {
   // encode parameters
   dcoPar_->pack(*encoded);
   encoded->writeRep(objSense_);
+
+  // debug stuff
+  std::stringstream debug_msg;
+  debug_msg << "Proc[" << broker_->getProcRank() << "]"
+            << " model " << this << " encoded." << std::endl;
+  dcoMessageHandler_->message(0, "Dco", debug_msg.str().c_str(),
+                              'G', DISCO_DLOG_MPI)
+    << CoinMessageEol;
+  // end of debug stuff
+
   return status;
 }
 
@@ -1517,5 +1461,15 @@ AlpsReturnStatus DcoModel::decodeToSelf(AlpsEncoded & encoded) {
                                  elements, indices, starts, lengths, 0.0, 0.0);
   dcoPar_->unpack(encoded);
   encoded.readRep(objSense_);
+
+  // debug stuff
+  std::stringstream debug_msg;
+  debug_msg << "Proc[" << broker_->getProcRank() << "]"
+            << " model decoded into " << this << "." << std::endl;
+  dcoMessageHandler_->message(0, "Dco", debug_msg.str().c_str(),
+                              'G', DISCO_DLOG_MPI)
+    << CoinMessageEol;
+  // end of debug stuff
+
   return status;
 }
