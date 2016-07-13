@@ -1,4 +1,6 @@
 #include "DcoSolution.hpp"
+#include "DcoMessage.hpp"
+#include "DcoModel.hpp"
 
 DcoSolution::DcoSolution() {
 }
@@ -24,6 +26,13 @@ BcpsSolution * DcoSolution::selectFractional(const double etol) const {
 
 /// Encodes the solution into AlpsEncoded object and return pointer to it.
 AlpsReturnStatus DcoSolution::encode(AlpsEncoded * encoded) const {
+  // get pointers for message logging
+  assert(broker_);
+  DcoModel * model = dynamic_cast<DcoModel*>(broker_->getModel());
+  CoinMessageHandler * message_handler = model->dcoMessageHandler_;
+  CoinMessages * messages = model->dcoMessages_;
+
+  // return value
   AlpsReturnStatus status;
   status = AlpsSolution::encode(encoded);
   if (status!=AlpsReturnStatusOk) {
@@ -42,7 +51,20 @@ AlpsReturnStatus DcoSolution::encode(AlpsEncoded * encoded) const {
               << std::endl;
     throw std::exception();
   }
+
   // Nothing to do for DisCO part.
+
+  // debug stuff
+  std::stringstream debug_msg;
+  debug_msg << "Proc[" << broker_->getProcRank() << "]"
+            << " solution " << this << " encoded, quality "
+            << quality_ << std::endl;
+  message_handler->message(0, "Dco", debug_msg.str().c_str(),
+                              'G', DISCO_DLOG_MPI)
+    << CoinMessageEol;
+  // end of debug stuff
+
+
   return status;
 }
 
@@ -51,15 +73,8 @@ AlpsReturnStatus DcoSolution::encode(AlpsEncoded * encoded) const {
 AlpsKnowledge * DcoSolution::decode(AlpsEncoded & encoded) const {
   AlpsReturnStatus status;
   DcoSolution * sol = new DcoSolution();
-  status = sol->AlpsSolution::decodeToSelf(encoded);
-  if (status!=AlpsReturnStatusOk) {
-    std::cerr << "Unexpected decode status, "
-              << "file: " <<  __FILE__
-              << "line: " << __LINE__
-              << std::endl;
-    throw std::exception();
-  }
-  status = sol->BcpsSolution::decodeToSelf(encoded);
+  sol->setBroker(broker_);
+  status = sol->decodeToSelf(encoded);
   if (status!=AlpsReturnStatusOk) {
     std::cerr << "Unexpected decode status, "
               << "file: " <<  __FILE__
@@ -72,6 +87,12 @@ AlpsKnowledge * DcoSolution::decode(AlpsEncoded & encoded) const {
 
 /// Decode the given AlpsEncoded object into this.
 AlpsReturnStatus DcoSolution::decodeToSelf(AlpsEncoded & encoded) {
+  // get pointers for message logging
+  assert(broker_);
+  DcoModel * model = dynamic_cast<DcoModel*>(broker_->getModel());
+  CoinMessageHandler * message_handler = model->dcoMessageHandler_;
+  CoinMessages * messages = model->dcoMessages_;
+
   AlpsReturnStatus status;
   status = AlpsSolution::decodeToSelf(encoded);
   if (status!=AlpsReturnStatusOk) {
@@ -89,5 +110,16 @@ AlpsReturnStatus DcoSolution::decodeToSelf(AlpsEncoded & encoded) {
               << std::endl;
     throw std::exception();
   }
+
+  // debug stuff
+  std::stringstream debug_msg;
+  debug_msg << "Proc[" << broker_->getProcRank() << "]"
+            << " solution decoded into " << this << ". quality "
+            << quality_ << std::endl;
+  message_handler->message(0, "Dco", debug_msg.str().c_str(),
+                              'G', DISCO_DLOG_MPI)
+    << CoinMessageEol;
+  // end of debug stuff
+
   return status;
 }
