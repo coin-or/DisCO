@@ -88,7 +88,8 @@ BcpsBranchObject * DcoVariable::createBranchObject(BcpsModel * bcps_model,
   // todo(aykut) we do not know the score of branch object since we do not know
   // the branching strategy.
   double score = 0.0;
-  BcpsBranchObject * bo = new DcoBranchObject(model, var_index, score, value);
+  BcpsBranchObject * bo = new DcoBranchObject(var_index, score, value);
+  bo->setBroker(broker_);
   //BcpsBranchObject(BcpsModel * model, int objectIndex, int upScore,
   //                 double downScore, int direction, double value)
   return bo;
