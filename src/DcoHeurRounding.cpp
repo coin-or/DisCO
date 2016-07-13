@@ -24,7 +24,8 @@ DcoSolution * DcoHeurRounding::searchSolution() {
   }
   else if (strategy() == DcoHeurStrategyAuto) {
     // todo(aykut) the disable threshold should be a parameter in DcoParams.
-    if (stats().numNoSolCalls() > DISCO_HEUR_ROUND_DISABLE) {
+    int disable_threshold = 1000000;
+    if (stats().numNoSolCalls() > disable_threshold) {
       return NULL;
     }
   }
@@ -362,6 +363,8 @@ DcoSolution * DcoHeurRounding::searchSolution() {
     if (feasible) {
       // new solution found, store solution.
       dco_sol = new DcoSolution(numCols, sol, sol_quality);
+      dco_sol->setBroker(model()->broker_);
+
       stats().addNumSolutions();
     }
     else {
