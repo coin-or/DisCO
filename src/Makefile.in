@@ -96,11 +96,11 @@ am__DEPENDENCIES_1 =
 am_libDisco_la_OBJECTS = DcoConGenerator.lo DcoLinearConGenerator.lo \
 	DcoConicConGenerator.lo DcoBranchObject.lo \
 	DcoBranchStrategyRel.lo DcoBranchStrategyMaxInf.lo \
-	DcoBranchStrategyPseudo.lo DcoConstraint.lo \
-	DcoLinearConstraint.lo DcoConicConstraint.lo DcoMessage.lo \
-	DcoModel.lo DcoNodeDesc.lo DcoParams.lo DcoSolution.lo \
-	DcoSubTree.lo DcoTreeNode.lo DcoVariable.lo DcoPresolve.lo \
-	DcoHeuristic.lo DcoHeurRounding.lo
+	DcoBranchStrategyPseudo.lo DcoBranchStrategyStrong.lo \
+	DcoConstraint.lo DcoLinearConstraint.lo DcoConicConstraint.lo \
+	DcoMessage.lo DcoModel.lo DcoNodeDesc.lo DcoParams.lo \
+	DcoSolution.lo DcoSubTree.lo DcoTreeNode.lo DcoVariable.lo \
+	DcoPresolve.lo DcoHeuristic.lo DcoHeurRounding.lo
 libDisco_la_OBJECTS = $(am_libDisco_la_OBJECTS)
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
@@ -385,6 +385,8 @@ libDisco_la_SOURCES = \
 	DcoBranchStrategyMaxInf.hpp \
 	DcoBranchStrategyPseudo.cpp \
 	DcoBranchStrategyPseudo.hpp \
+	DcoBranchStrategyStrong.cpp \
+	DcoBranchStrategyStrong.hpp \
 	DcoConstraint.cpp \
 	DcoConstraint.hpp \
 	DcoLinearConstraint.cpp \
@@ -453,6 +455,7 @@ includecoin_HEADERS = \
 	DcoBranchStrategyRel.hpp \
 	DcoBranchStrategyMaxInf.hpp \
 	DcoBranchStrategyPseudo.hpp \
+	DcoBranchStrategyStrong.hpp \
 	DcoConstraint.hpp \
 	DcoLinearConstraint.hpp \
 	DcoConicConstraint.hpp \
@@ -603,6 +606,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyMaxInf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyPseudo.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyRel.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyStrong.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConGenerator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConicConGenerator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConicConstraint.Plo@am__quote@
