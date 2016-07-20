@@ -10,6 +10,7 @@
 #include "DcoMessage.hpp"
 #include "DcoLinearConstraint.hpp"
 #include "DcoConicConstraint.hpp"
+#include "DcoVariable.hpp"
 #include "Dco.hpp"
 #include "DcoConGenerator.hpp"
 #include "DcoSolution.hpp"
@@ -443,8 +444,17 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
         getStatus()==AlpsNodeStatusCandidate or
         getStatus()==AlpsNodeStatusEvaluated) {
       double sum_inf = 0.0;
-      for (int i=0; i<model->branchStrategy()->numBranchObjects(); ++i) {
-        sum_inf += model->branchStrategy()->branchObjects()[i]->value();
+      int num_inf = 0;
+      double const * sol = model->solver()->getColSolution();
+      int const * relaxedCols = model->relaxedCols();
+      for (int i=0; i<model->numRelaxedCols(); ++i) {
+        int dir;
+        double infeas = dynamic_cast<DcoVariable*>
+          (model->getVariables()[relaxedCols[i]])->infeasibility(model, dir);
+        if (infeas!=0.0) {
+          num_inf++;
+        }
+        sum_inf += infeas;
       }
       message_handler->message(DISCO_GRUMPY_MESSAGE_LONG, *messages)
         << broker()->timer().getTime()
@@ -454,7 +464,7 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
         << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
         << model->objSense()*getQuality()
         << sum_inf
-        << model->branchStrategy()->numBranchObjects()
+        << num_inf
         << CoinMessageEol;
     }
     // end of grumpy message
@@ -1041,9 +1051,29 @@ DcoTreeNode::branch() {
                                AlpsNodeStatusCandidate,
                                quality));
   // grumpy message
+  int num_inf = 0;
   double sum_inf = 0.0;
   for (int i=0; i<model->branchStrategy()->numBranchObjects(); ++i) {
-    sum_inf += model->branchStrategy()->branchObjects()[i]->value();
+    double value = model->branchStrategy()->branchObjects()[i]->value();
+    // get integer tolerance parameter
+    double tolerance = model->dcoPar()->entry(DcoParams::integerTol);
+    double dist_to_upper = ceil(value) - value;
+    double dist_to_lower = value - floor(value);
+    // return the minimum of distance to upper or lower
+    double infeas;
+    if (dist_to_upper>dist_to_lower) {
+      infeas = dist_to_lower;
+    }
+    else {
+      infeas = dist_to_upper;
+    }
+    if (infeas<tolerance) {
+      infeas = 0.0;
+    }
+    else {
+      num_inf++;
+    }
+    sum_inf += infeas;
   }
   message_handler->message(DISCO_GRUMPY_MESSAGE_LONG, *messages)
     << broker()->timer().getTime()
@@ -1053,9 +1083,10 @@ DcoTreeNode::branch() {
     << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
     << model->objSense()*getQuality()
     << sum_inf
-    << model->branchStrategy()->numBranchObjects()
+    << num_inf
     << CoinMessageEol;
   // end of grumpy message
+
   setStatus(AlpsNodeStatusBranched);
 
   // are these should be in alps level?
@@ -1165,8 +1196,28 @@ void DcoTreeNode::processSetPregnant() {
 
   // grumpy message
   double sum_inf = 0.0;
+  int num_inf = 0;
   for (int i=0; i<model->branchStrategy()->numBranchObjects(); ++i) {
-    sum_inf += model->branchStrategy()->branchObjects()[i]->value();
+    double value = model->branchStrategy()->branchObjects()[i]->value();
+    // get integer tolerance parameter
+    double tolerance = model->dcoPar()->entry(DcoParams::integerTol);
+    double dist_to_upper = ceil(value) - value;
+    double dist_to_lower = value - floor(value);
+    // return the minimum of distance to upper or lower
+    double infeas;
+    if (dist_to_upper>dist_to_lower) {
+      infeas = dist_to_lower;
+    }
+    else {
+      infeas = dist_to_upper;
+    }
+    if (infeas<tolerance) {
+      infeas = 0.0;
+    }
+    else {
+      num_inf++;
+    }
+    sum_inf += infeas;
   }
   model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_LONG, *model->dcoMessages_)
     << broker()->timer().getTime()
@@ -1176,7 +1227,7 @@ void DcoTreeNode::processSetPregnant() {
     << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
     << model->objSense()*getQuality()
     << sum_inf
-    << model->branchStrategy()->numBranchObjects()
+    << num_inf
     << CoinMessageEol;
   // end of grumpy message
 }
