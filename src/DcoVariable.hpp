@@ -53,7 +53,7 @@
    BlisObjectInt inherits BcpsObject class.
  */
 
-class DcoVariable: public BcpsVariable {
+class DcoVariable: virtual public BcpsVariable {
   // double objCoef_;
   // int size_;
   // int * indices_;
