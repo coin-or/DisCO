@@ -101,6 +101,7 @@ DcoStrongBranch(DcoModel *model, double objValue, int colInd, double x,
 	    ++numDiff;
 	}
     }
+    assert(numDiff==0);
     std::cout << "BEFORE: numDiff = " << numDiff << std::endl;
 #endif
 
@@ -120,7 +121,7 @@ DcoStrongBranch(DcoModel *model, double objValue, int colInd, double x,
 	printf("STRONG: COL[%d]: downDeg=%g, x=%g\n", colInd, downDeg, x);
 #endif
 	// Update pseudocost
-	intObj->pseudocost().update(-1, downDeg, x);
+	//intObj->pseudocost().update(-1, downDeg, x);
 	model->setSharedObjectMark(ind);
 
 	// Check if ip feasible
@@ -156,6 +157,7 @@ DcoStrongBranch(DcoModel *model, double objValue, int colInd, double x,
 #endif
 
     // restore bounds
+#ifdef DISCO_DEBUG_MORE
     numDiff = 0;
     for (j = 0; j < numCols; ++j) {
 	if (saveLower[j] != lower[j]) {
@@ -167,10 +169,10 @@ DcoStrongBranch(DcoModel *model, double objValue, int colInd, double x,
 	    ++numDiff;
 	}
     }
-#ifdef DISCO_DEBUG
-    assert(numDiff > 0);
+    assert(numDiff==1);
     //std::cout << "numDiff = " << numDiff << std::endl;
 #endif
+    solver->setColUpper(colInd, saveUpper[colInd]);
 
     //----------------------------------------------
     // Branching up.
@@ -190,7 +192,7 @@ DcoStrongBranch(DcoModel *model, double objValue, int colInd, double x,
 #endif
 
 	// Update pseudocost
-	intObj->pseudocost().update(1, upDeg, x);
+	//intObj->pseudocost().update(1, upDeg, x);
 	model->setSharedObjectMark(ind);
 
 	// Check if IP feasible
@@ -223,17 +225,19 @@ DcoStrongBranch(DcoModel *model, double objValue, int colInd, double x,
 
 #ifdef DISCO_DEBUG_MORE
     std::cout << "STRONG: Up: lpStatus = " << lpStatus << std::endl;
-#endif
-
     // restore bounds
+    numDiff=0;
     for (j = 0; j < numCols; ++j) {
 	if (saveLower[j] != lower[j]) {
-	    solver->setColLower(j,saveLower[j]);
+	  numDiff++;
 	}
 	if (saveUpper[j] != upper[j]) {
-	    solver->setColUpper(j,saveUpper[j]);
+	  numDiff++;
 	}
     }
+    assert(numDiff==1);
+#endif
+    solver->setColLower(colInd, saveLower[colInd]);
 
     return status;
 }
