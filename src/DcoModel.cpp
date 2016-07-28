@@ -82,18 +82,23 @@ DcoModel::~DcoModel() {
   // solver_ is freed in main function.
   if (colLB_) {
     delete[] colLB_;
+    colLB_=NULL;
   }
   if (colUB_) {
     delete[] colUB_;
+    colUB_=NULL;
   }
   if (rowLB_) {
     delete[] rowLB_;
+    rowLB_=NULL;
   }
   if (rowUB_) {
     delete[] rowUB_;
+    rowUB_=NULL;
   }
   if (objCoef_) {
     delete[] objCoef_;
+    objCoef_=NULL;
   }
   if (integerCols_) {
     delete[] integerCols_;
@@ -105,36 +110,47 @@ DcoModel::~DcoModel() {
   }
   if (matrix_) {
     delete matrix_;
+    matrix_=NULL;
   }
   if (coneStart_) {
     delete[] coneStart_;
+    coneStart_=NULL;
   }
   if (coneMembers_) {
     delete[] coneMembers_;
+    coneMembers_=NULL;
   }
   if (coneType_) {
     delete[] coneType_;
+    coneType_=NULL;
   }
   if (branchStrategy_) {
     delete branchStrategy_;
+    branchStrategy_=NULL;
   }
   if (rampUpBranchStrategy_) {
     delete rampUpBranchStrategy_;
+    rampUpBranchStrategy_=NULL;
   }
   if (dcoPar_) {
     delete dcoPar_;
+    dcoPar_=NULL;
   }
   if (dcoMessageHandler_) {
     delete dcoMessageHandler_;
+    dcoMessageHandler_=NULL;
   }
   if (dcoMessages_) {
     delete dcoMessages_;
+    dcoMessages_=NULL;
   }
   if (relaxedCols_) {
     delete[] relaxedCols_;
+    relaxedCols_=NULL;
   }
   if (relaxedRows_) {
     delete[] relaxedRows_;
+    relaxedRows_=NULL;
   }
   for (std::vector<DcoConGenerator*>::iterator it=conGenerators_.begin();
        it!=conGenerators_.end(); ++it) {
@@ -464,7 +480,8 @@ void DcoModel::approximateCones() {
   ipm_iter = iter;
   iter = 0;
   // todo(aykut): parametrize 50
-  while(iter<largest_cone_size) {
+  int oa_iter_limit = 3*largest_cone_size;
+  while(iter<oa_iter_limit) {
     OsiCuts * oa_cuts = new OsiCuts();
     CglConicCutGenerator * cg_oa =
       new CglConicOA(dcoPar_->entry(DcoParams::coneTol));
@@ -490,8 +507,8 @@ void DcoModel::approximateCones() {
   std::cout << "Linear relaxation objective value "
             << solver_->getObjValue() << std::endl;
   std::cout << "=================================" << std::endl;
-  delete coneTypes;
-  delete coneSizes;
+  delete[] coneTypes;
+  delete[] coneSizes;
   delete[] coneMembers;
 
   // get updated data from solver
@@ -1362,6 +1379,7 @@ void DcoModel::reportFeasibility() {
                                 'G', DISCO_DLOG_PROCESS)
       << CoinMessageEol;
     msg.str(std::string());
+    delete[] values;
   }
 }
 
@@ -1389,7 +1407,7 @@ AlpsReturnStatus DcoModel::encode(AlpsEncoded * encoded) const {
   encoded->writeRep(integerCols_, numIntegerCols_);
   encoded->writeRep(isInteger_, numCols_);
   // encode cone info
-  encoded->writeRep(coneStart_, numConicRows_);
+  encoded->writeRep(coneStart_, numConicRows_+1);
   encoded->writeRep(coneType_, numConicRows_);
   encoded->writeRep(coneMembers_, coneStart_[numConicRows_]);
   // encode matrix
@@ -1400,7 +1418,6 @@ AlpsReturnStatus DcoModel::encode(AlpsEncoded * encoded) const {
   encoded->writeRep(matrix_->getElements(), matrix_->getNumElements());
   // encode parameters
   dcoPar_->pack(*encoded);
-  encoded->writeRep(objSense_);
 
   // debug stuff
   std::stringstream debug_msg;
@@ -1443,7 +1460,9 @@ AlpsReturnStatus DcoModel::decodeToSelf(AlpsEncoded & encoded) {
   encoded.readRep(integerCols_, numIntegerCols_);
   encoded.readRep(isInteger_, numCols_);
   // decode cone info
-  encoded.readRep(coneStart_, numConicRows_);
+  int cone_start_size;
+  encoded.readRep(coneStart_, cone_start_size);
+  assert(cone_start_size==numConicRows_+1);
   encoded.readRep(coneType_, numConicRows_);
   encoded.readRep(coneMembers_, coneStart_[numConicRows_]);
   // decode matrix
@@ -1459,8 +1478,11 @@ AlpsReturnStatus DcoModel::decodeToSelf(AlpsEncoded & encoded) {
   encoded.readRep(elements, num_elem);
   matrix_ = new CoinPackedMatrix(false, numCols_, numLinearRows_, num_elem,
                                  elements, indices, starts, lengths, 0.0, 0.0);
+  delete[] starts;
+  delete[] lengths;
+  delete[] indices;
+  delete[] elements;
   dcoPar_->unpack(encoded);
-  encoded.readRep(objSense_);
 
   // debug stuff
   std::stringstream debug_msg;
