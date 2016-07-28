@@ -106,6 +106,7 @@ int DcoBranchStrategyRel::createCandBranchObjects(int numPassesLeft,
   double * newUB = NULL;
   double * origSolution = NULL;
   DcoModel * model = dynamic_cast<DcoModel *>(model_);
+  int MAX_ITER = 2;
 #if defined(__OA__)
   OsiSolverInterface * solver = model->solver();
 #else
@@ -251,7 +252,7 @@ int DcoBranchStrategyRel::createCandBranchObjects(int numPassesLeft,
     CoinWarmStart * ws = solver->getWarmStart();
     solver->getIntParam(OsiMaxNumIterationHotStart, saveLimit);
     int maxIter = ALPS_MAX(model->getAveIterations(), 50);
-    solver->setIntParam(OsiMaxNumIterationHotStart, maxIter);
+    solver->setIntParam(OsiMaxNumIterationHotStart, MAX_ITER);
     solver->markHotStart();
     lbInd = new int [numFirsts];
     ubInd = new int [numFirsts];
@@ -345,7 +346,8 @@ int DcoBranchStrategyRel::createCandBranchObjects(int numPassesLeft,
     std::multimap< double, DcoObjectInt*, DcoPseuoGreater>::iterator pos;
     CoinWarmStart * ws = solver->getWarmStart();
     solver->getIntParam(OsiMaxNumIterationHotStart, saveLimit);
-    int maxIter = ALPS_MAX(model->getAveIterations(), 50);
+    //todo(aykut) parametrize the following 50
+    int maxIter = ALPS_MAX(model->getAveIterations(), MAX_ITER);
     solver->setIntParam(OsiMaxNumIterationHotStart, maxIter);
     solver->markHotStart();
     DcoObjectInt *bestObject = NULL;
@@ -363,6 +365,7 @@ int DcoBranchStrategyRel::createCandBranchObjects(int numPassesLeft,
       // Check if reliable.
       int objReliability=ALPS_MIN(intObject->pseudocost().getUpCount(),
 				  intObject->pseudocost().getDownCount());
+      //todo(aykut): Should reability_ be a parameter?
       if (objReliability < reliability_) {
 	// Unrelible object. Do strong branching.
 	lpX = origSolution[colInd];
