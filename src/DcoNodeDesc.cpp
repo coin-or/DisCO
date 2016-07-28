@@ -107,11 +107,8 @@ AlpsNodeDesc * DcoNodeDesc::decode(AlpsEncoded & encoded) const {
   return new_desc;
 }
 
-// todo(aykut) this should be a pure virtual function in Alps level
-// we can overload this function here due to cv-qualifier.
 /// Decode a given AlpsEncoded object into self.
 AlpsReturnStatus DcoNodeDesc::decodeToSelf(AlpsEncoded & encoded) {
-  // todo(aykut): return value, never updated in this function
   AlpsReturnStatus status = AlpsReturnStatusOk;
   status = AlpsNodeDesc::decodeToSelf(encoded);
   // todo(aykut) rename this function in Bcps level?
