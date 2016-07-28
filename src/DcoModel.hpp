@@ -345,6 +345,10 @@ public:
   /** Store new cuts in each pass. */
   OsiCuts newCutPool_;
 
+  /// Load problem to conic solver interface
+  void loadProblemToSolver(OsiConicSolverInterface * solver) const;
+  /// Load problem from conic solver interface
+  void loadProblemFromSolver(OsiConicSolverInterface const * solver);
 protected:
 
   /** Intialize member data */
@@ -426,7 +430,7 @@ public:
    *        means users must NOT free vars or cons.
    */
   virtual void importModel(std::vector<DcoVariable *> vars,
-			   std::vector<DcoConstraint *> cons);
+                           std::vector<DcoConstraint *> cons);
 
   /** Read in Alps, Dco parameters. */
   virtual void readParameters(const int argnum, const char * const *arglist);
@@ -579,7 +583,7 @@ public:
     double inc = DcoPar_->entry(DcoParams::cutoffInc);
 #if 0
     std::cout << "3. cutoff_ = "<< cutoff_
-	      << "; inc = " << inc << std::endl;
+              << "; inc = " << inc << std::endl;
 #endif
     co += inc;
     if (co < cutoff_) {
@@ -595,8 +599,8 @@ public:
       Scan all objects for indications of infeasibility. This is broken down
       into simple integer infeasibility (\p numIntegerInfs)
       and all other reports of infeasibility(\p numObjectInfs). */
-  virtual DcoSolution *feasibleSolution(int & numIntegerInfs,
-					int & numObjectInfs);
+  DcoSolution * feasibleSolution(int & numIntegerInfs,
+                                int & numObjectInfs);
 
   /** User's criteria for a feasible solution.
    *  If user think the given solution is feasible then need
@@ -607,7 +611,7 @@ public:
    *     2) return a null.
    */
   virtual DcoSolution *userFeasibleSolution(const double * solution,
-					    bool &feasible) {
+                                            bool &feasible) {
     DcoSolution *sol = NULL;
     feasible = true; // Feasible by default
     return sol;
@@ -721,12 +725,12 @@ public:
 
   /** Add a Cgl cut generator. */
   void addCutGenerator(CglCutGenerator * generator,
-		       const char * name = NULL,
-		       DcoCutStrategy strategy = DcoCutStrategyAuto,
-		       int cutGenerationFrequency = 1,
-		       bool normal = true,
-		       bool atSolution = false,
-		       bool whenInfeasible = false);
+                       const char * name = NULL,
+                       DcoCutStrategy strategy = DcoCutStrategyAuto,
+                       int cutGenerationFrequency = 1,
+                       bool normal = true,
+                       bool atSolution = false,
+                       bool whenInfeasible = false);
 
   /** Get a specific cut generator. */
   DcoConGeneratorBase * cutGenerators(int i) const { return generators_[i]; }
@@ -826,8 +830,8 @@ public:
       \internal Added for Kurt Spielberg.
   */
   void passInPriorities(const int * priorities,
-			bool ifNotSimpleIntegers,
-			int defaultValue = 1000);
+                        bool ifNotSimpleIntegers,
+                        int defaultValue = 1000);
 
   /** Priorities. */
   inline const int * priority() const { return priority_; }
