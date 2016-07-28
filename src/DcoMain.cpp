@@ -66,6 +66,9 @@ int main(int argc, char *argv[]) {
     OsiSolverInterface * solver = new OsiClpSolverInterface();
     // for unboundedness directions set option
     dynamic_cast<OsiClpSolverInterface*>(solver)->getModelPtr()->setMoreSpecialOptions(0);
+    dynamic_cast<OsiClpSolverInterface*>(solver)->setHintParam(OsiDoReducePrint,false,OsiHintDo, 0);
+    //lpSolver_->setHintParam(OsiDoReducePrint, false, OsiHintDo, 0);
+
 #else
 #if defined(__OSI_MOSEK__)
     OsiConicSolverInterface * solver = new OsiMosekSolverInterface();
