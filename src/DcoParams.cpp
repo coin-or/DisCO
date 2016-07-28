@@ -252,7 +252,7 @@ void DcoParams::setDefaultEntries() {
   setEntry(optimalAbsGap, 1.0e-6);
   setEntry(pseudoWeight, 0.8);
   setEntry(scaleConFactor, 1000000.0);
-  setEntry(tailOff, 1e-7);
+  setEntry(tailOff, 1e-8);
   setEntry(presolveTolerance, 0.0);
   //-------------------------------------------------------------
   // String Parameters
