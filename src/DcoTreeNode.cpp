@@ -601,11 +601,21 @@ BcpsSubproblemStatus DcoTreeNode::bound() {
     }
     else {
       subproblem_status = BcpsSubproblemStatusOptimal;
-      double objValue = model->solver()->getObjValue() *
+      double new_quality = model->solver()->getObjValue() *
         model->solver()->getObjSense();
-      // Update quality of this node
-      quality_ = objValue;
-      solEstimate_ = objValue;
+      // Update quality of this node if this bound is better than the
+      // current quality_ of the node. quality_ is set to parent's quality_
+      // when a node is created. The objValuexobjSense here might be larger
+      // than the quality_ since not all conic cuts present in parent node is
+      // present here.
+      if (parent_==NULL) {
+        // this is root node, update quality
+        quality_ = new_quality;
+      }
+      else if (new_quality>quality_) {
+        quality_ = new_quality;
+        solEstimate_ = new_quality;
+      }
     }
   }
   else if (model->solver()->isProvenPrimalInfeasible()) {
@@ -919,29 +929,6 @@ DcoTreeNode::branch() {
   DcoBranchObject const * branch_object =
     dynamic_cast<DcoBranchObject const *>(branchObject());
 
-  if (branch_object==NULL) {
-    // branch
-    BcpsBranchStrategy * branchStrategy = model->branchStrategy();
-    // todo(aykut) following should be a parameter
-    // Maximum number of resolve during branching.
-    int numBranchResolve = 10;
-    branchStrategy->createCandBranchObjects(this);
-
-    // fathom if no branch object found
-    if (branchStrategy->numBranchObjects()==0) {
-      // clear stored string
-      message_handler->message(0, "Dco",
-                               "No branch objects found, fathom.",
-                               'G', DISCO_DLOG_PROCESS)
-        << CoinMessageEol;
-      setStatus(AlpsNodeStatusFathomed);
-      return res;
-    }
-    // prepare this node for branching, bookkeeping for differencing.
-    // call pregnant setting routine
-    //processSetPregnant();
-  }
-
   assert(branch_object);
   // get index and value of branch variable.
   //int branch_var = model->relaxedCols()[branch_object->getObjectIndex()];
@@ -1040,16 +1027,12 @@ DcoTreeNode::branch() {
   //status_ = AlpsNodeStatusBranched;
 
   // push the down and up nodes.
-  double quality = model->solver()->getObjValue();
-  if (parent_!=NULL) {
-    quality = parent_->getQuality();
-  }
   res.push_back(CoinMakeTriple(static_cast<AlpsNodeDesc*>(down_node),
                                AlpsNodeStatusCandidate,
-                               quality));
+                               quality_));
   res.push_back(CoinMakeTriple(static_cast<AlpsNodeDesc*>(up_node),
                                AlpsNodeStatusCandidate,
-                               quality));
+                               quality_));
   // grumpy message
   int num_inf = 0;
   double sum_inf = 0.0;
@@ -1089,7 +1072,7 @@ DcoTreeNode::branch() {
 
   setStatus(AlpsNodeStatusBranched);
 
-  // are these should be in alps level?
+  // todo(aykut) are these should be in alps level?
   //up_node->setSolEstimate(quality_);
   //down_node->setSolEstimate(quality_);
   return res;
@@ -1271,8 +1254,6 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     // end of grumpy message
 
     setStatus(AlpsNodeStatusFathomed);
-    //quality_ = ALPS_OBJ_MAX;
-    //solEstimate_ = ALPS_OBJ_MAX;
     return;
   }
   if (subproblem_status!=BcpsSubproblemStatusOptimal) {
@@ -1622,5 +1603,11 @@ AlpsReturnStatus DcoTreeNode::decodeToSelf(AlpsEncoded & encoded) {
     << CoinMessageEol;
   // end of debug stuff
 
+  if (isPregnant()) {
+    // delete branch object stored, we will re-create it. Ideally it should not
+    // be sent in the first place.
+    clearBranchObject();
+    setStatus(AlpsNodeStatusEvaluated);
+  }
   return status;
 }
