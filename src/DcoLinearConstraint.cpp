@@ -87,6 +87,13 @@ OsiRowCut * DcoLinearConstraint::createOsiRowCut(DcoModel * model) const {
   return cut;
 }
 
+double DcoLinearConstraint::infeasibility(BcpsModel * m,
+                                          int & preferredWay) const {
+  std::cerr << "Not implemented!" << std::endl;
+  throw std::exception();
+  return 0.0;
+}
+
 
 /// Encode this to an AlpsEncoded object.
 AlpsReturnStatus DcoLinearConstraint::encode(AlpsEncoded * encoded) {

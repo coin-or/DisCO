@@ -37,6 +37,8 @@ public:
   /// return constraint type, linear or conic
   virtual DcoConstraintType constraintType() const {return DcoConstraintTypeLinear;}
 
+  virtual double infeasibility(BcpsModel * m, int & preferredWay) const;
+
   ///@name Encode and Decode functions
   //@{
   /// Encode this to an AlpsEncoded object.
