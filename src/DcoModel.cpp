@@ -494,6 +494,7 @@ void DcoModel::approximateCones() {
       break;
     }
     solver_->applyCuts(*oa_cuts);
+    solver_->resolve();
     delete oa_cuts;
     delete cg_oa;
     iter++;
