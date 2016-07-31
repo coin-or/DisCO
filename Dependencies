@@ -14,8 +14,6 @@ Alps              https://projects.coin-or.org/svn/CHiPPS/Alps/trunk/Alps
 Bcps              https://projects.coin-or.org/svn/CHiPPS/Bcps/trunk/Bcps
 Ipopt             https://projects.coin-or.org/svn/Ipopt/releases/3.12.4/Ipopt
 OsiConic          https://github.com/aykutbulut/OSI-CONIC master
-OsiMosek          https://github.com/aykutbulut/OSI-MOSEK master
-OsiCplex          https://github.com/aykutbulut/OsiCplex master
 OsiIpopt          https://github.com/aykutbulut/OsiIpopt master
 Cola              https://github.com/aykutbulut/COLA master
 CglConic          https://github.com/aykutbulut/CGL-CONIC master
