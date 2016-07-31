@@ -13,10 +13,21 @@ Parallel Search (CHiPPS) framework.
 
 ## 2. INSTALLATION ##
 ### 2.1 Basic Installation ###
-After cloning DisCO, use
+DisCO depends on many other projects. You should compile the dependant projects if they are not installed in your system. The easiest way of installing DisCO is using BuildTools fetch and build script. For this you can use the following commands in Linuxenvironment. After cloning DisCO, use
 ```shell
-sh get_dependencies.sh && sh compile.sh
+git clone --branch=stable/0.8 https://github.com/coin-or-tools/BuildTools
+bash BuildTools/get.dependencies.sh fetch > /dev/null
+bash BuildTools/get.dependencies.sh build
 ```
+
+This compiles DisCO with Outer Approximation (OA) algorithm. This algorithm relaxes integrality constraints and conic constraints. Performs a branch and bound search to find a solution that satisfy both of these constraints.
+
+There are other algorithms implemented in DisCO. You can use a typical branch and bound algorithm where at each node only integrality constraints are relaxed. For this you need to provide a Second Order Conic Optimization (SOCO) solver. For now DisCO supports 3 solvers, Ipopt, Mosek and Cplex. To use DisCO with Ipopt you need to add ```--with-soco-solver=ipopt``` flag to configure script. This can be acheived with the following command.
+```shell
+./configure --with-soco-solver=ipopt
+```
+
+Afterward you can call ```make install`` to build and install DisCO.
 
 ### 2.2 For advanced users ###
 Make sure all dependencies are accessible through pkg-config. Then DisCO's configure script will find them through pkg-config. Alternatively DisCO configure script can locate other projects if --prefix configure flag is set right. Assume other projects are installed at install_dir. Then use
@@ -34,11 +45,7 @@ Make sure all dependencies are accessible through pkg-config. Then DisCO's confi
 ## 4. SUPPORT ##
 ### 4.1 Authors ###
 Aykut Bulut (aykut@lehigh.edu)
-Yan Xu (yax2@lehigh.edu)
 Ted Ralphs (tkralphs@lehigh.edu), Project Manager
-Laci Ladanyi (ladanyi@us.ibm.com)
-Matt Saltzman (mjs@clemson.edu)
 
 ### 4.2 Bug Reports ###
-Bug reports should be reported on the CHiPPS development web site at
-https://github.com/aykutbulut/DisCO/issues/new
+You can create new issues using https://github.com/aykutbulut/DisCO/issues/new.
