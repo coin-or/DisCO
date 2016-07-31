@@ -161,9 +161,9 @@ case $dco_soco_solver in
          found_package=false
      fi
    ;;
-  *)
-    AC_MSG_ERROR(Unknown SOCO solver!)
-  ;;
+   *)
+   AC_MSG_ERROR(Unknown SOCO solver!)
+   ;;
 esac
 
 if test $found_package = false; then
