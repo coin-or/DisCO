@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <numeric>
 #include <cmath>
 
 #include "DcoConicConstraint.hpp"
