@@ -37,10 +37,10 @@ Make sure all dependencies are accessible through pkg-config. Then DisCO's confi
 
 
 ## 3. CURRENT TESTING STATUS ##
+   - OA: well tested and works fine.
    - Cola: well tested.
    - Cplex: Missing functions in the interface.
-   - OA: Fails on some instances. Check CBLIB problems robust and classical.
-   - Dco_branchStrategy reliability is broken
+   - Ipopt: works fine for branching strategy 0 (Dco_branchStrategy 0). Branching strategies should be updated considering IPM solvers.
 
 ## 4. SUPPORT ##
 ### 4.1 Authors ###
