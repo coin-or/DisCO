@@ -26,13 +26,31 @@
 #include "CoinError.hpp"
 #include "CoinTime.hpp"
 
-#include "OsiConicSolverInterface.hpp"
-#include "OsiMosekSolverInterface.hpp"
-#include "OsiCplexSolverInterface.hpp"
-#include "ColaModel.hpp"
-//#ifdef COIN_HAS_CLP
-#include "OsiClpSolverInterface.hpp"
-//#endif
+
+#if defined(__OA__)
+  #include "OsiClpSolverInterface.hpp"
+  typedef OsiClpSolverInterface SOLVER;
+#else
+  #include "OsiConicSolverInterface.hpp"
+  #if defined(__OSI_MOSEK__)
+    // use mosek as solver
+    #include <OsiMosekSolverInterface.hpp>
+    //#define IPM_SOLVER OsiMosekSolverInterface
+    typedef OsiMosekSolverInterface SOLVER;
+  #elif defined(__OSI_CPLEX__)
+    // use cplex as solver
+    #include <OsiCplexSolverInterface.hpp>
+    typedef OsiCplexSolverInterface SOLVER;
+  #elif defined(__COLA__)
+    // use COLA as solver
+    #include <ColaModel.hpp>
+    typedef OsiCplexSolverInterface SOLVER;
+  #else
+    // use ipopt as solver
+    #include <OsiIpoptSolverInterface.hpp>
+    typedef OsiIpoptSolverInterface SOLVER;
+  #endif
+#endif
 
 #include "CglFlowCover.hpp"
 #include "CglGomory.hpp"
@@ -44,9 +62,9 @@
 #include "DcoModel.hpp"
 
 #if  COIN_HAS_MPI
-#include "AlpsKnowledgeBrokerMPI.h"
+  #include "AlpsKnowledgeBrokerMPI.h"
 #else
-#include "AlpsKnowledgeBrokerSerial.h"
+  #include "AlpsKnowledgeBrokerSerial.h"
 #endif
 
 // NOTE: gcc compiler doesn't recognize COIN_HAS_CLP, COIN_HAS_MPI
@@ -62,26 +80,15 @@ int main(int argc, char *argv[]) {
 
     // if both mosek and cplex is available, choose mosek.
     // if both not available then choose cola
+    OsiSolverInterface * solver = new SOLVER();
 #if defined(__OA__)
-    OsiSolverInterface * solver = new OsiClpSolverInterface();
-    // for unboundedness directions set option
+    // set Clpc specific option to get unboundedness directions (if problem is unbounded)
     dynamic_cast<OsiClpSolverInterface*>(solver)->getModelPtr()->setMoreSpecialOptions(0);
+    // set clp specific options for no solver output
     dynamic_cast<OsiClpSolverInterface*>(solver)->setHintParam(OsiDoReducePrint,false,OsiHintDo, 0);
     //lpSolver_->setHintParam(OsiDoReducePrint, false, OsiHintDo, 0);
-
-#else
-#if defined(__OSI_MOSEK__)
-    OsiConicSolverInterface * solver = new OsiMosekSolverInterface();
-#else
-#if defined(__OSI_CPLEX__)
-    OsiConicSolverInterface * solver = new OsiCplexSolverInterface();
-#else
-#if defined(__COLA__)
-    OsiConicSolverInterface * solver = new ColaModel();
 #endif
-#endif
-#endif
-#endif
+    solver->setHintParam(OsiDoReducePrint,true,OsiHintDo, 0);
     // Create DisCO model
     DcoModel model;
     model.setSolver(solver);

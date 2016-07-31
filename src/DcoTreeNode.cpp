@@ -34,10 +34,16 @@
 #include "OsiCuts.hpp"
 
 #include <CglConicGD1.hpp>
+
+
 #if defined(__OA__)
-#include <CglConicIPM.hpp>
-#include <OsiMosekSolverInterface.hpp>
+  #include <CglConicIPM.hpp>
+  #include <OsiIpoptSolverInterface.hpp>
 #endif
+
+
+
+
 #include "AlpsKnowledge.h"
 #include "AlpsEnumProcessT.h"
 #include "AlpsKnowledgeBroker.h"
@@ -985,7 +991,8 @@ DcoTreeNode::process(bool isRoot, bool rampUp)
             // if feasible check solution quality, if better store it, else
             // fathom.
 #if defined(__OA__)
-            OsiConicSolverInterface * ipm_solver = new OsiMosekSolverInterface();
+            OsiConicSolverInterface * ipm_solver = new OsiIpoptSolverInterface();
+            ipm_solver->setHintParam(OsiDoReducePrint,true,OsiHintDo, 0);
             integerFix(model, ipm_solver);
             if (ipm_solver->isProvenOptimal()) {
               quality_ = ipm_solver->getObjValue();

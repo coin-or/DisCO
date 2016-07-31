@@ -62,7 +62,21 @@
 #include "CglConicIPMint.hpp"
 #include "DcoConicConGenerator.hpp"
 
-#include <OsiMosekSolverInterface.hpp>
+
+#if defined(__OSI_MOSEK__)
+  // use mosek as IPM solver
+  #include <OsiMosekSolverInterface.hpp>
+  //#define IPM_SOLVER OsiMosekSolverInterface
+  typedef OsiMosekSolverInterface IPM_SOLVER;
+#elif defined(__OSI_CPLEX__)
+  // use cplex as IPM solver
+  #include <OsiCplexSolverInterface.hpp>
+  typedef OsiCplexSolverInterface IPM_SOLVER;
+#else
+  // use ipopt
+  #include <OsiIpoptSolverInterface.hpp>
+  typedef OsiIpoptSolverInterface IPM_SOLVER;
+#endif
 
 #define DISCO_MIN_SHARE_CON 5
 #define DISCO_MAX_SHARE_CON 25
@@ -1156,7 +1170,7 @@ DcoModel::setupSelf()
     //----------------------------------
     // Add Outer approximation cut generator
     //----------------------------------
-    CglConicCutGenerator * oa_gen = new CglConicOA();
+    CglConicCutGenerator * oa_gen = new CglConicOA(1e-5);
     DcoConGeneratorBase * dco_oa_cg = new DcoConicConGenerator(this,
                                            oa_gen, "oa_gen");
     addCutGenerator(dco_oa_cg);
@@ -1237,7 +1251,7 @@ void DcoModel::approximateCones() {
     OsiCuts * ipm_cuts = new OsiCuts();
     OsiCuts * oa_cuts = new OsiCuts();
     CglConicCutGenerator * cg_ipm = new CglConicIPM();
-    CglConicCutGenerator * cg_oa = new CglConicOA();
+    CglConicCutGenerator * cg_oa = new CglConicOA(1e-5);
     // get cone info
     int largest_cone_size = *std::max_element(coneSizes_, coneSizes_+numCoreCones_);
     cg_ipm->generateCuts(*origLpSolver_, *ipm_cuts, numCoreCones_, coneTypes_,
@@ -1266,7 +1280,7 @@ void DcoModel::approximateCones() {
   iter = 0;
   while(iter<50) {
     OsiCuts * oa_cuts = new OsiCuts();
-    CglConicCutGenerator * cg_oa = new CglConicOA();
+    CglConicCutGenerator * cg_oa = new CglConicOA(1e-5);
     cg_oa->generateCuts(*origLpSolver_, *oa_cuts, numCoreCones_, coneTypes_,
                         coneSizes_, coneMembers_, 1);
     int num_cuts = oa_cuts->sizeRowCuts();
@@ -1276,6 +1290,7 @@ void DcoModel::approximateCones() {
       break;
     }
     origLpSolver_->applyCuts(*oa_cuts);
+    origLpSolver_->resolve();
     delete oa_cuts;
     delete cg_oa;
     iter++;
@@ -3036,7 +3051,16 @@ void DcoModel::loadProblemFromSolver(OsiConicSolverInterface const * solver) {
 #ifdef __OA__
   origLpSolver_ = new OsiClpSolverInterface();
 #else
-  origLpSolver_ = new OsiMosekSolverInterface();
+  #if defined(__OSI_MOSEK__)
+    origLpSolver_ = new OsiMosekSolverInterface();
+  #elif defined(__OSI_CPLEX__)
+    origLpSolver_ = new OsiCplexSolverInterface();
+  #elif defined(__COLA__)
+    origLpSolver_ = new ColaModel();
+  #else
+    origLpSolver_ = new OsiIpoptSolverInterface();
+    origLpSolver_->setHintParam(OsiDoReducePrint,true,OsiHintDo, 0);
+  #endif
 #endif
   origLpSolver_->loadProblem(*colMatrix_, varLB_, varUB_, objCoef_,
                              conLB_, conUB_);
