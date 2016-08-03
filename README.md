@@ -35,7 +35,7 @@ Make sure all dependencies are accessible through pkg-config. Then DisCO's confi
 ./configure --prefix=install_dir && make install
 ```
 
-## 2.3 Choosing Algorithm/Solver
+### 2.3 Choosing Algorithm/Solver ###
 
 DisCO implements an Outer Approximation algorithm and it is the default
 behavior you will get. If you want to use DisCO with a typical branch and bound
