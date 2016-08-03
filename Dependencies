@@ -10,10 +10,10 @@ CoinUtils         https://projects.coin-or.org/svn/CoinUtils/trunk/CoinUtils
 Osi               https://projects.coin-or.org/svn/Osi/trunk/Osi
 Clp               https://projects.coin-or.org/svn/Clp/trunk/Clp
 Cgl               https://projects.coin-or.org/svn/Cgl/stable/0.59/Cgl
-Alps              https://github.com/aykutbulut/CHiPPS-ALPS.git master
-Bcps              https://github.com/aykutbulut/CHiPPS-BiCePS.git master
 Ipopt             https://projects.coin-or.org/svn/Ipopt/releases/3.12.4/Ipopt
 OsiConic          https://github.com/aykutbulut/OSI-CONIC master
 OsiIpopt          https://github.com/aykutbulut/OsiIpopt master
 Cola              https://github.com/aykutbulut/COLA master
 CglConic          https://github.com/aykutbulut/CGL-CONIC master
+Alps              https://github.com/aykutbulut/CHiPPS-ALPS.git master
+Bcps              https://github.com/aykutbulut/CHiPPS-BiCePS.git master
