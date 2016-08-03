@@ -35,12 +35,44 @@ Make sure all dependencies are accessible through pkg-config. Then DisCO's confi
 ./configure --prefix=install_dir && make install
 ```
 
+## 2.3 Choosing Algorithm/Solver
+
+DisCO implements an Outer Approximation algorithm and it is the default
+behavior you will get. If you want to use DisCO with a typical branch and bound
+algorithm (only integrality constraints are relaxed in nodes and corresponding
+problems are solved with a SOCO solver) you need to specify this during
+configure. DisCO depends on OsiConic[1] in communicating with its solver. There
+are three solvers available, Ipopt[2], Mosek[3] and Cplex[4]. OsiIpopt[5],
+OsiMosek[6] and OsiCplex[7] implement OsiConic interface for the corresponding
+solvers.
+
+To compile DisCO with Mosek/Cplex you should first compile OSI with
+Mosek/Cplex. Then you should compile OsiMosek/OsiCplex. Please check OSI and
+OsiMosek/OsiCplex documentations for details.
+
+Once OsiMosek is compiled and installed, You can configure DisCO as follows.
+
+```shell
+./configure --with-soco-solver=mosek
+```
+
+For cplex just replace ```mosek``` with ```cplex```. Similarly for Ipopt just
+use ```ipopt```.
 
 ## 3. CURRENT TESTING STATUS ##
    - OA: well tested and works fine.
    - Cola: well tested.
    - Cplex: Missing functions in the interface.
    - Ipopt: works fine for branching strategy 0 (Dco_branchStrategy 0). Branching strategies should be updated considering IPM solvers.
+
+[1]: https://github.com/aykutbulut/OSI-CONIC
+[2]: https://projects.coin-or.org/Ipopt
+[3]: https://mosek.com/
+[4]: https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/
+[5]: https://github.com/aykutbulut/OsiIpopt
+[6]: https://github.com/aykutbulut/OSI-MOSEK
+[7]: https://github.com/aykutbulut/OsiCplex
+
 
 ## 4. SUPPORT ##
 ### 4.1 Authors ###
