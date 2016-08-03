@@ -20,17 +20,27 @@ bash BuildTools/get.dependencies.sh fetch > /dev/null
 bash BuildTools/get.dependencies.sh build
 ```
 
-This compiles DisCO with Outer Approximation (OA) algorithm. This algorithm relaxes integrality constraints and conic constraints. Performs a branch and bound search to find a solution that satisfy both of these constraints.
+This compiles DisCO with Outer Approximation (OA) algorithm. This algorithm
+relaxes integrality constraints and conic constraints. Performs a branch and
+bound search to find a solution that satisfy both of these constraints.
 
-There are other algorithms implemented in DisCO. You can use a typical branch and bound algorithm where at each node only integrality constraints are relaxed. For this you need to provide a Second Order Conic Optimization (SOCO) solver. For now DisCO supports 3 solvers, Ipopt, Mosek and Cplex. To use DisCO with Ipopt you need to add ```--with-soco-solver=ipopt``` flag to configure script. This can be acheived with the following command.
-```shell
-./configure --with-soco-solver=ipopt
-```
+There are other algorithms implemented in DisCO. You can use a typical branch
+and bound algorithm where at each node only integrality constraints are
+relaxed. For this you need to provide a Second Order Conic Optimization (SOCO)
+solver. For now DisCO supports 3 solvers, Ipopt, Mosek and Cplex. To use DisCO
+with Ipopt you need to add ```--with-soco-solver=ipopt``` flag to configure
+script. This can be acheived with the following command.  ```shell ./configure
+--with-soco-solver=ipopt ```
 
 Afterward you can call ```make install`` to build and install DisCO.
 
 ### 2.2 For advanced users ###
-Make sure all dependencies are accessible through pkg-config. Then DisCO's configure script will find them through pkg-config. Alternatively DisCO configure script can locate other projects if --prefix configure flag is set right. Assume other projects are installed at install_dir. Then use
+
+Make sure all dependencies are accessible through pkg-config. Then DisCO's
+configure script will find them through pkg-config. Alternatively DisCO
+configure script can locate other projects if --prefix configure flag is set
+right. Assume other projects are installed at install_dir. Then use
+
 ```shell
 ./configure --prefix=install_dir && make install
 ```
@@ -41,10 +51,10 @@ DisCO implements an Outer Approximation algorithm and it is the default
 behavior you will get. If you want to use DisCO with a typical branch and bound
 algorithm (only integrality constraints are relaxed in nodes and corresponding
 problems are solved with a SOCO solver) you need to specify this during
-configure. DisCO depends on OsiConic[1] in communicating with its solver. There
-are three solvers available, Ipopt[2], Mosek[3] and Cplex[4]. OsiIpopt[5],
-OsiMosek[6] and OsiCplex[7] implement OsiConic interface for the corresponding
-solvers.
+configure. DisCO depends on [OsiConic][1] in communicating with its
+solver. There are three solvers available, [Ipopt][2], [Mosek][3] and
+[Cplex][4]. [OsiIpopt][5], [OsiMosek][6] and [OsiCplex][7] implement OsiConic
+interface for the corresponding solvers.
 
 To compile DisCO with Mosek/Cplex you should first compile OSI with
 Mosek/Cplex. Then you should compile OsiMosek/OsiCplex. Please check OSI and
