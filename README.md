@@ -93,28 +93,18 @@ Similarly you can use ```cplex```, ```ipopt``` or ```cola``` instead of
 ## 3. Current Testing Status ##
 
   * Operating Systems
-
     - Linux: Well tested.
-
     - OS: I did not test DisCO in OS. In theory this should be possible.
-
   * Algorithms
-
     - OA: Well tested and works fine.
-
     - Ipopt: Works fine. There are missing functions in the interface. Needs
       testing.
-
     - Cola: Well tested, works fine.
-
     - Mosek: Works fine. There are missing functions in the interface. It is
       complete enough to work with DisCO. Needs extensive testing.
-
     - Cplex: Missing functions in the interface. Interface is complete enough
       to work with DisCO. Needs extensive testing.
-
   * Branching/Cutting
-
     - When OA algorithm is used and Ipopt is chosen as an IPM solver in
       CglConic, Ipopt might fail on solving at the root node for approximation
       purposes.
