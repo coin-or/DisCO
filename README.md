@@ -94,6 +94,20 @@ Mosek.
 Similarly you can use ```cplex```, ```ipopt``` or ```cola``` instead of
 ```mosek```. If no IPM solver is specified CGL-Conic will use Ipopt.
 
+
+### 1.4 Compiling with MPI ###
+
+To compile with MPI you need to give the following options to configure
+for DisCO and dependands projects.
+
+```shell
+./configure --disable-shared --enable-static --with-mpi-lib=/usr/lib/libmpich.so.3.2 --with-mpi-incdir=/usr/lib/mpich/include MPICC=mpicc.mpich MPICXX=mpic++.mpich"
+```
+
+You should update directory locations and executable names acording to your
+system and MPI implementation you intend to use. DisCO is tested with and works for
+both mpich2 and openmpi.
+
 ## 2. Current Testing Status ##
 
   * Operating Systems
@@ -112,6 +126,11 @@ Similarly you can use ```cplex```, ```ipopt``` or ```cola``` instead of
     - When OA algorithm is used and Ipopt is chosen as an IPM solver in
       CglConic, Ipopt might fail on solving at the root node for approximation
       purposes.
+  * MPI testing,
+    - MPICH2: Hangs (or seems hanging on some instances of CBLIB). Works fine
+      in most of the instances. Needs more testing for performance assesment.
+    - OpenMPI: Hangs (or seems hanging on some instances of CBLIB). Works fine
+      in most of the instances. Needs more testing for performance assesment.
 
 ## 3. Documentation ##
 
