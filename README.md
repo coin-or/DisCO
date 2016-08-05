@@ -46,7 +46,7 @@ with Ipopt you need to add ```--with-soco-solver=ipopt``` flag to configure
 script. This can be acheived with the following command.  ```shell ./configure
 --with-soco-solver=ipopt ```
 
-Afterward you can call ```make install`` to build and install DisCO.
+Afterward you can call ```make install``` to build and install DisCO.
 
 ### 2.2 For advanced users ###
 
