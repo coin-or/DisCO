@@ -1,16 +1,5 @@
 # DisCO [![Build Status](https://travis-ci.org/aykutbulut/DisCO.svg?branch=master)](https://travis-ci.org/aykutbulut/DisCO)
 
-DisCO is distributed under the Eclipse Public License and is
-freely redistributable. All source code and documentation is Copyright
-2014-2016 by Lehigh University, Aykut Bulut and Ted Ralphs. This
-README may be distributed freely.
-
-DisCO shares some commit history with COIN-OR project [CHiPPS-Blis][8]. DisCO
-version 0.1 has this heritage. Current master is re-written from scratch and
-does not have Blis commits.
-
-## 1. WHAT IS DisCO? ##
-
 DisCO (Discrete Conic Optimization) is a solver for Mixed Integer Second Order
 Conic Optimization (MISOCO) problems. It is developed on top of COIN-OR
 High-Performance Parallel Search ([CHiPPS][8]) framework.
@@ -19,9 +8,18 @@ DisCO does branch and bound search to solve MISOCO problems. DisCO depends on
 many other projects. It depends [OsiConic][1] on communicating with its
 relaxation solvers. It depends on [CglConic][9] to cut infeasible solutions.
 
-## 2. INSTALLATION ##
+DisCO shares some commit history with COIN-OR project [CHiPPS-Blis][8]. DisCO
+version 0.1 has this heritage. Current master is re-written from scratch and
+does not have Blis commits.
 
-### 2.1 Basic Installation ###
+DisCO is distributed under the Eclipse Public License and is
+freely redistributable. All source code and documentation is Copyright
+2014-2016 by Lehigh University, Aykut Bulut and Ted Ralphs. This
+README may be distributed freely.
+
+## 1. Installation ##
+
+### 1.1 Basic Installation ###
 
 DisCO depends on many other projects. You should compile the dependant projects
 if they are not installed in your system. The easiest way of installing DisCO
@@ -50,7 +48,7 @@ script. This can be acheived with the following command.
 
 Afterward you can call ```make install``` to build and install DisCO.
 
-### 2.2 For advanced users ###
+### 1.2 For advanced users ###
 
 Make sure all dependencies are accessible through pkg-config. Then DisCO's
 configure script will find them through pkg-config. Alternatively DisCO
@@ -61,7 +59,7 @@ set right. Assume other projects are installed at ```install_dir```. Then use
 ./configure --prefix=install_dir && make install
 ```
 
-### 2.3 Specifying an Algorithm/Solver ###
+### 1.3 Specifying an Algorithm/Solver ###
 
 DisCO implements an Outer Approximation algorithm and it is the default
 behavior you will get. If you want to use DisCO with a typical branch and bound
@@ -96,7 +94,7 @@ Mosek.
 Similarly you can use ```cplex```, ```ipopt``` or ```cola``` instead of
 ```mosek```. If no IPM solver is specified CGL-Conic will use Ipopt.
 
-## 3. Current Testing Status ##
+## 2. Current Testing Status ##
 
   * Operating Systems
     - Linux: Well tested.
@@ -115,19 +113,19 @@ Similarly you can use ```cplex```, ```ipopt``` or ```cola``` instead of
       CglConic, Ipopt might fail on solving at the root node for approximation
       purposes.
 
-## 4. Documentation ##
+## 3. Documentation ##
 
 You can refer to documentations of the dependant projects. DisCO uses doxygen
 for documentation purposes. ```make doxygen``` will produce a documentation
 of DisCO.
 
-## 5. SUPPORT ##
+## 4. SUPPORT ##
 
-### 5.1 Authors ###
+### 4.1 Authors ###
 
 Aykut Bulut (aykutblt@gmail.com), Ted Ralphs (tkralphs@lehigh.edu).
 
-### 5.2 Bug Reports ###
+### 4.2 Bug Reports ###
 
 Bug reports should be reported at the DisCO repository at
 https://github.com/aykutbulut/DisCO/issues/new
