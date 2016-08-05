@@ -43,8 +43,10 @@ and bound algorithm where at each node only integrality constraints are
 relaxed. For this you need to provide a Second Order Conic Optimization (SOCO)
 solver. For now DisCO supports 3 solvers, Ipopt, Mosek and Cplex. To use DisCO
 with Ipopt you need to add ```--with-soco-solver=ipopt``` flag to configure
-script. This can be acheived with the following command.  ```shell ./configure
---with-soco-solver=ipopt ```
+script. This can be acheived with the following command.
+```shell
+./configure --with-soco-solver=ipopt
+```
 
 Afterward you can call ```make install``` to build and install DisCO.
 
