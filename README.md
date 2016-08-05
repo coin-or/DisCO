@@ -127,8 +127,8 @@ You can refer to documentations of the dependant projects. DisCO uses doxygen fo
 
 ### 5.1 Authors ###
 
-Aykut Bulut (aykut@lehigh.edu)
-Ted Ralphs (tkralphs@lehigh.edu), Project Manager
+Aykut Bulut (aykutblt@gmail.com)
+Ted Ralphs (tkralphs@lehigh.edu)
 
 ### 5.2 Bug Reports ###
 
