@@ -65,7 +65,7 @@ DisCO implements an Outer Approximation algorithm and it is the default
 behavior you will get. If you want to use DisCO with a typical branch and bound
 algorithm (only integrality constraints are relaxed in nodes and corresponding
 problems are solved with a SOCO solver) you need to specify this during
-configure. DisCO depends on [OsiConic][2] in communicating with its
+configure. DisCO depends on [OsiConic][1] in communicating with its
 solver. There are three solvers available, [Ipopt][2], [Mosek][3] and
 [Cplex][4]. [OsiIpopt][5], [OsiMosek][6] and [OsiCplex][7] implement OsiConic
 interface for the corresponding solvers.
