@@ -23,7 +23,11 @@ relaxation solvers. It depends on [CglConic][9] to cut infeasible solutions.
 
 ### 2.1 Basic Installation ###
 
-s if they are not installed in your system. The easiest way of installing DisCO is using BuildTools fetch and build script. For this you can use the following commands in Linuxenvironment. After cloning DisCO, use
+DisCO depends on many other projects. You should compile the dependant projects
+if they are not installed in your system. The easiest way of installing DisCO
+is using BuildTools fetch and build script. For this you can use the following
+commands in Linuxenvironment. After cloning DisCO, use
+
 ```shell
 git clone --branch=stable/0.8 https://github.com/coin-or-tools/BuildTools
 bash BuildTools/get.dependencies.sh fetch > /dev/null
@@ -111,14 +115,15 @@ Similarly you can use ```cplex```, ```ipopt``` or ```cola``` instead of
 
 ## 4. Documentation ##
 
-You can refer to documentations of the dependant projects. DisCO uses doxygen for documentation purposes. ```make doxygen``` should produce a documentation of DisCO.
+You can refer to documentations of the dependant projects. DisCO uses doxygen
+for documentation purposes. ```make doxygen``` will produce a documentation
+of DisCO.
 
 ## 5. SUPPORT ##
 
 ### 5.1 Authors ###
 
-Aykut Bulut (aykutblt@gmail.com)
-Ted Ralphs (tkralphs@lehigh.edu)
+Aykut Bulut (aykutblt@gmail.com), Ted Ralphs (tkralphs@lehigh.edu).
 
 ### 5.2 Bug Reports ###
 
