@@ -11,6 +11,7 @@
 #include "DcoConicConstraint.hpp"
 #include "DcoBranchStrategyMaxInf.hpp"
 #include "DcoBranchStrategyPseudo.hpp"
+#include "DcoBranchStrategyStrong.hpp"
 #include "DcoConGenerator.hpp"
 #include "DcoLinearConGenerator.hpp"
 #include "DcoConicConGenerator.hpp"
@@ -1075,9 +1076,9 @@ void DcoModel::setBranchingStrategy() {
   // case DcoBranchingStrategyReliability:
   //   branchStrategy_ = new DcoBranchStrategyRel(this, reliability);
   //   break;
-  // case DcoBranchingStrategyStrong:
-  //   branchStrategy_ = new DcoBranchStrategyStrong(this);
-  //   break;
+  case DcoBranchingStrategyStrong:
+     branchStrategy_ = new DcoBranchStrategyStrong(this);
+     break;
   // case DcoBranchingStrategyBilevel:
   //   branchStrategy_ = new DcoBranchStrategyBilevel(this);
   //   break;
@@ -1100,9 +1101,9 @@ void DcoModel::setBranchingStrategy() {
   // case DcoBranchingStrategyReliability:
   //   rampUpBranchStrategy_ = new DcoBranchStrategyRel(this, reliability);
   //   break;
-  // case DcoBranchingStrategyStrong:
-  //   rampUpBranchStrategy_ = new DcoBranchStrategyStrong(this);
-  //   break;
+  case DcoBranchingStrategyStrong:
+     rampUpBranchStrategy_ = new DcoBranchStrategyStrong(this);
+     break;
   // case DcoBranchingStrategyBilevel:
   //   rampUpBranchStrategy_ = new DcoBranchStrategyBilevel(this);
   //   break;
