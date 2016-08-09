@@ -110,97 +110,97 @@ enum DcoLorentzConeType {
 };
 
 enum DcoSubproblemStatus{
-   DcoSubproblemStatusOptimal,
-   DcoSubproblemStatusAbandoned,
-   DcoSubproblemStatusPrimalInfeasible,
-   DcoSubproblemStatusDualInfeasible,
-   DcoSubproblemStatusPrimalObjLim,
-   DcoSubproblemStatusDualObjLim,
-   DcoSubproblemStatusIterLim,
-   DcoSubproblemStatusUnknown
+  DcoSubproblemStatusOptimal,
+  DcoSubproblemStatusAbandoned,
+  DcoSubproblemStatusPrimalInfeasible,
+  DcoSubproblemStatusDualInfeasible,
+  DcoSubproblemStatusPrimalObjLim,
+  DcoSubproblemStatusDualObjLim,
+  DcoSubproblemStatusIterLim,
+  DcoSubproblemStatusUnknown
 };
 
 enum DcoReturnStatus {
-   DcoReturnStatusOk = 0,
-   DcoReturnStatusErrLp,
-   DcoReturnStatusInfeasible,
-   DcoReturnStatusUnbounded,
-   DcoReturnStatusOverObjLim,
-   DcoReturnStatusFeasible,
-   DcoReturnStatusBranch,
-   DcoReturnStatusUnknown
+  DcoReturnStatusOk = 0,
+  DcoReturnStatusErrLp,
+  DcoReturnStatusInfeasible,
+  DcoReturnStatusUnbounded,
+  DcoReturnStatusOverObjLim,
+  DcoReturnStatusFeasible,
+  DcoReturnStatusBranch,
+  DcoReturnStatusUnknown
 };
 
 
 enum DcoCutStrategy {
-   DcoCutStrategyNotSet = -1,
-   DcoCutStrategyNone = 0,
-   DcoCutStrategyRoot,
-   DcoCutStrategyAuto,
-   DcoCutStrategyPeriodic
+  DcoCutStrategyNotSet = -1,
+  DcoCutStrategyNone = 0,
+  DcoCutStrategyRoot,
+  DcoCutStrategyAuto,
+  DcoCutStrategyPeriodic
 };
 
 enum DcoConicCutStrategy {
-   DcoConicCutStrategyNotSet = -1,
-   DcoConicCutStrategyNone = 0,
-   DcoConicCutStrategyRoot,
-   DcoConicCutStrategyAuto,
-   DcoConicCutStrategyPeriodic
+  DcoConicCutStrategyNotSet = -1,
+  DcoConicCutStrategyNone = 0,
+  DcoConicCutStrategyRoot,
+  DcoConicCutStrategyAuto,
+  DcoConicCutStrategyPeriodic
 };
 
 enum DcoHeurStrategy {
-   DcoHeurStrategyNotSet = -1,
-   DcoHeurStrategyNone = 0,
-   DcoHeurStrategyRoot,
-   DcoHeurStrategyAuto,
-   DcoHeurStrategyPeriodic,
-   DcoHeurStrategyBeforeRoot // Before solving first relaxation
+  DcoHeurStrategyNotSet = -1,
+  DcoHeurStrategyNone = 0,
+  DcoHeurStrategyRoot,
+  DcoHeurStrategyAuto,
+  DcoHeurStrategyPeriodic,
+  DcoHeurStrategyBeforeRoot // Before solving first relaxation
 };
 
 enum DcoHeurType {
-   DcoHeurTypeNotSet = -1,
-   DcoHeurTypeRounding
+  DcoHeurTypeNotSet = -1,
+  DcoHeurTypeRounding
 };
 
 enum DcoHotStartStrategy{
-   DcoHotStartBranchIncorrect,
-   DcoHotStartBranchCorrect
+  DcoHotStartBranchIncorrect,
+  DcoHotStartBranchCorrect
 };
 
 enum DcoBranchingStrategy{
-   DcoBranchingStrategyMaxInfeasibility,
-   DcoBranchingStrategyPseudoCost,
-   DcoBranchingStrategyReliability,
-   DcoBranchingStrategyStrong,
-   DcoBranchingStrategyBilevel
+  DcoBranchingStrategyMaxInfeasibility,
+  DcoBranchingStrategyPseudoCost,
+  DcoBranchingStrategyReliability,
+  DcoBranchingStrategyStrong,
+  DcoBranchingStrategyBilevel
 };
 
 enum DcoSolutionType {
-    DcoSolutionTypeBounding,
-    DcoSolutionTypeBranching,
-    DcoSolutionTypeDiving,
-    DcoSolutionTypeHeuristic,
-    DcoSolutionTypeStrong
+  DcoSolutionTypeBounding,
+  DcoSolutionTypeBranching,
+  DcoSolutionTypeDiving,
+  DcoSolutionTypeHeuristic,
+  DcoSolutionTypeStrong
 };
 
 /** Branching object type. */
 enum DcoBranchingObjectType {
-    DcoBranchingObjectTypeNone = 0,
-    DcoBranchingObjectTypeInt,
-    DcoBranchingObjectTypeSos,
-    DcoBranchingObjectTypeBilevel
+  DcoBranchingObjectTypeNone = 0,
+  DcoBranchingObjectTypeInt,
+  DcoBranchingObjectTypeSos,
+  DcoBranchingObjectTypeBilevel
 };
 
 /** Node branch direction, is it a left node or right */
 enum DcoNodeBranchDir {
-    DcoNodeBranchDirectionDown = 0,
-    DcoNodeBranchDirectionUp
+  DcoNodeBranchDirectionDown = 0,
+  DcoNodeBranchDirectionUp
 };
 
 /** Integral type */
 enum DcoIntegralityType {
-    DcoIntegralityTypeCont = 0,
-    DcoIntegralityTypeInt
+  DcoIntegralityTypeCont = 0,
+  DcoIntegralityTypeInt
 };
 
 #endif
