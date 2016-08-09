@@ -106,7 +106,7 @@ class DcoModel;
    print(), boundBranch(),
 
  */
-class DcoBranchStrategyMaxInf: public BcpsBranchStrategy {
+class DcoBranchStrategyMaxInf: virtual public BcpsBranchStrategy {
 public:
   DcoBranchStrategyMaxInf(DcoModel * model);
   virtual ~DcoBranchStrategyMaxInf() {}

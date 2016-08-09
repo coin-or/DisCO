@@ -89,7 +89,6 @@ int DcoBranchStrategyPseudo::createCandBranchObjects(BcpsTreeNode * node) {
   // add branch objects to branchObjects_
   setBranchObjects(bobjects);
   // bobjects are now owned by BcpsBranchStrategy, do not free them.
-  std::vector<BcpsBranchObject*>::iterator it;
   bobjects.clear();
   // set the branch object member of the node
   dco_node->setBranchObject(new DcoBranchObject(bestBranchObject()));

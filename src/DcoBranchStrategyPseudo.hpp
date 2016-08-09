@@ -50,7 +50,7 @@ class DcoTreeNode;
 
  */
 
-class DcoBranchStrategyPseudo: public BcpsBranchStrategy {
+class DcoBranchStrategyPseudo: virtual public BcpsBranchStrategy {
   /// score factor used. See class documentation.
   double score_factor_;
   ///@name Statistics
@@ -76,9 +76,12 @@ public:
   virtual int betterBranchObject(BcpsBranchObject const * current,
                                  BcpsBranchObject const * other);
 private:
+  /// Disable default constructor.
   DcoBranchStrategyPseudo();
-  DcoBranchStrategyPseudo & operator=(DcoBranchStrategyPseudo const & rhs);
+  /// Disable copy constructor.
   DcoBranchStrategyPseudo(DcoBranchStrategyPseudo const & other);
+  /// Disable copy assignment operator.
+  DcoBranchStrategyPseudo & operator=(DcoBranchStrategyPseudo const & rhs);
 };
 
 #endif
