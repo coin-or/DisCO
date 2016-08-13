@@ -84,7 +84,7 @@ void DcoTreeNode::convertToExplicit() {
   }
   // debug stuff
   std::stringstream debug_msg;
-  debug_msg << "Proc["
+  debug_msg << "["
             << broker_->getProcRank()
             << "] converting "
             << this
@@ -275,9 +275,10 @@ int DcoTreeNode::generateConstraints(BcpsConstraintPool * conPool) {
 
     // debug msg
     std::stringstream debug_msg;
-    debug_msg << "Called " << cg->name() << ", generated "
+    debug_msg << "[" << broker()->getProcRank() << "] Called "
+              << cg->name() << ", generated "
               << num_cons_generated << " cuts in "
-        << cut_time << " seconds.";
+              << cut_time << " seconds.";
     message_handler->message(0, "Dco", debug_msg.str().c_str(),
                              'G', DISCO_DLOG_CUT)
       << CoinMessageEol;
@@ -359,20 +360,32 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
 
   // debug stuff
   std::stringstream debug_msg;
-  debug_msg << "Processing node ";
-  debug_msg << this;
-  debug_msg << " index ";
-  debug_msg << getIndex();
-  debug_msg << " parent ";
-  debug_msg << getParent();
+  debug_msg << "["
+            << broker()->getProcRank()
+            << "] "
+            << "Processing node "
+            << this
+            << " index "
+            << getIndex()
+            << " parent "
+            << getParent();
   message_handler->message(0, "Dco", debug_msg.str().c_str(),
                            'G', DISCO_DLOG_PROCESS)
     << CoinMessageEol;
   // end of debug stuff
 
+  // std::cout << "Broker reports quality " << broker()->getIncumbentValue()
+  //           << std::endl;
+
   // check if this can be fathomed
-  double tailoff = model->dcoPar()->entry(DcoParams::tailOff);
-  if (getQuality() > broker()->getBestQuality() - tailoff) {
+  double rel_gap_limit = model->dcoPar()->entry(DcoParams::optimalRelGap);
+  double abs_gap_limit = model->dcoPar()->entry(DcoParams::optimalAbsGap);
+  double abs_gap = broker()->getIncumbentValue()-getQuality();
+  double rel_gap = abs_gap/fabs(broker()->getIncumbentValue());
+  //std::cout << "abs " << abs_gap << " limit " << abs_gap_limit << std::endl;
+  //std::cout << "rel " << rel_gap << " limit " << rel_gap_limit << std::endl;
+
+  if (rel_gap_limit>rel_gap or abs_gap_limit>abs_gap) {
     // debug message
     message_handler->message(0, "Dco", "Node fathomed due to parent quality.",
                              'G', DISCO_DLOG_PROCESS);
@@ -428,7 +441,8 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
 
     // debug print objective value after bounding
     std::stringstream debug_msg;
-    debug_msg << "Subproblem solved. "
+    debug_msg << "[" << broker()->getProcRank() << "] "
+              << "Subproblem solved. "
               << "status "
               << subproblem_status
               << " Obj value "
@@ -469,6 +483,36 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
     }
     // end of grumpy message
 
+    // check if this can be fathomed
+    double rel_gap_limit = model->dcoPar()->entry(DcoParams::optimalRelGap);
+    double abs_gap_limit = model->dcoPar()->entry(DcoParams::optimalAbsGap);
+    double abs_gap = broker()->getIncumbentValue()-getQuality();
+    double rel_gap = abs_gap/fabs(broker()->getIncumbentValue());
+    //std::cout << "abs " << abs_gap << " limit " << abs_gap_limit << std::endl;
+    //std::cout << "rel " << rel_gap << " limit " << rel_gap_limit << std::endl;
+    if (rel_gap_limit>rel_gap or abs_gap_limit>abs_gap) {
+      // debug message
+      debug_msg.str(std::string());
+      debug_msg << "[" << broker()->getProcRank() << "] "
+                << "Node fathomed due to quality.";
+      message_handler->message(0, "Dco", debug_msg.str().c_str(),
+                               'G', DISCO_DLOG_PROCESS);
+      // end of debug message
+      // grumpy message
+      model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_MED,
+                                         *model->dcoMessages_)
+        << broker()->timer().getTime()
+        << grumpyMessage[DISCO_GRUMPY_FATHOMED]
+        << getIndex()
+        << getParentIndex()
+        << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
+        << model->objSense()*getQuality()
+        << CoinMessageEol;
+      // end of grumpy message
+      setStatus(AlpsNodeStatusFathomed);
+      break;
+    }
+
     // call heuristics to search for a solution
     callHeuristics();
 
@@ -480,7 +524,8 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
     // debug message
     // reset debug message
     debug_msg.str(std::string());
-    debug_msg << "BCP function decided to"
+    debug_msg << "[" << broker()->getProcRank() << "] "
+              << "BCP function decided to"
               << " keep bounding "
               << keepBounding
               << " branch "
@@ -556,15 +601,23 @@ void DcoTreeNode::callHeuristics() {
       setDepth(depth_);
       // set index
       setIndex(index_);
-      model->storeSolution(sol);
+      // Store in Alps pool
+      broker()->addKnowledge(AlpsKnowledgeTypeSolution,
+                             sol,
+                             model->objSense() * sol->getQuality());
+      double best_quality = broker()->getBestQuality();
+      model->solver()->setDblParam(OsiDualObjectiveLimit,
+                                   model->objSense()*best_quality);
       // debug log
       message_handler->message(DISCO_HEUR_SOL_FOUND, *messages)
+        << broker()->getProcRank()
         << curr->name()
         << sol->getQuality();
     }
     else {
       // debug message
       message_handler->message(DISCO_HEUR_NOSOL_FOUND, *messages)
+        << broker()->getProcRank()
         << curr->name();
     }
   }
@@ -937,7 +990,8 @@ DcoTreeNode::branch() {
 
   // debug stuff
   std::stringstream debug_msg;
-  debug_msg << "Branching node "
+  debug_msg << "[" << broker()->getProcRank() << "] "
+            << "Branching node "
             << this
             << " variable "
             << branch_var
@@ -1266,11 +1320,33 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
   int numRowsInf;
   DcoSolution * sol = model->feasibleSolution(numColsInf, numRowsInf);
   if (numColsInf) {
-    // default strategy is to branch, for now
-    keepBounding = false;
-    branch = true;
-    generateVariables = false;
-    generateConstraints = false;
+    double cone_tol = model->dcoPar()->entry(DcoParams::coneTol);
+    double gap =  broker()->getIncumbentValue() - quality_;
+    //20*cone_tol
+    if (gap>0.0004) {
+      // gap is high, branch
+      //std::cout << "gap is large " << gap << std::endl;
+      keepBounding = false;
+      branch = true;
+      generateVariables = false;
+      generateConstraints = false;
+    }
+    else if (numRowsInf) {
+      std::cout << "gap is small " << gap << std::endl;
+      // gap is small, generate cuts
+      keepBounding = true;
+      branch = false;
+      generateVariables = false;
+      generateConstraints = true;
+    }
+    else {
+      std::cout << "gap is small but all rows feasible." << gap << std::endl;
+      // gap is small but all rows are feasible.
+      keepBounding = false;
+      branch = true;
+      generateVariables = false;
+      generateConstraints = false;
+    }
     return;
   }
   else {
@@ -1522,10 +1598,11 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
 
   // debug stuff
   std::stringstream debug_msg;
-  debug_msg << num_add;
-  debug_msg << " out of ";
-  debug_msg << conPool->getNumConstraints();
-  debug_msg << "  cuts added to the solver.";
+  debug_msg << "[" << broker()->getProcRank() << "] "
+            << num_add
+            << " out of "
+            << conPool->getNumConstraints()
+            << "  cuts added to the solver.";
   message_handler->message(0, "Dco", debug_msg.str().c_str(),
                            'G', DISCO_DLOG_CUT)
     << CoinMessageEol;
@@ -1553,8 +1630,8 @@ AlpsReturnStatus DcoTreeNode::encode(AlpsEncoded * encoded) const {
 
   // debug stuff
   std::stringstream debug_msg;
-  debug_msg << "Proc[" << broker_->getProcRank() << "]"
-            << " node " << this << " encoded." << std::endl;
+  debug_msg << "[" << broker_->getProcRank() << "] "
+            << "node " << this << " encoded." << std::endl;
   message_handler->message(0, "Dco", debug_msg.str().c_str(),
                               'G', DISCO_DLOG_MPI)
     << CoinMessageEol;
@@ -1596,8 +1673,8 @@ AlpsReturnStatus DcoTreeNode::decodeToSelf(AlpsEncoded & encoded) {
 
   // debug stuff
   std::stringstream debug_msg;
-  debug_msg << "Proc[" << broker_->getProcRank() << "]"
-            << " node decoded into " << this << "." << std::endl;
+  debug_msg << "[" << broker_->getProcRank() << "] "
+            << "node decoded into " << this << "." << std::endl;
   message_handler->message(0, "Dco", debug_msg.str().c_str(),
                               'G', DISCO_DLOG_MPI)
     << CoinMessageEol;

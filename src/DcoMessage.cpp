@@ -129,8 +129,8 @@ static Dco_message us_english[]=
     {DISCO_HEUR_STATS_FINAL, 502, 1, "Called %s heuristic %d times, found %d solutions, CPU time %.4f seconds, current strategy %d"},
     {DISCO_HEUR_STATS_NODE, 503, DISCO_DLOG_HEURISTIC, "Node %d, called %s heuristic %d times, found %d solutions, CPU time %.4f seconds, current strategy %d"},
     {DISCO_INVALID_HEUR_FREQUENCY, 9501, 1, "%d is not a valid heuristic frequency, changed it to %d."},
-    {DISCO_HEUR_SOL_FOUND, 504, DISCO_DLOG_HEURISTIC, "%s heuristic found solution, quality %f."},
-    {DISCO_HEUR_NOSOL_FOUND, 505, DISCO_DLOG_HEURISTIC, "%s heuristic is called and no solution is found."},
+    {DISCO_HEUR_SOL_FOUND, 504, DISCO_DLOG_HEURISTIC, "[%d] %s heuristic found solution, quality %f."},
+    {DISCO_HEUR_NOSOL_FOUND, 505, DISCO_DLOG_HEURISTIC, "[%d] %s heuristic is called and no solution is found."},
     // grumpy messages
     // time, node status, node id, parent id, branch direction, obj val [,sum
     // of column infeasibilities, count of infeasible cols]
