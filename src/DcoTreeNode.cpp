@@ -605,9 +605,9 @@ void DcoTreeNode::callHeuristics() {
       broker()->addKnowledge(AlpsKnowledgeTypeSolution,
                              sol,
                              model->objSense() * sol->getQuality());
-      double best_quality = broker()->getBestQuality();
+      double incum_value = broker()->getIncumbentValue();
       model->solver()->setDblParam(OsiDualObjectiveLimit,
-                                   model->objSense()*best_quality);
+                                   model->objSense()*incum_value);
       // debug log
       message_handler->message(DISCO_HEUR_SOL_FOUND, *messages)
         << broker()->getProcRank()
@@ -963,7 +963,7 @@ DcoTreeNode::branch() {
   // create return value and push the down and up nodes.
   std::vector< CoinTriple<AlpsNodeDesc*, AlpsNodeStatus, double> > res;
   // fathom if quality is bad
-  if (quality_ > broker()->getBestQuality()) {
+  if (quality_ > broker()->getIncumbentValue()) {
     // clear stored string
     message_handler->message(0, "Dco", "Bad quality. No need for "
                              "branching, fathom.",
@@ -1332,7 +1332,7 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
       generateConstraints = false;
     }
     else if (numRowsInf) {
-      std::cout << "gap is small " << gap << std::endl;
+      //std::cout << "gap is small " << gap << std::endl;
       // gap is small, generate cuts
       keepBounding = true;
       branch = false;
@@ -1340,7 +1340,7 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
       generateConstraints = true;
     }
     else {
-      std::cout << "gap is small but all rows feasible." << gap << std::endl;
+      //std::cout << "gap is small but all rows feasible." << gap << std::endl;
       // gap is small but all rows are feasible.
       keepBounding = false;
       branch = true;
@@ -1355,7 +1355,7 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     // numRowInf will have the number of infeasible conic constraints.
     // since we relax rows corresponding to conic constraints only.
     if (numRowsInf) {
-      if (quality_ > broker()->getBestQuality()) {
+      if (quality_ > broker()->getIncumbentValue()) {
         // clear stored string
         std::stringstream msg;
         msg << "Subproblem objective value is greater than problem upper bound."
@@ -1401,7 +1401,13 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     //in Alps level.
     sol->setIndex(broker()->getNumKnowledges(AlpsKnowledgeTypeSolution));
 
-    model->storeSolution(sol);
+    // Store in Alps pool
+    broker()->addKnowledge(AlpsKnowledgeTypeSolution,
+                           sol,
+                           model->objSense() * sol->getQuality());
+    double incum_val = broker()->getIncumbentValue();
+    model->solver()->setDblParam(OsiDualObjectiveLimit,
+                                 model->objSense()*incum_val);
     // set node status to fathomed.
     message_handler->message(0, "Dco", "Node is feasible, fathoming... ",
                              'G', DISCO_DLOG_BRANCH)
