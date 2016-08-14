@@ -83,6 +83,8 @@ enum DISCO_Message {
     DISCO_UNEXPECTED_ENCODE_STATUS,
     DISCO_UNEXPECTED_DECODE_STATUS,
     // more general messages
+    // welcome message
+    DISCO_WELCOME,
     // out of memory
     DISCO_OUT_OF_MEMORY,
     DISCO_NOT_IMPLEMENTED,

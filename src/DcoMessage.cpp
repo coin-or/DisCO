@@ -64,6 +64,7 @@ typedef struct {
 
 // Log messages external numbers
 //
+// 1 DisCO welcome message
 // 100-199 DcoModel::readInstance information messages
 // 200-299 DcoTreeNode information messages
 // 300-399 Constraint generation information messages
@@ -111,7 +112,7 @@ static Dco_message us_english[]=
     // solution process information
     {DISCO_NODE_LOG_HEADER, 701, 2, "Nodes Processed  Nodes Left     Lower Bound    Upper Bound    Gap(%%)  CPU Time"},
     {DISCO_NODE_LOG, 702, 2, "%-16d %-14d %s %s %s  %-d"},
-    {DISCO_NODE_LOG_NO_SOL, 703, 2, "%-16d %-14d %s  NA            NA      %-d"},
+    {DISCO_NODE_LOG_NO_SOL, 703, 2, "%-16d %-14d %s NA             NA      %-d"},
     // reading mps files
     {DISCO_READ_NOINTS, 20, 1, "Problem does not have integer variables"},
     {DISCO_READ_NOCONES, 21, 1, "Problem does not have conic constraints."},
@@ -147,6 +148,14 @@ static Dco_message us_english[]=
     {DISCO_UNEXPECTED_DECODE_STATUS, 9602, 0, "Unexpected decode return value, file: %s, line: %d."},
 
     // general messages
+    // welcome message
+    {DISCO_WELCOME, 1, 0,
+     "\nThis program contains DisCO, a library for solving mixed integer second order\n"
+     "cone optimization problems. Copyright 2014-2016 Lehigh University and others,\n"
+     "all rights reserved. DisCO is distributed with Eclipse Public License 1.0.\n"
+     "For more information visit https://github.com/aykutbulut/DisCO.\n"
+     "Version: %s\n"
+     "Build Date: %s\n"},
     {DISCO_OUT_OF_MEMORY,9901,1, "Out of memory, file: %s, line: %d."},
     {DISCO_NOT_IMPLEMENTED,9902,1, "Not implemented yet, file: %s, line: %d."},
     {DISCO_UNKNOWN_CONETYPE,9903,1, "Unknown cone type %d"},

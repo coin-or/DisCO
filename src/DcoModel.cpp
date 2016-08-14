@@ -76,8 +76,14 @@ DcoModel::DcoModel() {
   // set branch strategy
   branchStrategy_ = NULL;
   rampUpBranchStrategy_ = NULL;
-
   // cut and heuristics objects will be set in setupSelf.
+
+  dcoMessageHandler_->setPrefix(0);
+  dcoMessageHandler_->message(DISCO_WELCOME, *dcoMessages_)
+    << DISCO_VERSION
+    << __DATE__
+    << CoinMessageEol;
+  dcoMessageHandler_->setPrefix(1);
 }
 
 DcoModel::~DcoModel() {
@@ -1264,20 +1270,6 @@ DcoSolution * DcoModel::feasibleSolution(int & numInfColumns,
   return dco_sol;
 }
 
-// todo(aykut) why does this return int?
-// todo(aykut) what if objsense is -1 and problem is maximization?
-// todo(aykut) get rid of this function
-int DcoModel::storeSolution(DcoSolution * sol) {
-  double quality = sol->getQuality();
-  // Store in Alps pool, assumes minimization.
-  broker()->addKnowledge(AlpsKnowledgeTypeSolution,
-                                     sol,
-                                     objSense_ * quality);
-  double best_quality = broker()->getBestQuality();
-  solver_->setDblParam(OsiDualObjectiveLimit, objSense_*best_quality);
-  return AlpsReturnStatusOk;
-}
-
 void DcoModel::nodeLog(AlpsTreeNode * node, bool force) {
   if ((broker_->getProcType() != AlpsProcessTypeMaster) &&
       (broker_->getProcType() != AlpsProcessTypeSerial)) {
@@ -1290,7 +1282,6 @@ void DcoModel::nodeLog(AlpsTreeNode * node, bool force) {
   if (broker_->getProcType() == AlpsProcessTypeMaster) {
     return ;
   }
-  broker()->setNumNodeLog(broker()->getNumNodeLog()+1);
   // number of processed nodes
   int num_processed = broker()->getNumNodesProcessed();
   // number of partially processed nodes
@@ -1301,7 +1292,12 @@ void DcoModel::nodeLog(AlpsTreeNode * node, bool force) {
   AlpsTreeNode * bestNode = NULL;
   // need to print header if this is the first call of this function.
   dcoMessageHandler_->setPrefix(0);
-  if (broker()->getNumNodeLog()==1) {
+  if (broker()->getNumNodeLog()==0 or
+      broker()->getNumNodeLog()%50==0) {
+    //todo(aykut) fix this function's documentation in Alps. It does not
+    // count how many times this function is called, but how many times
+    // this function is logged.
+    broker()->setNumNodeLog(broker()->getNumNodeLog()+1);
     dcoMessageHandler_->message(DISCO_NODE_LOG_HEADER,
                                 *dcoMessages_)
       << CoinMessageEol;
@@ -1314,6 +1310,7 @@ void DcoModel::nodeLog(AlpsTreeNode * node, bool force) {
     }
     std::stringstream lb_ss;
     lb_ss << std::setw(14) << std::left << std::scientific << lb;
+    broker()->setNumNodeLog(broker()->getNumNodeLog()+1);
     if (broker()->hasKnowledge(AlpsKnowledgeTypeSolution)) {
       double ub = broker()->getIncumbentValue();
       double gap = 100.0*((ub-lb)/fabs(ub));

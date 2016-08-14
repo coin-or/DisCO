@@ -260,8 +260,6 @@ public:
   BcpsBranchStrategy * branchStrategy() {return branchStrategy_;}
   /// return Dco Parameter
   DcoParams const * dcoPar() const {return dcoPar_;}
-  /// store solution
-  int storeSolution(DcoSolution * sol);
   /// get upper bound of the objective value for minimization
   double bestQuality();
   //@}
