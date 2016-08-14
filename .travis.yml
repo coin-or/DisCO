@@ -30,7 +30,6 @@ before_script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$OSX" != "10.9" ]]; then brew install gcc; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$OSX" != "10.9" ]]; then brew install libblas-dev liblapack-dev; fi
   - git clone --branch=stable/0.8 https://github.com/coin-or-tools/BuildTools
-  - bash BuildTools/run_autotools -nr
   - bash BuildTools/get.dependencies.sh fetch > /dev/null
 
 script: bash BuildTools/get.dependencies.sh build --quiet --threads=10
