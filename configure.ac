@@ -28,7 +28,10 @@
 
 AC_PREREQ(2.59)
 
-AC_INIT([Disco],[trunk],[https://github.com/aykutbulut/DisCO/issues/new])
+m4_define([gitversion], m4_esyscmd([sh -c "git describe --always | cut -d '=' -f 2 | head --bytes -1"]))
+AC_INIT([Disco],[gitversion],[https://github.com/aykutbulut/DisCO/issues/new])
+
+AC_DEFINE([GIT_VERSION], [gitversion], [DisCO git version])
 
 AC_COPYRIGHT([
 #==========================================================================#
@@ -55,6 +58,11 @@ AC_COPYRIGHT([
 # Aykut Bulut. All Rights Reserved.                                        #
 #==========================================================================#
 ])
+
+##AC_REVISION([m4_esyscmd([./configure.commit])])
+
+
+
 
 # List one file in the package so that the configure script can test
 # whether the package is actually there

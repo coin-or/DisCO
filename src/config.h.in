@@ -39,6 +39,9 @@
 /* Release Version number of project */
 #undef DISCO_VERSION_RELEASE
 
+/* DisCO git version */
+#undef GIT_VERSION
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
