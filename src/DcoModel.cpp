@@ -482,7 +482,7 @@ void DcoModel::approximateCones() {
   ipm_iter = iter;
   iter = 0;
   // todo(aykut): parametrize 50
-  int oa_iter_limit = 3*largest_cone_size;
+  int oa_iter_limit = largest_cone_size;
   while(iter<oa_iter_limit) {
     OsiCuts * oa_cuts = new OsiCuts();
     CglConicCutGenerator * cg_oa =
@@ -1313,17 +1313,17 @@ void DcoModel::nodeLog(AlpsTreeNode * node, bool force) {
       lb = best_node->getQuality();
     }
     std::stringstream lb_ss;
-    lb_ss << std::setw(13) << std::scientific << lb;
+    lb_ss << std::setw(14) << std::left << std::scientific << lb;
     if (broker()->hasKnowledge(AlpsKnowledgeTypeSolution)) {
       double ub = broker()->getIncumbentValue();
       double gap = 100.0*((ub-lb)/fabs(ub));
       // we need to convert lb, ub, gap into strings, CoinMessageHandler is
       // not capable for this yet.
       std::stringstream ub_ss;
-      ub_ss << std::setw(13) << std::scientific << ub;
+      ub_ss << std::setw(14) << std::left << std::scientific << ub;
       std::stringstream gap_ss;
       gap_ss.precision(2);
-      gap_ss << std::setw(7) << std::fixed << gap;
+      gap_ss << std::setw(6) << std::fixed << std::left << gap;
       dcoMessageHandler_->message(DISCO_NODE_LOG, *dcoMessages_)
         << num_processed
         << num_partial

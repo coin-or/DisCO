@@ -109,7 +109,7 @@ static Dco_message us_english[]=
     {DISCO_ROOT_PROCESS, 30, 1, "Processing the root node (%d rows, %d columns)"},
     {DISCO_ROOT_TIME, 35, 1, "Processing the first root relaxation took CPU time %.4f seconds"},
     // solution process information
-    {DISCO_NODE_LOG_HEADER, 701, 2, "Nodes Processed  Nodes Left      Lower Bound   Upper Bound   Gap(%%)  CPU Time"},
+    {DISCO_NODE_LOG_HEADER, 701, 2, "Nodes Processed  Nodes Left     Lower Bound    Upper Bound    Gap(%%)  CPU Time"},
     {DISCO_NODE_LOG, 702, 2, "%-16d %-14d %s %s %s  %-d"},
     {DISCO_NODE_LOG_NO_SOL, 703, 2, "%-16d %-14d %s  NA            NA      %-d"},
     // reading mps files
