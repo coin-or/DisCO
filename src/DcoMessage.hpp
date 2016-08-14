@@ -47,6 +47,10 @@ enum DISCO_Message {
     DISCO_GAP_YES,
     DISCO_ROOT_PROCESS,
     DISCO_ROOT_TIME,
+    // solution process information
+    DISCO_NODE_LOG_HEADER,
+    DISCO_NODE_LOG,
+    DISCO_NODE_LOG_NO_SOL,
     // reading mps files
     DISCO_READ_NOINTS,
     DISCO_READ_NOCONES,

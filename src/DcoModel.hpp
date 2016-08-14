@@ -366,6 +366,10 @@ public:
   virtual void postprocess();
   /// Create the root node.
   virtual AlpsTreeNode * createRoot();
+  /** This function is called every time the node counts hits
+     AlpsParams::intParams::nodeLogInterval. It prints information related to
+     search status. In parallel mode only master should log. */
+  virtual void nodeLog(AlpsTreeNode * node, bool force);
   /// This is called at the end of the AlpsKnowledgeBroker::rootSearch
   /// Prints solution statistics
   virtual void modelLog();

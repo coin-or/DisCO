@@ -44,6 +44,7 @@
 #include <sstream>
 #include <numeric>
 #include <cmath>
+#include <iomanip>
 
 DcoModel::DcoModel() {
   solver_ = NULL;
@@ -1265,6 +1266,7 @@ DcoSolution * DcoModel::feasibleSolution(int & numInfColumns,
 
 // todo(aykut) why does this return int?
 // todo(aykut) what if objsense is -1 and problem is maximization?
+// todo(aykut) get rid of this function
 int DcoModel::storeSolution(DcoSolution * sol) {
   double quality = sol->getQuality();
   // Store in Alps pool, assumes minimization.
@@ -1274,6 +1276,73 @@ int DcoModel::storeSolution(DcoSolution * sol) {
   double best_quality = broker()->getBestQuality();
   solver_->setDblParam(OsiDualObjectiveLimit, objSense_*best_quality);
   return AlpsReturnStatusOk;
+}
+
+void DcoModel::nodeLog(AlpsTreeNode * node, bool force) {
+  if ((broker_->getProcType() != AlpsProcessTypeMaster) &&
+      (broker_->getProcType() != AlpsProcessTypeSerial)) {
+    // do nothing if not serial code nor master processor
+    return;
+  }
+  // todo(aykut) somehow AlpsKnowledgeBrokerMPI does not call this
+  // function properly. It calls this once and only header is printed.
+  // Check this. Disable in parallel mode.
+  if (broker_->getProcType() == AlpsProcessTypeMaster) {
+    return ;
+  }
+  broker()->setNumNodeLog(broker()->getNumNodeLog()+1);
+  // number of processed nodes
+  int num_processed = broker()->getNumNodesProcessed();
+  // number of partially processed nodes
+  int num_partial  = broker()->getNumNodesPartial();
+  // log interval
+  int interval =
+    broker()->getModel()->AlpsPar()->entry(AlpsParams::nodeLogInterval);
+  AlpsTreeNode * bestNode = NULL;
+  // need to print header if this is the first call of this function.
+  dcoMessageHandler_->setPrefix(0);
+  if (broker()->getNumNodeLog()==1) {
+    dcoMessageHandler_->message(DISCO_NODE_LOG_HEADER,
+                                *dcoMessages_)
+      << CoinMessageEol;
+  }
+  else if (force || (num_processed % interval == 0)) {
+    double lb = -ALPS_INFINITY;
+    AlpsTreeNode * best_node = broker()->getBestNode();
+    if (best_node) {
+      lb = best_node->getQuality();
+    }
+    std::stringstream lb_ss;
+    lb_ss << std::setw(13) << std::scientific << lb;
+    if (broker()->hasKnowledge(AlpsKnowledgeTypeSolution)) {
+      double ub = broker()->getIncumbentValue();
+      double gap = 100.0*((ub-lb)/fabs(ub));
+      // we need to convert lb, ub, gap into strings, CoinMessageHandler is
+      // not capable for this yet.
+      std::stringstream ub_ss;
+      ub_ss << std::setw(13) << std::scientific << ub;
+      std::stringstream gap_ss;
+      gap_ss.precision(2);
+      gap_ss << std::setw(7) << std::fixed << gap;
+      dcoMessageHandler_->message(DISCO_NODE_LOG, *dcoMessages_)
+        << num_processed
+        << num_partial
+        << lb_ss.str().c_str()
+        << ub_ss.str().c_str()
+        << gap_ss.str().c_str()
+        << static_cast<int>(broker()->timer().getCpuTime())
+        << CoinMessageEol;
+    }
+    else {
+      dcoMessageHandler_->message(DISCO_NODE_LOG_NO_SOL, *dcoMessages_)
+        << num_processed
+        << num_partial
+        << lb_ss.str().c_str()
+        << static_cast<int>(broker()->timer().getCpuTime())
+        << CoinMessageEol;
+    }
+  }
+  dcoMessageHandler_->setPrefix(1);
 }
 
 /// This is called at the end of the AlpsKnowledgeBroker::rootSearch
