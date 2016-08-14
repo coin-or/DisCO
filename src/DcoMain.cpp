@@ -44,9 +44,6 @@ int main(int argc, char *argv[]) {
   model.setSolver(solver);
 #ifdef  COIN_HAS_MPI
   AlpsKnowledgeBrokerMPI broker(argc, argv, model);
-#else
-  AlpsKnowledgeBrokerSerial broker(argc, argv, model);
-#endif
   //broker.passInMessageHandler(model.dcoMessageHandler_);
   // Register model, solution, and tree node
   broker.registerClass(AlpsKnowledgeTypeModel, new DcoModel);
@@ -54,6 +51,9 @@ int main(int argc, char *argv[]) {
   broker.registerClass(AlpsKnowledgeTypeNode, new DcoTreeNode);
   broker.registerClass(AlpsKnowledgeTypeNodeDesc, new DcoNodeDesc);
   broker.registerClass(999, new DcoBranchObject(-1, 0.0, 0.0));
+#else
+  AlpsKnowledgeBrokerSerial broker(argc, argv, model);
+#endif
 
   // Search for best solution
   broker.search(&model);
