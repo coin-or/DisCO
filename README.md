@@ -132,19 +132,40 @@ both mpich2 and openmpi.
     - OpenMPI: Hangs (or seems hanging on some instances of CBLIB). Works fine
       in most of the instances. Needs more testing for performance assesment.
 
-## 3. Documentation ##
+
+## 3. Using DisCO ##
+
+DisCO can read problems in Mosek's extended MPS format (it can handle CSECTION
+in mps files, see http://docs.mosek.com/7.1/capi/The_MPS_file_format.html) for
+SOCO problems. Once you compiled DisCO you can use is as follows.
+
+```shell
+path_to_disco/disco input.mps
+```
+
+This uses the default parameters (cut generation/branching/search etc.). You
+can modify its default behavior by specifying parameters. See src/disco.par.in
+file for available parameters. For example following solves input problem using
+strong branching with generating gomory cuts (available in OA algorithm only)
+in the root node.
+
+```shell
+path_to_disco/disco input.mps Alps_instance input.mps Dco_branchStrategy 3 Dco_cutGomoryStrategy 1
+```
+
+## 4. Documentation ##
 
 You can refer to documentations of the dependant projects. DisCO uses doxygen
 for documentation purposes. ```make doxygen``` will produce a documentation
 of DisCO.
 
-## 4. SUPPORT ##
+## 5. SUPPORT ##
 
-### 4.1 Authors ###
+### 5.1 Authors ###
 
 Aykut Bulut (aykutblt@gmail.com), Ted Ralphs (tkralphs@lehigh.edu).
 
-### 4.2 Bug Reports ###
+### 5.2 Bug Reports ###
 
 Bug reports should be reported at the DisCO repository at
 https://github.com/aykutbulut/DisCO/issues/new
