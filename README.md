@@ -136,7 +136,7 @@ path_to_disco/disco input.mps Alps_instance input.mps Dco_branchStrategy 3 Dco_c
     - Windows: Not tested.
   * Algorithms
     - OA: Well tested and works fine.
-    - Ipopt: Works fine. There are missing functions in the [interface][2]. Needs
+    - Ipopt: Works fine. There are missing functions in the [interface][5]. Needs
       testing.
     - Cola: Well tested, works fine.
     - Mosek: Works fine. There are missing functions in the interface. It is
