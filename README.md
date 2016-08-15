@@ -108,32 +108,7 @@ You should update directory locations and executable names acording to your
 system and MPI implementation you intend to use. DisCO is tested with and works for
 both mpich2 and openmpi.
 
-## 2. Current Testing Status ##
-
-  * Operating Systems
-    - Linux: Well tested.
-    - OS: I did not test DisCO in OS. In theory this should be possible.
-  * Algorithms
-    - OA: Well tested and works fine.
-    - Ipopt: Works fine. There are missing functions in the interface. Needs
-      testing.
-    - Cola: Well tested, works fine.
-    - Mosek: Works fine. There are missing functions in the interface. It is
-      complete enough to work with DisCO. Needs extensive testing.
-    - Cplex: Missing functions in the interface. Interface is complete enough
-      to work with DisCO. Needs extensive testing.
-  * Branching/Cutting
-    - When OA algorithm is used and Ipopt is chosen as an IPM solver in
-      CglConic, Ipopt might fail on solving at the root node for approximation
-      purposes.
-  * MPI testing,
-    - MPICH2: Hangs (or seems hanging on some instances of CBLIB). Works fine
-      in most of the instances. Needs more testing for performance assesment.
-    - OpenMPI: Hangs (or seems hanging on some instances of CBLIB). Works fine
-      in most of the instances. Needs more testing for performance assesment.
-
-
-## 3. Using DisCO ##
+## 2. Using DisCO ##
 
 DisCO can read problems in Mosek's extended MPS format (it can handle CSECTION
 in mps files, see http://docs.mosek.com/7.1/capi/The_MPS_file_format.html) for
@@ -152,6 +127,31 @@ in the root node.
 ```shell
 path_to_disco/disco input.mps Alps_instance input.mps Dco_branchStrategy 3 Dco_cutGomoryStrategy 1
 ```
+
+## 3. Current Testing Status ##
+
+  * Operating Systems
+    - Linux: Well tested.
+    - Mac OS: I did not test DisCO in OS. In theory this should work.
+    - Windows: Not tested.
+  * Algorithms
+    - OA: Well tested and works fine.
+    - Ipopt: Works fine. There are missing functions in the [interface][2]. Needs
+      testing.
+    - Cola: Well tested, works fine.
+    - Mosek: Works fine. There are missing functions in the interface. It is
+      complete enough to work with DisCO. Needs extensive testing.
+    - Cplex: Missing functions in the interface. Interface is complete enough
+      to work with DisCO. Needs extensive testing.
+  * Branching/Cutting
+    - When OA algorithm is used and Ipopt is chosen as an IPM solver in
+      CglConic, Ipopt might fail, on some problems, at the root node. You can
+      use Mosek or Cplex for this if it is available to you.
+  * MPI testing,
+    - MPICH2: Hangs (or seems hanging on some instances of CBLIB). Works fine
+      in most of the instances. Needs more testing for performance assesment.
+    - OpenMPI: Hangs (or seems hanging on some instances of CBLIB). Works fine
+      in most of the instances. Needs more testing for performance assesment.
 
 ## 4. Documentation ##
 
