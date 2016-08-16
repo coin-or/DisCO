@@ -62,12 +62,11 @@ bool DcoConicConGenerator::generateConstraints(BcpsConstraintPool & conPool) {
                            sizes, members, 1);
 
   // debug message
-  std::stringstream debug_msg;
-  debug_msg << "Conic cut generator generated ";
-  debug_msg << cuts->sizeRowCuts();
-  debug_msg << " cuts.";
-  message_handler->message(0, "Dco", debug_msg.str().c_str(),
-                              'G', DISCO_DLOG_CUT)
+  message_handler->message(DISCO_CUT_GENERATED, *messages)
+    << model->broker()->getProcRank()
+    // todo(aykut) fix name
+    << "FIXME"
+    << cuts->sizeRowCuts()
     << CoinMessageEol;
   // end of debug
 

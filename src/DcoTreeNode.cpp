@@ -37,11 +37,29 @@ struct Bound {
 
 
 DcoTreeNode::DcoTreeNode() {
+  bcpStats_.numBoundIter_ = 0;
+  bcpStats_.numTotalCuts_ = 0;
+  bcpStats_.numLastCuts_ = 0;
+  bcpStats_.numOaCuts_ = 0;
+  bcpStats_.numMilpCuts_ = 0;
+  bcpStats_.totalImp_ = 0.0;
+  bcpStats_.lastImp_ = 0.0;
+  bcpStats_.lastObjVal_ = 0.0;
+  bcpStats_.startObjVal_ = 0.0;
 }
 
 DcoTreeNode::DcoTreeNode(AlpsNodeDesc *& desc) {
   desc_ = desc;
   desc = NULL;
+  bcpStats_.numBoundIter_ = 0;
+  bcpStats_.numTotalCuts_ = 0;
+  bcpStats_.numLastCuts_ = 0;
+  bcpStats_.numOaCuts_ = 0;
+  bcpStats_.numMilpCuts_ = 0;
+  bcpStats_.totalImp_ = 0.0;
+  bcpStats_.lastImp_ = 0.0;
+  bcpStats_.lastObjVal_ = 0.0;
+  bcpStats_.startObjVal_ = 0.0;
 }
 
 DcoTreeNode::~DcoTreeNode() {
@@ -63,6 +81,7 @@ AlpsTreeNode * DcoTreeNode::createNewTreeNode(AlpsNodeDesc *& desc) const {
   if (frac < tol) {
     model->dcoMessageHandler_->message(DISCO_NODE_BRANCHONINT,
                                        *(model->dcoMessages_))
+      << broker()->getProcRank()
       << branched_index << CoinMessageEol;
   }
 
@@ -234,6 +253,7 @@ void DcoTreeNode::convertToRelative() {
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
   message_handler->message(DISCO_NOT_IMPLEMENTED, *messages)
+    << broker()->getProcRank()
     << __FILE__ << __LINE__ << CoinMessageEol;
   throw std::exception();
 }
@@ -327,6 +347,7 @@ void DcoTreeNode::decide_using_cg(bool & do_use,
     break;
   default:
     message_handler->message(DISCO_UNKNOWN_CUTSTRATEGY, *messages)
+      << broker()->getProcRank()
       << strategy << CoinMessageEol;
   }
 }
@@ -337,6 +358,7 @@ int DcoTreeNode::generateVariables(BcpsVariablePool * varPool) {
   CoinMessageHandler * message_handler = disco_model->dcoMessageHandler_;
   CoinMessages * messages = disco_model->dcoMessages_;
   message_handler->message(DISCO_NOT_IMPLEMENTED, *messages)
+    << broker()->getProcRank()
     << __FILE__ << __LINE__ << CoinMessageEol;
   throw std::exception();
   return 0;
@@ -347,6 +369,7 @@ int DcoTreeNode::chooseBranchingObject() {
   CoinMessageHandler * message_handler = disco_model->dcoMessageHandler_;
   CoinMessages * messages = disco_model->dcoMessages_;
   message_handler->message(DISCO_NOT_IMPLEMENTED, *messages)
+    << broker()->getProcRank()
     << __FILE__ << __LINE__ << CoinMessageEol;
   throw std::exception();
   return 0;
@@ -387,12 +410,18 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
 
   if (rel_gap_limit>rel_gap or abs_gap_limit>abs_gap) {
     // debug message
-    message_handler->message(0, "Dco", "Node fathomed due to parent quality.",
-                             'G', DISCO_DLOG_PROCESS);
+    message_handler->message(DISCO_NODE_FATHOM_PARENTQ, *model->dcoMessages_)
+      << broker()->getProcRank()
+      << getIndex()
+      << abs_gap
+      << rel_gap
+      << CoinMessageEol;
+
     // end of debug message
     // grumpy message
     model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_MED,
                                        *model->dcoMessages_)
+      << broker()->getProcRank()
       << broker()->timer().getTime()
       << grumpyMessage[DISCO_GRUMPY_FATHOMED]
       << getIndex()
@@ -414,7 +443,9 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
            status==AlpsNodeStatusDiscarded) {
     // this should not happen
     message_handler->message(DISCO_NODE_UNEXPECTEDSTATUS, *messages)
-      << static_cast<int>(status) << CoinMessageEol;
+      << broker()->getProcRank()
+      << static_cast<int>(status)
+      << CoinMessageEol;
   }
   return AlpsReturnStatusOk;
 }
@@ -436,21 +467,32 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
 
   while (keepBounding) {
     keepBounding = false;
+
+    // update last objective value
+    bcpStats_.lastObjVal_ = model->solver()->getObjValue();
     // solve subproblem corresponds to this node
     BcpsSubproblemStatus subproblem_status = bound();
 
-    // debug print objective value after bounding
-    std::stringstream debug_msg;
-    debug_msg << "[" << broker()->getProcRank() << "] "
-              << "Subproblem solved. "
-              << "status "
-              << subproblem_status
-              << " Obj value "
-              << quality_
-              << " estimate "
-              << solEstimate_;
-    message_handler->message(0, "Dco", debug_msg.str().c_str(),
-                             'G', DISCO_DLOG_PROCESS);
+    // update bcp statistics
+    if (bcpStats_.numBoundIter_==0) {
+      bcpStats_.startObjVal_ = model->solver()->getObjValue();
+      bcpStats_.lastObjVal_ = model->solver()->getObjValue();
+    }
+    else {
+      bcpStats_.totalImp_ = model->objSense()*
+        (bcpStats_.startObjVal_-model->solver()->getObjValue());
+      bcpStats_.lastImp_ = model->objSense()*
+        (bcpStats_.lastObjVal_-model->solver()->getObjValue());
+    }
+
+    // debug print solver status
+    message_handler->message(DISCO_SOLVER_STATUS, *messages)
+      << broker()->getProcRank()
+      << subproblem_status
+      << model->solver()->getObjValue()
+      << quality_
+      << solEstimate_
+      << CoinMessageEol;
     // end of debug stuff
 
     // grumpy message
@@ -471,6 +513,7 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
         sum_inf += infeas;
       }
       message_handler->message(DISCO_GRUMPY_MESSAGE_LONG, *messages)
+        << broker()->getProcRank()
         << broker()->timer().getTime()
         << grumpyMessage[DISCO_GRUMPY_CANDIDATE]
         << getIndex()
@@ -492,15 +535,17 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
     //std::cout << "rel " << rel_gap << " limit " << rel_gap_limit << std::endl;
     if (rel_gap_limit>rel_gap or abs_gap_limit>abs_gap) {
       // debug message
-      debug_msg.str(std::string());
-      debug_msg << "[" << broker()->getProcRank() << "] "
-                << "Node fathomed due to quality.";
-      message_handler->message(0, "Dco", debug_msg.str().c_str(),
-                               'G', DISCO_DLOG_PROCESS);
-      // end of debug message
+      message_handler->message(DISCO_NODE_FATHOM, *messages)
+        << broker()->getProcRank()
+        << getIndex()
+        << abs_gap
+        << rel_gap
+        << CoinMessageEol;
+
       // grumpy message
       model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_MED,
                                          *model->dcoMessages_)
+        << broker()->getProcRank()
         << broker()->timer().getTime()
         << grumpyMessage[DISCO_GRUMPY_FATHOMED]
         << getIndex()
@@ -512,7 +557,6 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
       setStatus(AlpsNodeStatusFathomed);
       break;
     }
-
     // call heuristics to search for a solution
     callHeuristics();
 
@@ -520,20 +564,13 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
     branchConstrainOrPrice(subproblem_status, keepBounding, do_branch,
                            genConstraints,
                            genVariables);
-
     // debug message
-    // reset debug message
-    debug_msg.str(std::string());
-    debug_msg << "[" << broker()->getProcRank() << "] "
-              << "BCP function decided to"
-              << " keep bounding "
-              << keepBounding
-              << " branch "
-              << do_branch
-              << " generate cons "
-              << genConstraints;
-    message_handler->message(0, "Dco", debug_msg.str().c_str(),
-                             'G', DISCO_DLOG_PROCESS);
+    message_handler->message(DISCO_NODE_BCP_DECISION, *messages)
+      << broker()->getProcRank()
+      << keepBounding
+      << do_branch
+      << genConstraints
+      << CoinMessageEol;
     // end of debug stuff
 
     if (getStatus()==AlpsNodeStatusFathomed) {
@@ -578,7 +615,8 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
                                " branchConstrainOrPrice() is buggy.", 'E', 0)
         << CoinMessageEol;
     }
-
+    // increase iteration number
+    bcpStats_.numBoundIter_++;
   }
   delete constraintPool;
   delete variablePool;
@@ -688,6 +726,7 @@ BcpsSubproblemStatus DcoTreeNode::bound() {
   }
   else {
     message_handler->message(DISCO_SOLVER_UNKNOWN_STATUS, *messages)
+      << broker()->getProcRank()
       << CoinMessageEol;
   }
   return subproblem_status;
@@ -729,6 +768,7 @@ int DcoTreeNode::installSubProblem() {
     int * indices = new int[numDelRows];
     if (indices==NULL) {
       message_handler->message(DISCO_OUT_OF_MEMORY, *messages)
+        << broker()->getProcRank()
         << __FILE__ << __LINE__ << CoinMessageEol;
       throw CoinError("Out of memory", "installSubProblem", "DcoTreeNode");
     }
@@ -957,17 +997,27 @@ DcoTreeNode::branch() {
   // check node status, this should be a pregnant node.
   if (getStatus()!=AlpsNodeStatusPregnant) {
       message_handler->message(DISCO_NODE_UNEXPECTEDSTATUS, *messages)
+        << broker()->getProcRank()
         << static_cast<int>(getStatus()) << CoinMessageEol;
   }
 
   // create return value and push the down and up nodes.
   std::vector< CoinTriple<AlpsNodeDesc*, AlpsNodeStatus, double> > res;
-  // fathom if quality is bad
-  if (quality_ > broker()->getIncumbentValue()) {
-    // clear stored string
-    message_handler->message(0, "Dco", "Bad quality. No need for "
-                             "branching, fathom.",
-                             'G', DISCO_DLOG_PROCESS)
+
+
+  // check if this can be fathomed
+  double rel_gap_limit = model->dcoPar()->entry(DcoParams::optimalRelGap);
+  double abs_gap_limit = model->dcoPar()->entry(DcoParams::optimalAbsGap);
+  double abs_gap = broker()->getIncumbentValue()-getQuality();
+  double rel_gap = abs_gap/fabs(broker()->getIncumbentValue());
+  //std::cout << "abs " << abs_gap << " limit " << abs_gap_limit << std::endl;
+  //std::cout << "rel " << rel_gap << " limit " << rel_gap_limit << std::endl;
+  if (rel_gap_limit>rel_gap or abs_gap_limit>abs_gap) {
+    message_handler->message(DISCO_NODE_FATHOM, *messages)
+      << broker()->getProcRank()
+      << getIndex()
+      << abs_gap
+      << rel_gap
       << CoinMessageEol;
     setStatus(AlpsNodeStatusFathomed);
     return res;
@@ -988,19 +1038,12 @@ DcoTreeNode::branch() {
   int branch_var = branch_object->index();
   double branch_value = branch_object->value();
 
-  // debug stuff
-  std::stringstream debug_msg;
-  debug_msg << "[" << broker()->getProcRank() << "] "
-            << "Branching node "
-            << this
-            << " variable "
-            << branch_var
-            << " value "
-            << branch_value;
-  message_handler->message(0, "Dco", debug_msg.str().c_str(),
-                           'G', DISCO_DLOG_BRANCH)
+  message_handler->message(DISCO_NODE_BRANCH, *messages)
+    << broker()->getProcRank()
+    << index_
+    << branch_var
+    << branch_value
     << CoinMessageEol;
-  // end of debug stuff
 
   // compute child nodes' warm start basis
   CoinWarmStartBasis * child_ws;
@@ -1113,6 +1156,7 @@ DcoTreeNode::branch() {
     sum_inf += infeas;
   }
   message_handler->message(DISCO_GRUMPY_MESSAGE_LONG, *messages)
+    << broker()->getProcRank()
     << broker()->timer().getTime()
     << grumpyMessage[DISCO_GRUMPY_BRANCHED]
     << getIndex()
@@ -1257,6 +1301,7 @@ void DcoTreeNode::processSetPregnant() {
     sum_inf += infeas;
   }
   model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_LONG, *model->dcoMessages_)
+    << broker()->getProcRank()
     << broker()->timer().getTime()
     << grumpyMessage[DISCO_GRUMPY_PREGNANT]
     << getIndex()
@@ -1282,23 +1327,21 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
   // infeasible or optimal.
   if (subproblem_status==BcpsSubproblemStatusPrimalInfeasible or
       subproblem_status==BcpsSubproblemStatusDualInfeasible) {
-
-    // debug message
-    message_handler->message(0, "Dco", "Subproblem is infeasible."
-                             " Status set to fathom",
-                             'G', DISCO_DLOG_PROCESS)
-      << CoinMessageEol;
-    // end of debug message
-
     // subproblem is infeasible, fathom
+    // debug message
+    message_handler->message(DISCO_SOLVER_INFEASIBLE, *messages)
+      << broker()->getProcRank()
+      << getIndex()
+      << CoinMessageEol;
     keepBounding = false;
     branch = false;
     generateConstraints = false;
     generateVariables = false;
 
     // grumpy message
-    model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_SHORT,
-                                       *model->dcoMessages_)
+    message_handler->message(DISCO_GRUMPY_MESSAGE_SHORT,
+                             *model->dcoMessages_)
+      << broker()->getProcRank()
       << broker()->timer().getTime()
       << grumpyMessage[DISCO_GRUMPY_INFEASIBLE]
       << getIndex()
@@ -1306,12 +1349,13 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
       << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
       << CoinMessageEol;
     // end of grumpy message
-
     setStatus(AlpsNodeStatusFathomed);
     return;
   }
   if (subproblem_status!=BcpsSubproblemStatusOptimal) {
     message_handler->message(DISCO_SOLVER_FAILED, *messages)
+      << broker()->getProcRank()
+      << getIndex()
       << CoinMessageEol;
   }
 
@@ -1319,83 +1363,117 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
   int numColsInf;
   int numRowsInf;
   DcoSolution * sol = model->feasibleSolution(numColsInf, numRowsInf);
-  if (numColsInf) {
+
+  // Following if else chain is as follows in summary
+  // if (both relaxed cols and rows are infeasible) {
+  //   decide what to do
+  // }
+  // else if (relaxed cols are infeasible) {
+  //   decide what to do
+  // }
+  // else if (relaxed rows are infeasible) {
+  //   decide what to do
+  // }
+  // else {
+  //   feasible solution found, store it. Fathom this node.
+  // }
+
+  if (numColsInf && numRowsInf) {
+    // both relaxed columns and relaxed rows are infeasible
+
+    // 1. generate OA cuts if they can fathom this node, ie. obj value is close to
+    // incumbent
+    // 2. generate milp cuts if they can get us integer solutions or improve
+    // obj value and we can fathom this node.
+    // 3. stop cutting if it does not improve obj value
+
     double cone_tol = model->dcoPar()->entry(DcoParams::coneTol);
     double gap =  broker()->getIncumbentValue() - quality_;
-    //20*cone_tol
-    if (gap>0.0004) {
-      // gap is high, branch
-      //std::cout << "gap is large " << gap << std::endl;
-      keepBounding = false;
-      branch = true;
-      generateVariables = false;
-      generateConstraints = false;
-    }
-    else if (numRowsInf) {
-      //std::cout << "gap is small " << gap << std::endl;
-      // gap is small, generate cuts
+
+    // if gap looks like acheivable with conic cuts. Gap is acheivable,
+    // (1) if it is small, (2) if OA cuts are doing good in improving obj value
+    if (gap< 0.004) {
+      std::cout << "iter " << bcpStats_.numBoundIter_ << " "
+                << "total cuts "<< bcpStats_.numTotalCuts_ << " "
+                << "last cuts "<< bcpStats_.numLastCuts_ << " "
+                << "total imp "<< bcpStats_.totalImp_ << " "
+                << "last imp "<< bcpStats_.lastImp_ << " "
+                << "gap " << gap
+                << std::endl;
+      // cut
       keepBounding = true;
       branch = false;
       generateVariables = false;
       generateConstraints = true;
     }
     else {
-      //std::cout << "gap is small but all rows feasible." << gap << std::endl;
-      // gap is small but all rows are feasible.
+      // branch
       keepBounding = false;
       branch = true;
       generateVariables = false;
       generateConstraints = false;
     }
-    return;
   }
-  else {
-    // all columns are feasible
-    // check conic feasibility
-    // numRowInf will have the number of infeasible conic constraints.
-    // since we relax rows corresponding to conic constraints only.
-    if (numRowsInf) {
-      if (quality_ > broker()->getIncumbentValue()) {
-        // clear stored string
-        std::stringstream msg;
-        msg << "Subproblem objective value is greater than problem upper bound."
-            << " The node is set for fathoming.";
-        message_handler->message(0, "Dco", msg.str().c_str(),
-                                 'G', DISCO_DLOG_PROCESS)
-          << CoinMessageEol;
+  else if (numColsInf) {
+    // only relaxed columns are infeasible, relaxed rows are feasible
+    // generate milp cuts or branch, for now we just branch
+    keepBounding = false;
+    branch = true;
+    generateVariables = false;
+    generateConstraints = false;
+  }
+  else if (numRowsInf) {
+    // all relaxed cols are feasbile, only relaxed rows are infeasible
 
-        // grumpy message
-        model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_MED,
-                                           *model->dcoMessages_)
-          << broker()->timer().getTime()
-          << grumpyMessage[DISCO_GRUMPY_FATHOMED]
-          << getIndex()
-          << getParentIndex()
-          << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
-          << model->objSense()*getQuality()
-          << CoinMessageEol;
-        // end of grumpy message
 
-        // set status as fathomed
-        setStatus(AlpsNodeStatusFathomed);
-        // stop bounding
-        keepBounding = false;
-        branch = false;
-        generateVariables = false;
-        generateConstraints = false;
-        return;
-      }
-      else {
-        // all cols are feasible, keep bounding and generateConstraints
-        keepBounding = true;
-        branch = false;
-        generateVariables = false;
-        generateConstraints = true;
-        return;
-      }
+
+    // todo(aykut) make fathoming process a function
+    // fathom this node if possible
+    double rel_gap_limit = model->dcoPar()->entry(DcoParams::optimalRelGap);
+    double abs_gap_limit = model->dcoPar()->entry(DcoParams::optimalAbsGap);
+    double abs_gap = broker()->getIncumbentValue()-getQuality();
+    double rel_gap = abs_gap/fabs(broker()->getIncumbentValue());
+    //std::cout << "abs " << abs_gap << " limit " << abs_gap_limit << std::endl;
+    //std::cout << "rel " << rel_gap << " limit " << rel_gap_limit << std::endl;
+    if (rel_gap_limit>rel_gap or abs_gap_limit>abs_gap) {
+      message_handler->message(DISCO_NODE_FATHOM, *messages)
+        << broker()->getProcRank()
+        << getIndex()
+        << abs_gap
+        << rel_gap
+        << CoinMessageEol;
+
+      // grumpy message
+      model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_MED,
+                                         *model->dcoMessages_)
+        << broker()->getProcRank()
+        << broker()->timer().getTime()
+        << grumpyMessage[DISCO_GRUMPY_FATHOMED]
+        << getIndex()
+        << getParentIndex()
+        << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
+        << model->objSense()*getQuality()
+        << CoinMessageEol;
+      // end of grumpy message
+
+      // set status as fathomed
+      setStatus(AlpsNodeStatusFathomed);
+      // stop bounding
+      keepBounding = false;
+      branch = false;
+      generateVariables = false;
+      generateConstraints = false;
+    }
+    else {
+      // generate cuts using IPMint or OA?
+      keepBounding = true;
+      branch = false;
+      generateVariables = false;
+      generateConstraints = true;
     }
   }
-  if (sol) {
+  else if (sol) {
+    // all relaxed cols and rows are feasible
     sol->setDepth(depth_);
     //todo(aykut) solution has an index field I beleive that should be filled
     //in Alps level.
@@ -1405,6 +1483,7 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     broker()->addKnowledge(AlpsKnowledgeTypeSolution,
                            sol,
                            model->objSense() * sol->getQuality());
+    // update solver with the new incumbent if better
     double incum_val = broker()->getIncumbentValue();
     model->solver()->setDblParam(OsiDualObjectiveLimit,
                                  model->objSense()*incum_val);
@@ -1416,6 +1495,7 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     // grumpy message
     model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_MED,
                                        *model->dcoMessages_)
+      << broker()->getProcRank()
       << broker()->timer().getTime()
       << grumpyMessage[DISCO_GRUMPY_INTEGER]
       << getIndex()
@@ -1425,18 +1505,19 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
       << CoinMessageEol;
     // end of grumpy message
 
-    // default strategy is to branch, for now
+    // stop bounding, branching, cutting.
     keepBounding = false;
     branch = false;
     generateVariables = false;
     generateConstraints = false;
 
-    solEstimate_ = quality_;
+    // set status to fathom
     setStatus(AlpsNodeStatusFathomed);
   }
   else {
-    message_handler->message(9998, "Dco", "This should not happen.",
-                             'E')
+    message_handler->message(DISCO_SHOULD_NOT_HAPPEN, *messages)
+      << broker()->getProcRank()
+      << getIndex()
       << CoinMessageEol;
   }
 }
@@ -1560,9 +1641,10 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
     if (violation < tailoff) {
       // cut is weak, skip it.
       cuts_to_del.push_back(i);
-      message_handler->message(0, "Dco", "Cut is ignored since the activity "
-                               "is less than tail off value.",
-                               'G', DISCO_DLOG_CUT);
+      message_handler->message(DISCO_INEFFECTIVE_CUT, *messages)
+        << broker()->getProcRank()
+        << getIndex()
+        << CoinMessageEol;
       continue;
     }
 
@@ -1576,9 +1658,6 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
     cuts_to_add[num_add++] = curr_con->createOsiRowCut(model);
   }
 
-  // update statistics of the cut generator
-
-
   // Add cuts to lp and adjust basis.
   CoinWarmStartBasis * ws = dynamic_cast<CoinWarmStartBasis*>
     (model->solver()->getWarmStart());
@@ -1586,7 +1665,12 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
   int num_solver_rows = model->solver()->getNumRows();
   int num_solver_cols = model->solver()->getNumCols();
 
+  // update statistics of the cut generator
   if (num_add > 0) {
+    // update cut statistics
+    bcpStats_.numTotalCuts_ += num_add;
+    bcpStats_.numLastCuts_ = num_add;
+    // apply cuts
     model->solver()->applyRowCuts(num_add, cuts_to_add);
     ws->resize(num_solver_rows + num_add, num_solver_cols);
     for (int i=0; i<num_add; ++i) {
@@ -1594,26 +1678,22 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
                          CoinWarmStartBasis::basic);
     }
     if (model->solver()->setWarmStart(ws) == false) {
-      throw CoinError("Fail setWarmStart() after cut installation.",
-                      "applyConstraints","DcoTreeNode");
+      message_handler->message(DISCO_FAILED_WARM_START, *messages)
+        << broker()->getProcRank()
+        << getIndex()
+        << CoinMessageEol;
     }
     for (int k=0; k<num_add; ++k) {
       delete cuts_to_add[k];
     }
   }
 
-  // debug stuff
-  std::stringstream debug_msg;
-  debug_msg << "[" << broker()->getProcRank() << "] "
-            << num_add
-            << " out of "
-            << conPool->getNumConstraints()
-            << "  cuts added to the solver.";
-  message_handler->message(0, "Dco", debug_msg.str().c_str(),
-                           'G', DISCO_DLOG_CUT)
+  message_handler->message(DISCO_CUTS_ADDED, *messages)
+    << broker()->getProcRank()
+    << getIndex()
+    << num_add
+    << conPool->getNumConstraints()
     << CoinMessageEol;
-  // end of debug stuff
-
 
   delete[] cuts_to_add;
   delete ws;
@@ -1634,14 +1714,10 @@ AlpsReturnStatus DcoTreeNode::encode(AlpsEncoded * encoded) const {
   status = BcpsTreeNode::encode(encoded);
   assert(status==AlpsReturnStatusOk);
 
-  // debug stuff
-  std::stringstream debug_msg;
-  debug_msg << "[" << broker_->getProcRank() << "] "
-            << "node " << this << " encoded." << std::endl;
-  message_handler->message(0, "Dco", debug_msg.str().c_str(),
-                              'G', DISCO_DLOG_MPI)
+  message_handler->message(DISCO_NODE_ENCODED, *messages)
+    << broker()->getProcRank()
+    << getIndex()
     << CoinMessageEol;
-  // end of debug stuff
 
   return status;
 }
@@ -1677,14 +1753,10 @@ AlpsReturnStatus DcoTreeNode::decodeToSelf(AlpsEncoded & encoded) {
   status = BcpsTreeNode::decodeToSelf(encoded);
   assert(status==AlpsReturnStatusOk);
 
-  // debug stuff
-  std::stringstream debug_msg;
-  debug_msg << "[" << broker_->getProcRank() << "] "
-            << "node decoded into " << this << "." << std::endl;
-  message_handler->message(0, "Dco", debug_msg.str().c_str(),
-                              'G', DISCO_DLOG_MPI)
+  message_handler->message(DISCO_NODE_DECODED, *messages)
+    << broker()->getProcRank()
+    << getIndex()
     << CoinMessageEol;
-  // end of debug stuff
 
   if (isPregnant()) {
     // delete branch object stored, we will re-create it. Ideally it should not

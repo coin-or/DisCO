@@ -1233,19 +1233,12 @@ DcoSolution * DcoModel::feasibleSolution(int & numInfColumns,
       }
     }
   }
-
-  // debug stuff
   // report largest column and row infeasibilities
-  std::stringstream debug_msg;
-  debug_msg << "Column infeasibility "
-            << col_inf
-            << " Row infeasibility "
-            << row_inf;
-  dcoMessageHandler_->message(0, "Dco", debug_msg.str().c_str(),
-                              'G', DISCO_DLOG_PROCESS)
+  dcoMessageHandler_->message(DISCO_INFEAS_REPORT, *dcoMessages_)
+    << broker()->getProcRank()
+    << col_inf
+    << row_inf
     << CoinMessageEol;
-  // end of debug stuff
-
 
   // create DcoSolution instance if feasbile
   DcoSolution * dco_sol = 0;
@@ -1255,17 +1248,11 @@ DcoSolution * DcoModel::feasibleSolution(int & numInfColumns,
     dco_sol = new DcoSolution(numCols_, sol, quality);
     dco_sol->setBroker(broker_);
 
-    // debug stuff
-    // flush stream
-    debug_msg.str(std::string());
-    debug_msg << "Solution found. ";
-    debug_msg << "Obj value ";
-    debug_msg << quality;
-    dcoMessageHandler_->message(0, "Dco", debug_msg.str().c_str(),
-                                'G', DISCO_DLOG_PROCESS)
+    // log debug information
+    dcoMessageHandler_->message(DISCO_SOL_FOUND, *dcoMessages_)
+      << broker()->getProcRank()
+      << quality
       << CoinMessageEol;
-    // end of debug stuff
-
   }
   return dco_sol;
 }
@@ -1382,6 +1369,10 @@ void DcoModel::modelLog() {
 void DcoModel::reportFeasibility() {
   // return if there is no solution to report
   if (broker_->getNumKnowledges(AlpsKnowledgeTypeSolution)==0) {
+    return;
+  }
+  if (broker_->getProcType()!=AlpsProcessTypeSerial and
+      broker_->getProcType()!=AlpsProcessTypeMaster) {
     return;
   }
   // get solution

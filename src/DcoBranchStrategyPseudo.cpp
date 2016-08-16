@@ -75,15 +75,11 @@ int DcoBranchStrategyPseudo::createCandBranchObjects(BcpsTreeNode * node) {
       bobjects.push_back(cb);
 
       // debug stuff
-      std::stringstream debug_msg;
-      debug_msg << "Pseudocost score of variable ";
-      debug_msg << relaxed[i];
-      debug_msg << " is ";
-      debug_msg << score;
-      message_handler->message(0, "Dco", debug_msg.str().c_str(),
-                               'G', DISCO_DLOG_BRANCH)
+      message_handler->message(DISCO_PSEUDO_REPORT, *messages)
+        << dco_model->broker()->getProcRank()
+        << relaxed[i]
+        << score
         << CoinMessageEol;
-      // end of debug stuff
     }
   }
   // add branch objects to branchObjects_
@@ -143,19 +139,13 @@ void DcoBranchStrategyPseudo::update_statistics(DcoTreeNode * node) {
     down_num_[branched_index]++;
 
     // debug stuff
-    std::stringstream debug_msg;
-    debug_msg << "Updating down pseudocost of "
-              << node->getDesc()->getBranchedInd()
-              << " from "
-              << old
-              << " to "
-              << down_derivative_[branched_index]
-              << " frac value "
-              << frac;
-    message_handler->message(0, "Dco", debug_msg.str().c_str(),
-                             'G', DISCO_DLOG_BRANCH)
+    message_handler->message(DISCO_PSEUDO_DUP, *messages)
+      << dco_model->broker()->getProcRank()
+      << node->getDesc()->getBranchedInd()
+      << old
+      << down_derivative_[branched_index]
+      << frac
       << CoinMessageEol;
-    // end of debug stuff
   }
   else if (dir==DcoNodeBranchDirectionUp) {
     frac = ceil(branched_value)-branched_value;
@@ -165,20 +155,14 @@ void DcoBranchStrategyPseudo::update_statistics(DcoTreeNode * node) {
     up_derivative_[branched_index] = (old*n + deriv)/(n+1);
     up_num_[branched_index]++;
 
-      // debug stuff
-    std::stringstream debug_msg;
-    debug_msg << "Updating up pseudocost of "
-              << node->getDesc()->getBranchedInd()
-              << " from "
-              << old
-              << " to "
-              << up_derivative_[branched_index]
-              << " frac value "
-              << frac;
-    message_handler->message(0, "Dco", debug_msg.str().c_str(),
-                             'G', DISCO_DLOG_BRANCH)
+    // debug stuff
+    message_handler->message(DISCO_PSEUDO_UUP, *messages)
+      << dco_model->broker()->getProcRank()
+      << node->getDesc()->getBranchedInd()
+      << old
+      << up_derivative_[branched_index]
+      << frac
       << CoinMessageEol;
-    // end of debug stuff
   }
   else {
     message_handler->message(9998, "Dco", "Invalid branching direction. ",

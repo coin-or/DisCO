@@ -199,6 +199,28 @@
 //
 
 class DcoTreeNode: public BcpsTreeNode {
+  /// Keeps statistics to help deciding branch/cut/price.
+  struct BcpStats {
+    // number of bound iterations
+    int numBoundIter_;
+    // total number of cuts added.
+    int numTotalCuts_;
+    // number of cuts in the last time
+    int numLastCuts_;
+    // total number of OA cuts added
+    int numOaCuts_;
+    // total number of milp cuts added
+    int numMilpCuts_;
+    // total objective improvement
+    double totalImp_;
+    // objective improvement since last bounding
+    double lastImp_;
+    // objective improvement from last bounding
+    double lastObjVal_;
+    // objective value at start
+    double startObjVal_;
+  };
+  BcpStats bcpStats_;
   /// Decide whether the given cut generator should be used, based on the cut
   /// strategy.
   void decide_using_cg(bool & do_use, DcoConGenerator const * cg) const;

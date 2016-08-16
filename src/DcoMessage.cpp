@@ -105,6 +105,7 @@ static Dco_message us_english[]=
     {DISCO_CUTOFF_INC, 43, 1, "Objective coefficients are multiples of %g"},
     {DISCO_CUT_STATS_FINAL, 53, 1, "Called %s cut generator %d times, generated %d cuts, CPU time %.4f seconds, current strategy %d"},
     {DISCO_CUT_STATS_NODE, 55, 1, "Node %d, called %s cut generator %d times, generated %d cuts, CPU time %.4f seconds, current strategy %d"},
+    {DISCO_CUT_GENERATED, 56, DISCO_DLOG_CUT, "[%d] Cut generator %s generated %d cuts."},
     {DISCO_GAP_NO, 57, 1, "Relative optimality gap is infinity because no solution was found"},
     {DISCO_GAP_YES, 58, 1, "Relative optimality gap is %.2f%%"},
     {DISCO_ROOT_PROCESS, 30, 1, "Processing the root node (%d rows, %d columns)"},
@@ -118,18 +119,34 @@ static Dco_message us_english[]=
     {DISCO_READ_NOCONES, 21, 1, "Problem does not have conic constraints."},
     {DISCO_READ_MPSERROR, 9001, 1, "Reading conic mps file failed with code %d." },
     {DISCO_READ_MPSFILEONLY,9002, 1, "Mosek style conic mps files only."},
-    {DISCO_READ_CONEERROR, 9002, 1, "Invalid cone type."},
-    {DISCO_READ_ROTATEDCONESIZE, 9002, 1, "Rotated cones should have at least 3 members."},
+    {DISCO_READ_CONEERROR, 9003, 1, "Invalid cone type."},
+    {DISCO_READ_ROTATEDCONESIZE, 9004, 1, "Rotated cones should have at least 3 members."},
     {DISCO_READ_CONESTATS1, 101, 1, "Problem has %d cones."},
     {DISCO_READ_CONESTATS2, 102, 1, "Cone %d has %d entries (type %d)"},
     // tree node
-    {DISCO_NODE_BRANCHONINT, 9201, 1, "Branched on integer variable. Variable index %d."},
-    {DISCO_NODE_UNEXPECTEDSTATUS,9202,1, "Unexpected node status %d"},
+    {DISCO_NODE_BRANCHONINT, 9201, 1, "[%d] Branched on integer variable. Variable index %d."},
+    {DISCO_NODE_UNEXPECTEDSTATUS,9202,1, "[%d] Unexpected node status %d"},
+    {DISCO_NODE_FATHOM_PARENTQ, 203, DISCO_DLOG_PROCESS,
+     "[%d] Node %d fathomed due to parent quality, abs gap %f, relative gap %f."},
+    {DISCO_NODE_FATHOM, 204, DISCO_DLOG_PROCESS,
+     "[%d] Node %d fathomed due to quality, abs gap %f, relative gap %f."},
+    {DISCO_NODE_BCP_DECISION, 205, DISCO_DLOG_PROCESS,
+     "[%d] BCP function decided to keep bounding %d, branch %d, generate cons %d."},
+    {DISCO_NODE_BRANCH, 206, DISCO_DLOG_BRANCH,
+     "[%d] Branching node %d, variable %d, value %f."},
+    {DISCO_NODE_ENCODED, 207, DISCO_DLOG_MPI, "[%d] Node %d encoded."},
+    {DISCO_NODE_DECODED, 208, DISCO_DLOG_MPI, "[%d] Node decoded into %d."},
     // constraint generation
     {DISCO_INVALID_CUT_FREQUENCY,9301,1, "%d is not a valid cut frequency, changed it to %d."},
+    {DISCO_INEFFECTIVE_CUT, 302, DISCO_DLOG_CUT, "[%d] Node %d, cut is ignored since the activity is low."},
+    {DISCO_CUTS_ADDED, 303, DISCO_DLOG_CUT, "[%d] Node %d, %d out of %d cuts added to the solver."},
     // relaxation solver messages
-    {DISCO_SOLVER_UNKNOWN_STATUS,9401,1, "Unknown relaxation solver status."},
-    {DISCO_SOLVER_FAILED,9402,1, "Relaxation solver failed to solve the subproblem."},
+    {DISCO_SOLVER_UNKNOWN_STATUS,9401, 1, "[%d] Unknown relaxation solver status."},
+    {DISCO_SOLVER_FAILED,9402, 1, "[%d] Relaxation solver failed in node %d."},
+    {DISCO_SOLVER_STATUS, 403, DISCO_DLOG_PROCESS,
+     "[%d] Subproblem solved, status %d, obj value %f, quality %f, estimate %f."},
+    {DISCO_SOLVER_INFEASIBLE, 404, DISCO_DLOG_PROCESS, "[%d] Node %d is infeasible. Status set to fathom."},
+    {DISCO_FAILED_WARM_START, 9405, DISCO_DLOG_PROCESS, "[%d] Node %d, setting warm start failed."},
     // heuristics
     {DISCO_HEUR_BEFORE_ROOT, 501, 4, "%s heuristic found a solution; quality is %g"},
     {DISCO_HEUR_STATS_FINAL, 502, 1, "Called %s heuristic %d times, found %d solutions, CPU time %.4f seconds, current strategy %d"},
@@ -137,17 +154,22 @@ static Dco_message us_english[]=
     {DISCO_INVALID_HEUR_FREQUENCY, 9501, 1, "%d is not a valid heuristic frequency, changed it to %d."},
     {DISCO_HEUR_SOL_FOUND, 504, DISCO_DLOG_HEURISTIC, "[%d] %s heuristic found solution, quality %f."},
     {DISCO_HEUR_NOSOL_FOUND, 505, DISCO_DLOG_HEURISTIC, "[%d] %s heuristic is called and no solution is found."},
+    // branch strategies
+    {DISCO_PSEUDO_REPORT, 551, DISCO_DLOG_BRANCH, "[%d] Pseudocost score of variable %d is %f."},
+    {DISCO_PSEUDO_DUP, 552, DISCO_DLOG_BRANCH, "[%d] Updating down pseudocost of %d from %f to %f, frac value %f."},
+    {DISCO_PSEUDO_UUP, 553, DISCO_DLOG_BRANCH, "[%d] Updating up pseudocost of %d from %f to %f, frac value %f."},
     // grumpy messages
     // time, node status, node id, parent id, branch direction, obj val [,sum
     // of column infeasibilities, count of infeasible cols]
-    {DISCO_GRUMPY_MESSAGE_LONG, 900, DISCO_DLOG_GRUMPY, "%.6f %s %d %d %c %.6f %.6f %d"},
-    {DISCO_GRUMPY_MESSAGE_MED, 900, DISCO_DLOG_GRUMPY, "%.6f %s %d %d %c %.6f"},
-    {DISCO_GRUMPY_MESSAGE_SHORT, 900, DISCO_DLOG_GRUMPY, "%.6f %s %d %d %c"},
+    {DISCO_GRUMPY_MESSAGE_LONG, 900, DISCO_DLOG_GRUMPY, "[%d] %.6f %s %d %d %c %.6f %.6f %d"},
+    {DISCO_GRUMPY_MESSAGE_MED, 900, DISCO_DLOG_GRUMPY, "[%d] %.6f %s %d %d %c %.6f"},
+    {DISCO_GRUMPY_MESSAGE_SHORT, 900, DISCO_DLOG_GRUMPY, "[%d] %.6f %s %d %d %c"},
     // Parallelization related messages
     {DISCO_UNEXPECTED_ENCODE_STATUS, 9601, 0, "Unexpected encode return value, file: %s, line: %d."},
     {DISCO_UNEXPECTED_DECODE_STATUS, 9602, 0, "Unexpected decode return value, file: %s, line: %d."},
-
     // general messages
+    {DISCO_INFEAS_REPORT, 603, DISCO_DLOG_PROCESS, "[%d] Column infeas %f, row infeas %f."},
+    {DISCO_SOL_FOUND, 604, DISCO_DLOG_PROCESS, "[%d] Solution found, quality %f."},
     // welcome message
     {DISCO_WELCOME, 1, 0,
      "\nThis program contains DisCO, a library for solving mixed integer second order\n"
@@ -156,11 +178,12 @@ static Dco_message us_english[]=
      "For more information visit https://github.com/aykutbulut/DisCO.\n"
      "Version: %s\n"
      "Build Date: %s\n"},
-    {DISCO_OUT_OF_MEMORY,9901,1, "Out of memory, file: %s, line: %d."},
-    {DISCO_NOT_IMPLEMENTED,9902,1, "Not implemented yet, file: %s, line: %d."},
+    {DISCO_OUT_OF_MEMORY,9901,1, "[%d] Out of memory, file: %s, line: %d."},
+    {DISCO_NOT_IMPLEMENTED,9902,1, "[%d] Not implemented yet, file: %s, line: %d."},
     {DISCO_UNKNOWN_CONETYPE,9903,1, "Unknown cone type %d"},
     {DISCO_UNKNOWN_BRANCHSTRATEGY,9904,1, "Unknown branch strategy %d"},
-    {DISCO_UNKNOWN_CUTSTRATEGY,9905,1, "Unknown cut strategy %d"},
+    {DISCO_UNKNOWN_CUTSTRATEGY,9905,1, "[%d] Unknown cut strategy %d"},
+    {DISCO_SHOULD_NOT_HAPPEN, 9906, 0, "[%d] Node %d, this should not happen."},
     {DISCO_DUMMY_END, 9999, 0, ""}
 };
 
