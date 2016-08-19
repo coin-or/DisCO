@@ -480,9 +480,9 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
     }
     else {
       bcpStats_.totalImp_ = model->objSense()*
-        (bcpStats_.startObjVal_-model->solver()->getObjValue());
+        (model->solver()->getObjValue()-bcpStats_.startObjVal_);
       bcpStats_.lastImp_ = model->objSense()*
-        (bcpStats_.lastObjVal_-model->solver()->getObjValue());
+        (model->solver()->getObjValue()-bcpStats_.lastObjVal_);
     }
 
     // debug print solver status
@@ -1323,6 +1323,17 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
 
+  // get cone info
+  int num_cones = model->getNumCoreConicConstraints();
+  int const * cone_start = model->coneStart();
+  int largest_cone_size = 0;
+  for (int i=0; i<num_cones; ++i) {
+    int size = cone_start[i+1]-cone_start[i];
+    if (size>largest_cone_size) {
+      largest_cone_size = size;
+    }
+  }
+
   // check whether the subproblem solved properly, solver status should be
   // infeasible or optimal.
   if (subproblem_status==BcpsSubproblemStatusPrimalInfeasible or
@@ -1390,16 +1401,25 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     double cone_tol = model->dcoPar()->entry(DcoParams::coneTol);
     double gap =  broker()->getIncumbentValue() - quality_;
 
+    if (largest_cone_size<=3) {
+      // branch
+      keepBounding = false;
+      branch = true;
+      generateVariables = false;
+      generateConstraints = false;
+    }
+    //std::cout << bcpStats_.lastImp_ << std::endl;
     // if gap looks like acheivable with conic cuts. Gap is acheivable,
     // (1) if it is small, (2) if OA cuts are doing good in improving obj value
-    if (gap< 0.004) {
-      std::cout << "iter " << bcpStats_.numBoundIter_ << " "
-                << "total cuts "<< bcpStats_.numTotalCuts_ << " "
-                << "last cuts "<< bcpStats_.numLastCuts_ << " "
-                << "total imp "<< bcpStats_.totalImp_ << " "
-                << "last imp "<< bcpStats_.lastImp_ << " "
-                << "gap " << gap
-                << std::endl;
+    else if (((bcpStats_.numBoundIter_<2) or (bcpStats_.lastImp_>0.0001*gap)) and
+        (bcpStats_.numBoundIter_<100)) {
+      // std::cout << "iter " << bcpStats_.numBoundIter_ << " "
+      //           << "total cuts "<< bcpStats_.numTotalCuts_ << " "
+      //           << "last cuts "<< bcpStats_.numLastCuts_ << " "
+      //           << "total imp "<< bcpStats_.totalImp_ << " "
+      //           << "last imp "<< bcpStats_.lastImp_ << " "
+      //           << "gap " << gap
+      //           << std::endl;
       // cut
       keepBounding = true;
       branch = false;
@@ -1424,53 +1444,11 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
   }
   else if (numRowsInf) {
     // all relaxed cols are feasbile, only relaxed rows are infeasible
-
-
-
-    // todo(aykut) make fathoming process a function
-    // fathom this node if possible
-    double rel_gap_limit = model->dcoPar()->entry(DcoParams::optimalRelGap);
-    double abs_gap_limit = model->dcoPar()->entry(DcoParams::optimalAbsGap);
-    double abs_gap = broker()->getIncumbentValue()-getQuality();
-    double rel_gap = abs_gap/fabs(broker()->getIncumbentValue());
-    //std::cout << "abs " << abs_gap << " limit " << abs_gap_limit << std::endl;
-    //std::cout << "rel " << rel_gap << " limit " << rel_gap_limit << std::endl;
-    if (rel_gap_limit>rel_gap or abs_gap_limit>abs_gap) {
-      message_handler->message(DISCO_NODE_FATHOM, *messages)
-        << broker()->getProcRank()
-        << getIndex()
-        << abs_gap
-        << rel_gap
-        << CoinMessageEol;
-
-      // grumpy message
-      model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_MED,
-                                         *model->dcoMessages_)
-        << broker()->getProcRank()
-        << broker()->timer().getTime()
-        << grumpyMessage[DISCO_GRUMPY_FATHOMED]
-        << getIndex()
-        << getParentIndex()
-        << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
-        << model->objSense()*getQuality()
-        << CoinMessageEol;
-      // end of grumpy message
-
-      // set status as fathomed
-      setStatus(AlpsNodeStatusFathomed);
-      // stop bounding
-      keepBounding = false;
-      branch = false;
-      generateVariables = false;
-      generateConstraints = false;
-    }
-    else {
-      // generate cuts using IPMint or OA?
-      keepBounding = true;
-      branch = false;
-      generateVariables = false;
-      generateConstraints = true;
-    }
+    // generate cuts using IPMint or OA?
+    keepBounding = true;
+    branch = false;
+    generateVariables = false;
+    generateConstraints = true;
   }
   else if (sol) {
     // all relaxed cols and rows are feasible

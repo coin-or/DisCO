@@ -286,6 +286,9 @@ public:
   int numIntegerCols() const { return numIntegerCols_; }
   /// Get indices of integer variables. Size of numIntegerCols().
   int const * integerCols() const { return integerCols_; }
+  int const * coneStart() const { return coneStart_; }
+  int const * coneMembers() const { return coneMembers_; }
+  int const * coneType() const { return coneType_; }
   //@}
 
   ///@name Querry relaxed problem objects

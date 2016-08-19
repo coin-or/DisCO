@@ -1257,6 +1257,10 @@ DcoSolution * DcoModel::feasibleSolution(int & numInfColumns,
   return dco_sol;
 }
 
+//todo(aykut) When all node bounds are worse than incumbent solution
+// this function reports negative gap.
+// this happens since Alps takes nodes that will be fathomed into account,
+// in (getBestNode function).
 void DcoModel::nodeLog(AlpsTreeNode * node, bool force) {
   if ((broker_->getProcType() != AlpsProcessTypeMaster) &&
       (broker_->getProcType() != AlpsProcessTypeSerial)) {
