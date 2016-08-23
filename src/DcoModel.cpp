@@ -1306,6 +1306,11 @@ void DcoModel::nodeLog(AlpsTreeNode * node, bool force) {
     if (broker()->hasKnowledge(AlpsKnowledgeTypeSolution)) {
       double ub = broker()->getIncumbentValue();
       double gap = 100.0*((ub-lb)/fabs(ub));
+      // check whether lb is larger than ub, this might happen if there are
+      // nodes that are not fathomed yet.
+      if (lb>ub) {
+        gap = 0.0;
+      }
       // we need to convert lb, ub, gap into strings, CoinMessageHandler is
       // not capable for this yet.
       std::stringstream ub_ss;
