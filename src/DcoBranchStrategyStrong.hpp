@@ -19,7 +19,9 @@ class DcoBranchStrategyStrong : virtual public BcpsBranchStrategy {
   /// update score for the given branch object.
   void updateScore(BcpsBranchObject * bobject, double orig_lb,
                    double orig_ub, double orig_obj) const;
-public:
+  // return integer infeasibility for the given value
+  double infeas(double value) const;
+ public:
   ///@name Constructor and Destructor.
   //@{
   /// Constructor.

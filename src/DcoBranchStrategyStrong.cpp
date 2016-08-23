@@ -22,15 +22,43 @@ void DcoBranchStrategyStrong::updateScore(BcpsBranchObject * bobject,
   // solve subproblem for the down branch
   dco_model->solver()->setColUpper(bobject->index(), dco_bobject->ubDownBranch());
   dco_model->solver()->solveFromHotStart();
-  double down_obj = dco_model->solver()->getObjValue();
+  double down_obj = 0.5*ALPS_INFINITY;
+  // std::cout << "abandoned " << dco_model->solver()->isAbandoned()<< std::endl;
+  // std::cout << "optimal " << dco_model->solver()->isProvenOptimal()<< std::endl;
+  // std::cout << "primal inf" << dco_model->solver()->isProvenPrimalInfeasible()<< std::endl;
+  // std::cout << "dual inf" << dco_model->solver()->isProvenDualInfeasible()<< std::endl;
+  // std::cout << "primal obj limit" << dco_model->solver()->isPrimalObjectiveLimitReached()<< std::endl;
+  // std::cout << "dual obj limit" << dco_model->solver()->isDualObjectiveLimitReached()<< std::endl;
+  // std::cout << "iter limit" << dco_model->solver()->isIterationLimitReached()<< std::endl;
+  if (dco_model->solver()->isProvenOptimal()
+      or dco_model->solver()->isIterationLimitReached()
+      or dco_model->solver()->isDualObjectiveLimitReached()) {
+    down_obj = dco_model->solver()->getObjValue();
+  }
+  else {
+    std::cout << "prob not opt." << std::endl;
+  }
   // restore bound
   dco_model->solver()->setColUpper(bobject->index(), orig_ub);
-
-
   // solve subproblem for the up branch
   dco_model->solver()->setColLower(bobject->index(), dco_bobject->lbUpBranch());
   dco_model->solver()->solveFromHotStart();
-  double up_obj = dco_model->solver()->getObjValue();
+  double up_obj = 0.5*ALPS_INFINITY;
+  // std::cout << "abandoned " << dco_model->solver()->isAbandoned()<< std::endl;
+  // std::cout << "optimal " << dco_model->solver()->isProvenOptimal()<< std::endl;
+  // std::cout << "primal inf" << dco_model->solver()->isProvenPrimalInfeasible()<< std::endl;
+  // std::cout << "dual inf" << dco_model->solver()->isProvenDualInfeasible()<< std::endl;
+  // std::cout << "primal obj limit" << dco_model->solver()->isPrimalObjectiveLimitReached()<< std::endl;
+  // std::cout << "dual obj limit" << dco_model->solver()->isDualObjectiveLimitReached()<< std::endl;
+  // std::cout << "iter limit" << dco_model->solver()->isIterationLimitReached()<< std::endl;
+  if (dco_model->solver()->isProvenOptimal()
+      or dco_model->solver()->isIterationLimitReached()
+      or dco_model->solver()->isDualObjectiveLimitReached()) {
+    up_obj = dco_model->solver()->getObjValue();
+  }
+  else {
+    std::cout << "prob not opt." << std::endl;
+  }
   // restore bound
   dco_model->solver()->setColLower(bobject->index(), orig_lb);
   // set score
@@ -40,6 +68,27 @@ void DcoBranchStrategyStrong::updateScore(BcpsBranchObject * bobject,
   bobject->setScore(score);
 }
 
+
+double DcoBranchStrategyStrong::infeas(double value) const {
+  // get dco model and message stuff
+  DcoModel * dco_model = dynamic_cast<DcoModel*>(model());
+  // get integer tolerance parameter
+  double tolerance = dco_model->dcoPar()->entry(DcoParams::integerTol);
+  double dist_to_upper = ceil(value) - value;
+  double dist_to_lower = value - floor(value);
+  // return the minimum of distance to upper or lower
+  double res;
+  if (dist_to_upper>dist_to_lower) {
+    res = dist_to_lower;
+  }
+  else {
+    res = dist_to_upper;
+  }
+  if (res<tolerance) {
+    res = 0.0;
+  }
+  return res;
+}
 
 int DcoBranchStrategyStrong::createCandBranchObjects(BcpsTreeNode * node) {
   // notes(aykut)
@@ -59,6 +108,12 @@ int DcoBranchStrategyStrong::createCandBranchObjects(BcpsTreeNode * node) {
   int num_relaxed = dco_model->numRelaxedCols();
   // get indices of relaxed object
   int const * relaxed = dco_model->relaxedCols();
+  // current solution
+  double * sol = new double[dco_model->solver()->getNumCols()];
+  std::copy(dco_model->solver()->getColSolution(),
+            dco_model->solver()->getColSolution()
+            +dco_model->solver()->getNumCols(),
+            sol);
 
   // create data to keep branching objects
   int cand_cap = dco_model->dcoPar()->entry(DcoParams::strongCandSize);
@@ -73,6 +128,8 @@ int DcoBranchStrategyStrong::createCandBranchObjects(BcpsTreeNode * node) {
   dco_model->solver()->setIntParam(OsiMaxNumIterationHotStart, 50);
 
   double const obj_val = dco_model->solver()->getObjValue();
+  //double const * collb = dco_model->colLB();
+  //double const * colub = dco_model->colUB();
   double const * collb = dco_model->solver()->getColLower();
   double const * colub = dco_model->solver()->getColUpper();
 
@@ -81,15 +138,17 @@ int DcoBranchStrategyStrong::createCandBranchObjects(BcpsTreeNode * node) {
   for (int i=0; i<num_relaxed; ++i) {
     // get corresponding variable
     int var_index = relaxed[i];
-    BcpsObject * curr_var = dco_model->getVariables()[var_index];
-    int preferDir;
-    double infeasibility = curr_var->infeasibility(dco_model, preferDir);
-    if (!infeasibility) {
+    // go to next if not infeasible
+    if (!infeas(sol[var_index])) {
       continue;
     }
-    BcpsBranchObject * curr_branch_object = curr_var->createBranchObject(dco_model, preferDir);
-    updateScore(curr_branch_object, collb[var_index], colub[var_index], obj_val);
+    // score is 0.0 for now, we will set it later
+    BcpsBranchObject * curr_branch_object =
+      new DcoBranchObject(var_index, 0.0, sol[var_index]);
+    updateScore(curr_branch_object, collb[var_index],
+                colub[var_index], obj_val);
     double curr_score = curr_branch_object->score();
+    dco_model->solver()->setColSolution(sol);
 
     // if we have capacity add branch object
     // else check whether current performs better than the worst candidate
@@ -118,11 +177,21 @@ int DcoBranchStrategyStrong::createCandBranchObjects(BcpsTreeNode * node) {
       // score is not enough to be a candidate
     }
   }
+  delete[] sol;
   if (num_bobjects==0) {
     std::cout << "All columns are feasible." << std::endl;
     throw std::exception();
   }
   dco_model->solver()->unmarkHotStart();
+
+  // debug stuff
+  for (int i=0; i<num_bobjects; ++i) {
+    message_handler->message(DISCO_STRONG_REPORT, *messages)
+      << dco_model->broker()->getProcRank()
+      << bobjects[i]->index()
+      << bobjects[i]->score()
+      << CoinMessageEol;
+  }
 
   // add branch objects to branchObjects_
   setBranchObjects(num_bobjects, bobjects);
