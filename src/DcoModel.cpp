@@ -487,8 +487,7 @@ void DcoModel::approximateCones() {
   // add outer apprixmating cuts for 50 rounds
   ipm_iter = iter;
   iter = 0;
-  // todo(aykut): parametrize 50
-  int oa_iter_limit = largest_cone_size;
+  int oa_iter_limit = dcoPar_->entry(DcoParams::approxNumPass);
   while(iter<oa_iter_limit) {
     OsiCuts * oa_cuts = new OsiCuts();
     CglConicCutGenerator * cg_oa =
@@ -1191,14 +1190,16 @@ AlpsTreeNode * DcoModel::createRoot() {
 
 
 DcoSolution * DcoModel::feasibleSolution(int & numInfColumns,
-                                         int & numInfRows) {
+                                         double  & colInf,
+                                         int & numInfRows,
+                                         double & rowInf) {
   // set stats to 0
   numInfColumns = 0;
   numInfRows = 0;
 
   // for debug purposes we will keep the largest column and row infeasibility
-  double col_inf = 0.0;
-  double row_inf = 0.0;
+  colInf = 0.0;
+  rowInf = 0.0;
 
   // check feasibility of relxed columns, ie. integrality constraints
   // get vector of variables
@@ -1211,8 +1212,8 @@ DcoSolution * DcoModel::feasibleSolution(int & numInfColumns,
     double infeas = curr->infeasibility(this, preferredDir);
     if (infeas>0) {
       numInfColumns++;
-      if (col_inf<infeas) {
-        col_inf = infeas;
+      if (colInf<infeas) {
+        colInf = infeas;
       }
     }
   }
@@ -1228,16 +1229,16 @@ DcoSolution * DcoModel::feasibleSolution(int & numInfColumns,
     double infeas = curr->infeasibility(this, preferredDir);
     if (infeas>0) {
       numInfRows++;
-      if (row_inf<infeas) {
-        row_inf = infeas;
+      if (rowInf<infeas) {
+        rowInf = infeas;
       }
     }
   }
   // report largest column and row infeasibilities
   dcoMessageHandler_->message(DISCO_INFEAS_REPORT, *dcoMessages_)
     << broker()->getProcRank()
-    << col_inf
-    << row_inf
+    << colInf
+    << rowInf
     << CoinMessageEol;
 
   // create DcoSolution instance if feasbile
@@ -1275,8 +1276,8 @@ void DcoModel::nodeLog(AlpsTreeNode * node, bool force) {
   }
   // number of processed nodes
   int num_processed = broker()->getNumNodesProcessed();
-  // number of partially processed nodes
-  int num_partial  = broker()->getNumNodesPartial();
+  // number of nodes left
+  int num_left  = broker()->updateNumNodesLeft();
   // log interval
   int interval =
     broker()->getModel()->AlpsPar()->entry(AlpsParams::nodeLogInterval);
@@ -1314,7 +1315,7 @@ void DcoModel::nodeLog(AlpsTreeNode * node, bool force) {
       gap_ss << std::setw(6) << std::fixed << std::left << gap;
       dcoMessageHandler_->message(DISCO_NODE_LOG, *dcoMessages_)
         << num_processed
-        << num_partial
+        << num_left
         << lb_ss.str().c_str()
         << ub_ss.str().c_str()
         << gap_ss.str().c_str()
@@ -1324,7 +1325,7 @@ void DcoModel::nodeLog(AlpsTreeNode * node, bool force) {
     else {
       dcoMessageHandler_->message(DISCO_NODE_LOG_NO_SOL, *dcoMessages_)
         << num_processed
-        << num_partial
+        << num_left
         << lb_ss.str().c_str()
         << static_cast<int>(broker()->timer().getCpuTime())
         << CoinMessageEol;

@@ -340,8 +340,8 @@ public:
 
   /// Check feasiblity of subproblem solution, store number of infeasible
   /// columns and rows.
-  virtual DcoSolution * feasibleSolution(int & numInfColumns,
-                                         int & numInfRows);
+  virtual DcoSolution * feasibleSolution(int & numInfColumns, double & colInf,
+                                         int & numInfRows, double & rowInf);
 
   ///@name Virtual functions from AlpsModel
   //@{

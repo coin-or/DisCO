@@ -560,6 +560,9 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
     // call heuristics to search for a solution
     callHeuristics();
 
+
+
+
     // decide what to do
     branchConstrainOrPrice(subproblem_status, keepBounding, do_branch,
                            genConstraints,
@@ -604,7 +607,6 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
       // todo(aykut) following should be a parameter
       // Maximum number of resolve during branching.
       int numBranchResolve = 10;
-      // todo(aykut) why ub should be an input?
       branchStrategy->createCandBranchObjects(this);
       // prepare this node for branching, bookkeeping for differencing.
       // call pregnant setting routine
@@ -1043,6 +1045,7 @@ DcoTreeNode::branch() {
     << index_
     << branch_var
     << branch_value
+    << branch_object->score()
     << CoinMessageEol;
 
   // compute child nodes' warm start basis
@@ -1373,7 +1376,10 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
   // subproblem is solved to optimality. Check feasibility of the solution.
   int numColsInf;
   int numRowsInf;
-  DcoSolution * sol = model->feasibleSolution(numColsInf, numRowsInf);
+  double colInf;
+  double rowInf;
+  DcoSolution * sol = model->feasibleSolution(numColsInf, colInf,
+                                              numRowsInf, rowInf);
 
   // Following if else chain is as follows in summary
   // if (both relaxed cols and rows are infeasible) {
@@ -1399,7 +1405,13 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     // 3. stop cutting if it does not improve obj value
 
     double cone_tol = model->dcoPar()->entry(DcoParams::coneTol);
-    double gap =  broker()->getIncumbentValue() - quality_;
+    double gap =  (broker()->getIncumbentValue() - quality_)/quality_;
+
+    keepBounding = true;
+    branch = false;
+    generateVariables = false;
+    generateConstraints = true;
+    return;
 
     if (largest_cone_size<=3) {
       // branch
@@ -1411,8 +1423,13 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     //std::cout << bcpStats_.lastImp_ << std::endl;
     // if gap looks like acheivable with conic cuts. Gap is acheivable,
     // (1) if it is small, (2) if OA cuts are doing good in improving obj value
-    else if (((bcpStats_.numBoundIter_<2) or (bcpStats_.lastImp_>0.0001*gap)) and
-        (bcpStats_.numBoundIter_<100)) {
+    else if (((bcpStats_.numBoundIter_<2)
+               or (bcpStats_.lastImp_>0.01*gap)) and
+              (bcpStats_.numBoundIter_<100)) {
+
+      //else if ((bcpStats_.numBoundIter_<2) or (gap<0.004)) {
+
+
       // std::cout << "iter " << bcpStats_.numBoundIter_ << " "
       //           << "total cuts "<< bcpStats_.numTotalCuts_ << " "
       //           << "last cuts "<< bcpStats_.numLastCuts_ << " "
