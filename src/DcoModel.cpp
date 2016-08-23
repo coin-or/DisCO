@@ -1300,9 +1300,6 @@ void DcoModel::nodeLog(AlpsTreeNode * node, bool force) {
     if (best_node) {
       lb = best_node->getQuality();
     }
-    std::stringstream lb_ss;
-    lb_ss << std::setw(14) << std::left << std::scientific << lb;
-    broker()->setNumNodeLog(broker()->getNumNodeLog()+1);
     if (broker()->hasKnowledge(AlpsKnowledgeTypeSolution)) {
       double ub = broker()->getIncumbentValue();
       // check whether lb is larger than ub, this might happen if there are
@@ -1310,6 +1307,9 @@ void DcoModel::nodeLog(AlpsTreeNode * node, bool force) {
       if (lb>ub) {
         lb = ub;
       }
+      std::stringstream lb_ss;
+      lb_ss << std::setw(14) << std::left << std::scientific << lb;
+      broker()->setNumNodeLog(broker()->getNumNodeLog()+1);
       double gap = 100.0*((ub-lb)/fabs(ub));
       // we need to convert lb, ub, gap into strings, CoinMessageHandler is
       // not capable for this yet.
@@ -1328,6 +1328,9 @@ void DcoModel::nodeLog(AlpsTreeNode * node, bool force) {
         << CoinMessageEol;
     }
     else {
+      std::stringstream lb_ss;
+      lb_ss << std::setw(14) << std::left << std::scientific << lb;
+      broker()->setNumNodeLog(broker()->getNumNodeLog()+1);
       dcoMessageHandler_->message(DISCO_NODE_LOG_NO_SOL, *dcoMessages_)
         << num_processed
         << num_left
