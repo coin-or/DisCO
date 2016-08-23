@@ -121,8 +121,16 @@ static Dco_message us_english[]=
     {DISCO_READ_MPSFILEONLY,9002, 1, "Mosek style conic mps files only."},
     {DISCO_READ_CONEERROR, 9003, 1, "Invalid cone type."},
     {DISCO_READ_ROTATEDCONESIZE, 9004, 1, "Rotated cones should have at least 3 members."},
-    {DISCO_READ_CONESTATS1, 101, 1, "Problem has %d cones."},
-    {DISCO_READ_CONESTATS2, 102, 1, "Cone %d has %d entries (type %d)"},
+    {DISCO_READ_CONESTATS1, 101, 3, "Problem has %d cones."},
+    {DISCO_READ_CONESTATS2, 102, 3, "Cone %d has %d entries (type %d)"},
+    {DISCO_PROBLEM_INFO, 103, 1, "Problem info.\n"
+     "  Problem name: %s\n"
+     "  Objective sense: %s\n"
+     "  Number of variables: %d\n"
+     "  Number of linear constraints: %d\n"
+     "  Number of nonzero in coefficient matrix: %d\n"
+     "  Number of conic constraints: %d\n"
+     "  Number of integer variables: %d"},
     // tree node
     {DISCO_NODE_BRANCHONINT, 9201, 1, "[%d] Branched on integer variable. Variable index %d."},
     {DISCO_NODE_UNEXPECTEDSTATUS,9202,1, "[%d] Unexpected node status %d"},

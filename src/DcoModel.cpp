@@ -199,7 +199,8 @@ void DcoModel::readInstance(char const * dataFile) {
   // mps file reader
   CoinMpsIO * reader = new CoinMpsIO;
   // set reader log level
-  reader->messageHandler()->setLogLevel(dcoPar_->entry(DcoParams::logLevel));
+  //reader->messageHandler()->setLogLevel(dcoPar_->entry(DcoParams::logLevel));
+  reader->messageHandler()->setLogLevel(0);
   reader->readMps(dataFile, "");
   numCols_ = reader->getNumCols();
 
@@ -307,6 +308,18 @@ void DcoModel::readInstance(char const * dataFile) {
 
   matrix_ = new CoinPackedMatrix(*reader->getMatrixByRow());
 
+
+  std::string sense = (dcoPar_->entry(DcoParams::objSense)==1.0) ? std::string("min") : std::string("min");
+  dcoMessageHandler_->message(DISCO_PROBLEM_INFO,
+                              *dcoMessages_)
+    << reader->getProblemName()
+    << sense.c_str()
+    << numCols_
+    << numLinearRows_
+    << reader->getNumElements()
+    << numConicRows_
+    << numIntegerCols_
+    << CoinMessageEol;
   // free Coin MPS reader
   delete reader;
 }
