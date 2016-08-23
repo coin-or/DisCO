@@ -115,6 +115,8 @@ public:
     logLevel,
     // presolve parameters
     presolveNumPass,
+    // approximation passes, used in OA, overwrites approxFactor
+    approxNumPass,
     ///
     endOfIntParams
   };
@@ -151,6 +153,8 @@ public:
     tailOff,
     /// presolve parameters
     presolveTolerance,
+    // approximation factor, used in OA
+    approxFactor,
     ///
     endOfDblParams
   };

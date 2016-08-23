@@ -135,6 +135,8 @@ void DcoParams::createKeywordList() {
                             AlpsParameter(AlpsIntPar, logLevel)));
   keys_.push_back(make_pair(std::string("Dco_presolveNumPass"),
                             AlpsParameter(AlpsIntPar, presolveNumPass)));
+  keys_.push_back(make_pair(std::string("Dco_approxNumPass"),
+                            AlpsParameter(AlpsIntPar, approxNumPass)));
   //--------------------------------------------------------
   // Double Parameters.
   //--------------------------------------------------------
@@ -162,7 +164,11 @@ void DcoParams::createKeywordList() {
                             AlpsParameter(AlpsDoublePar, scaleConFactor)));
   keys_.push_back(make_pair(std::string("Dco_tailOff"),
                             AlpsParameter(AlpsDoublePar, tailOff)));
-  //--------------------------------------------------------
+  keys_.push_back(make_pair(std::string("Dco_presolveTolerance"),
+                            AlpsParameter(AlpsDoublePar, presolveTolerance)));
+  keys_.push_back(make_pair(std::string("Dco_approxFactor"),
+                            AlpsParameter(AlpsDoublePar, approxFactor)));
+//--------------------------------------------------------
   // String Parameters.
   //--------------------------------------------------------
 }
@@ -238,6 +244,7 @@ void DcoParams::setDefaultEntries() {
   // setEntry(conicCutGD2Freq, 1);
   setEntry(logLevel, 2);
   setEntry(presolveNumPass, 5);
+  setEntry(approxNumPass, 50);
   //-------------------------------------------------------------
   // Double Parameters
   //-------------------------------------------------------------
@@ -254,6 +261,9 @@ void DcoParams::setDefaultEntries() {
   setEntry(scaleConFactor, 1000000.0);
   setEntry(tailOff, 1e-8);
   setEntry(presolveTolerance, 0.0);
+  // approximation factor, used in OA
+  setEntry(approxFactor, 1.0);
+
   //-------------------------------------------------------------
   // String Parameters
   //-------------------------------------------------------------
