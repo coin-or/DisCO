@@ -133,7 +133,7 @@ static Dco_message us_english[]=
     {DISCO_NODE_BCP_DECISION, 205, DISCO_DLOG_PROCESS,
      "[%d] BCP function decided to keep bounding %d, branch %d, generate cons %d."},
     {DISCO_NODE_BRANCH, 206, DISCO_DLOG_BRANCH,
-     "[%d] Branching node %d, variable %d, value %f."},
+     "[%d] Branching node %d, variable %d, value %f, score %f."},
     {DISCO_NODE_ENCODED, 207, DISCO_DLOG_MPI, "[%d] Node %d encoded."},
     {DISCO_NODE_DECODED, 208, DISCO_DLOG_MPI, "[%d] Node decoded into %d."},
     // constraint generation
@@ -158,6 +158,8 @@ static Dco_message us_english[]=
     {DISCO_PSEUDO_REPORT, 551, DISCO_DLOG_BRANCH, "[%d] Pseudocost score of variable %d is %f."},
     {DISCO_PSEUDO_DUP, 552, DISCO_DLOG_BRANCH, "[%d] Updating down pseudocost of %d from %f to %f, frac value %f."},
     {DISCO_PSEUDO_UUP, 553, DISCO_DLOG_BRANCH, "[%d] Updating up pseudocost of %d from %f to %f, frac value %f."},
+    {DISCO_STRONG_REPORT, 554, DISCO_DLOG_BRANCH, "[%d] Strong score of variable %d is %f."},
+
     // grumpy messages
     // time, node status, node id, parent id, branch direction, obj val [,sum
     // of column infeasibilities, count of infeasible cols]
