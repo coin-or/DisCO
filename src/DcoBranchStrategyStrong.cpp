@@ -22,7 +22,8 @@ void DcoBranchStrategyStrong::updateScore(BcpsBranchObject * bobject,
   // solve subproblem for the down branch
   dco_model->solver()->setColUpper(bobject->index(), dco_bobject->ubDownBranch());
   dco_model->solver()->solveFromHotStart();
-  double down_obj = 0.5*ALPS_INFINITY;
+  //double down_obj = 0.5*ALPS_INFINITY;
+  double down_obj = 1.0;
   // std::cout << "abandoned " << dco_model->solver()->isAbandoned()<< std::endl;
   // std::cout << "optimal " << dco_model->solver()->isProvenOptimal()<< std::endl;
   // std::cout << "primal inf" << dco_model->solver()->isProvenPrimalInfeasible()<< std::endl;
@@ -43,7 +44,8 @@ void DcoBranchStrategyStrong::updateScore(BcpsBranchObject * bobject,
   // solve subproblem for the up branch
   dco_model->solver()->setColLower(bobject->index(), dco_bobject->lbUpBranch());
   dco_model->solver()->solveFromHotStart();
-  double up_obj = 0.5*ALPS_INFINITY;
+  //double up_obj = 0.5*ALPS_INFINITY;
+  double up_obj = 1.0;
   // std::cout << "abandoned " << dco_model->solver()->isAbandoned()<< std::endl;
   // std::cout << "optimal " << dco_model->solver()->isProvenOptimal()<< std::endl;
   // std::cout << "primal inf" << dco_model->solver()->isProvenPrimalInfeasible()<< std::endl;
