@@ -1407,25 +1407,27 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     double cone_tol = model->dcoPar()->entry(DcoParams::coneTol);
     double gap =  (broker()->getIncumbentValue() - quality_)/quality_;
 
-    keepBounding = true;
-    branch = false;
-    generateVariables = false;
-    generateConstraints = true;
-    return;
+    // if (!broker()->hasKnowledge(AlpsKnowledgeTypeSolution)) {
+    //   keepBounding = true;
+    //   branch = false;
+    //   generateVariables = false;
+    //   generateConstraints = true;
+    //   return;
+    // }
 
-    if (largest_cone_size<=3) {
-      // branch
-      keepBounding = false;
-      branch = true;
-      generateVariables = false;
-      generateConstraints = false;
-    }
+    // if (largest_cone_size<=3) {
+    //   // branch
+    //   keepBounding = false;
+    //   branch = true;
+    //   generateVariables = false;
+    //   generateConstraints = false;
+    // }
     //std::cout << bcpStats_.lastImp_ << std::endl;
     // if gap looks like acheivable with conic cuts. Gap is acheivable,
     // (1) if it is small, (2) if OA cuts are doing good in improving obj value
-    else if (((bcpStats_.numBoundIter_<2)
-               or (bcpStats_.lastImp_>0.01*gap)) and
-              (bcpStats_.numBoundIter_<100)) {
+    if (((bcpStats_.numBoundIter_<2)
+         or (bcpStats_.lastImp_>0.01*gap)) and
+        (bcpStats_.numBoundIter_<100)) {
 
       //else if ((bcpStats_.numBoundIter_<2) or (gap<0.004)) {
 
