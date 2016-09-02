@@ -1308,10 +1308,13 @@ void DcoModel::nodeLog(AlpsTreeNode * node, bool force) {
       << CoinMessageEol;
   }
   else if (force || (num_processed % interval == 0)) {
-    double lb = -ALPS_INFINITY;
+    double lb = ALPS_INFINITY;
     AlpsTreeNode * best_node = broker()->getBestNode();
     if (best_node) {
       lb = best_node->getQuality();
+    }
+    else {
+      // no nodes stored in the broker.
     }
     if (broker()->hasKnowledge(AlpsKnowledgeTypeSolution)) {
       double ub = broker()->getIncumbentValue();
