@@ -45,14 +45,6 @@ endif
 # Here we need include all files that are not mentioned in other Makefiles
 
 EXTRA_DIST = \
-	examples/BlisMain.cpp \
-	examples/blis.par \
-	examples/egout.mps \
-	examples/flugpl.mps \
-	examples/gen.mps \
-	examples/knap1.mps \
-	examples/knap2.mps \
-	examples/knap3.mps \
 	examples/VRP/AUTHORS \
 	examples/VRP/INSTALL \
 	examples/VRP/LICENSE \

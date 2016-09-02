@@ -6399,7 +6399,7 @@ AC_MSG_RESULT([$SED])
 # All Rights Reserved.
 # This file is distributed under the Eclipse Public License.
 #
-## $Id$
+## $Id: coin.m4 3594 2016-07-20 15:17:55Z stefan $
 #
 # Author: Andreas Wachter    IBM      2006-04-14
 
@@ -7872,7 +7872,12 @@ if test x$prefix = xNONE; then
 else
   full_prefix=$prefix
 fi
-full_prefix=`cd $full_prefix ; pwd`
+# Check whether the path given is absolute.
+# If not, get absolute path
+case $full_prefix in
+     [\\/$]* | ?:[\\/]* | NONE | '' ) ;;
+     *) full_prefix=`cd $full_prefix ; pwd` ;;
+esac
 AC_SUBST(abs_lib_dir)
 abs_lib_dir=$full_prefix/lib
 AC_SUBST(abs_include_dir)
