@@ -163,7 +163,7 @@ of DisCO.
 
 ### 5.1 Authors ###
 
-Aykut Bulut (aykutblt@gmail.com), Ted Ralphs (tkralphs@lehigh.edu).
+Aykut Bulut (aykutblt@gmail.com), Ted Ralphs (ted@lehigh.edu).
 
 ### 5.2 Bug Reports ###
 
