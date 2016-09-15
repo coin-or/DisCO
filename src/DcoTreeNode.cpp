@@ -260,11 +260,51 @@ void DcoTreeNode::convertToRelative() {
 
 /// Generate constraints for the problem.
 int DcoTreeNode::generateConstraints(BcpsConstraintPool * conPool) {
-  // todo(aykut) why do we need this status?
   DcoModel * disco_model = dynamic_cast<DcoModel*>(broker_->getModel());
   CoinMessageHandler * message_handler = disco_model->dcoMessageHandler_;
   CoinMessages * messages = disco_model->dcoMessages_;
 
+  // if OA algorithm is being used and solver status is primal feasible and
+  // dual infeasible, then generate OA cuts.
+#ifdef __OA__
+  OsiSolverInterface * solver = disco_model->solver();
+  if (!solver->isProvenPrimalInfeasible()
+      and solver->isProvenDualInfeasible()) {
+    int num_cg = disco_model->numConGenerators();
+    for (int i=0; i<num_cg; ++i) {
+      DcoConGenerator * cg = disco_model->conGenerators(i);
+      if (cg->name().compare("OA")!=0) {
+        continue;
+      }
+      int pre_num_cons = conPool->getNumConstraints();
+      double start_time = CoinCpuTime();
+      // Call constraint generator
+      bool must_resolve = cg->generateConstraints(*conPool);
+      double cut_time = CoinCpuTime() - start_time;
+      // Statistics
+      cg->stats().addTime(cut_time);
+      cg->stats().addNumCalls(1);
+      int num_cons_generated = conPool->getNumConstraints() - pre_num_cons;
+      if (num_cons_generated == 0) {
+        cg->stats().addNumNoConsCalls(1);
+      }
+      else {
+        cg->stats().addNumConsGenerated(num_cons_generated);
+      }
+      // debug msg
+      std::stringstream debug_msg;
+      debug_msg << "[" << broker()->getProcRank() << "] Called "
+                << cg->name() << ", generated "
+                << num_cons_generated << " cuts in "
+                << cut_time << " seconds.";
+      message_handler->message(0, "Dco", debug_msg.str().c_str(),
+                               'G', DISCO_DLOG_CUT)
+        << CoinMessageEol;
+      // end of debug
+    }
+    return 0;
+  }
+#endif
   // number of constraint generators in model
   int num_cg = disco_model->numConGenerators();
   for (int i=0; i<num_cg; ++i) {
@@ -305,7 +345,8 @@ int DcoTreeNode::generateConstraints(BcpsConstraintPool * conPool) {
     // end of debug
 
   }
-  // return value will make sense when DcoTreeNode::process is implemented in Bcps level.
+  // return value will make sense when DcoTreeNode::process is implemented
+  // in Bcps level.
   return 0;
 }
 
@@ -559,9 +600,6 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
     }
     // call heuristics to search for a solution
     callHeuristics();
-
-
-
 
     // decide what to do
     branchConstrainOrPrice(subproblem_status, keepBounding, do_branch,
@@ -1339,8 +1377,7 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
 
   // check whether the subproblem solved properly, solver status should be
   // infeasible or optimal.
-  if (subproblem_status==BcpsSubproblemStatusPrimalInfeasible or
-      subproblem_status==BcpsSubproblemStatusDualInfeasible) {
+  if (subproblem_status==BcpsSubproblemStatusPrimalInfeasible) {
     // subproblem is infeasible, fathom
     // debug message
     message_handler->message(DISCO_SOLVER_INFEASIBLE, *messages)
@@ -1366,13 +1403,22 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     setStatus(AlpsNodeStatusFathomed);
     return;
   }
-  if (subproblem_status!=BcpsSubproblemStatusOptimal) {
+  if (subproblem_status!=BcpsSubproblemStatusOptimal and
+      subproblem_status!=BcpsSubproblemStatusDualInfeasible) {
     message_handler->message(DISCO_SOLVER_FAILED, *messages)
       << broker()->getProcRank()
       << getIndex()
       << CoinMessageEol;
   }
 
+  if (subproblem_status==BcpsSubproblemStatusDualInfeasible) {
+    // unbounded problem add cuts
+    keepBounding = true;
+    branch = false;
+    generateVariables = false;
+    generateConstraints = true;
+    return;
+  }
   // subproblem is solved to optimality. Check feasibility of the solution.
   int numColsInf;
   int numRowsInf;
