@@ -26,7 +26,7 @@ DcoLinearConGenerator::~DcoLinearConGenerator() {
 bool DcoLinearConGenerator::generateConstraints(BcpsConstraintPool & conPool) {
   // get necessary objects for logging messages
   CoinMessageHandler * message_handler = model()->dcoMessageHandler_;
-  CoinMessages * messages = model()->dcoMessages_;
+  //CoinMessages * messages = model()->dcoMessages_;
 
   // check whether we have a CGL generator
   if (generator_==NULL) {

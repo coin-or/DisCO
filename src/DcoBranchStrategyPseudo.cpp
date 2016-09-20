@@ -96,9 +96,9 @@ int
 DcoBranchStrategyPseudo::betterBranchObject(BcpsBranchObject const * current,
                                             BcpsBranchObject const * other) {
   // get model
-  DcoModel * dco_model = dynamic_cast<DcoModel*>(model());
-  CoinMessageHandler * message_handler = dco_model->dcoMessageHandler_;
-  CoinMessages * messages = dco_model->dcoMessages_;
+  // DcoModel * dco_model = dynamic_cast<DcoModel*>(model());
+  // CoinMessageHandler * message_handler = dco_model->dcoMessageHandler_;
+  // CoinMessages * messages = dco_model->dcoMessages_;
   int res;
   if (current->score()>other->score()) {
     res = 1;

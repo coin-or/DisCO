@@ -324,7 +324,6 @@ DcoSolution * DcoHeurRounding::searchSolution() {
     if (feasible!=false) {
       // check whether the solution is conic feasible
       double cone_tol = model()->dcoPar()->entry(DcoParams::coneTol);
-      int prefered;
       int num_linear_rows = model()->getNumCoreLinearConstraints();
       int num_conic_rows = model()->getNumCoreConicConstraints();
       for (int i=num_linear_rows; i<num_linear_rows+num_conic_rows; ++i) {
@@ -389,8 +388,8 @@ DcoSolution * DcoHeurRounding::searchSolution2() {
   }
   DcoModel * dcom = model();
   // get required pointers for log messages
-  CoinMessageHandler * message_handler = dcom->dcoMessageHandler_;
-  CoinMessages * messages = dcom->dcoMessages_;
+  //CoinMessageHandler * message_handler = dcom->dcoMessageHandler_;
+  //CoinMessages * messages = dcom->dcoMessages_;
 
   // call bound_fix function to compute find up_fix and down_fix
   int num_rel_cols = dcom->numRelaxedCols();
@@ -408,9 +407,8 @@ void DcoHeurRounding::bound_fix(int * down_fix, int * up_fix) {
   DcoModel * dcom = model();
   // get required pointers for log messages
   CoinMessageHandler * message_handler = dcom->dcoMessageHandler_;
-  CoinMessages * messages = dcom->dcoMessages_;
+  //CoinMessages * messages = dcom->dcoMessages_;
 
-  int num_rel_cols = dcom->numRelaxedCols();
   int num_rows = dcom->solver()->getNumRows();
   char const * row_sense = dcom->solver()->getRowSense();
 

@@ -16,8 +16,8 @@ void DcoBranchStrategyStrong::updateScore(BcpsBranchObject * bobject,
                                             double orig_obj) const {
   // get dco model and message stuff
   DcoModel * dco_model = dynamic_cast<DcoModel*>(model());
-  CoinMessageHandler * message_handler = dco_model->dcoMessageHandler_;
-  CoinMessages * messages = dco_model->dcoMessages_;
+  // CoinMessageHandler * message_handler = dco_model->dcoMessageHandler_;
+  // CoinMessages * messages = dco_model->dcoMessages_;
   DcoBranchObject * dco_bobject = dynamic_cast<DcoBranchObject*>(bobject);
   // solve subproblem for the down branch
   dco_model->solver()->setColUpper(bobject->index(), dco_bobject->ubDownBranch());
@@ -211,9 +211,9 @@ int
 DcoBranchStrategyStrong::betterBranchObject(BcpsBranchObject const * current,
                                             BcpsBranchObject const * other) {
   // get model
-  DcoModel * dco_model = dynamic_cast<DcoModel*>(model());
-  CoinMessageHandler * message_handler = dco_model->dcoMessageHandler_;
-  CoinMessages * messages = dco_model->dcoMessages_;
+  // DcoModel * dco_model = dynamic_cast<DcoModel*>(model());
+  // CoinMessageHandler * message_handler = dco_model->dcoMessageHandler_;
+  // CoinMessages * messages = dco_model->dcoMessages_;
   int res;
   if (current->score()>other->score()) {
     res = 1;

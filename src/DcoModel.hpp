@@ -314,7 +314,7 @@ public:
   /// Add constraint generator.
   void addConGenerator(DcoConGenerator * dco_gen);
   /// Get the number of constraint generators.
-  int numConGenerators() const { return conGenerators_.size(); }
+  long unsigned int numConGenerators() const { return conGenerators_.size(); }
   /// Get a specific constraint generator.
   DcoConGenerator * conGenerators(int i) const { return conGenerators_[i]; }
   /// Get global cut strategy. It will be set using specific cut strategies, to
@@ -330,7 +330,7 @@ public:
   ///@name Heuristics related
   //@{
   // get number of heuristics
-  int numHeuristics() const { return heuristics_.size(); }
+  long unsigned int numHeuristics() const { return heuristics_.size(); }
   // get a constant specific heuristic, for reading statistics.
   DcoHeuristic const * heuristics(int i) const { return heuristics_[i]; }
   // get a specific heuristic, for solution search

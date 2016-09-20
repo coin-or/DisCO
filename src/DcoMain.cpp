@@ -56,6 +56,7 @@ int main(int argc, char *argv[]) {
   dynamic_cast<OsiClpSolverInterface*>(solver)->getModelPtr()->setLogLevel(0);
 #else
   OsiConicSolverInterface * solver = new SOCO_SOLVER();
+  //solver->setHintParam(OsiDoReducePrint, true, OsiHintTry);
 #endif
 
   // Create DisCO model

@@ -30,7 +30,7 @@ AlpsReturnStatus DcoSolution::encode(AlpsEncoded * encoded) const {
   assert(broker_);
   DcoModel * model = dynamic_cast<DcoModel*>(broker_->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
-  CoinMessages * messages = model->dcoMessages_;
+  //CoinMessages * messages = model->dcoMessages_;
 
   // return value
   AlpsReturnStatus status;
@@ -91,7 +91,7 @@ AlpsReturnStatus DcoSolution::decodeToSelf(AlpsEncoded & encoded) {
   assert(broker_);
   DcoModel * model = dynamic_cast<DcoModel*>(broker_->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
-  CoinMessages * messages = model->dcoMessages_;
+  //CoinMessages * messages = model->dcoMessages_;
 
   AlpsReturnStatus status;
   status = AlpsSolution::decodeToSelf(encoded);

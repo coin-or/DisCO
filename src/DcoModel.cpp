@@ -1294,7 +1294,6 @@ void DcoModel::nodeLog(AlpsTreeNode * node, bool force) {
   // log interval
   int interval =
     broker()->getModel()->AlpsPar()->entry(AlpsParams::nodeLogInterval);
-  AlpsTreeNode * bestNode = NULL;
   // need to print header if this is the first call of this function.
   dcoMessageHandler_->setPrefix(0);
   if (broker()->getNumNodeLog()==0 or
@@ -1362,7 +1361,7 @@ void DcoModel::nodeLog(AlpsTreeNode * node, bool force) {
 /// Prints solution statistics
 void DcoModel::modelLog() {
   if (broker_->getProcType() == AlpsProcessTypeSerial) {
-    for (int k=0; k<conGenerators_.size(); ++k) {
+    for (unsigned int k=0; k<conGenerators_.size(); ++k) {
       if (conGenerators(k)->stats().numCalls() > 0) {
         dcoMessageHandler_->message(DISCO_CUT_STATS_FINAL,
                                         *dcoMessages_)
@@ -1374,7 +1373,7 @@ void DcoModel::modelLog() {
           << CoinMessageEol;
       }
     }
-    for (int k=0; k<heuristics_.size(); ++k) {
+    for (unsigned int k=0; k<heuristics_.size(); ++k) {
       if (heuristics(k)->stats().numCalls() > 0) {
         dcoMessageHandler_->message(DISCO_HEUR_STATS_FINAL,
                                     *dcoMessages_)
@@ -1431,7 +1430,6 @@ void DcoModel::reportFeasibility() {
   dcoMessageHandler_->message(0, "Dco", "Conic Feasibility",
                               'G', DISCO_DLOG_PROCESS)
     << CoinMessageEol;
-  int prefered;
   for (int i=numLinearRows_; i<numLinearRows_+numConicRows_; ++i) {
     DcoConicConstraint * con =
       dynamic_cast<DcoConicConstraint*> (constraints_[i]);

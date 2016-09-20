@@ -80,6 +80,7 @@ int DcoBranchObject::numBranches() const {
   CoinMessages * messages = dco_model->dcoMessages_;
   message_handler->message(DISCO_NOT_IMPLEMENTED, *messages)
     << __FILE__ << __LINE__ << CoinMessageEol;
+  return -1;
 }
 
 /// The number of branch arms left to be evaluated.
@@ -89,6 +90,7 @@ int DcoBranchObject::numBranchesLeft() const {
   CoinMessages * messages = dco_model->dcoMessages_;
   message_handler->message(DISCO_NOT_IMPLEMENTED, *messages)
     << __FILE__ << __LINE__ << CoinMessageEol;
+  return -1;
 }
 
 /// Spit out a branch and, update this or superclass fields if necessary.
@@ -98,13 +100,14 @@ double DcoBranchObject::branch(bool normalBranch) {
   CoinMessages * messages = dco_model->dcoMessages_;
   message_handler->message(DISCO_NOT_IMPLEMENTED, *messages)
     << __FILE__ << __LINE__ << CoinMessageEol;
+  return -1.0;
 }
 
 /// Encode the content of this into the given AlpsEncoded object.
 AlpsReturnStatus DcoBranchObject::encode(AlpsEncoded * encoded) const {
-  DcoModel * dco_model = dynamic_cast<DcoModel*>(broker_->getModel());
-  CoinMessageHandler * message_handler = dco_model->dcoMessageHandler_;
-  CoinMessages * messages = dco_model->dcoMessages_;
+  // DcoModel * dco_model = dynamic_cast<DcoModel*>(broker_->getModel());
+  // CoinMessageHandler * message_handler = dco_model->dcoMessageHandler_;
+  // CoinMessages * messages = dco_model->dcoMessages_;
   AlpsReturnStatus status;
   status = BcpsBranchObject::encode(encoded);
   assert(status==AlpsReturnStatusOk);
@@ -116,9 +119,9 @@ AlpsReturnStatus DcoBranchObject::encode(AlpsEncoded * encoded) const {
 /// Decode the given AlpsEncoded object into a new AlpsKnowledge object and
 /// return a pointer to it.
 AlpsKnowledge * DcoBranchObject::decode(AlpsEncoded & encoded) const {
-  DcoModel * dco_model = dynamic_cast<DcoModel*>(broker_->getModel());
-  CoinMessageHandler * message_handler = dco_model->dcoMessageHandler_;
-  CoinMessages * messages = dco_model->dcoMessages_;
+  // DcoModel * dco_model = dynamic_cast<DcoModel*>(broker_->getModel());
+  // CoinMessageHandler * message_handler = dco_model->dcoMessageHandler_;
+  // CoinMessages * messages = dco_model->dcoMessages_;
   AlpsReturnStatus status;
   // create a new object with default values,
   // Bcps decode will decode right values into them.
@@ -130,9 +133,9 @@ AlpsKnowledge * DcoBranchObject::decode(AlpsEncoded & encoded) const {
 
 /// Decode the given AlpsEncoded object into this.
 AlpsReturnStatus DcoBranchObject::decodeToSelf(AlpsEncoded & encoded) {
-  DcoModel * dco_model = dynamic_cast<DcoModel*>(broker_->getModel());
-  CoinMessageHandler * message_handler = dco_model->dcoMessageHandler_;
-  CoinMessages * messages = dco_model->dcoMessages_;
+  // DcoModel * dco_model = dynamic_cast<DcoModel*>(broker_->getModel());
+  // CoinMessageHandler * message_handler = dco_model->dcoMessageHandler_;
+  // CoinMessages * messages = dco_model->dcoMessages_;
   AlpsReturnStatus status;
   // decode Bcps part.
   status = BcpsBranchObject::decodeToSelf(encoded);

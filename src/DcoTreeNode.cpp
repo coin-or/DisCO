@@ -96,7 +96,7 @@ void DcoTreeNode::convertToExplicit() {
   DcoNodeDesc * node_desc = dynamic_cast<DcoNodeDesc*>(getDesc());
   DcoModel * model = dynamic_cast<DcoModel*>(broker_->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
-  CoinMessages * messages = model->dcoMessages_;
+  //CoinMessages * messages = model->dcoMessages_;
 
   if (explicit_) {
     return;
@@ -248,7 +248,7 @@ void DcoTreeNode::convertToExplicit() {
 }
 
 void DcoTreeNode::convertToRelative() {
-  DcoNodeDesc * node_desc = dynamic_cast<DcoNodeDesc*>(getDesc());
+  //DcoNodeDesc * node_desc = dynamic_cast<DcoNodeDesc*>(getDesc());
   DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
@@ -262,7 +262,7 @@ void DcoTreeNode::convertToRelative() {
 int DcoTreeNode::generateConstraints(BcpsConstraintPool * conPool) {
   DcoModel * disco_model = dynamic_cast<DcoModel*>(broker_->getModel());
   CoinMessageHandler * message_handler = disco_model->dcoMessageHandler_;
-  CoinMessages * messages = disco_model->dcoMessages_;
+  //CoinMessages * messages = disco_model->dcoMessages_;
 
   // if OA algorithm is being used and solver status is primal feasible and
   // dual infeasible, then generate OA cuts.
@@ -270,8 +270,8 @@ int DcoTreeNode::generateConstraints(BcpsConstraintPool * conPool) {
   OsiSolverInterface * solver = disco_model->solver();
   if (!solver->isProvenPrimalInfeasible()
       and solver->isProvenDualInfeasible()) {
-    int num_cg = disco_model->numConGenerators();
-    for (int i=0; i<num_cg; ++i) {
+    long unsigned int num_cg = disco_model->numConGenerators();
+    for (long unsigned int i=0; i<num_cg; ++i) {
       DcoConGenerator * cg = disco_model->conGenerators(i);
       if (cg->name().compare("OA")!=0) {
         continue;
@@ -279,6 +279,7 @@ int DcoTreeNode::generateConstraints(BcpsConstraintPool * conPool) {
       int pre_num_cons = conPool->getNumConstraints();
       double start_time = CoinCpuTime();
       // Call constraint generator
+      //bool must_resolve = cg->generateConstraints(*conPool);
       bool must_resolve = cg->generateConstraints(*conPool);
       double cut_time = CoinCpuTime() - start_time;
       // Statistics
@@ -306,8 +307,8 @@ int DcoTreeNode::generateConstraints(BcpsConstraintPool * conPool) {
   }
 #endif
   // number of constraint generators in model
-  int num_cg = disco_model->numConGenerators();
-  for (int i=0; i<num_cg; ++i) {
+  long unsigned int num_cg = disco_model->numConGenerators();
+  for (long unsigned int i=0; i<num_cg; ++i) {
     bool do_use = false;
     DcoConGenerator * cg = disco_model->conGenerators(i);
     // decide whether we should use this cut generator with respect to the
@@ -320,6 +321,7 @@ int DcoTreeNode::generateConstraints(BcpsConstraintPool * conPool) {
     int pre_num_cons = conPool->getNumConstraints();
     double start_time = CoinCpuTime();
     // Call constraint generator
+    //bool must_resolve = cg->generateConstraints(*conPool);
     bool must_resolve = cg->generateConstraints(*conPool);
     double cut_time = CoinCpuTime() - start_time;
     // Statistics
@@ -492,13 +494,10 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
 }
 
 int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
-  AlpsNodeStatus status = getStatus();
-  DcoNodeDesc * desc = getDesc();
   DcoModel * model = dynamic_cast<DcoModel*>(broker_->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
   bool keepBounding = true;
-  bool fathomed = false;
   bool do_branch = false;
   bool genConstraints = false;
   bool genVariables = false;
@@ -537,12 +536,11 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
     // end of debug stuff
 
     // grumpy message
-    if (subproblem_status==BcpsSubproblemStatusOptimal &&
-        getStatus()==AlpsNodeStatusCandidate or
-        getStatus()==AlpsNodeStatusEvaluated) {
+    if ((subproblem_status==BcpsSubproblemStatusOptimal) &&
+        (getStatus()==AlpsNodeStatusCandidate or
+         getStatus()==AlpsNodeStatusEvaluated)) {
       double sum_inf = 0.0;
       int num_inf = 0;
-      double const * sol = model->solver()->getColSolution();
       int const * relaxedCols = model->relaxedCols();
       for (int i=0; i<model->numRelaxedCols(); ++i) {
         int dir;
@@ -642,9 +640,6 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
     else if (keepBounding==false and do_branch) {
       // branch
       BcpsBranchStrategy * branchStrategy = model->branchStrategy();
-      // todo(aykut) following should be a parameter
-      // Maximum number of resolve during branching.
-      int numBranchResolve = 10;
       branchStrategy->createCandBranchObjects(this);
       // prepare this node for branching, bookkeeping for differencing.
       // call pregnant setting routine
@@ -664,14 +659,12 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
 }
 
 void DcoTreeNode::callHeuristics() {
-  AlpsNodeStatus status = getStatus();
-  DcoNodeDesc * desc = getDesc();
   DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
-  int num_heur = model->numHeuristics();
+  long unsigned int num_heur = model->numHeuristics();
   DcoSolution * sol;
-  for (int i=0; i<num_heur; ++i) {
+  for (long unsigned int i=0; i<num_heur; ++i) {
     DcoHeuristic * curr = model->heuristics(i);
     sol = curr->searchSolution();
     if (sol) {
@@ -795,9 +788,9 @@ int DcoTreeNode::installSubProblem() {
   // get number of columns and rows
   int numCoreCols = model->getNumCoreVariables();
   int numCoreLinearRows = model->getNumCoreLinearConstraints();
-  int numCoreConicRows = model->getNumCoreConicConstraints();
+  //int numCoreConicRows = model->getNumCoreConicConstraints();
   // get number of columns and rows stored in the solver
-  int numSolverCols = model->solver()->getNumCols();
+  //int numSolverCols = model->solver()->getNumCols();
   // solver rows are all linear, for both Osi and OsiConic.
   int numSolverRows = model->solver()->getNumRows();
 
@@ -1223,8 +1216,8 @@ void DcoTreeNode::copyFullNode(DcoNodeDesc * child_node) const {
   // get model the node belongs
   DcoModel * model = dynamic_cast<DcoModel*>(broker_->getModel());
   // get message handler and messages for loging
-  CoinMessageHandler * message_handler = model->dcoMessageHandler_;
-  CoinMessages * messages = model->dcoMessages_;
+  //CoinMessageHandler * message_handler = model->dcoMessageHandler_;
+  //CoinMessages * messages = model->dcoMessages_;
   // get description of this node
   DcoNodeDesc * node_desc = getDesc();
 
@@ -1450,7 +1443,7 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     // obj value and we can fathom this node.
     // 3. stop cutting if it does not improve obj value
 
-    double cone_tol = model->dcoPar()->entry(DcoParams::coneTol);
+    //double cone_tol = model->dcoPar()->entry(DcoParams::coneTol);
     double gap =  (broker()->getIncumbentValue() - quality_)/quality_;
 
     // if (!broker()->hasKnowledge(AlpsKnowledgeTypeSolution)) {

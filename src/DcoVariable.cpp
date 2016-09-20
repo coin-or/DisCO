@@ -108,7 +108,6 @@ AlpsReturnStatus DcoVariable::encode(AlpsEncoded * encoded) const {
 /// Decode a given AlpsEncoded object to a new DcoVariable object and return
 /// a pointer to it.
 AlpsKnowledge * DcoVariable::decode(AlpsEncoded & encoded) const {
-  AlpsReturnStatus status;
   std::cerr << "Not implemented, "
             << "file: " <<  __FILE__
             << "line: " << __LINE__
@@ -120,11 +119,11 @@ AlpsKnowledge * DcoVariable::decode(AlpsEncoded & encoded) const {
 
 /// Decode a given AlpsEncoded object into self.
 AlpsReturnStatus DcoVariable::decodeToSelf(AlpsEncoded & encoded) {
-  AlpsReturnStatus status;
+  AlpsReturnStatus status = AlpsReturnStatusOk;
   std::cerr << "Not implemented, "
             << "file: " <<  __FILE__
             << "line: " << __LINE__
             << std::endl;
   throw std::exception();
-  return AlpsReturnStatusOk;
+  return status;
 }
