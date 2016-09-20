@@ -316,7 +316,7 @@ public:
   /// Get the number of constraint generators.
   long unsigned int numConGenerators() const { return conGenerators_.size(); }
   /// Get a specific constraint generator.
-  DcoConGenerator * conGenerators(int i) const { return conGenerators_[i]; }
+  DcoConGenerator * conGenerators(long unsigned int i) const { return conGenerators_[i]; }
   /// Get global cut strategy. It will be set using specific cut strategies, to
   /// the most allowing one. If we have strategies with root and periodic
   /// calls, it will be set to periodic.
@@ -332,9 +332,9 @@ public:
   // get number of heuristics
   long unsigned int numHeuristics() const { return heuristics_.size(); }
   // get a constant specific heuristic, for reading statistics.
-  DcoHeuristic const * heuristics(int i) const { return heuristics_[i]; }
+  DcoHeuristic const * heuristics(long unsigned int i) const { return heuristics_[i]; }
   // get a specific heuristic, for solution search
-  DcoHeuristic * heuristics(int i) { return heuristics_[i]; }
+  DcoHeuristic * heuristics(long unsigned int i) { return heuristics_[i]; }
   //@}
 
 

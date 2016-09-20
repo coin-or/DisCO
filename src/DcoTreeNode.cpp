@@ -280,7 +280,7 @@ int DcoTreeNode::generateConstraints(BcpsConstraintPool * conPool) {
       double start_time = CoinCpuTime();
       // Call constraint generator
       //bool must_resolve = cg->generateConstraints(*conPool);
-      bool must_resolve = cg->generateConstraints(*conPool);
+      cg->generateConstraints(*conPool);
       double cut_time = CoinCpuTime() - start_time;
       // Statistics
       cg->stats().addTime(cut_time);
@@ -322,7 +322,7 @@ int DcoTreeNode::generateConstraints(BcpsConstraintPool * conPool) {
     double start_time = CoinCpuTime();
     // Call constraint generator
     //bool must_resolve = cg->generateConstraints(*conPool);
-    bool must_resolve = cg->generateConstraints(*conPool);
+    cg->generateConstraints(*conPool);
     double cut_time = CoinCpuTime() - start_time;
     // Statistics
     cg->stats().addTime(cut_time);
