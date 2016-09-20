@@ -15,11 +15,17 @@
 /* Define to 1 if the Cplex package is available */
 #undef COIN_HAS_CPLEX
 
+/* Define to 1 if the Ipopt package is available */
+#undef COIN_HAS_IPOPT
+
 /* Define to 1 if the Mosek package is available */
 #undef COIN_HAS_MOSEK
 
 /* Define to 1 if the Mpi package is available */
 #undef COIN_HAS_MPI
+
+/* Define to 1 if the OsiIpopt package is available */
+#undef COIN_HAS_OSIIPOPT
 
 /* Define to 1 if the Sample package is available */
 #undef COIN_HAS_SAMPLE

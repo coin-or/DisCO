@@ -3,6 +3,13 @@
 
 #include "OsiPresolve.hpp"
 
+#if defined(__OA__)
+  #include <OsiClpSolverInterface.hpp>
+#else
+  #include <OsiConicSolverInterface.hpp>
+#endif
+
+
 class DcoModel;
 
 /*!

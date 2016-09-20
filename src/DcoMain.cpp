@@ -1,5 +1,3 @@
-#include <OsiClpSolverInterface.hpp>
-
 #include "DcoModel.hpp"
 #include "DcoSolution.hpp"
 #include "DcoTreeNode.hpp"
@@ -9,6 +7,31 @@
 #include "AlpsKnowledgeBrokerMPI.h"
 #else
 #include "AlpsKnowledgeBrokerSerial.h"
+#endif
+
+#if defined(__OA__)
+  #include <OsiClpSolverInterface.hpp>
+  typedef OsiClpSolverInterface LINEAR_SOLVER;
+// get SOCO solver
+#else
+  #include <OsiConicSolverInterface.hpp>
+#if defined(__OSI_MOSEK__)
+  // use mosek
+  #include <OsiMosekSolverInterface.hpp>
+  typedef OsiMosekSolverInterface SOCO_SOLVER;
+#elif defined(__OSI_CPLEX__)
+  // use cplex
+  #include <OsiCplexSolverInterface.hpp>
+  typedef OsiCplexSolverInterface SOCO_SOLVER;
+#elif defined(__OSI_IPOPT__)
+  // use ipopt
+  #include <OsiIpoptSolverInterface.hpp>
+  typedef OsiIpoptSolverInterface SOCO_SOLVER;
+#elif defined(__COLA__)
+  // use cola
+  #include <ColaModel.hpp>
+  typedef ColaModel SOCO_SOLVER;
+#endif
 #endif
 
 int main(int argc, char *argv[]) {
@@ -26,17 +49,13 @@ int main(int argc, char *argv[]) {
   // }
 
 #if defined(__OA__)
-  OsiSolverInterface * solver = new OsiClpSolverInterface();
-  // for unboundedness directions set option
-  dynamic_cast<OsiClpSolverInterface*>(solver)->getModelPtr()->setMoreSpecialOptions(0);
+  OsiSolverInterface * solver = new LINEAR_SOLVER();
   solver->setHintParam(OsiDoInBranchAndCut, true, OsiHintDo, NULL);
+  // clp specific options for getting unboundedness directions
+  dynamic_cast<OsiClpSolverInterface*>(solver)->getModelPtr()->setMoreSpecialOptions(0);
   dynamic_cast<OsiClpSolverInterface*>(solver)->getModelPtr()->setLogLevel(0);
-#elif defined(__OSI_MOSEK__)
-  OsiConicSolverInterface * solver = new OsiMosekSolverInterface();
-#elif defined(__OSI_CPLEX__)
-  OsiConicSolverInterface * solver = new OsiCplexSolverInterface();
-#elif defined(__COLA__)
-  OsiConicSolverInterface * solver = new ColaModel();
+#else
+  OsiConicSolverInterface * solver = new SOCO_SOLVER();
 #endif
 
   // Create DisCO model

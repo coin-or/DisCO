@@ -113,6 +113,8 @@ if test $coin_has_coindepend != yes ; then
   AC_MSG_ERROR([Required packages not available.])
 fi
 AC_COIN_CHECK_PACKAGE(Cola, [cola],     [DiscoLib])
+AC_COIN_CHECK_PACKAGE(Ipopt, [ipopt],     [DiscoLib])
+AC_COIN_CHECK_PACKAGE(OsiIpopt, [osiipopt],     [DiscoLib])
 AC_COIN_CHECK_PACKAGE(Sample, [coindatasample])
 
 #############################################################################
@@ -155,6 +157,13 @@ case $dco_soco_solver in
          found_package=false
      fi
    ;;
+   ipopt)
+    AC_MSG_RESULT(Ipopt)
+     if [test $coin_has_osiipopt = unavailable || test $coin_has_osiipopt = skipping]; \
+     then
+         found_package=false
+     fi
+   ;;
    mosek)
      AC_MSG_RESULT(Mosek)
      if test $coin_has_mosek = false; \
@@ -182,6 +191,8 @@ AM_CONDITIONAL(OA_SOCO_SOLVER,[test $dco_soco_solver = oa &&
 test $coin_has_coindepend = yes])
 AM_CONDITIONAL(COLA_SOCO_SOLVER,[test $dco_soco_solver = cola &&
 test $coin_has_cola = yes])
+AM_CONDITIONAL(IPOPT_SOCO_SOLVER,[test $dco_soco_solver = ipopt &&
+test $coin_has_osiipopt = yes])
 AM_CONDITIONAL(MOSEK_SOCO_SOLVER,[test $dco_soco_solver = mosek &&
 test $coin_has_mosek = yes])
 AM_CONDITIONAL(CPLEX_SOCO_SOLVER,[test $dco_soco_solver = cplex &&
