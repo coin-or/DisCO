@@ -353,9 +353,11 @@ DcoSolution * DcoHeurRounding::searchSolution() {
             << type << CoinMessageEol;
         }
         if (term1-term2<-cone_tol) {
+          delete[] values;
           feasible = false;
           break;
         }
+        delete[] values;
       }
     }
 

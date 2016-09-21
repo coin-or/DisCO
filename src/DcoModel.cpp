@@ -511,6 +511,8 @@ void DcoModel::approximateCones() {
     num_oa_cuts += num_cuts;
     if (num_cuts==0) {
       // ifno cuts are produced break early
+      delete oa_cuts;
+      delete cg_oa;
       break;
     }
     solver_->applyCuts(*oa_cuts);
