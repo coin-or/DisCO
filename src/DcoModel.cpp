@@ -680,10 +680,6 @@ void DcoModel::setMessageLevel() {
   broker()->messageHandler()->setLogLevel(alps_log_level);
   bcpsMessageHandler()->setLogLevel(alps_log_level);
   dcoMessageHandler_->setLogLevel(dco_log_level);
-
-
-  // dynamic_cast<OsiClpSolverInterface*>(solver)->setHintParam(OsiDoReducePrint,false,OsiHintDo, 0);
-  solver_->setHintParam(OsiDoReducePrint,false,OsiHintDo, 0);
 }
 
 void DcoModel::addConstraintGenerators() {
