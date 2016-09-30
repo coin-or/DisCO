@@ -365,7 +365,6 @@ DcoSolution * DcoHeurRounding::searchSolution() {
       // new solution found, store solution.
       dco_sol = new DcoSolution(numCols, sol, sol_quality);
       dco_sol->setBroker(model()->broker_);
-
       stats().addNumSolutions();
     }
     else {

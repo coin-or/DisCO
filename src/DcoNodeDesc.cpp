@@ -144,10 +144,8 @@ AlpsReturnStatus DcoNodeDesc::decodeToSelf(AlpsEncoded & encoded) {
     if (!basis_) {
         throw CoinError("Out of memory", "BlisDecodeWarmStart", "HELP");
     }
-
     basis_->assignBasisStatus(numCols, numRows,
                               structuralStatus, artificialStatus);
-
     assert(!structuralStatus);
     assert(!artificialStatus);
   }
