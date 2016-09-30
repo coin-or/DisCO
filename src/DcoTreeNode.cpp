@@ -507,12 +507,8 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
 
   while (keepBounding) {
     keepBounding = false;
-
-    // update last objective value
-    bcpStats_.lastObjVal_ = model->solver()->getObjValue();
     // solve subproblem corresponds to this node
     BcpsSubproblemStatus subproblem_status = bound();
-
     // update bcp statistics
     if (bcpStats_.numBoundIter_==0) {
       bcpStats_.startObjVal_ = model->solver()->getObjValue();
@@ -797,6 +793,7 @@ int DcoTreeNode::installSubProblem() {
   // 1. Remove noncore columns and rows
   // 1.1 Remove non-core rows from solver, i.e. cuts
   int numDelRows = numSolverRows - numCoreLinearRows;
+#ifndef __COLA__
   if (numDelRows > 0) {
     int * indices = new int[numDelRows];
     if (indices==NULL) {
@@ -812,6 +809,7 @@ int DcoTreeNode::installSubProblem() {
     delete[] indices;
     indices = NULL;
   }
+#endif
   // 1.1 Remove non-core columns from solver
   // End of 1.
 
@@ -1144,16 +1142,18 @@ DcoTreeNode::branch() {
   down_node->setBranchedInd(branch_object->index());
   down_node->setBranchedVal(branch_value);
   // == set warm start basis for the down node.
+#if defined(__OA__) || defined(__COLA__)
   down_node->setBasis(child_ws);
-
+#endif
   // Up Node
   // == set other relevant fields of up node
   up_node->setBranchedDir(DcoNodeBranchDirectionUp);
   up_node->setBranchedInd(branch_object->index());
   up_node->setBranchedVal(branch_value);
   // == set warm start basis for the up node.
+#if defined(__OA__) || defined(__COLA__)
   up_node->setBasis(child_ws);
-
+#endif
   // Alps does this. We do not need to change the status here
   //status_ = AlpsNodeStatusBranched;
 
@@ -1302,8 +1302,10 @@ void DcoTreeNode::processSetPregnant() {
   // todo(aykut) This does not help much if the underlying solver is an IPM
   // based solver.
   DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
-  CoinWarmStartBasis * ws = dynamic_cast<CoinWarmStartBasis*>
-    (model->solver()->getWarmStart());
+  CoinWarmStartBasis * ws = NULL;
+  if (model->solver()->getWarmStart()!=NULL) {
+    ws = dynamic_cast<CoinWarmStartBasis*>(model->solver()->getWarmStart());
+  }
   // store basis in the node desciption.
   getDesc()->setBasis(ws);
   // set status pregnant
