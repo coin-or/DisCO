@@ -1491,9 +1491,11 @@ AlpsReturnStatus DcoModel::encode(AlpsEncoded * encoded) const {
   encoded->writeRep(integerCols_, numIntegerCols_);
   encoded->writeRep(isInteger_, numCols_);
   // encode cone info
-  encoded->writeRep(coneStart_, numConicRows_+1);
-  encoded->writeRep(coneType_, numConicRows_);
-  encoded->writeRep(coneMembers_, coneStart_[numConicRows_]);
+  if (numConicRows_) {
+    encoded->writeRep(coneStart_, numConicRows_+1);
+    encoded->writeRep(coneType_, numConicRows_);
+    encoded->writeRep(coneMembers_, coneStart_[numConicRows_]);
+  }
   // encode matrix
   encoded->writeRep(matrix_->getNumElements());
   encoded->writeRep(matrix_->getVectorStarts(), numLinearRows_);
@@ -1544,11 +1546,13 @@ AlpsReturnStatus DcoModel::decodeToSelf(AlpsEncoded & encoded) {
   encoded.readRep(integerCols_, numIntegerCols_);
   encoded.readRep(isInteger_, numCols_);
   // decode cone info
-  int cone_start_size;
-  encoded.readRep(coneStart_, cone_start_size);
-  assert(cone_start_size==numConicRows_+1);
-  encoded.readRep(coneType_, numConicRows_);
-  encoded.readRep(coneMembers_, coneStart_[numConicRows_]);
+  if (numConicRows_) {
+    int cone_start_size;
+    encoded.readRep(coneStart_, cone_start_size);
+    assert(cone_start_size==numConicRows_+1);
+    encoded.readRep(coneType_, numConicRows_);
+    encoded.readRep(coneMembers_, coneStart_[numConicRows_]);
+  }
   // decode matrix
   int num_elem;
   int * starts;
