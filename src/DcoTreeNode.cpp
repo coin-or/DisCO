@@ -1400,6 +1400,9 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
   }
   if (subproblem_status!=BcpsSubproblemStatusOptimal and
       subproblem_status!=BcpsSubproblemStatusDualInfeasible) {
+    // write the failed subproblem to mps file
+    model->solver()->writeMps("failed", "mps", 0.0);
+    // log error message
     message_handler->message(DISCO_SOLVER_FAILED, *messages)
       << broker()->getProcRank()
       << getIndex()
@@ -1456,13 +1459,14 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     //   return;
     // }
 
-    // if (largest_cone_size<=3) {
-    //   // branch
-    //   keepBounding = false;
-    //   branch = true;
-    //   generateVariables = false;
-    //   generateConstraints = false;
-    // }
+    if (largest_cone_size<=3) {
+      // branch
+      keepBounding = false;
+      branch = true;
+      generateVariables = false;
+      generateConstraints = false;
+      return;
+    }
     //std::cout << bcpStats_.lastImp_ << std::endl;
     // if gap looks like acheivable with conic cuts. Gap is acheivable,
     // (1) if it is small, (2) if OA cuts are doing good in improving obj value
