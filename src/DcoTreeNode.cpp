@@ -503,6 +503,7 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
   bool genVariables = false;
   BcpsConstraintPool * constraintPool = new BcpsConstraintPool();
   BcpsVariablePool * variablePool = new BcpsVariablePool();
+  double cutoff = model->dcoPar()->entry(DcoParams::cutoff);
   installSubProblem();
 
   while (keepBounding) {
@@ -564,7 +565,8 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
     // check if this can be fathomed
     double rel_gap_limit = model->dcoPar()->entry(DcoParams::optimalRelGap);
     double abs_gap_limit = model->dcoPar()->entry(DcoParams::optimalAbsGap);
-    double abs_gap = broker()->getIncumbentValue()-getQuality();
+    cutoff = CoinMin(cutoff, broker()->getIncumbentValue());
+    double abs_gap = cutoff-getQuality();
     double rel_gap = abs_gap/fabs(broker()->getIncumbentValue());
     //std::cout << "abs " << abs_gap << " limit " << abs_gap_limit << std::endl;
     //std::cout << "rel " << rel_gap << " limit " << rel_gap_limit << std::endl;
