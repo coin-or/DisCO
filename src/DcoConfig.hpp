@@ -21,7 +21,7 @@
  * All Rights Reserved.                                                      *
  *===========================================================================*/
 
-/* Include file for the configuration of Alps.
+/* Include file for the configuration of DisCO.
  *
  * On systems where the code is configured with the configure script
  * (i.e., compilation is always done with HAVE_CONFIG_H defined), this

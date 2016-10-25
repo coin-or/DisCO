@@ -77,9 +77,8 @@ host_triplet = @host@
 @ALWAYS_FALSE@am__append_1 = test
 DIST_COMMON = README $(am__configure_deps) \
 	$(srcdir)/BuildTools/Makemain.inc $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in $(srcdir)/disco-uninstalled.pc.in \
-	$(srcdir)/disco.pc.in $(top_srcdir)/configure \
-	$(top_srcdir)/doxydoc/doxygen.conf.in \
+	$(srcdir)/Makefile.in $(srcdir)/disco.pc.in \
+	$(top_srcdir)/configure $(top_srcdir)/doxydoc/doxygen.conf.in \
 	$(top_srcdir)/examples/VRP/Makefile.in AUTHORS config.guess \
 	config.sub depcomp install-sh ltmain.sh missing
 @HAVE_EXTERNALS_TRUE@am__append_2 = Dependencies
@@ -96,7 +95,7 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/src/config.h \
 	$(top_builddir)/src/config_dco.h
 CONFIG_CLEAN_FILES = examples/VRP/Makefile disco.pc \
-	disco-uninstalled.pc doxydoc/doxygen.conf
+	doxydoc/doxygen.conf
 SOURCES =
 DIST_SOURCES =
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
@@ -380,13 +379,10 @@ SUBDIRS = src $(am__append_1)
 ########################################################################
 
 # Here we need include all files that are not mentioned in other Makefiles
-EXTRA_DIST = examples/BlisMain.cpp examples/blis.par \
-	examples/egout.mps examples/flugpl.mps examples/gen.mps \
-	examples/knap1.mps examples/knap2.mps examples/knap3.mps \
-	examples/VRP/AUTHORS examples/VRP/INSTALL examples/VRP/LICENSE \
-	examples/VRP/Makefile.in examples/VRP/README \
-	examples/VRP/VrpCommonTypes.h examples/VRP/VrpConstants.h \
-	examples/VRP/VrpCutGenerator.cpp \
+EXTRA_DIST = examples/VRP/AUTHORS examples/VRP/INSTALL \
+	examples/VRP/LICENSE examples/VRP/Makefile.in \
+	examples/VRP/README examples/VRP/VrpCommonTypes.h \
+	examples/VRP/VrpConstants.h examples/VRP/VrpCutGenerator.cpp \
 	examples/VRP/VrpCutGenerator.h examples/VRP/VrpHeurTSP.cpp \
 	examples/VRP/VrpHeurTSP.h examples/VRP/VrpMain.cpp \
 	examples/VRP/VrpModel.cpp examples/VRP/VrpModel.h \
@@ -451,8 +447,6 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 examples/VRP/Makefile: $(top_builddir)/config.status $(top_srcdir)/examples/VRP/Makefile.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 disco.pc: $(top_builddir)/config.status $(srcdir)/disco.pc.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-disco-uninstalled.pc: $(top_builddir)/config.status $(srcdir)/disco-uninstalled.pc.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 doxydoc/doxygen.conf: $(top_builddir)/config.status $(top_srcdir)/doxydoc/doxygen.conf.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
@@ -619,7 +613,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/. $(distdir)/BuildTools $(distdir)/doxydoc $(distdir)/examples $(distdir)/examples/VRP $(distdir)/src
+	$(mkdir_p) $(distdir)/. $(distdir)/BuildTools $(distdir)/doxydoc $(distdir)/examples/VRP $(distdir)/src
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
