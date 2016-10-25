@@ -30,6 +30,9 @@
 /* Define to 1 if the Sample package is available */
 #undef COIN_HAS_SAMPLE
 
+/* DisCO git version */
+#undef DISCO_GIT_VERSION
+
 /* SVN revision number of project */
 #undef DISCO_SVN_REV
 
@@ -44,9 +47,6 @@
 
 /* Release Version number of project */
 #undef DISCO_VERSION_RELEASE
-
-/* DisCO git version */
-#undef GIT_VERSION
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H

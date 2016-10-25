@@ -31,7 +31,7 @@ AC_PREREQ(2.59)
 m4_define([gitversion], m4_esyscmd([sh -c "git describe --always | cut -d '=' -f 2 | head --bytes -1"]))
 AC_INIT([Disco],[gitversion],[https://github.com/aykutbulut/DisCO/issues/new])
 
-AC_DEFINE([GIT_VERSION], [gitversion], [DisCO git version])
+AC_DEFINE([DISCO_GIT_VERSION], [gitversion], [DisCO git version])
 
 AC_COPYRIGHT([
 #==========================================================================#
@@ -231,8 +231,7 @@ AC_CONFIG_FILES([Makefile
                  src/Makefile
                  src/disco.par
                  test/Makefile
-                 disco.pc
-                 disco-uninstalled.pc])
+                 disco.pc])
 
 AC_CONFIG_FILES([doxydoc/doxygen.conf])
 
