@@ -632,6 +632,11 @@ bool DcoModel::setupSelf() {
   // add heuristics
   addHeuristics();
 
+  // set cutoff for solvers if user provides one.
+  double cutoff = dcoPar_->entry(DcoParams::cutoff);
+  if (cutoff!=ALPS_INC_MAX) {
+    solver_->setDblParam(OsiDualObjectiveLimit, objSense_*cutoff);
+  }
   // free redundant data
   // delete matrix_;
   // matrix_ = NULL;

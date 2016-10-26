@@ -443,14 +443,18 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
   // std::cout << "Broker reports quality " << broker()->getIncumbentValue()
   //           << std::endl;
 
+  double cutoff = model->dcoPar()->entry(DcoParams::cutoff);
+  double sense = model->dcoPar()->entry(DcoParams::objSense);
+  cutoff = sense*cutoff;
+  cutoff = CoinMin(cutoff, broker()->getIncumbentValue());
   // check if this can be fathomed
   double rel_gap_limit = model->dcoPar()->entry(DcoParams::optimalRelGap);
   double abs_gap_limit = model->dcoPar()->entry(DcoParams::optimalAbsGap);
-  double abs_gap = broker()->getIncumbentValue()-getQuality();
-  double rel_gap = abs_gap/fabs(broker()->getIncumbentValue());
-  //std::cout << "abs " << abs_gap << " limit " << abs_gap_limit << std::endl;
-  //std::cout << "rel " << rel_gap << " limit " << rel_gap_limit << std::endl;
-
+  double abs_gap = cutoff-getQuality();
+  double rel_gap = abs_gap/fabs(cutoff);
+  // std::cout << "cutoff " << cutoff << std::endl;
+  // std::cout << "abs " << abs_gap << " limit " << abs_gap_limit << std::endl;
+  // std::cout << "rel " << rel_gap << " limit " << rel_gap_limit << std::endl;
   if (rel_gap_limit>rel_gap or abs_gap_limit>abs_gap) {
     // debug message
     message_handler->message(DISCO_NODE_FATHOM_PARENTQ, *model->dcoMessages_)
@@ -503,7 +507,6 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
   bool genVariables = false;
   BcpsConstraintPool * constraintPool = new BcpsConstraintPool();
   BcpsVariablePool * variablePool = new BcpsVariablePool();
-  double cutoff = model->dcoPar()->entry(DcoParams::cutoff);
   installSubProblem();
 
   while (keepBounding) {
@@ -563,11 +566,14 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
     // end of grumpy message
 
     // check if this can be fathomed
+    double cutoff = model->dcoPar()->entry(DcoParams::cutoff);
+    double sense = model->dcoPar()->entry(DcoParams::objSense);
+    cutoff = sense*cutoff;
     double rel_gap_limit = model->dcoPar()->entry(DcoParams::optimalRelGap);
     double abs_gap_limit = model->dcoPar()->entry(DcoParams::optimalAbsGap);
     cutoff = CoinMin(cutoff, broker()->getIncumbentValue());
     double abs_gap = cutoff-getQuality();
-    double rel_gap = abs_gap/fabs(broker()->getIncumbentValue());
+    double rel_gap = abs_gap/fabs(cutoff);
     //std::cout << "abs " << abs_gap << " limit " << abs_gap_limit << std::endl;
     //std::cout << "rel " << rel_gap << " limit " << rel_gap_limit << std::endl;
     if (rel_gap_limit>rel_gap or abs_gap_limit>abs_gap) {
@@ -666,22 +672,28 @@ void DcoTreeNode::callHeuristics() {
     DcoHeuristic * curr = model->heuristics(i);
     sol = curr->searchSolution();
     if (sol) {
-      // set depth
-      setDepth(depth_);
-      // set index
-      setIndex(index_);
-      // Store in Alps pool
-      broker()->addKnowledge(AlpsKnowledgeTypeSolution,
-                             sol,
-                             model->objSense() * sol->getQuality());
-      double incum_value = broker()->getIncumbentValue();
-      model->solver()->setDblParam(OsiDualObjectiveLimit,
-                                   model->objSense()*incum_value);
-      // debug log
-      message_handler->message(DISCO_HEUR_SOL_FOUND, *messages)
-        << broker()->getProcRank()
-        << curr->name()
-        << sol->getQuality();
+      double cutoff = model->dcoPar()->entry(DcoParams::cutoff);
+      double sense = model->dcoPar()->entry(DcoParams::objSense);
+      cutoff = sense*cutoff;
+      cutoff = CoinMin(cutoff, sol->getQuality());
+      if (sol->getQuality() <= cutoff) {
+        // set depth
+        setDepth(depth_);
+        // set index
+        setIndex(index_);
+        // Store in Alps pool
+        broker()->addKnowledge(AlpsKnowledgeTypeSolution,
+                               sol,
+                               model->objSense() * sol->getQuality());
+        double incum_value = broker()->getIncumbentValue();
+        model->solver()->setDblParam(OsiDualObjectiveLimit,
+                                     model->objSense()*incum_value);
+        // debug log
+        message_handler->message(DISCO_HEUR_SOL_FOUND, *messages)
+          << broker()->getProcRank()
+          << curr->name()
+          << sol->getQuality();
+      }
     }
     else {
       // debug message
