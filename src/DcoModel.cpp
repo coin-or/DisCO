@@ -497,6 +497,10 @@ void DcoModel::approximateCones() {
     dual_infeasible = solver_->isProvenDualInfeasible();
     iter++;
   } while(dual_infeasible);
+  // check problem status
+  if (solver_->isProvenPrimalInfeasible()) {
+    std::cerr << "Problem become infeasible after IPM cuts." << std::endl;
+  }
   // add outer apprixmating cuts for 50 rounds
   ipm_iter = iter;
   iter = 0;
@@ -727,6 +731,8 @@ void DcoModel::addConstraintGenerators() {
     (dcoPar_->entry(DcoParams::cutIpmIntStrategy));
   DcoCutStrategy oaStrategy = static_cast<DcoCutStrategy>
     (dcoPar_->entry(DcoParams::cutOaStrategy));
+  DcoCutStrategy gd1Strategy = static_cast<DcoCutStrategy>
+    (dcoPar_->entry(DcoParams::cutGD1Strategy));
 
   // get cut frequencies from parameters
   int cliqueFreq = dcoPar_->entry(DcoParams::cutCliqueFreq);
@@ -740,6 +746,7 @@ void DcoModel::addConstraintGenerators() {
   int ipmFreq = dcoPar_->entry(DcoParams::cutIpmFreq);
   int ipmintFreq = dcoPar_->entry(DcoParams::cutIpmIntFreq);
   int oaFreq = dcoPar_->entry(DcoParams::cutOaFreq);
+  int gd1Freq = dcoPar_->entry(DcoParams::cutGD1Freq);
 
   //----------------------------------
   // Add cut generators.
@@ -962,6 +969,25 @@ void DcoModel::addConstraintGenerators() {
     CglConicCutGenerator * oa_gen =
       new CglConicOA(dcoPar_->entry(DcoParams::coneTol));
     addConGenerator(oa_gen, "OA", oaStrategy, oaFreq);
+  }
+
+  // Add General Disjunctive cut generator
+  if (gd1Strategy == DcoCutStrategyNotSet) {
+    // Do nothing.
+  }
+  else if (gd1Strategy == DcoCutStrategyRoot) {
+    // periodic by default
+    gd1Strategy = DcoCutStrategyRoot;
+    CglConicCutGenerator * gd1_gen =
+      new CglConicGD1(dcoPar_->entry(DcoParams::coneTol));
+    addConGenerator(oa_gen, "OA", oaStrategy, oaFreq);
+  }
+  else {
+    // Disjunctive cuts are available at root only for now.
+    dcoMessageHandler_->message(9998, "Dco", "Disjunctive cuts are "
+                                "available at root only for now.", 'E'
+                                0)
+      << CoinMessageEol;
   }
 
   // Adjust cutStrategy_ according to the strategies of each cut generators.

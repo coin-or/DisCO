@@ -68,6 +68,8 @@ void DcoParams::createKeywordList() {
                             AlpsParameter(AlpsIntPar, cutIpmIntStrategy)));
   keys_.push_back(make_pair(std::string("Dco_cutOaStrategy"),
                             AlpsParameter(AlpsIntPar, cutOaStrategy)));
+  keys_.push_back(make_pair(std::string("Dco_cutGD1Strategy"),
+                            AlpsParameter(AlpsIntPar, cutGD1Strategy)));
   keys_.push_back(make_pair(std::string("Dco_cutCliqueFreq"),
                             AlpsParameter(AlpsIntPar, cutCliqueFreq)));
   keys_.push_back(make_pair(std::string("Dco_cutGomoryFreq"),
@@ -90,6 +92,8 @@ void DcoParams::createKeywordList() {
                             AlpsParameter(AlpsIntPar, cutIpmIntFreq)));
   keys_.push_back(make_pair(std::string("Dco_cutOaFreq"),
                             AlpsParameter(AlpsIntPar, cutOaFreq)));
+  keys_.push_back(make_pair(std::string("Dco_cutGD1Freq"),
+                            AlpsParameter(AlpsIntPar, cutGD1Freq)));
   keys_.push_back(make_pair(std::string("Dco_difference"),
                             AlpsParameter(AlpsIntPar, difference)));
   keys_.push_back(make_pair(std::string("Dco_heurStrategy"),
@@ -209,6 +213,7 @@ void DcoParams::setDefaultEntries() {
   setEntry(cutIpmStrategy, DcoCutStrategyNotSet);
   setEntry(cutIpmIntStrategy, DcoCutStrategyNotSet);
   setEntry(cutOaStrategy, DcoCutStrategyNotSet);
+  setEntry(cutGD1Strategy, DcoCutStrategyNotSet);
   setEntry(cutIpmStrategy, DcoCutStrategyNotSet);
   setEntry(cutCliqueFreq, 1);
   setEntry(cutGomoryFreq, 1);
@@ -221,6 +226,7 @@ void DcoParams::setDefaultEntries() {
   setEntry(cutIpmFreq, 1);
   setEntry(cutIpmIntFreq, 1);
   setEntry(cutOaFreq, 1);
+  setEntry(cutGD1Freq, 1);
   setEntry(difference, -1);
   setEntry(heurStrategy, DcoHeurStrategyPeriodic);
   setEntry(heurCallFrequency, 1);
