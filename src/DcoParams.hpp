@@ -62,6 +62,7 @@ public:
     cutIpmStrategy,
     cutIpmIntStrategy,
     cutOaStrategy,
+    cutGD1Strategy,
     cutCliqueFreq,
     cutGomoryFreq,
     cutFlowCoverFreq,
@@ -73,6 +74,7 @@ public:
     cutIpmFreq,
     cutIpmIntFreq,
     cutOaFreq,
+    cutGD1Freq,
     /** -1 auto, 0, no, any integer frequency */
     difference,
     /** Heuristics control.

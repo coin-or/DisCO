@@ -36,6 +36,7 @@
 #include <CglConicIPM.hpp>
 #include <CglConicIPMint.hpp>
 #include <CglConicOA.hpp>
+#include <CglConicGD1.hpp>
 
 // STL headers
 #include <string>
@@ -45,6 +46,30 @@
 #include <numeric>
 #include <cmath>
 #include <iomanip>
+
+
+#if defined(__OA__)
+  typedef OsiClpSolverInterface LINEAR_SOLVER;
+// get SOCO solver
+#endif
+
+#if defined(__OSI_MOSEK__)
+  // use mosek
+  #include <OsiMosekSolverInterface.hpp>
+  typedef OsiMosekSolverInterface SOCO_SOLVER;
+#elif defined(__OSI_CPLEX__)
+  // use cplex
+  #include <OsiCplexSolverInterface.hpp>
+  typedef OsiCplexSolverInterface SOCO_SOLVER;
+#elif defined(__OSI_IPOPT__)
+  // use ipopt
+  #include <OsiIpoptSolverInterface.hpp>
+  typedef OsiIpoptSolverInterface SOCO_SOLVER;
+#elif defined(__COLA__)
+  // use cola
+  #include <ColaModel.hpp>
+  typedef ColaModel SOCO_SOLVER;
+#endif
 
 DcoModel::DcoModel() {
   solver_ = NULL;
@@ -322,6 +347,124 @@ void DcoModel::readInstance(char const * dataFile) {
     << CoinMessageEol;
   // free Coin MPS reader
   delete reader;
+
+
+
+
+#if defined(__OSI_MOSEK__) || defined(__OSI_CPLEX__)
+  // DisCO has access to a SOCO solver, generate cuts
+  OsiConicSolverInterface * temp_solver = new SOCO_SOLVER();
+  temp_solver->setHintParam(OsiDoReducePrint, true, OsiHintTry);
+  // load problem to solver
+  temp_solver->loadProblem(*matrix_, colLB_, colUB_, objCoef_,
+                       rowLB_, rowUB_);
+  // set integers
+  for (int i=0; i<numIntegerCols_; ++i) {
+    temp_solver->setInteger(integerCols_[i]);
+  }
+  // add conic constraints to the solver
+  for (int i=0; i<numConicRows_; ++i) {
+    // do not relax conic constraints, add them to the conic solver
+    OsiLorentzConeType osi_type;
+    if (coneType_[i]==1) {
+      osi_type = OSI_QUAD;
+    }
+    else if (coneType_[i]==2) {
+      osi_type = OSI_RQUAD;
+    }
+    temp_solver->addConicConstraint(osi_type, coneStart_[i+1]-coneStart_[i],
+                                    coneMembers_+coneStart_[i]);
+  }
+  temp_solver->initialSolve();
+  // generate cuts
+  CglConicGD1 cg(temp_solver);
+  //OsiConicSolverInterface * nsi = cg.generateAndAddBestCut(*temp_solver);
+  OsiConicSolverInterface * nsi = cg.generateAndAddCuts(*temp_solver);
+  // stats after cut
+  std::cout << "Problem stats after cuts " << std::endl;
+  std::cout << "  Number of variables: " << nsi->getNumCols()
+            << std::endl;
+  std::cout << "  Number of linear constraints: " << nsi->getNumRows()
+            << std::endl;
+  std::cout << "  Number of nonzero in coefficient matrix: " << nsi->getNumElements()
+            << std::endl;
+  std::cout << "  Number of conic constraints: " << nsi->getNumCones()
+            << std::endl;
+  delete temp_solver;
+  // load data from nsi and delete it.
+  // numCols_
+  int newNumCols = nsi->getNumCols();
+  // update colLB_, colUB_
+  delete[] colLB_;
+  delete[] colUB_;
+  colLB_ = new double[newNumCols];
+  colUB_ = new double[newNumCols];
+  std::copy(nsi->getColLower(), nsi->getColLower()+newNumCols, colLB_);
+  std::copy(nsi->getColUpper(), nsi->getColUpper()+newNumCols, colUB_);
+  // objSense_, no need to change
+  // objCoef_
+  delete[] objCoef_;
+  objCoef_ = new double[newNumCols];
+  std::copy(nsi->getObjCoefficients(),
+            nsi->getObjCoefficients()+newNumCols, objCoef_);
+  // numIntegerCols_, no need to change
+  // integerCols_, no need to change
+  // update isInteger_
+  int * newIsInteger = new int[newNumCols]();
+  std::copy(isInteger_, isInteger_+numCols_, newIsInteger);
+  delete[] isInteger_;
+  isInteger_ = newIsInteger;
+  // coneStart_, coneMembers_, coneType_, numConicRows_
+  int newNumConicRows = nsi->getNumCones();
+  int * newConeType = new int[newNumConicRows]();
+  int * newConeStart = new int[newNumConicRows+1]();
+  int * newConeMembers = new int[1000*newNumConicRows]();
+  int numColsInCone = 0;
+  // shrink members
+  for (int i=0; i<newNumConicRows; ++i) {
+    OsiLorentzConeType type;
+    int size;
+    int * members;
+    nsi->getConicConstraint(i, type, size, members);
+    if (type==OSI_QUAD) {
+      newConeType[i] = 1;
+    }
+    else {
+      newConeType[i] = 2;
+    }
+    std::copy(members, members+size, newConeMembers+newConeStart[i]);
+    numColsInCone += size;
+    newConeStart[i+1] = newConeStart[i]+size;
+    delete[] members;
+  }
+  delete[] coneType_;
+  delete[] coneStart_;
+  delete[] coneMembers_;
+  coneType_ = newConeType;
+  coneStart_ = newConeStart;
+  coneMembers_ = new int[numColsInCone];
+  std::copy(newConeMembers, newConeMembers+numColsInCone, coneMembers_);
+  delete[] newConeMembers;
+  // numLinearRows_, numRows_
+  int newNumLinearRows = nsi->getNumRows();
+  int newNumRows = newNumLinearRows + newNumConicRows;
+  // rowLB_, rowUB_,
+  double * newRowLB = new double[newNumRows];
+  double * newRowUB = new double[newNumRows];
+  std::copy(nsi->getRowLower(), nsi->getRowLower()+newNumLinearRows, newRowLB);
+  std::copy(nsi->getRowUpper(), nsi->getRowUpper()+newNumLinearRows, newRowUB);
+  std::fill_n(newRowLB+newNumLinearRows, newNumConicRows, 0.0);
+  std::fill_n(newRowUB+newNumLinearRows, newNumConicRows, DISCO_INFINITY);
+  delete[] rowLB_;
+  delete[] rowUB_;
+  rowLB_ = newRowLB;
+  rowUB_ = newRowUB;
+  // matrix_
+  delete matrix_;
+  matrix_ = new CoinPackedMatrix(*nsi->getMatrixByRow());;
+  delete nsi;
+#endif
+
 }
 
 
@@ -971,24 +1114,24 @@ void DcoModel::addConstraintGenerators() {
     addConGenerator(oa_gen, "OA", oaStrategy, oaFreq);
   }
 
-  // Add General Disjunctive cut generator
-  if (gd1Strategy == DcoCutStrategyNotSet) {
-    // Do nothing.
-  }
-  else if (gd1Strategy == DcoCutStrategyRoot) {
-    // periodic by default
-    gd1Strategy = DcoCutStrategyRoot;
-    CglConicCutGenerator * gd1_gen =
-      new CglConicGD1(dcoPar_->entry(DcoParams::coneTol));
-    addConGenerator(oa_gen, "OA", oaStrategy, oaFreq);
-  }
-  else {
-    // Disjunctive cuts are available at root only for now.
-    dcoMessageHandler_->message(9998, "Dco", "Disjunctive cuts are "
-                                "available at root only for now.", 'E'
-                                0)
-      << CoinMessageEol;
-  }
+  // // Add General Disjunctive cut generator
+  // if (gd1Strategy == DcoCutStrategyNotSet) {
+  //   // Do nothing.
+  // }
+  // else if (gd1Strategy == DcoCutStrategyRoot) {
+  //   // periodic by default
+  //   gd1Strategy = DcoCutStrategyRoot;
+  //   CglConicCutGenerator * gd1_gen =
+  //     new CglConicGD1(dcoPar_->entry(DcoParams::coneTol));
+  //   addConGenerator(gd1_gen, "OA", oaStrategy, oaFreq);
+  // }
+  // else {
+  //   // Disjunctive cuts are available at root only for now.
+  //   dcoMessageHandler_->message(9998, "Dco", "Disjunctive cuts are "
+  //                               "available at root only for now.", 'E'
+  //                               0)
+  //     << CoinMessageEol;
+  // }
 
   // Adjust cutStrategy_ according to the strategies of each cut generators.
   // set it to the most allowing one.
