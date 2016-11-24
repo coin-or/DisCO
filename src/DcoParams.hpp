@@ -85,6 +85,8 @@ public:
     heurCallFrequency,
     heurRoundStrategy,
     heurRoundFreq,
+    heurIpmStrategy,
+    heurIpmFreq,
     /** The look ahead of pseudocost. */
     lookAhead,
     /** The reliability of pseudocost. */
