@@ -571,6 +571,8 @@ bool DcoModel::setupSelf() {
   // load problem to the solver
   solver_->loadProblem(*matrix_, colLB_, colUB_, objCoef_,
                        rowLB_, rowUB_);
+  // set integer variables
+  solver_->setInteger(integerCols_, numIntegerCols_);
 
 #if defined(__OA__)
   // we relax conic constraints when OA is used.
