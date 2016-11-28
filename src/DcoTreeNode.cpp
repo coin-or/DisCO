@@ -670,7 +670,12 @@ void DcoTreeNode::callHeuristics() {
   DcoSolution * sol;
   for (long unsigned int i=0; i<num_heur; ++i) {
     DcoHeuristic * curr = model->heuristics(i);
+    double start_time = CoinCpuTime();
     sol = curr->searchSolution();
+    double heur_time = CoinCpuTime() - start_time;
+    // Statistics
+    curr->stats().addTime(heur_time);
+    curr->stats().addCalls(1);
     if (sol) {
       double cutoff = model->dcoPar()->entry(DcoParams::cutoff);
       double sense = model->dcoPar()->entry(DcoParams::objSense);
