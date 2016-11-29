@@ -104,6 +104,10 @@ void DcoParams::createKeywordList() {
                             AlpsParameter(AlpsIntPar, heurRoundStrategy)));
   keys_.push_back(make_pair(std::string("Dco_heurRoundFreq"),
                             AlpsParameter(AlpsIntPar, heurRoundFreq)));
+  keys_.push_back(make_pair(std::string("Dco_heurIpmStrategy"),
+                            AlpsParameter(AlpsIntPar, heurIpmStrategy)));
+  keys_.push_back(make_pair(std::string("Dco_heurIpmFreq"),
+                            AlpsParameter(AlpsIntPar, heurIpmFreq)));
   keys_.push_back(make_pair(std::string("Dco_lookAhead"),
                             AlpsParameter(AlpsIntPar, lookAhead)));
   keys_.push_back(make_pair(std::string("Dco_pseudoReliability"),
@@ -232,6 +236,8 @@ void DcoParams::setDefaultEntries() {
   setEntry(heurCallFrequency, 1);
   setEntry(heurRoundStrategy, DcoHeurStrategyPeriodic);
   setEntry(heurRoundFreq, 1);
+  setEntry(heurIpmStrategy, DcoHeurStrategyPeriodic);
+  setEntry(heurIpmFreq, 1);
   setEntry(lookAhead, 4);
   setEntry(pseudoReliability, 8);
   setEntry(sharePcostDepth, 30);

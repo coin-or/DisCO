@@ -1473,6 +1473,12 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     //   return;
     // }
 
+    // branch
+    keepBounding = false;
+    branch = true;
+    generateVariables = false;
+    generateConstraints = false;
+    return;
     if (largest_cone_size<=3) {
       // branch
       keepBounding = false;
@@ -1486,7 +1492,7 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     // (1) if it is small, (2) if OA cuts are doing good in improving obj value
     if (((bcpStats_.numBoundIter_<2)
          or (bcpStats_.lastImp_>0.01*gap)) and
-        (bcpStats_.numBoundIter_<100)) {
+        (bcpStats_.numBoundIter_<3)) {
 
       //else if ((bcpStats_.numBoundIter_<2) or (gap<0.004)) {
 

@@ -159,7 +159,8 @@ enum DcoHeurStrategy {
 
 enum DcoHeurType {
   DcoHeurTypeNotSet = -1,
-  DcoHeurTypeRounding
+  DcoHeurTypeRounding,
+  DcoHeurTypeIpm
 };
 
 enum DcoHotStartStrategy{

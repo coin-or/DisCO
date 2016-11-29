@@ -19,6 +19,7 @@
 #include "DcoPresolve.hpp"
 #include "DcoHeuristic.hpp"
 #include "DcoHeurRounding.hpp"
+#include "DcoHeurIpm.hpp"
 
 // MILP cuts
 #include <CglCutGenerator.hpp>
@@ -1210,14 +1211,24 @@ void DcoModel::addHeuristics() {
   // get rounding heuristics strategy from parameters
   DcoHeurStrategy roundingStrategy = static_cast<DcoHeurStrategy>
     (dcoPar_->entry(DcoParams::heurRoundStrategy));
+  DcoHeurStrategy ipmStrategy = static_cast<DcoHeurStrategy>
+    (dcoPar_->entry(DcoParams::heurIpmStrategy));
   // get rounding heuristic frequency from parameters
   int roundingFreq = dcoPar_->entry(DcoParams::heurRoundFreq);
+  int ipmFreq = dcoPar_->entry(DcoParams::heurIpmFreq);
 
   // add heuristics
   // == add rounding heuristics
   if (roundingStrategy != DcoHeurStrategyNone) {
     DcoHeuristic * round = new DcoHeurRounding(this, "rounding",
                                                roundingStrategy, roundingFreq);
+    heuristics_.push_back(round);
+  }
+
+  // == add IPM heuristics
+  if (ipmStrategy != DcoHeurStrategyNone) {
+    DcoHeuristic * round = new DcoHeurIpm(this, "ipm",
+                                          ipmStrategy, ipmFreq);
     heuristics_.push_back(round);
   }
 

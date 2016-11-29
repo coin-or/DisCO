@@ -67,6 +67,8 @@ host_triplet = @host@
 @IPOPT_SOCO_SOLVER_TRUE@am__append_3 = -D__OSI_IPOPT__
 @MOSEK_SOCO_SOLVER_TRUE@am__append_4 = -D__OSI_MOSEK__
 @CPLEX_SOCO_SOLVER_TRUE@am__append_5 = -D__OSI_CPLEX__
+@MOSEK_EXIST_TRUE@am__append_6 = -D__MOSEK_EXIST__
+@CPLEX_EXIST_TRUE@am__append_7 = -D__CPLEX_EXIST__
 bin_PROGRAMS = disco$(EXEEXT)
 subdir = src
 DIST_COMMON = $(includecoin_HEADERS) $(srcdir)/DcoMain.cpp \
@@ -101,7 +103,8 @@ am_libDisco_la_OBJECTS = DcoConGenerator.lo DcoLinearConGenerator.lo \
 	DcoConstraint.lo DcoLinearConstraint.lo DcoConicConstraint.lo \
 	DcoMessage.lo DcoModel.lo DcoNodeDesc.lo DcoParams.lo \
 	DcoSolution.lo DcoSubTree.lo DcoTreeNode.lo DcoVariable.lo \
-	DcoPresolve.lo DcoHeuristic.lo DcoHeurRounding.lo
+	DcoPresolve.lo DcoHeuristic.lo DcoHeurRounding.lo \
+	DcoHeurIpm.lo
 libDisco_la_OBJECTS = $(am_libDisco_la_OBJECTS)
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
@@ -201,6 +204,8 @@ CPLEX_CFLAGS_INSTALLED = @CPLEX_CFLAGS_INSTALLED@
 CPLEX_DATA = @CPLEX_DATA@
 CPLEX_DATA_INSTALLED = @CPLEX_DATA_INSTALLED@
 CPLEX_DEPENDENCIES = @CPLEX_DEPENDENCIES@
+CPLEX_EXIST_FALSE = @CPLEX_EXIST_FALSE@
+CPLEX_EXIST_TRUE = @CPLEX_EXIST_TRUE@
 CPLEX_LIBS = @CPLEX_LIBS@
 CPLEX_LIBS_INSTALLED = @CPLEX_LIBS_INSTALLED@
 CPLEX_SOCO_SOLVER_FALSE = @CPLEX_SOCO_SOLVER_FALSE@
@@ -268,6 +273,8 @@ MOSEK_CFLAGS_INSTALLED = @MOSEK_CFLAGS_INSTALLED@
 MOSEK_DATA = @MOSEK_DATA@
 MOSEK_DATA_INSTALLED = @MOSEK_DATA_INSTALLED@
 MOSEK_DEPENDENCIES = @MOSEK_DEPENDENCIES@
+MOSEK_EXIST_FALSE = @MOSEK_EXIST_FALSE@
+MOSEK_EXIST_TRUE = @MOSEK_EXIST_TRUE@
 MOSEK_LIBS = @MOSEK_LIBS@
 MOSEK_LIBS_INSTALLED = @MOSEK_LIBS_INSTALLED@
 MOSEK_SOCO_SOLVER_FALSE = @MOSEK_SOCO_SOLVER_FALSE@
@@ -380,7 +387,8 @@ AUTOMAKE_OPTIONS = foreign
 LDADD = $(DISCOLIB_LIBS)
 DEPENDENCIES = $(DISCOLIB_DEPENDENCIES)
 AM_CPPFLAGS = $(DISCOLIB_CFLAGS) $(am__append_1) $(am__append_2) \
-	$(am__append_3) $(am__append_4) $(am__append_5)
+	$(am__append_3) $(am__append_4) $(am__append_5) \
+	$(am__append_6) $(am__append_7)
 
 ########################################################################
 #                               libDisco                                #
@@ -438,6 +446,8 @@ libDisco_la_SOURCES = \
 	DcoHeuristic.cpp \
 	DcoHeurRounding.hpp \
 	DcoHeurRounding.cpp \
+	DcoHeurIpm.hpp \
+	DcoHeurIpm.cpp \
 	DcoConfig.hpp
 
 
@@ -632,6 +642,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConicConGenerator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConicConstraint.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConstraint.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoHeurIpm.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoHeurRounding.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoHeuristic.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoLinearConGenerator.Plo@am__quote@
