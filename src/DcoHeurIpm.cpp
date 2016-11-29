@@ -30,8 +30,8 @@ DcoHeurIpm::DcoHeurIpm(DcoModel * model, char const * name,
 // For this heuristic to work, we need an IPM solver
 // do we assume all integer variables are feasible?
 DcoSolution * DcoHeurIpm::searchSolution() {
-#if defined(__OA__)
   DcoSolution * dco_sol = NULL;
+#if defined(__OA__)
   // get pointers for message logging
   CoinMessageHandler * message_handler = model()->dcoMessageHandler_;
   CoinMessages * messages = model()->dcoMessages_;
