@@ -509,6 +509,10 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
   BcpsVariablePool * variablePool = new BcpsVariablePool();
   installSubProblem();
 
+  // write node to file
+  // std::stringstream ss;
+  // ss << index_;
+  // model->solver()->writeMps(ss.str().c_str(), "mps", 0.0);
   while (keepBounding) {
     keepBounding = false;
     // solve subproblem corresponds to this node

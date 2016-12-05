@@ -54,6 +54,8 @@ int main(int argc, char *argv[]) {
   // clp specific options for getting unboundedness directions
   dynamic_cast<OsiClpSolverInterface*>(solver)->getModelPtr()->setMoreSpecialOptions(0);
   dynamic_cast<OsiClpSolverInterface*>(solver)->getModelPtr()->setLogLevel(0);
+  solver->setDblParam(OsiPrimalTolerance, 1e-5);
+  solver->setDblParam(OsiDualTolerance, 1e-5);
 #else
   OsiConicSolverInterface * solver = new SOCO_SOLVER();
   solver->setHintParam(OsiDoReducePrint, true, OsiHintTry);

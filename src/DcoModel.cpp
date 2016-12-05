@@ -48,20 +48,24 @@
 #include <cmath>
 #include <iomanip>
 
-
 #if defined(__OA__)
   typedef OsiClpSolverInterface LINEAR_SOLVER;
-// get SOCO solver
 #endif
 
-#if defined(__OSI_MOSEK__)
-  // use mosek
+#if defined(__MOSEK_EXIST__)
   #include <OsiMosekSolverInterface.hpp>
-  typedef OsiMosekSolverInterface SOCO_SOLVER;
-#elif defined(__OSI_CPLEX__)
-  // use cplex
+#endif
+
+#if defined(__CPLEX_EXIST__)
   #include <OsiCplexSolverInterface.hpp>
+#endif
+
+#if defined(__OSI_CPLEX__)
+  // use cplex
   typedef OsiCplexSolverInterface SOCO_SOLVER;
+#elif defined(__OSI_MOSEK__)
+  // use mosek
+  typedef OsiMosekSolverInterface SOCO_SOLVER;
 #elif defined(__OSI_IPOPT__)
   // use ipopt
   #include <OsiIpoptSolverInterface.hpp>
@@ -352,9 +356,9 @@ void DcoModel::readInstance(char const * dataFile) {
 
 
 
-#if defined(__OSI_MOSEK__) || defined(__OSI_CPLEX__)
+#if defined(__CPLEX_EXIST__)
   // DisCO has access to a SOCO solver, generate cuts
-  OsiConicSolverInterface * temp_solver = new SOCO_SOLVER();
+  OsiConicSolverInterface * temp_solver = new OsiCplexSolverInterface();
   temp_solver->setHintParam(OsiDoReducePrint, true, OsiHintTry);
   // load problem to solver
   temp_solver->loadProblem(*matrix_, colLB_, colUB_, objCoef_,
@@ -379,8 +383,8 @@ void DcoModel::readInstance(char const * dataFile) {
   temp_solver->initialSolve();
   // generate cuts
   CglConicGD1 cg(temp_solver);
-  //OsiConicSolverInterface * nsi = cg.generateAndAddBestCut(*temp_solver);
-  OsiConicSolverInterface * nsi = cg.generateAndAddCuts(*temp_solver);
+  OsiConicSolverInterface * nsi = cg.generateAndAddBestCut(*temp_solver);
+  //OsiConicSolverInterface * nsi = cg.generateAndAddCuts(*temp_solver);
   // stats after cut
   std::cout << "Problem stats after cuts " << std::endl;
   std::cout << "  Number of variables: " << nsi->getNumCols()
