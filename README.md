@@ -1,6 +1,6 @@
 # DisCO Version 0.95
 
-# DisCO [![Build Status](https://travis-ci.org/aykutbulut/DisCO.svg?branch=master)](https://travis-ci.org/aykutbulut/DisCO)
+[![Build Status](https://travis-ci.org/aykutbulut/DisCO.svg?branch=master)](https://travis-ci.org/aykutbulut/DisCO)
 
 [ ![Download](https://api.bintray.com/packages/coin-or/download/DisCO/images/download.svg?version=trunk) ](https://bintray.com/coin-or/download/DisCO/trunk/link)
 
