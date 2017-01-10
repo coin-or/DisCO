@@ -1,3 +1,5 @@
+$ DisCO Version 0.95
+
 # DisCO [![Build Status](https://travis-ci.org/aykutbulut/DisCO.svg?branch=master)](https://travis-ci.org/aykutbulut/DisCO)
 
 [ ![Download](https://api.bintray.com/packages/coin-or/download/DisCO/images/download.svg?version=trunk) ](https://bintray.com/coin-or/download/DisCO/trunk/link)
@@ -10,13 +12,11 @@ DisCO does branch and bound search to solve MISOCO problems. DisCO depends on
 many other projects. It depends [OsiConic][1] on communicating with its
 relaxation solvers. It depends on [CglConic][9] to cut infeasible solutions.
 
-DisCO shares some commit history with COIN-OR project [CHiPPS-Blis][8]. DisCO
-version 0.1 has this heritage. Current master is re-written from scratch and
-does not have Blis commits.
+DisCO shares some commit history with COIN-OR project [CHiPPS-Blis][8]. Current master was re-written from scratch, however, and does not share any commits with BLIS.
 
 DisCO is distributed under the Eclipse Public License and is
 freely redistributable. All source code and documentation is Copyright
-2014-2016 by Lehigh University, Aykut Bulut and Ted Ralphs. This
+2014-2017 by Lehigh University, Aykut Bulut and Ted Ralphs. This
 README may be distributed freely.
 
 ## 1. Installation ##
