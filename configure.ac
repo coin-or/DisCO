@@ -29,7 +29,7 @@
 AC_PREREQ(2.59)
 
 m4_define([gitversion], m4_esyscmd([sh -c "git describe --always | cut -d '=' -f 2 | head --bytes -1"]))
-AC_INIT([Disco],[gitversion],[https://github.com/aykutbulut/DisCO/issues/new])
+AC_INIT([Disco],[0.95.0],[https://github.com/aykutbulut/DisCO/issues/new])
 
 AC_DEFINE([DISCO_GIT_VERSION], [gitversion], [DisCO git version])
 

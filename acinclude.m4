@@ -6399,7 +6399,7 @@ AC_MSG_RESULT([$SED])
 # All Rights Reserved.
 # This file is distributed under the Eclipse Public License.
 #
-## $Id$
+## $Id: coin.m4 3701 2016-10-25 14:09:40Z stefan $
 #
 # Author: Andreas Wachter    IBM      2006-04-14
 
@@ -6774,13 +6774,6 @@ if test x"$CXXFLAGS" = x; then
         coin_add_cxxflags="-pipe"
         coin_dbg_cxxflags="-g -O0"
         coin_warn_cxxflags="-Wparentheses -Wreturn-type -Wcast-qual -Wall -Wpointer-arith -Wwrite-strings -Wconversion -Wno-unknown-pragmas -Wno-long-long"
-        case $build in
-          *-darwin*)
-            ;;
-          *)
-            coin_warn_cxxflags="-pedantic-errors $coin_warn_cxxflags"
-            ;;
-        esac
     esac
   fi
 
@@ -7180,13 +7173,6 @@ if test x"$CFLAGS" = x; then
         coin_add_cflags="-pipe"
         coin_dbg_cflags="-g -O0"
         coin_warn_cflags="-Wimplicit -Wparentheses -Wsequence-point -Wreturn-type -Wcast-qual -Wall -Wno-unknown-pragmas -Wno-long-long"
-        case $build in
-          *-darwin*)
-            ;;
-          *)
-            coin_warn_cflags="-pedantic-errors $coin_warn_cflags"
-            ;;
-        esac
     esac
   fi
   if test -z "$coin_opt_cflags"; then
@@ -7872,7 +7858,12 @@ if test x$prefix = xNONE; then
 else
   full_prefix=$prefix
 fi
-full_prefix=`cd $full_prefix ; pwd`
+# Check whether the path given is absolute.
+# If not, get absolute path
+case $full_prefix in
+     [\\/$]* | ?:[\\/]* | NONE | '' ) ;;
+     *) full_prefix=`cd $full_prefix ; pwd` ;;
+esac
 AC_SUBST(abs_lib_dir)
 abs_lib_dir=$full_prefix/lib
 AC_SUBST(abs_include_dir)
