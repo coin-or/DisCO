@@ -4,6 +4,8 @@
 
 [ ![Download](https://api.bintray.com/packages/coin-or/download/DisCO/images/download.svg?version=trunk) ](https://bintray.com/coin-or/download/DisCO/trunk/link)
 
+[![DOI](https://zenodo.org/badge/36100320.svg)](https://zenodo.org/badge/latestdoi/36100320)
+
 DisCO (Discrete Conic Optimization) is a solver for Mixed Integer Second Order
 Conic Optimization (MISOCO) problems. It is developed on top of COIN-OR
 High-Performance Parallel Search ([CHiPPS][8]) framework.
