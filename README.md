@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/aykutbulut/DisCO.svg?branch=master)](https://travis-ci.org/aykutbulut/DisCO)
 
-[ ![Download](https://api.bintray.com/packages/coin-or/download/DisCO/images/download.svg?version=trunk) ](https://bintray.com/coin-or/download/DisCO/trunk/link)
+[ ![Download](https://api.bintray.com/packages/coin-or/download/DisCO/images/download.svg?version=0.95) ](https://bintray.com/coin-or/download/DisCO/0.95/link)
 
 [![DOI](https://zenodo.org/badge/36100320.svg)](https://zenodo.org/badge/latestdoi/36100320)
 
