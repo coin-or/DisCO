@@ -11,6 +11,8 @@ matrix:
         apt:
           packages:
             - gfortran
+            - libblas-dev
+            - liblapack-dev
     - os: osx 
       osx_image: xcode8.2
       env: OSX=10.12
