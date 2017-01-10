@@ -16,7 +16,7 @@ DisCO shares some commit history with COIN-OR project [CHiPPS-Blis][8]. Current 
 
 DisCO is distributed under the Eclipse Public License and is
 freely redistributable. All source code and documentation is Copyright
-2014-2017 by Lehigh University, Aykut Bulut and Ted Ralphs. This
+2001-2017 by Lehigh University, Aykut Bulut and Ted Ralphs. This
 README may be distributed freely.
 
 ## 1. Installation ##
