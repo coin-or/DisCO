@@ -18,7 +18,7 @@
 #          Aykut Bulut, Lehigh University                                  #
 #                                                                          #
 #                                                                          #
-# Copyright (C) 2001-2015, Lehigh University, Yan Xu, Ted Ralphs and       #
+# Copyright (C) 2001-2017, Lehigh University, Yan Xu, Ted Ralphs and       #
 # Aykut Bulut. All Rights Reserved.                                        #
 #==========================================================================#
 
@@ -54,7 +54,7 @@ AC_COPYRIGHT([
 #          Aykut Bulut, Lehigh University                                  #
 #                                                                          #
 #                                                                          #
-# Copyright (C) 2001-2015, Lehigh University, Yan Xu, Ted Ralphs and       #
+# Copyright (C) 2001-2017, Lehigh University, Yan Xu, Ted Ralphs and       #
 # Aykut Bulut. All Rights Reserved.                                        #
 #==========================================================================#
 ])
