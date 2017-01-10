@@ -1,4 +1,4 @@
-$ DisCO Version 0.95
+# DisCO Version 0.95
 
 # DisCO [![Build Status](https://travis-ci.org/aykutbulut/DisCO.svg?branch=master)](https://travis-ci.org/aykutbulut/DisCO)
 
