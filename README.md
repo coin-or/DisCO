@@ -140,22 +140,25 @@ path_to_disco/disco input.mps Alps_instance input.mps Dco_branchStrategy 3 Dco_c
     - Windows: Not tested.
   * Algorithms
     - OA: Well tested and works fine.
-    - Ipopt: Works fine. There are missing functions in the [interface][5]. Needs
-      testing.
+    - Ipopt: Works fine. There are missing functions in the [interface][5].
+      Tested on CBLIB 2014 and random problems. Ipopt fails to converge on some
+      instances.  We beleive this is due to nonsmooth formulation of the conic
+      constraints.
     - Cola: Well tested, works fine.
     - Mosek: Works fine. There are missing functions in the interface. It is
-      complete enough to work with DisCO. Needs extensive testing.
+      complete enough to work with DisCO. Well tested on CBLIB 2014 and random
+      problems. Mosek might fail on numerically challanging instances.
     - Cplex: Missing functions in the interface. Interface is complete enough
-      to work with DisCO. Needs extensive testing.
+      to work with DisCO. Tested on CBLIB 2014 and random problems. Cplex
+      rarely fails on some instances.
   * Branching/Cutting
     - When OA algorithm is used and Ipopt is chosen as an IPM solver in
       CglConic, Ipopt might fail, on some problems, at the root node. You can
       use Mosek or Cplex for this if it is available to you.
   * MPI testing,
-    - MPICH2: Hangs (or seems hanging on some instances of CBLIB). Works fine
-      in most of the instances. Needs more testing for performance assesment.
-    - OpenMPI: Hangs (or seems hanging on some instances of CBLIB). Works fine
-      in most of the instances. Needs more testing for performance assesment.
+    - MPICH2: Tested and works fine.
+    - OpenMPI: Tested up to 128 processors and works fine. Good parallelization
+      performance when the tree is well balanced.
 
 ## 4. Documentation ##
 
