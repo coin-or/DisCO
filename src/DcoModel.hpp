@@ -13,6 +13,7 @@
 class DcoConGenerator;
 class DcoSolution;
 class DcoHeuristic;
+class DcoPresolve;
 
 class CglCutGenerator;
 class CglConicCutGenerator;
@@ -77,10 +78,13 @@ class DcoModel: public BcpsModel {
   /// Subproblem solver.
 #if defined(__OA__)
   OsiSolverInterface * solver_;
+  // solver before preprocessing
+  OsiSolverInterface * origSolver_;
 #else
   OsiConicSolverInterface * solver_;
 #endif
 
+  DcoPresolve * pinfo_;
   ///==========================================================================
   /// Fields that will be set by ::readInstance() and sent to other processors
   /// through network. ::setupSelf() will use these fields to set the rest.

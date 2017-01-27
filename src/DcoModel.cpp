@@ -78,6 +78,8 @@ DcoModel::DcoModel() {
   rampUpBranchStrategy_ = NULL;
   // cut and heuristics objects will be set in setupSelf.
 
+  pinfo_ = NULL;
+
   dcoMessageHandler_->setPrefix(0);
   dcoMessageHandler_->message(DISCO_WELCOME, *dcoMessages_)
     << DISCO_VERSION
@@ -159,6 +161,10 @@ DcoModel::~DcoModel() {
   if (relaxedRows_) {
     delete[] relaxedRows_;
     relaxedRows_=NULL;
+  }
+  if (pinfo_) {
+    delete pinfo_;
+    pinfo_ = NULL;
   }
   for (std::vector<DcoConGenerator*>::iterator it=conGenerators_.begin();
        it!=conGenerators_.end(); ++it) {
@@ -428,6 +434,15 @@ void DcoModel::preprocess() {
   // approximation of cones will update numLinearRows_, numRows_, rowLB_,
   // rowUB_, matrix_.
   approximateCones();
+#ifdef __OA__
+  pinfo_ = new DcoPresolve();
+  OsiSolverInterface * presolvedModel;
+  origSolver_ = solver_;
+  // Return an OsiSolverInterface loaded with the presolved problem.
+  presolvedModel = pinfo_->presolvedModel(*solver_,1.0e-8,false,5) ;
+  // solve problem using presolvedModel, use it in branch and bound etc.
+  solver_ = presolvedModel;
+#endif
 
 }
 
@@ -1140,6 +1155,14 @@ void DcoModel::setBranchingStrategy() {
 }
 
 void DcoModel::postprocess() {
+#ifdef __OA__
+    // Restate the solution and load it back into origModel.
+  pinfo_->postsolve(true);
+  // delete presolved model
+  delete solver_;
+  // set solver_ point to the original solver instance
+  solver_ = origSolver_;
+#endif
 }
 
 

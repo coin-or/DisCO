@@ -2,6 +2,94 @@
 #include "DcoModel.hpp"
 #include "DcoConicConstraint.hpp"
 
+
+DcoPresolve::DcoPresolve():
+  OsiPresolve() {
+}
+
+DcoPresolve::~DcoPresolve() {
+}
+
+#if defined(__OA__)
+OsiSolverInterface *
+  DcoPresolve::presolvedModel(OsiSolverInterface & origModel,
+                              double feasibilityTolerance,
+                              bool keepIntegers,
+                              int numberPasses,
+                              const char * prohibited,
+                              bool doStatus,
+                              const char * rowProhibited) {
+  return OsiPresolve::presolvedModel(origModel,
+                                     feasibilityTolerance,
+                                     keepIntegers,
+                                     numberPasses,
+                                     prohibited,
+                                     doStatus,
+                                     rowProhibited);
+}
+
+  /*! \brief Return a pointer to the presolved model. */
+OsiSolverInterface * DcoPresolve::model() const {
+  return OsiPresolve::model();
+}
+
+/// Return a pointer to the original model
+OsiSolverInterface * DcoPresolve::originalModel() const {
+  return OsiPresolve::originalModel();
+}
+
+void DcoPresolve::postsolve(bool updateStatus) {
+  OsiPresolve::postsolve(updateStatus);
+}
+
+#else
+OsiConicSolverInterface *
+  DcoPresolve::presolvedModel(OsiConicSolverInterface & origModel,
+                              double feasibilityTolerance,
+                              bool keepIntegers,
+                              int numberPasses,
+                              const char * prohibited,
+                              bool doStatus,
+                              const char * rowProhibited) {
+  std::cerr << "function: " << __FUNCTION__
+            << "file: " << __FILE__
+            << " line: " << __LINENO__
+            << " Not implemented yet!" << std::endl;
+  throw std::exception();
+  return NULL;
+}
+
+/*! \brief Return a pointer to the presolved model. */
+OsiConicSolverInterface * DcoPresolve::model() const {
+  std::cerr << "function: " << __FUNCTION__
+            << "file: " << __FILE__
+            << " line: " << __LINENO__
+            << " Not implemented yet!" << std::endl;
+  throw std::exception();
+  return NULL;
+}
+
+/// Return a pointer to the original model
+OsiConicSolverInterface * DcoPresolve::originalModel() const {
+  std::cerr << "function: " << __FUNCTION__
+            << "file: " << __FILE__
+            << " line: " << __LINENO__
+            << " Not implemented yet!" << std::endl;
+  throw std::exception();
+  return NULL;
+}
+
+void DcoPresolve::postsolve(bool updateStatus) {
+  std::cerr << "function: " << __FUNCTION__
+            << "file: " << __FILE__
+            << " line: " << __LINENO__
+            << " Not implemented yet!" << std::endl;
+  throw std::exception();
+  return NULL;
+}
+
+#endif
+
 bool DcoPresolve::improve_bounds(DcoModel * model) {
   bool updated = false;
   // iterate over cones and improve bounds

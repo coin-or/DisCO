@@ -20,6 +20,17 @@ class DcoModel;
   This class accomodates the two cases when the underlying solver interface is
   a linear (OsiSolverInterface) or conic one (OsiConicSolverInterface).
 
+  Usage is similar to OsiPresolve.
+
+  DcoPresolve pinfo;
+  DcoSolverInterface * presolvedModel;
+  // Return an OsiSolverInterface loaded with the presolved problem.
+  presolvedModel = pinfo.presolvedModel(*origModel,1.0e-8,false,numberPasses) ;
+  // solve problem using presolvedModel, use it in branch and bound etc.
+  presolvedModel->initialSolve() ;
+  // Restate the solution and load it back into origModel.
+  pinfo.postsolve(true) ;
+  delete presolvedModel ;
  */
 
 class DcoPresolve: virtual public OsiPresolve {
@@ -33,34 +44,39 @@ class DcoPresolve: virtual public OsiPresolve {
 public:
   ///@name Constructors and Destructor
   //@{
-#if defined(__OA__)
-  DcoPresolve(OsiSolverInterface * origModel);
-#else
-  DcoPresolve(OsiConicSolverInterface * origModel);
-#endif
+  DcoPresolve();
   virtual ~DcoPresolve();
   //@}
 
-  ///@name Presolve Functions
-  //@{
-  /// Preprocess the given model and store pointer to the pre-processed
-  /// copy in presolvedModel_;
-  void presolve();
 #if defined(__OA__)
-  /// Get preprocessed problem.
-  OsiSolverInterface * presolvedModel();
+  virtual OsiSolverInterface * presolvedModel(OsiSolverInterface & origModel,
+                                              double feasibilityTolerance=0.0,
+                                              bool keepIntegers=true,
+                                              int numberPasses=5,
+                                              const char * prohibited=NULL,
+                                              bool doStatus=true,
+                                              const char * rowProhibited=NULL);
+  /*! \brief Return a pointer to the presolved model. */
+  OsiSolverInterface * model() const;
+  /// Return a pointer to the original model
+  OsiSolverInterface * originalModel() const;
 #else
-  /// Get preprocessed problem.
-  OsiConicSolverInterface * presolvedModel();
+  virtual OsiConicSolverInterface *
+    presolvedModel(OsiConicSolverInterface & origModel,
+                   double feasibilityTolerance=0.0,
+                   bool keepIntegers=true,
+                   int numberPasses=5,
+                   const char * prohibited=NULL,
+                   bool doStatus=true,
+                   const char * rowProhibited=NULL);
+  /*! \brief Return a pointer to the presolved model. */
+  OsiConicSolverInterface * model() const;
+  /// Return a pointer to the original model
+  OsiConicSolverInterface * originalModel() const;
 #endif
-  //@}
-
+  virtual void postsolve(bool updateStatus=true);
   bool improve_bounds(DcoModel * model);
 
-  ///@name Postsolve Function
-  //@{
-  virtual void postsolve(bool updateStatus=true);
-  //@}
 private:
   /// Disable copy constructor.
   DcoPresolve(DcoPresolve const & other);
