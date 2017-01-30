@@ -1,26 +1,3 @@
-/*===========================================================================*
- * This file is part of the BiCePS Linear Integer Solver (BLIS).             *
- *                                                                           *
- * BLIS is distributed under the Eclipse Public License as part of the       *
- * COIN-OR repository (http://www.coin-or.org).                              *
- *                                                                           *
- * Authors:                                                                  *
- *                                                                           *
- *          Yan Xu, Lehigh University                                        *
- *          Ted Ralphs, Lehigh University                                    *
- *                                                                           *
- * Conceptual Design:                                                        *
- *                                                                           *
- *          Yan Xu, Lehigh University                                        *
- *          Ted Ralphs, Lehigh University                                    *
- *          Laszlo Ladanyi, IBM T.J. Watson Research Center                  *
- *          Matthew Saltzman, Clemson University                             *
- *                                                                           *
- *                                                                           *
- * Copyright (C) 2001-2017, Lehigh University, Yan Xu, and Ted Ralphs.       *
- * All Rights Reserved.                                                      *
- *===========================================================================*/
-
 #ifndef Dco_hpp_
 #define Dco_hpp_
 
@@ -28,8 +5,9 @@
 #include "BcpsConfig.h"
 #include "DcoConfig.hpp"
 
-/*!
-  /mainpage
+//! \page handle HomePage
+
+/*! \mainpage
 
   # Bcps ideas for future
 
@@ -74,24 +52,126 @@
 
   # DisCO ideas
 
-  # Style guides
+  # Style Guide
 
   <ul>
+
+    <li> Use two space indentation. Ted might object this, but this is my
+    (aykut) favorite anyway. He will use commit hooks to get code in his
+    favorite form.
+
+    <li> Avoid too many nested code blocks and many indentation levels. Reading
+    code with too many nested blocks is not fun. 3 levels of for/if blocks as
+    follows is fine
+
+    ```
+    void ClassName::func() {
+      for (;;) {
+        if (boolean1) {
+          for (;;) {
+          }
+        }
+      }
+    }
+    ```
+
+    If you have 4 or more, most probably there is a better way of doing what you
+    are doing (create a new function, design change, etc.).
+
+    <li> Curly braces that mark start of code block is used after the block
+    specifier as in the example from the previous bullet. This is true for
+    functions and class definitions too.
+
+    <li> One line between function definitions. Two lines between class
+    declerations if the header file has more than one.
+
+    <li> One class decleration per header file. It is OK to add two classes in
+    the same header if (1) they are closely related and (2) the second one is
+    not a major class but just a helper for the major class (class that has the
+    same name as the hearder file).
+
+    <li> Class declared in a header file should have the same name as the
+    header file. Source file that contains definition of the class should have
+    the same name.
+
+    <li> No whitespace at line endings. Please do not insert whitespaces at
+    line endings. Such trailing white spaces should be removed. Trailing white
+    spaces are redundant characters and are not wellcomed in DisCO source
+    code. I (aykut) use following snippet in my .emacs, which removes the
+    trailing white spaces at each save. I strongly advise you to do so.
+
+    ```
+    ;; remove trailing whitespace at each save
+    (add-hook 'before-save-hook 'delete-trailing-whitespace)
+    ```
 
     <li> If a function does not fit in the same line of its decleration in the
     header file then it is not supposed to be there. Move it to .cpp file.
 
     <li> All functions defined in .hpp are already inline since bla.bla version
-    of gcc. This makes inline key-words in the header files redundants.  I will
-    just remove them, since I can not bear redundant stuff floating around.
+    of gcc. This makes inline keywords in the header files redundant. Do not
+    use inline for these functions, I (aykut) can not bear redundant stuff
+    floating around.
 
-    <li> Define pointers as "Type * name". * is not next to Type or variable
-    name. * is separate since it is neither part of the Type nor variable
-    name. This is the way recommended by Bjarne Stroustrup and it makes sense.
+    <li> Define pointers as `Type * name`. Asterisk character is neither next
+    to `Type` nor variable `name`. `*` is separate since it is neither part of
+    the `Type` nor variable `name`. This is the way recommended by Bjarne
+    Stroustrup and it makes sense.
 
-    <il> We use const specifiers as suggested by Bjarne Stroustrup in his book.
-    Check the code to see how I declare const objects, check the book to see
-    why.
+    <li> We use `const` specifiers as suggested by Bjarne Stroustrup in his
+    book.  Check DisCO source code to see how const objects are declared, check
+    Bjarne Stroustrup's "The C++ Language" book to see why.
+
+    <li> Functions in public interface use
+    <a>href="https://en.wikipedia.org/wiki/Camel_case">Camel Case</a> starting
+    with a lower case. Same is true for class members.
+
+    <li> From time to time private function might use underscores.
+
+    <li> Right now we do not have a rule for local variables in
+    functions. Camel Case and underscores are used together. This might
+    change. Not sure about this now.
+
+    <li> Header files should have "hpp" as extension. Source files should have
+    "cpp" as extension.
+
+    <li> Each header file should have include safeguard macros. Include
+    safeguard have a specific format. For header file Dco.hpp include safeguard
+    is as follows.
+
+    ```
+    #ifndef Dco_hpp_
+    #define Dco_hpp_
+    Stuff that is needed in header file.
+    #endif
+    ```
+
+    <li> In source files limit rows to 79 characters. There might be a few
+    lines ignoring this for now, this should be fixed. Following might be
+    usefull in case you are using emacs (M-q wraps lines).
+
+    ```
+    (setq-default fill-column 79)
+    ```
+
+    <li> Adding comments for a specific part of code. To add comments for a
+    specific part of code, first put the relevant code snippet into a block and
+    write comments for the block. Comments should be in doxygen format. See
+    following example
+
+    ```
+    start doxygen comments (forward slash, asterisk, exclamation)
+     Comments regarding the following code block.
+    end doxygen comments (asterisk, forward slash)
+    {
+      code that is being commented
+    }
+    ```
+
+    <li> Go local as much as possible. Create variables in the namespace level
+    that is directly relevant not in the upper levels.
+
+    <li> Keep documentation up to date.
 
   </ul>
 
