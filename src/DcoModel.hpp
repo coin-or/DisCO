@@ -18,7 +18,7 @@ class DcoPresolve;
 class CglCutGenerator;
 class CglConicCutGenerator;
 
-/**
+/*!
    Represents a discrete conic optimization problem (master problem).
    Some set of rows/columns will be relaxed in this problem to get subproblems
    represented by the branch and bound tree nodes.
@@ -40,6 +40,10 @@ class CglConicCutGenerator;
    In Blis (MILP solver built on top of Bcps), integer variables have their own
    class, BlisObjectInt.  BlisObjectInt inherits BcpsObject class.
 
+   # Preprocess
+
+   Check preprocess() function and #DcoPresolve class.
+
    # Cut generation
 
    Pointers to cut generators are stored in conGenerators_. Type of generators
@@ -57,7 +61,62 @@ class CglConicCutGenerator;
 
    # Heuristics
 
-   # setupSelf()
+   Check #DcoHeuristic and #DcoHeurRounding classes.
+
+   # Parallelization
+
+   # Selected Functions and their Role
+
+   You can check ALPS and BCPS documentations for more details and background
+   on these functions and their role.
+
+   ## readInstance()
+
+   readInstance() function reads problem from input file. This function stores
+   the data read from file in class members. The following members are updated
+   in this function.
+
+   <ul>
+     <li> numCols_, colLB_, colUB_,
+     <li> objSense_, objCoef_
+     <li> numIntegerCols_, integerCols_, isInteger_
+     <li> numConicRows_, coneStart_, coneType_, coneMembers_
+     <li> numLinearRows_, numRows_, rowLB_, rowUB_
+     <li> matrix_
+   </ul>
+
+   ## preprocess()
+
+   ALPS calls this function from AlpsKnowledgeBrokerSerial::initializeSearch()
+   in case of serial and from AlpsKnowledgeBrokerMPI::initializeSearch() in
+   case of parallel build. This function preprocesses the input problem and
+   active only in case of OA algorithm for now. It uses DcoPresolve to acheive
+   this.
+
+   After DcoPresolve is used to preprocess the model we need to update some
+   data members accordingly. After this point all DisCO members will reflect
+   the preprocessed problem and we forget about the original problem until
+   postprocess. At postprocess we need to map the solutions collected along the
+   way to the problem read from file.
+
+   This function updates the data members set by readInstance after the problem
+   preprocessed. It updates the following members accordingly.
+
+   <ul>
+     <li> numCols_, colLB_, colUB_,
+     <li> objSense_, objCoef_
+     <li> numIntegerCols_, integerCols_, isInteger_
+     <li> numConicRows_, coneStart_, coneType_, coneMembers_
+     <li> numLinearRows_, numRows_, rowLB_, rowUB_
+     <li> matrix_
+   </ul>
+
+   These are the same fields readInstance() populates by reading the input
+   file.
+
+   ## decodeToSelf()
+
+   ## setupSelf()
 
    In serial code this function is called after readInstance() method.
 
@@ -72,14 +131,12 @@ class CglConicCutGenerator;
    This function also loads the problem defined by self to the solver. It
    sets/creates branching strategy, cut generator and heuristics object.
 
-*/
+**/
 
 class DcoModel: public BcpsModel {
   /// Subproblem solver.
 #if defined(__OA__)
   OsiSolverInterface * solver_;
-  // solver before preprocessing
-  OsiSolverInterface * origSolver_;
 #else
   OsiConicSolverInterface * solver_;
 #endif

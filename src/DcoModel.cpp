@@ -416,40 +416,97 @@ void DcoModel::writeParameters(std::ostream& outstream) const {
 }
 
 void DcoModel::preprocess() {
-  // // set message levels
-  // setMessageLevel();
-
-
-  // // some bounds are improved if updated is true
-
-  // // notes(aykut) this can only improve the bounds if the leading variable is
-  // // bounded.  most of the time it is not. Things can get better if we use some
-  // // other bound improvement first and it does improve the upper bound of
-  // // leading variables.
-  // //bool updated = DcoPresolve::improve_bounds(this);
-
   // write parameters used
   //writeParameters(std::cout);
-
+#ifdef __OA__
   // approximation of cones will update numLinearRows_, numRows_, rowLB_,
   // rowUB_, matrix_.
-  approximateCones();
-#ifdef __OA__
-  pinfo_ = new DcoPresolve();
-  OsiSolverInterface * presolvedModel;
-  origSolver_ = solver_;
-  // Return an OsiSolverInterface loaded with the presolved problem.
-  presolvedModel = pinfo_->presolvedModel(*solver_,1.0e-8,false,5) ;
-  // solve problem using presolvedModel, use it in branch and bound etc.
-  solver_ = presolvedModel;
-#endif
+  if (numConicRows_) {
+    // approximate conic constraints
+    approximateCones();
+  }
 
+  // presolve only when there are no conic constraints
+  if (numConicRows_==0) {
+    // load problem to the solver
+    solver_->loadProblem(*matrix_, colLB_, colUB_, objCoef_,
+                         rowLB_, rowUB_);
+    pinfo_ = new DcoPresolve();
+    OsiSolverInterface * presolvedModel;
+    // Return an OsiSolverInterface loaded with the presolved problem.
+    presolvedModel = pinfo_->presolvedModel(*solver_, 1.0e-8, true, 5);
+    if (presolvedModel==NULL) {
+      std::cerr << "Presolve decided that the problem is infeasible or "
+                << "unbounded."
+                << std::endl;
+    }
+    // solve problem using presolvedModel, use it in branch and bound etc.
+    solver_ = presolvedModel;
+    // I (aykut) beleive OsiPresolve makes following redundant
+    //bool updated = DcoPresolve::improve_bounds(this);
+
+    // update necessary data members
+    // get updated data from solver
+    delete matrix_;
+    matrix_ = new CoinPackedMatrix(*solver_->getMatrixByRow());
+    // update number of rows
+    numLinearRows_ = solver_->getNumRows();
+    numRows_ = numLinearRows_;
+    // update row bounds
+    delete[] rowLB_;
+    rowLB_ = new double[numLinearRows_];
+    std::copy(solver_->getRowLower(),
+              solver_->getRowLower()+numLinearRows_, rowLB_);
+    delete[] rowUB_;
+    rowUB_ = new double[numLinearRows_];
+    std::copy(solver_->getRowUpper(),
+              solver_->getRowUpper()+numLinearRows_, rowUB_);
+    // update number of columns
+    numCols_ = solver_->getNumCols();
+    // update col bounds
+    delete[] colLB_;
+    colLB_ = new double[numCols_];
+    std::copy(solver_->getColLower(),
+              solver_->getColLower()+numCols_, colLB_);
+    delete[] colUB_;
+    colUB_ = new double[numCols_];
+    std::copy(solver_->getColUpper(),
+              solver_->getColUpper()+numCols_, colUB_);
+    // update objSense_, objCoef_
+    // we assume objSense_ does not change
+    delete[] objCoef_;
+    objCoef_ = new double[numCols_];
+    std::copy(solver_->getObjCoefficients(),
+              solver_->getObjCoefficients()+numCols_, objCoef_);
+    // update numIntegerCols_, integerCols_, isInteger_
+    // == we need variable mapping between original and presolved problems
+    {
+      numIntegerCols_ = 0;
+      int * newIsInteger = new int[numCols_]();
+      // iterate over new columns and ask old index to check whether it was
+      // integer
+      int const * origCols = pinfo_->originalColumns();
+      for (int i=0; i<numCols_; ++i) {
+        if (isInteger_[origCols[i]]) {
+          numIntegerCols_++;
+          newIsInteger[i] = 1;
+        }
+      }
+      delete[] isInteger_;
+      isInteger_ = newIsInteger;
+      integerCols_ = new int[numIntegerCols_];
+      int pos = 0;
+      for (int i=0; i<numCols_; ++i) {
+        if (isInteger_[i]) {
+          integerCols_[pos++] = i;
+        }
+      }
+    }
+  }
+#endif
 }
 
 void DcoModel::approximateCones() {
-#ifdef __OA__
-  // need to load problem to the solver.
-
   // load problem to the solver
   solver_->loadProblem(*matrix_, colLB_, colUB_, objCoef_,
                        rowLB_, rowUB_);
@@ -566,7 +623,6 @@ void DcoModel::approximateCones() {
   std::copy(solver_->getRowUpper(),
             solver_->getRowUpper()+numLinearRows_, rowUB_);
   std::fill_n(rowUB_+numLinearRows_, numConicRows_, DISCO_INFINITY);
-#endif
 }
 
 //todo(aykut) why does this return to bool?
@@ -1156,12 +1212,27 @@ void DcoModel::setBranchingStrategy() {
 
 void DcoModel::postprocess() {
 #ifdef __OA__
-    // Restate the solution and load it back into origModel.
-  pinfo_->postsolve(true);
+  // cuts are added to the solver_ along the OA solution process
+  // this might break things
+
+  // The solutions we store during the BB might be flawed since they are the
+  // solutions of the presolved model.
+
+  // There is only one reason that we need postsolve, that is to get correct
+  // solution mapping.
+
+
+  // remove all cuts added after approximateCones()
+  // this will mess up basic rows in optimal simplex tableau which we do not
+  // need. Tableau stored is from the last node we called resolve() and we do
+  // not care about the last node's row status.
+
+  // Restate the solution and load it back into origModel.
+  if (numConicRows_==0) {
+    pinfo_->postsolve(true);
+  }
   // delete presolved model
-  delete solver_;
-  // set solver_ point to the original solver instance
-  solver_ = origSolver_;
+  //delete solver_;
 #endif
 }
 
