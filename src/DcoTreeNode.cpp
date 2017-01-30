@@ -393,6 +393,12 @@ void DcoTreeNode::decide_using_cg(bool & do_use,
       << broker()->getProcRank()
       << strategy << CoinMessageEol;
   }
+  if (model->getNumCoreConicConstraints()==0) {
+    // if there are no conic constraints do not use OA cut generator.
+    if (cg->name().compare("OA")==0) {
+      do_use = false;
+    }
+  }
 }
 
 
@@ -508,9 +514,7 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
   BcpsConstraintPool * constraintPool = new BcpsConstraintPool();
   BcpsVariablePool * variablePool = new BcpsVariablePool();
   installSubProblem();
-
   while (keepBounding) {
-    keepBounding = false;
     // solve subproblem corresponds to this node
     BcpsSubproblemStatus subproblem_status = bound();
     // update bcp statistics
@@ -602,11 +606,19 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
     }
     // call heuristics to search for a solution
     callHeuristics();
-
-    // decide what to do
+    // decide what to do next
     branchConstrainOrPrice(subproblem_status, keepBounding, do_branch,
                            genConstraints,
                            genVariables);
+    // fix reduced cost
+    if (model->getNumCoreConicConstraints()==0) {
+      fixReducedCost();
+    }
+    else {
+      #ifdef __OA__
+      fixReducedCost();
+      #endif
+    }
     // debug message
     message_handler->message(DISCO_NODE_BCP_DECISION, *messages)
       << broker()->getProcRank()
@@ -660,6 +672,47 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
   delete constraintPool;
   delete variablePool;
   return AlpsReturnStatusOk;
+}
+
+void DcoTreeNode::fixReducedCost() {
+  DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
+  double const * cost = model->solver()->getReducedCost();
+  int const * relaxed_cols = model->relaxedCols();
+  double int_tol = model->dcoPar()->entry(DcoParams::integerTol);
+  double const * lb = model->solver()->getColLower();
+  double const * ub = model->solver()->getColUpper();
+  double cutoff = model->dcoPar()->entry(DcoParams::cutoff);
+  double sense = model->dcoPar()->entry(DcoParams::objSense);
+  cutoff = sense*cutoff;
+  cutoff = CoinMin(cutoff, broker()->getIncumbentValue());
+  CoinMin(cutoff, broker()->getIncumbentValue());
+  double obj_val = model->solver()->getObjValue();
+  double const * sol = model->solver()->getColSolution();
+// iterate over integer variables
+  for (int i=0; i<model->numRelaxedCols(); ++i) {
+    int curr_ind = relaxed_cols[i];
+    double curr_cost = cost[curr_ind];
+    if (curr_cost<int_tol) {
+      continue;
+    }
+    double bound_distance = ub[curr_ind] - lb[curr_ind];
+    if (bound_distance < int_tol) {
+      continue;
+    }
+    double movement = floor((cutoff - obj_val) / fabs(curr_cost));
+    if (sol[curr_ind] > ub[curr_ind] - int_tol) {
+      if (movement < bound_distance) {
+        double new_bound = CoinMin(ub[curr_ind]-movement, ub[curr_ind]);
+        model->solver()->setColLower(curr_ind, new_bound);
+      }
+    }
+    else if (sol[curr_ind] < lb[curr_ind] + int_tol) {
+      if (movement < bound_distance) {
+        double new_bound = CoinMax(lb[curr_ind]+movement, lb[curr_ind]);
+        model->solver()->setColUpper(curr_ind, new_bound);
+      }
+    }
+  }
 }
 
 void DcoTreeNode::callHeuristics() {
@@ -1389,6 +1442,11 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     }
   }
 
+  if (num_cones==0) {
+    // problem being solved is MILP
+    // if the cut is not active for the last 5 iterations, remove it
+  }
+
   // check whether the subproblem solved properly, solver status should be
   // infeasible or optimal.
   if (subproblem_status==BcpsSubproblemStatusPrimalInfeasible) {
@@ -1429,12 +1487,20 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
   }
 
   if (subproblem_status==BcpsSubproblemStatusDualInfeasible) {
-    // unbounded problem add cuts
-    keepBounding = true;
-    branch = false;
-    generateVariables = false;
-    generateConstraints = true;
-    return;
+    if (num_cones) {
+      // unbounded problem add cuts
+      keepBounding = true;
+      branch = false;
+      generateVariables = false;
+      generateConstraints = true;
+      return;
+    }
+    else {
+      std::cerr << "DisCO: I am solving MILP and encountered unbounded "
+                << "LP relaxation. Not sure how to proceed."
+                << std::endl;
+      throw std::exception();
+    }
   }
   // subproblem is solved to optimality. Check feasibility of the solution.
   int numColsInf;
@@ -1518,12 +1584,50 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     }
   }
   else if (numColsInf) {
-    // only relaxed columns are infeasible, relaxed rows are feasible
-    // generate milp cuts or branch, for now we just branch
-    keepBounding = false;
-    branch = true;
-    generateVariables = false;
-    generateConstraints = false;
+
+    // Check whether we are solving an MILP
+    if (num_cones==0) {
+        keepBounding = false;
+        branch = true;
+        generateVariables = false;
+        generateConstraints = false;
+        return;
+
+      // the problem is MILP
+      // check the last improvement
+      // cut limit is 100
+      // gap is stored in gap
+      if (bcpStats_.numBoundIter_<20) {
+        // adding cuts improve bound, add more
+        keepBounding = true;
+        branch = false;
+        generateVariables = false;
+        generateConstraints = true;
+      }
+      else {
+        // adding cuts does not help, branch
+        keepBounding = false;
+        branch = true;
+        generateVariables = false;
+        generateConstraints = false;
+      }
+    }
+    else {
+      // probem is MISOCO, we can generate cuts if algorithm is OA
+
+      // unbounded problem add cuts
+      keepBounding = false;
+      branch = true;
+      generateVariables = false;
+      generateConstraints = false;
+    }
+
+
+
+
+
+
+
   }
   else if (numRowsInf) {
     // all relaxed cols are feasbile, only relaxed rows are infeasible
@@ -1646,9 +1750,17 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
     }
     // check whether cut is dense.
     if(length > 100) {
-      // discard the cut
-      //cuts_to_del.push_back(i);
-      //continue;
+      // todo(aykut): parametrize this.
+      if (model->getNumCoreConicConstraints()==0) {
+        // solving MILP and the cut is dense discard it.
+        cuts_to_del.push_back(i);
+        continue;
+      }
+      else {
+        // solving MISOCO, the cut might be an OA cut and they might be dense due
+        // to their nature, i.e., large cone problems. Keep the cut.
+        // do nothing in this else block
+      }
     }
 
     // check cut scaling
