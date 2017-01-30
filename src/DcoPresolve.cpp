@@ -19,13 +19,15 @@ OsiSolverInterface *
                               const char * prohibited,
                               bool doStatus,
                               const char * rowProhibited) {
-  return OsiPresolve::presolvedModel(origModel,
-                                     feasibilityTolerance,
-                                     keepIntegers,
-                                     numberPasses,
-                                     prohibited,
-                                     doStatus,
-                                     rowProhibited);
+  OsiSolverInterface * presolved;
+  presolved = OsiPresolve::presolvedModel(origModel,
+                                          feasibilityTolerance,
+                                          keepIntegers,
+                                          numberPasses,
+                                          prohibited,
+                                          doStatus,
+                                          rowProhibited);
+  return presolved;
 }
 
   /*! \brief Return a pointer to the presolved model. */

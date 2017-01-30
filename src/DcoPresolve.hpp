@@ -31,6 +31,36 @@ class DcoModel;
   // Restate the solution and load it back into origModel.
   pinfo.postsolve(true) ;
   delete presolvedModel ;
+
+  DcoPresolve migth eliminate or assing variables a different
+  index. For a presolved model, originalModel()->originalColumns()[i] gives the
+  original index of ith varaible of presolved model.
+
+  In DcoModel::preprocess function, following fields are needed to get updated
+  after presolve, (we might move this block to DcoPresolve)
+
+  <ul>
+    <li> numCols_, colLB_, colUB_,
+    <li> objSense_, objCoef_
+    <li> numIntegerCols_, integerCols_, isInteger_
+    <li> numConicRows_, coneStart_, coneType_, coneMembers_
+    <li> numLinearRows_, numRows_, rowLB_, rowUB_
+    <li> matrix_
+  </ul>
+
+  In serial, ALPS calls readInstance(), then preproces(), then
+  setupSelf(). In parallel, ALPS master calls readInstance(), then
+  preprocess(), then setupSelf() and then broadcast model to other
+  processes. Other processes receive problem data, call decodeToSelf() and then
+  setupSelf().
+
+  # Questions
+
+  What happens to eliminated columns? Are tehy fixed to some value? zero?
+
+  What happens to eliminated rows? Are they just redundant rows, or they
+  are fixed to some value?
+
  */
 
 class DcoPresolve: virtual public OsiPresolve {
