@@ -431,10 +431,12 @@ void DcoModel::preprocess() {
     // load problem to the solver
     solver_->loadProblem(*matrix_, colLB_, colUB_, objCoef_,
                          rowLB_, rowUB_);
+    // set integers
+    solver_->setInteger(integerCols_, numIntegerCols_);
     pinfo_ = new DcoPresolve();
     OsiSolverInterface * presolvedModel;
     // Return an OsiSolverInterface loaded with the presolved problem.
-    presolvedModel = pinfo_->presolvedModel(*solver_, 1.0e-8, true, 5);
+    presolvedModel = pinfo_->presolvedModel(*solver_, 1.0e-8, true, 5, NULL, false);
     if (presolvedModel==NULL) {
       std::cerr << "Presolve decided that the problem is infeasible or "
                 << "unbounded."
@@ -1361,11 +1363,22 @@ DcoSolution * DcoModel::feasibleSolution(int & numInfColumns,
     dco_sol = new DcoSolution(numCols_, sol, quality);
     dco_sol->setBroker(broker_);
 
-    // log debug information
+    // get solution to original problem from presolve
+    solver_->setColSolution(dco_sol->getValues());
+    delete dco_sol;
+    pinfo_->postsolve();
+    pinfo_->originalModel()->resolve();
+    dco_sol = new
+      DcoSolution(pinfo_->originalModel()->getNumCols(),
+                  pinfo_->originalModel()->getColSolution(),
+                  pinfo_->originalModel()->getObjValue());
+
+  // log debug information
     dcoMessageHandler_->message(DISCO_SOL_FOUND, *dcoMessages_)
       << broker()->getProcRank()
       << quality
       << CoinMessageEol;
+
   }
   return dco_sol;
 }

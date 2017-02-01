@@ -42,7 +42,11 @@ class CglConicCutGenerator;
 
    # Preprocess
 
-   Check preprocess() function and #DcoPresolve class.
+   Preprocessing use #DcoPresolve class. This class takes a problem as input
+   and proprocesses it to improve problem formulation and make it easier to
+   solve. pinfo_ member field is a DcoPresolve instance. It stores the original
+   problem.
+
 
    # Cut generation
 
@@ -313,6 +317,7 @@ public:
 #endif
   //@}
 
+  DcoPresolve * pinfo() { return pinfo_; }
   ///@name Other functions
   //@{
   /// Approximate cones.

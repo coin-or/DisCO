@@ -17,6 +17,7 @@
 #include "DcoBranchObject.hpp"
 #include "DcoHeuristic.hpp"
 #include "DcoHeurRounding.hpp"
+#include "DcoPresolve.hpp"
 
 // STL headers
 #include <vector>
@@ -730,6 +731,16 @@ void DcoTreeNode::callHeuristics() {
     curr->stats().addTime(heur_time);
     curr->stats().addCalls(1);
     if (sol) {
+      // get solution to original problem from presolve
+      model->solver()->setColSolution(sol->getValues());
+      delete sol;
+      model->pinfo()->postsolve();
+      DcoSolution * origSol = new
+        DcoSolution(model->pinfo()->originalModel()->getNumCols(),
+                    model->pinfo()->originalModel()->getColSolution(),
+                    model->pinfo()->originalModel()->getObjValue());
+      sol = origSol;
+      // end of getting solution to original problem
       double cutoff = model->dcoPar()->entry(DcoParams::cutoff);
       double sense = model->dcoPar()->entry(DcoParams::objSense);
       cutoff = sense*cutoff;
@@ -1509,6 +1520,19 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
   double rowInf;
   DcoSolution * sol = model->feasibleSolution(numColsInf, colInf,
                                               numRowsInf, rowInf);
+  if (sol) {
+    // get solution to original problem from presolve
+    model->solver()->setColSolution(sol->getValues());
+    delete sol;
+    model->pinfo()->postsolve();
+    DcoSolution * origSol = new
+      DcoSolution(model->pinfo()->originalModel()->getNumCols(),
+                  model->pinfo()->originalModel()->getColSolution(),
+                  model->pinfo()->originalModel()->getObjValue());
+    sol = origSol;
+  }
+  // end of getting solution to original problem
+
 
   // Following if else chain is as follows in summary
   // if (both relaxed cols and rows are infeasible) {
