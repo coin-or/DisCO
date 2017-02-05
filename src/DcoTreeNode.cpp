@@ -1377,7 +1377,6 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
   DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
-
   // get cone info
   int num_cones = model->getNumCoreConicConstraints();
   int const * cone_start = model->coneStart();
@@ -1402,7 +1401,6 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     branch = false;
     generateConstraints = false;
     generateVariables = false;
-
     // grumpy message
     message_handler->message(DISCO_GRUMPY_MESSAGE_SHORT,
                              *model->dcoMessages_)
@@ -1443,8 +1441,7 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
   double rowInf;
   DcoSolution * sol = model->feasibleSolution(numColsInf, colInf,
                                               numRowsInf, rowInf);
-
-  // Following if else chain is as follows in summary
+  // Summary of following if else chain
   // if (both relaxed cols and rows are infeasible) {
   //   decide what to do
   // }
@@ -1457,7 +1454,6 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
   // else {
   //   feasible solution found, store it. Fathom this node.
   // }
-
   if (numColsInf && numRowsInf) {
     // both relaxed columns and relaxed rows are infeasible
 
@@ -1468,16 +1464,24 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     // 3. stop cutting if it does not improve obj value
 
     //double cone_tol = model->dcoPar()->entry(DcoParams::coneTol);
-    double gap =  (broker()->getIncumbentValue() - quality_)/quality_;
-
-    // if (!broker()->hasKnowledge(AlpsKnowledgeTypeSolution)) {
-    //   keepBounding = true;
-    //   branch = false;
-    //   generateVariables = false;
-    //   generateConstraints = true;
-    //   return;
-    // }
-
+    double gap;
+    if (quality_<=-ALPS_OBJ_MAX ||
+        !broker()->hasKnowledge(AlpsKnowledgeTypeSolution)) {
+      // subproblem is not solved yet, or
+      // no incumbent solution in broker
+      gap = DISCO_INFINITY;
+    }
+    else if (broker()->getIncumbentValue()<quality_) {
+      // this node should be fathomed
+      keepBounding = false;
+      branch = false;
+      generateConstraints = false;
+      generateVariables = false;
+      return;
+    }
+    else {
+      gap = (broker()->getIncumbentValue() - quality_)/fabs(quality_);
+    }
     if (largest_cone_size<=3) {
       // branch
       keepBounding = false;
@@ -1486,16 +1490,12 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
       generateConstraints = false;
       return;
     }
-    //std::cout << bcpStats_.lastImp_ << std::endl;
-    // if gap looks like acheivable with conic cuts. Gap is acheivable,
-    // (1) if it is small, (2) if OA cuts are doing good in improving obj value
+    // Check whether gap looks like achievable with conic cuts. Gap is
+    // achievable, (1) if it is small, (2) if OA cuts are doing good in
+    // improving obj value
     if (((bcpStats_.numBoundIter_<2)
          or (bcpStats_.lastImp_>0.01*gap)) and
         (bcpStats_.numBoundIter_<100)) {
-
-      //else if ((bcpStats_.numBoundIter_<2) or (gap<0.004)) {
-
-
       // std::cout << "iter " << bcpStats_.numBoundIter_ << " "
       //           << "total cuts "<< bcpStats_.numTotalCuts_ << " "
       //           << "last cuts "<< bcpStats_.numLastCuts_ << " "
@@ -1527,7 +1527,7 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
   }
   else if (numRowsInf) {
     // all relaxed cols are feasbile, only relaxed rows are infeasible
-    // generate cuts using IPMint or OA?
+    // generate cuts using OA.
     keepBounding = true;
     branch = false;
     generateVariables = false;
@@ -1539,7 +1539,6 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     //todo(aykut) solution has an index field I beleive that should be filled
     //in Alps level.
     sol->setIndex(broker()->getNumKnowledges(AlpsKnowledgeTypeSolution));
-
     // Store in Alps pool
     broker()->addKnowledge(AlpsKnowledgeTypeSolution,
                            sol,
@@ -1552,7 +1551,6 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     message_handler->message(0, "Dco", "Node is feasible, fathoming... ",
                              'G', DISCO_DLOG_BRANCH)
       << CoinMessageEol;
-
     // grumpy message
     model->dcoMessageHandler_->message(DISCO_GRUMPY_MESSAGE_MED,
                                        *model->dcoMessages_)
