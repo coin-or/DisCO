@@ -98,10 +98,12 @@ public:
   virtual bool generateConstraints(BcpsConstraintPool & conPool) = 0;
   //@}
 
-  // notes(aykut) We do not provide interface for all class fields. Updating
-  // strategy and frequency does not make sense, since this will give false
-  // info, stored statistics may be invalid, if this generator already
-  // generated cuts with the previous strategy and frequency.
+  /// Update Fields
+  //@{
+  /// Set frequency
+  void setFrequency(int freq) { frequency_ = freq; }
+  void setStrategy(DcoCutStrategy strat) { strategy_ = strat; }
+  //@}
 
   /// Querry functions.
   //@{

@@ -220,6 +220,35 @@ enum DcoCutStrategy {
   DcoCutStrategyPeriodic
 };
 
+/*!
+  MILP cuts that are available when OA algorithm is chosen.
+ */
+enum DcoLinearCutType {
+  DcoLinearCutTypeNotSet = -1,
+  DcoLinearCutTypeClique = 0,
+  DcoLinearCutTypeFCover,
+  DcoLinearCutTypeGomory,
+  DcoLinearCutTypeKnap,
+  DcoLinearCutTypeMIR,
+  DcoLinearCutTypeOddHole,
+  DcoLinearCutTypeProbe,
+  DcoLinearCutTypeTwoMIR,
+  DcoLinearCutTypeEnd
+};
+
+/*!
+  Cuts that approximates conic constraints. They are used when OA algorithm is
+  chosen.
+ */
+enum DcoConicCutType {
+  DcoConicCutTypeNotSet = -1,
+  DcoConicCutTypeIPM = 0,
+  DcoConicCutTypeIPMInt,
+  DcoConicCutTypeOA,
+  DcoConicCutTypeMIR,
+  DcoConicCutTypeGD1
+};
+
 enum DcoConicCutStrategy {
   DcoConicCutStrategyNotSet = -1,
   DcoConicCutStrategyNone = 0,

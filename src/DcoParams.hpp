@@ -60,6 +60,17 @@ public:
     cutIpmStrategy,
     cutIpmIntStrategy,
     cutOaStrategy,
+    /// OA cut strategy parameters
+    cutOaAlpha,
+    cutOaGamma,
+    /// MILP Auto cut generation strategy parameters
+    cutMilpAutoStatStart,
+    cutMilpAutoMinFreq,
+    cutMilpAlpha,
+    cutMilpGamma,
+    ///
+
+
     cutCliqueFreq,
     cutGomoryFreq,
     cutFlowCoverFreq,
@@ -151,7 +162,12 @@ public:
     presolveTolerance,
     // approximation factor, used in OA
     approxFactor,
-    ///
+    /// OA cut generation strategy parameters
+    cutOaBeta,
+    /// MILP Auto cut generation strategy parameters
+    cutMilpAutoFreqIncPercent,
+    cutMilpAutoFreqDecPercent,
+    cutMilpBeta,
     endOfDblParams
   };
   /** String parameters. */

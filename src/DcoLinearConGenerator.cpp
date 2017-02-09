@@ -57,8 +57,13 @@ bool DcoLinearConGenerator::generateConstraints(BcpsConstraintPool & conPool) {
       << CoinMessageEol;
   }
   else {
+    // need to refresh solver
+    // store generator type in a class member (DcoLinearCutType)
+    generator_->refreshSolver(model()->solver());
     generator_->generateCuts(*model()->solver(), new_cuts);
   }
+
+
 
   // create disco constraints
   int num_cuts = new_cuts.sizeRowCuts();

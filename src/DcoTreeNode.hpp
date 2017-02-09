@@ -219,11 +219,24 @@ class DcoTreeNode: public BcpsTreeNode {
     double lastObjVal_;
     // objective value at start
     double startObjVal_;
+    // number of bunding iteraton for milp cuts
+    int numMilpIter_;
+    // how many times the cut in the current solver was inactive?
+    // indices of cuts are model->numLinearRows(), ... ,
+    // model->solver()->getNumRows()-1. inactive_[i] is the number of times cut
+    // i is inactive. cut i is the current i+model->numLinearRows() th row of
+    // solver.
+    std::list<int> inactive_;
+    // generator of cuts. generatorIndex_[i] returns the index of the cut generator
+    // in model()->conGenerators_, i.e.,
+    // model()->conGenerators()[generatorIndex_[i]] is the generator of the cut
+    // sitting at index i.
+    std::list<int> generatorIndex_;
   };
   BcpStats bcpStats_;
   /// Decide whether the given cut generator should be used, based on the cut
   /// strategy.
-  void decide_using_cg(bool & do_use, DcoConGenerator const * cg) const;
+  void decide_using_cg(bool & do_use, DcoConGenerator * cg) const;
   /// Copies node description of this node to given child node.
   /// New node is explicitly stored in the memory (no differencing).
   void copyFullNode(DcoNodeDesc * child_node) const;
@@ -235,7 +248,9 @@ class DcoTreeNode: public BcpsTreeNode {
   int boundingLoop(bool isRoot, bool rampUp);
   /// find number of infeasible integer variables.
   void checkRelaxedCols(int & numInf);
-public:
+  /// update cut stats and clean in necessary
+  void checkCuts();
+ public:
   ///@name Constructors and Destructors
   //@{
   /// Default constructor.
