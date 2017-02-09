@@ -35,10 +35,6 @@ void DcoParams::createKeywordList() {
                             AlpsParameter(AlpsIntPar, branchStrategy)));
   keys_.push_back(make_pair(std::string("Dco_branchStrategyRampUp"),
                             AlpsParameter(AlpsIntPar, branchStrategyRampUp)));
-  keys_.push_back(make_pair(std::string("Dco_cutPass"),
-                            AlpsParameter(AlpsIntPar, cutPass)));
-  keys_.push_back(make_pair(std::string("Dco_quickCutPass"),
-                            AlpsParameter(AlpsIntPar, quickCutPass)));
   keys_.push_back(make_pair(std::string("Dco_cutDisable"),
                             AlpsParameter(AlpsIntPar, cutDisable)));
   keys_.push_back(make_pair(std::string("Dco_cutStrategy"),
@@ -115,10 +111,6 @@ void DcoParams::createKeywordList() {
   //                           AlpsParameter(AlpsIntPar, conicCutStrategy)));
   // keys_.push_back(make_pair(std::string("Dco_conicCutGenerationFrequency"),
   //                           AlpsParameter(AlpsIntPar, conicCutGenerationFrequency)));
-  // keys_.push_back(make_pair(std::string("Dco_conicCutPass"),
-  //                           AlpsParameter(AlpsIntPar, conicCutPass)));
-  // keys_.push_back(make_pair(std::string("Dco_quickConicCutPass"),
-  //                           AlpsParameter(AlpsIntPar, quickConicCutPass)));
   // keys_.push_back(make_pair(std::string("Dco_conicCutMirStrategy"),
   //                           AlpsParameter(AlpsIntPar, conicCutMirStrategy)));
   // keys_.push_back(make_pair(std::string("Dco_conicCutGD1Strategy"),
@@ -195,29 +187,26 @@ void DcoParams::setDefaultEntries() {
   setEntry(branchStrategyRampUp, DcoBranchingStrategyPseudoCost);
   setEntry(cutStrategy, DcoCutStrategyNotSet);
   setEntry(cutGenerationFrequency, 1);
-  setEntry(cutPass, 20);
-  setEntry(quickCutPass, 0);
   setEntry(cutDisable, 20);
-  setEntry(cutCliqueStrategy, DcoCutStrategyNotSet);
-  setEntry(cutGomoryStrategy, DcoCutStrategyNotSet);
-  setEntry(cutFlowCoverStrategy, DcoCutStrategyNotSet);
-  setEntry(cutKnapsackStrategy, DcoCutStrategyNotSet);
-  setEntry(cutMirStrategy, DcoCutStrategyNotSet);
-  setEntry(cutOddHoleStrategy, DcoCutStrategyNotSet);
-  setEntry(cutProbingStrategy, DcoCutStrategyNotSet);
-  setEntry(cutTwoMirStrategy, DcoCutStrategyNotSet);
+  setEntry(cutCliqueStrategy, DcoCutStrategyAuto);
+  setEntry(cutGomoryStrategy, DcoCutStrategyAuto);
+  setEntry(cutFlowCoverStrategy, DcoCutStrategyAuto);
+  setEntry(cutKnapsackStrategy, DcoCutStrategyAuto);
+  setEntry(cutMirStrategy, DcoCutStrategyAuto);
+  setEntry(cutOddHoleStrategy, DcoCutStrategyAuto);
+  setEntry(cutProbingStrategy, DcoCutStrategyNone);
+  setEntry(cutTwoMirStrategy, DcoCutStrategyAuto);
   setEntry(cutIpmStrategy, DcoCutStrategyNotSet);
   setEntry(cutIpmIntStrategy, DcoCutStrategyNotSet);
   setEntry(cutOaStrategy, DcoCutStrategyNotSet);
-  setEntry(cutIpmStrategy, DcoCutStrategyNotSet);
-  setEntry(cutCliqueFreq, 1);
-  setEntry(cutGomoryFreq, 1);
-  setEntry(cutFlowCoverFreq, 1);
-  setEntry(cutKnapsackFreq, 1);
-  setEntry(cutMirFreq, 1);
-  setEntry(cutOddHoleFreq, 1);
-  setEntry(cutProbingFreq, 1);
-  setEntry(cutTwoMirFreq, 1);
+  setEntry(cutCliqueFreq, 100);
+  setEntry(cutGomoryFreq, 100);
+  setEntry(cutFlowCoverFreq, 100);
+  setEntry(cutKnapsackFreq, 100);
+  setEntry(cutMirFreq, 100);
+  setEntry(cutOddHoleFreq, 100);
+  setEntry(cutProbingFreq, 100);
+  setEntry(cutTwoMirFreq, 100);
   setEntry(cutIpmFreq, 1);
   setEntry(cutIpmIntFreq, 1);
   setEntry(cutOaFreq, 1);
@@ -225,23 +214,12 @@ void DcoParams::setDefaultEntries() {
   setEntry(heurStrategy, DcoHeurStrategyPeriodic);
   setEntry(heurCallFrequency, 1);
   setEntry(heurRoundStrategy, DcoHeurStrategyPeriodic);
-  setEntry(heurRoundFreq, 1);
+  setEntry(heurRoundFreq, 100);
   setEntry(lookAhead, 4);
   setEntry(pseudoReliability, 8);
   setEntry(sharePcostDepth, 30);
   setEntry(sharePcostFrequency, 100);
-  setEntry(strongCandSize, 10);
-  // conic cut related parameters
-  // setEntry(conicCutStrategy, DcoConicCutStrategyNotSet);
-  // setEntry(conicCutGenerationFrequency, 1);
-  // setEntry(conicCutPass, 5);
-  // setEntry(quickConicCutPass, 0);
-  // setEntry(conicCutMirStrategy, DcoConicCutStrategyNotSet);
-  // setEntry(conicCutGD1Strategy, DcoConicCutStrategyNotSet);
-  // setEntry(conicCutGD2Strategy, DcoConicCutStrategyNotSet);
-  // setEntry(conicCutMirFreq, 1);
-  // setEntry(conicCutGD1Freq, 1);
-  // setEntry(conicCutGD2Freq, 1);
+  setEntry(strongCandSize, 1000);
   setEntry(logLevel, 2);
   setEntry(presolveNumPass, 5);
   setEntry(approxNumPass, 50);

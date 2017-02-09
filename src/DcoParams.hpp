@@ -48,8 +48,6 @@ public:
     */
     cutStrategy, /** All constraint generators */
     cutGenerationFrequency,
-    cutPass,      /** The pass to generate cuts */
-    quickCutPass, /** The pass to generate cuts for quick branching */
     cutDisable,   /** if no cuts calls is greater than this, disable cg */
     cutCliqueStrategy,
     cutGomoryStrategy,
@@ -104,8 +102,6 @@ public:
     */
     // conicCutStrategy, /** All constraint generators */
     // conicCutGenerationFrequency,
-    // conicCutPass,      /** The pass to generate cuts */
-    // quickConicCutPass, /** The pass to generate cuts for quick branching */
     // conicCutMirStrategy,
     // conicCutGD1Strategy,
     // conicCutGD2Strategy,
