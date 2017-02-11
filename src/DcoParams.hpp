@@ -164,6 +164,10 @@ public:
     approxFactor,
     /// OA cut generation strategy parameters
     cutOaBeta,
+    // threshold for cut activity used in approximateCones()
+    cutOaSlack1,
+    // threshold for cut activity used in bounding loop
+    cutOaSlack2,
     /// MILP Auto cut generation strategy parameters
     cutMilpAutoFreqIncPercent,
     cutMilpAutoFreqDecPercent,

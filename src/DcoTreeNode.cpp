@@ -741,7 +741,7 @@ void DcoTreeNode::checkCuts() {
               << "Unable to clean cuts." << std::endl;
     return;
   }
-  double REMOVE_THRESHOLD = 0.0001;
+  double cutOaSlack = model->dcoPar()->entry(DcoParams::cutOaSlack2);
   BcpStats * st = &bcpStats_;
   // iterate over cuts and update inactivity statistics
   std::list<int>::iterator curr = st->inactive_.begin();
@@ -749,7 +749,7 @@ void DcoTreeNode::checkCuts() {
     double slack = model->solver()->getRowUpper()[origNumRows+i] - model->solver()->getRowActivity()[origNumRows+i];
     // check whether ith cut is basic
     if (ws->getArtifStatus(origNumRows+i) == CoinWarmStartBasis::basic &&
-        slack > REMOVE_THRESHOLD) {
+        slack > cutOaSlack) {
       // print activity
       // std::cout << "activity: "
       //           << slack

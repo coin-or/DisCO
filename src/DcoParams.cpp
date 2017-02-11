@@ -182,6 +182,10 @@ void DcoParams::createKeywordList() {
                             AlpsParameter(AlpsDoublePar, approxFactor)));
   keys_.push_back(make_pair(std::string("Dco_cutOaBeta"),
                             AlpsParameter(AlpsDoublePar, cutOaBeta)));
+  keys_.push_back(make_pair(std::string("Dco_cutOaSlack1"),
+                            AlpsParameter(AlpsDoublePar, cutOaSlack1)));
+  keys_.push_back(make_pair(std::string("Dco_cutOaSlack2"),
+                            AlpsParameter(AlpsDoublePar, cutOaSlack2)));
   keys_.push_back(make_pair(std::string("Dco_cutMilpBeta"),
                             AlpsParameter(AlpsDoublePar, cutMilpBeta)));
 //--------------------------------------------------------
@@ -274,6 +278,10 @@ void DcoParams::setDefaultEntries() {
   setEntry(presolveTolerance, 0.0);
   // approximation factor, used in OA
   setEntry(approxFactor, 1.0);
+  // threshold for cut activity used in approximateCones()
+  setEntry(cutOaSlack1, 0.005);
+  // threshold for cut activity used in bounding loop
+  setEntry(cutOaSlack2, 0.0001);
   setEntry(cutOaBeta, 0.001);
   /// MILP Auto cut generation strategy parameters
   setEntry(cutMilpAutoFreqIncPercent, 0.5);

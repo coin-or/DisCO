@@ -536,8 +536,7 @@ void DcoModel::approximateCones() {
   delete[] coneSizes;
   delete[] coneMembers;
 
-
-  double REMOVE_THRESHOLD = 0.005;
+  double cutOaSlack = dcoPar_->entry(DcoParams::cutOaSlack1);
   // print cut activity
   {
     int numCuts = solver_->getNumRows() - origNumRows_;
@@ -552,7 +551,7 @@ void DcoModel::approximateCones() {
       //           << " activity: " << std::setw(12) << activity[i]
       //           << " ub: " << std::setw(12) << ub[i]
       //           << " status: " << (ws->getArtifStatus(i)==CoinWarmStartBasis::basic)
-      //           << " remove: " << ((ub[i]-activity[i])>REMOVE_THRESHOLD)
+      //           << " remove: " << ((ub[i]-activity[i])>cutOaSlack)
       //           << std::endl;
     }
   }
@@ -584,7 +583,7 @@ void DcoModel::approximateCones() {
         if (ws->getArtifStatus(origNumRows_+i) == CoinWarmStartBasis::basic) {
           // cut is inactive
           // do we really want to remove? check how much it is inactive
-          if (ub[origNumRows_+i] - activity[origNumRows_+i] > REMOVE_THRESHOLD) {
+          if (ub[origNumRows_+i] - activity[origNumRows_+i] > cutOaSlack) {
             // remove since it is inactive too much
             delInd[numDel++] = i+origNumRows_;
           }
