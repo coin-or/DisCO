@@ -273,7 +273,7 @@ int DcoTreeNode::generateConstraints(BcpsConstraintPool * conPool) {
   //CoinMessages * messages = disco_model->dcoMessages_;
 
   // if OA algorithm is being used and solver status is primal feasible and
-  // dual infeasible, then generate OA cuts.
+  // dual infeasible, then generate OA cuts only.
 #ifdef __OA__
   OsiSolverInterface * solver = disco_model->solver();
   if (!solver->isProvenPrimalInfeasible()
@@ -390,7 +390,8 @@ void DcoTreeNode::decide_using_cg(bool & do_use,
       model->dcoPar()->entry(DcoParams::cutMilpAutoFreqDecPercent);
     int numCalls = cg->stats().numCalls();
     int numNoConsCalls = cg->stats().numNoConsCalls();
-    if (index_%cg->frequency()==0) {
+    //if (index_%cg->frequency()==0) {
+    if (true) {
       do_use = true;
       if (numCalls<cutMilpAutoStatStart) {
         // not enough data, keep current
@@ -746,6 +747,22 @@ void DcoTreeNode::checkCuts() {
   // iterate over cuts and update inactivity statistics
   std::list<int>::iterator curr = st->inactive_.begin();
   for (int i=0; i<numCuts; ++i) {
+
+      // double norm = 0.0;
+      // {
+      //   // compute norm of cut
+      //   CoinPackedMatrix const * mat = solver_->getMatrixByRow();
+      //   int start = mat->getVectorStarts()[i];
+      //   int size = mat->getVectorLengths()[i];
+      //   double const * value = mat->getElements() + start;
+      //   for (int j=0; j<size; ++j) {
+      //     norm += fabs(value[j]);
+      //   }
+      // }
+
+
+
+
     double slack = model->solver()->getRowUpper()[origNumRows+i] - model->solver()->getRowActivity()[origNumRows+i];
     // check whether ith cut is basic
     if (ws->getArtifStatus(origNumRows+i) == CoinWarmStartBasis::basic &&
@@ -1632,14 +1649,19 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     else {
       gap = (broker()->getIncumbentValue() - quality_)/fabs(quality_);
     }
-    if (largest_cone_size<=3) {
-      // branch
-      keepBounding = false;
-      branch = true;
-      generateVariables = false;
-      generateConstraints = false;
-      return;
-    }
+
+
+
+    // if (largest_cone_size<=3) {
+    //   // branch
+    //   keepBounding = false;
+    //   branch = true;
+    //   generateVariables = false;
+    //   generateConstraints = false;
+    //   return;
+    // }
+
+
     // Check whether gap looks like achievable with conic cuts. Gap is
     // achievable, (1) if it is small, (2) if OA cuts are doing good in
     // improving obj value
@@ -1828,6 +1850,12 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
     double const * elements = curr_con->getValues();
     int const * indices = curr_con->getIndices();
 
+    // if problem is unbounded add all cuts
+    if (model->solver()->isProvenDualInfeasible()) {
+      cuts_to_add[num_add++] = curr_con->createOsiRowCut(model);
+      continue;
+    }
+
     // check whether cut is empty.
     if (length <= 0) {
       cuts_to_del.push_back(i);
@@ -1887,7 +1915,7 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
     if (rowUpper < ALPS_INFINITY) {
       violation = CoinMax(violation, activity-rowUpper);
     }
-
+    // if problem is unbounded ignore activity check.
     if (violation < tailoff) {
       // cut is weak, skip it.
       cuts_to_del.push_back(i);
