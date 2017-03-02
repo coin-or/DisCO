@@ -229,7 +229,7 @@ void DcoParams::setDefaultEntries() {
   setEntry(cutOaStrategy, DcoCutStrategyNotSet);
   /// OA cut strategy parameters
   setEntry(cutOaAlpha, 1);
-  setEntry(cutOaGamma, 1000);
+  setEntry(cutOaGamma, 50);
   /// MILP Auto cut generation strategy parameters
   setEntry(cutMilpAutoStatStart, 5);
   setEntry(cutMilpAutoMinFreq, 10000);
@@ -259,7 +259,7 @@ void DcoParams::setDefaultEntries() {
   setEntry(strongCandSize, 1000);
   setEntry(logLevel, 2);
   setEntry(presolveNumPass, 5);
-  setEntry(approxNumPass, 50);
+  setEntry(approxNumPass, 400);
   //-------------------------------------------------------------
   // Double Parameters
   //-------------------------------------------------------------
@@ -279,9 +279,9 @@ void DcoParams::setDefaultEntries() {
   // approximation factor, used in OA
   setEntry(approxFactor, 1.0);
   // threshold for cut activity used in approximateCones()
-  setEntry(cutOaSlack1, 0.005);
+  setEntry(cutOaSlack1, 0.0001);
   // threshold for cut activity used in bounding loop
-  setEntry(cutOaSlack2, 0.0001);
+  setEntry(cutOaSlack2, 0.005);
   setEntry(cutOaBeta, 0.001);
   /// MILP Auto cut generation strategy parameters
   setEntry(cutMilpAutoFreqIncPercent, 0.5);
