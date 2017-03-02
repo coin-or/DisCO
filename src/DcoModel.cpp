@@ -546,12 +546,25 @@ void DcoModel::approximateCones() {
     CoinWarmStartBasis const * ws =
       dynamic_cast<CoinWarmStartBasis*> (solver_->getWarmStart());
     for (int i=origNumRows_; i<solver_->getNumRows(); ++i) {
+      // double norm = 0.0;
+      // {
+      //   // compute norm of cut
+      //   CoinPackedMatrix const * mat = solver_->getMatrixByRow();
+      //   int start = mat->getVectorStarts()[i];
+      //   int size = mat->getVectorLengths()[i];
+      //   double const * value = mat->getElements() + start;
+      //   for (int j=0; j<size; ++j) {
+      //     norm += fabs(value[j]);
+      //   }
+      // }
+
       // std::cout << "row: " << std::setw(4) << i
       //           << " lb: " << std::setw(12) << lb[i]
       //           << " activity: " << std::setw(12) << activity[i]
       //           << " ub: " << std::setw(12) << ub[i]
       //           << " status: " << (ws->getArtifStatus(i)==CoinWarmStartBasis::basic)
       //           << " remove: " << ((ub[i]-activity[i])>cutOaSlack)
+      //           << " norm: " << norm
       //           << std::endl;
     }
   }
@@ -636,9 +649,8 @@ bool DcoModel::setupSelf() {
   relaxedCols_ = new int[numRelaxedCols_];
   std::copy(integerCols_, integerCols_+numIntegerCols_,
             relaxedCols_);
-
-  solver_->reset();
 #ifdef __OA__
+  solver_->reset();
   solver_->setHintParam(OsiDoInBranchAndCut, true, OsiHintDo, NULL);
   // clp specific options for getting unboundedness directions
   dynamic_cast<OsiClpSolverInterface*>(solver_)->getModelPtr()->setMoreSpecialOptions(0);
@@ -707,7 +719,9 @@ bool DcoModel::setupSelf() {
   setBranchingStrategy();
 
   // add constraint generators
+#ifdef __OA__
   addConstraintGenerators();
+#endif
 
   // add heuristics
   addHeuristics();
