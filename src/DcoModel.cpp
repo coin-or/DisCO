@@ -392,79 +392,127 @@ void DcoModel::readInstance(char const * dataFile) {
             << std::endl;
   delete temp_solver;
   // load data from nsi and delete it.
-  // numCols_
-  int newNumCols = nsi->getNumCols();
-  // update colLB_, colUB_
-  delete[] colLB_;
-  delete[] colUB_;
-  colLB_ = new double[newNumCols];
-  colUB_ = new double[newNumCols];
-  std::copy(nsi->getColLower(), nsi->getColLower()+newNumCols, colLB_);
-  std::copy(nsi->getColUpper(), nsi->getColUpper()+newNumCols, colUB_);
-  // objSense_, no need to change
-  // objCoef_
-  delete[] objCoef_;
-  objCoef_ = new double[newNumCols];
-  std::copy(nsi->getObjCoefficients(),
-            nsi->getObjCoefficients()+newNumCols, objCoef_);
-  // numIntegerCols_, no need to change
-  // integerCols_, no need to change
-  // update isInteger_
-  int * newIsInteger = new int[newNumCols]();
-  std::copy(isInteger_, isInteger_+numCols_, newIsInteger);
-  delete[] isInteger_;
-  isInteger_ = newIsInteger;
-  // coneStart_, coneMembers_, coneType_, numConicRows_
-  int newNumConicRows = nsi->getNumCones();
-  int * newConeType = new int[newNumConicRows]();
-  int * newConeStart = new int[newNumConicRows+1]();
-  int * newConeMembers = new int[1000*newNumConicRows]();
-  int numColsInCone = 0;
-  // shrink members
-  for (int i=0; i<newNumConicRows; ++i) {
-    OsiLorentzConeType type;
-    int size;
-    int * members;
-    nsi->getConicConstraint(i, type, size, members);
-    if (type==OSI_QUAD) {
-      newConeType[i] = 1;
-    }
-    else {
-      newConeType[i] = 2;
-    }
-    std::copy(members, members+size, newConeMembers+newConeStart[i]);
-    numColsInCone += size;
-    newConeStart[i+1] = newConeStart[i]+size;
-    delete[] members;
-  }
-  delete[] coneType_;
-  delete[] coneStart_;
-  delete[] coneMembers_;
-  coneType_ = newConeType;
-  coneStart_ = newConeStart;
-  coneMembers_ = new int[numColsInCone];
-  std::copy(newConeMembers, newConeMembers+numColsInCone, coneMembers_);
-  delete[] newConeMembers;
-  // numLinearRows_, numRows_
-  int newNumLinearRows = nsi->getNumRows();
-  int newNumRows = newNumLinearRows + newNumConicRows;
-  // rowLB_, rowUB_,
-  double * newRowLB = new double[newNumRows];
-  double * newRowUB = new double[newNumRows];
-  std::copy(nsi->getRowLower(), nsi->getRowLower()+newNumLinearRows, newRowLB);
-  std::copy(nsi->getRowUpper(), nsi->getRowUpper()+newNumLinearRows, newRowUB);
-  std::fill_n(newRowLB+newNumLinearRows, newNumConicRows, 0.0);
-  std::fill_n(newRowUB+newNumLinearRows, newNumConicRows, DISCO_INFINITY);
-  delete[] rowLB_;
-  delete[] rowUB_;
-  rowLB_ = newRowLB;
-  rowUB_ = newRowUB;
-  // matrix_
-  delete matrix_;
-  matrix_ = new CoinPackedMatrix(*nsi->getMatrixByRow());;
+  loadProblem(nsi);
   delete nsi;
 #endif
 
+}
+
+/// Load problem from conic solver interface
+void DcoModel::loadProblem(OsiConicSolverInterface * nsi) {
+  numCols_ = nsi->getNumCols();
+  // update colLB_, colUB_
+  if (colLB_) {
+    delete[] colLB_;
+    colLB_ = NULL;
+  }
+  if (colUB_) {
+    delete[] colUB_;
+    colUB_ = NULL;
+  }
+  colLB_ = new double[numCols_];
+  colUB_ = new double[numCols_];
+  std::copy(nsi->getColLower(), nsi->getColLower()+numCols_, colLB_);
+  std::copy(nsi->getColUpper(), nsi->getColUpper()+numCols_, colUB_);
+  // get objSense_
+  objSense_ = nsi->getObjSense();
+  // objCoef_
+  if (objCoef_) {
+    delete[] objCoef_;
+    objCoef_ = NULL;
+  }
+  objCoef_ = new double[numCols_];
+  std::copy(nsi->getObjCoefficients(),
+            nsi->getObjCoefficients()+numCols_, objCoef_);
+  // get numIntegerCols_
+  numIntegerCols_ = nsi->getNumIntegers();
+  // get integerCols_
+  if (integerCols_) {
+    delete[] integerCols_;
+    integerCols_ = NULL;
+  }
+  // update isInteger_ and integerCols_
+  if (isInteger_) {
+    delete[] isInteger_;
+    isInteger_ = NULL;
+  }
+  if (integerCols_) {
+    delete[] integerCols_;
+    integerCols_ = NULL;
+  }
+  integerCols_ = new int[numIntegerCols_];
+  int numInteger = 0;
+  isInteger_ = new int[numCols_]();
+  for (int i=0; i<numCols_; ++i) {
+    if (nsi->isInteger(i)) {
+      isInteger_[i] = 1;
+      integerCols_[numInteger++] = i;
+    }
+  }
+  if (numInteger!=numIntegerCols_) {
+    std::cerr << "Solver is inconsistent!" << std::endl;
+    throw std::exception();
+  }
+  // coneStart_, coneMembers_, coneType_, numConicRows_
+  numConicRows_ = nsi->getNumCones();
+  if (coneType_) {
+    delete[] coneType_;
+    coneType_ = NULL;
+  }
+  if (coneStart_) {
+    delete[] coneStart_;
+    coneStart_ = NULL;
+  }
+  coneType_ = new int[numConicRows_]();
+  coneStart_ = new int[numConicRows_+1]();
+  int ** newConeMembers = new int*[numConicRows_];
+  int numColsInCone = 0;
+  for (int i=0; i<numConicRows_; ++i) {
+    OsiLorentzConeType type;
+    int size;
+    nsi->getConicConstraint(i, type, size, newConeMembers[i]);
+    coneType_[i] = (type==OSI_QUAD) ? 1 : 2;
+    //std::copy(members, members+size, newConeMembers+newConeStart[i]);
+    numColsInCone += size;
+    coneStart_[i+1] = coneStart_[i]+size;
+  }
+  if (coneMembers_) {
+    delete[] coneMembers_;
+    coneMembers_ = NULL;
+  }
+  coneMembers_ = new int[numColsInCone];
+  for (int i=0; i<numConicRows_; ++i) {
+    int size = coneStart_[i+1] - coneStart_[i];
+    std::copy(newConeMembers[i], newConeMembers[i]+size,
+              coneMembers_+coneStart_[i]);
+    delete[] newConeMembers[i];
+    newConeMembers[i] = NULL;
+  }
+  delete[] newConeMembers;
+  // numLinearRows_, numRows_
+  numLinearRows_ = nsi->getNumRows();
+  numRows_ = numLinearRows_ + numConicRows_;
+  // rowLB_, rowUB_,
+  if (rowLB_) {
+    delete[] rowLB_;
+    rowLB_ = NULL;
+  }
+  if (rowUB_) {
+    delete[] rowUB_;
+    rowUB_ = NULL;
+  }
+  rowLB_ = new double[numRows_];
+  rowUB_ = new double[numRows_];
+  std::copy(nsi->getRowLower(), nsi->getRowLower()+numLinearRows_, rowLB_);
+  std::copy(nsi->getRowUpper(), nsi->getRowUpper()+numLinearRows_, rowUB_);
+  std::fill_n(rowLB_+numLinearRows_, numConicRows_, 0.0);
+  std::fill_n(rowUB_+numLinearRows_, numConicRows_, DISCO_INFINITY);
+  // matrix_
+  if (matrix_) {
+    delete matrix_;
+    matrix_ = NULL;
+  }
+  matrix_ = new CoinPackedMatrix(*nsi->getMatrixByRow());;
 }
 
 

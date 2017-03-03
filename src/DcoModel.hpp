@@ -304,6 +304,12 @@ public:
   int const * relaxedRows() const {return relaxedRows_;}
   //@}
 
+  ///@name Problem building Functions
+  //@{
+  /// Load problem from conic solver interface
+  void loadProblem(OsiConicSolverInterface * si);
+  //@}
+
   ///@name Constraint Generation related.
   //@{
   /// Add constraint generator using linear Cgl.
