@@ -1,26 +1,3 @@
-/*===========================================================================*
- * This file is part of the BiCePS Linear Integer Solver (BLIS).             *
- *                                                                           *
- * BLIS is distributed under the Eclipse Public License as part of the       *
- * COIN-OR repository (http://www.coin-or.org).                              *
- *                                                                           *
- * Authors:                                                                  *
- *                                                                           *
- *          Yan Xu, Lehigh University                                        *
- *          Ted Ralphs, Lehigh University                                    *
- *                                                                           *
- * Conceptual Design:                                                        *
- *                                                                           *
- *          Yan Xu, Lehigh University                                        *
- *          Ted Ralphs, Lehigh University                                    *
- *          Laszlo Ladanyi, IBM T.J. Watson Research Center                  *
- *          Matthew Saltzman, Clemson University                             *
- *                                                                           *
- *                                                                           *
- * Copyright (C) 2001-2015, Lehigh University, Yan Xu, and Ted Ralphs.       *
- * All Rights Reserved.                                                      *
- *===========================================================================*/
-
 /* Include file for the configuration of DisCO.
  *
  * On systems where the code is configured with the configure script

@@ -35,10 +35,6 @@ void DcoParams::createKeywordList() {
                             AlpsParameter(AlpsIntPar, branchStrategy)));
   keys_.push_back(make_pair(std::string("Dco_branchStrategyRampUp"),
                             AlpsParameter(AlpsIntPar, branchStrategyRampUp)));
-  keys_.push_back(make_pair(std::string("Dco_cutPass"),
-                            AlpsParameter(AlpsIntPar, cutPass)));
-  keys_.push_back(make_pair(std::string("Dco_quickCutPass"),
-                            AlpsParameter(AlpsIntPar, quickCutPass)));
   keys_.push_back(make_pair(std::string("Dco_cutDisable"),
                             AlpsParameter(AlpsIntPar, cutDisable)));
   keys_.push_back(make_pair(std::string("Dco_cutStrategy"),
@@ -68,8 +64,23 @@ void DcoParams::createKeywordList() {
                             AlpsParameter(AlpsIntPar, cutIpmIntStrategy)));
   keys_.push_back(make_pair(std::string("Dco_cutOaStrategy"),
                             AlpsParameter(AlpsIntPar, cutOaStrategy)));
-  keys_.push_back(make_pair(std::string("Dco_cutGD1Strategy"),
-                            AlpsParameter(AlpsIntPar, cutGD1Strategy)));
+  keys_.push_back(make_pair(std::string("Dco_cutOaAlpha"),
+                            AlpsParameter(AlpsIntPar, cutOaAlpha)));
+  keys_.push_back(make_pair(std::string("Dco_cutOaGamma"),
+                            AlpsParameter(AlpsIntPar, cutOaGamma)));
+  /// MILP Auto cut generation strategy parameters
+  keys_.push_back(make_pair(std::string("Dco_cutMilpAutoStatStart"),
+                            AlpsParameter(AlpsIntPar, cutMilpAutoStatStart)));
+  keys_.push_back(make_pair(std::string("Dco_cutMilpAutoMinFreq"),
+                            AlpsParameter(AlpsIntPar, cutMilpAutoMinFreq)));
+  keys_.push_back(make_pair(std::string("Dco_cutMilpAutoFreqIncPercent"),
+                            AlpsParameter(AlpsIntPar, cutMilpAutoFreqIncPercent)));
+  keys_.push_back(make_pair(std::string("Dco_cutMilpAutoFreqDecPercent"),
+                            AlpsParameter(AlpsIntPar, cutMilpAutoFreqDecPercent)));
+  keys_.push_back(make_pair(std::string("Dco_cutMilpAlpha"),
+                            AlpsParameter(AlpsIntPar, cutMilpAlpha)));
+  keys_.push_back(make_pair(std::string("Dco_cutMilpGamma"),
+                            AlpsParameter(AlpsIntPar, cutMilpGamma)));
   keys_.push_back(make_pair(std::string("Dco_cutCliqueFreq"),
                             AlpsParameter(AlpsIntPar, cutCliqueFreq)));
   keys_.push_back(make_pair(std::string("Dco_cutGomoryFreq"),
@@ -123,10 +134,6 @@ void DcoParams::createKeywordList() {
   //                           AlpsParameter(AlpsIntPar, conicCutStrategy)));
   // keys_.push_back(make_pair(std::string("Dco_conicCutGenerationFrequency"),
   //                           AlpsParameter(AlpsIntPar, conicCutGenerationFrequency)));
-  // keys_.push_back(make_pair(std::string("Dco_conicCutPass"),
-  //                           AlpsParameter(AlpsIntPar, conicCutPass)));
-  // keys_.push_back(make_pair(std::string("Dco_quickConicCutPass"),
-  //                           AlpsParameter(AlpsIntPar, quickConicCutPass)));
   // keys_.push_back(make_pair(std::string("Dco_conicCutMirStrategy"),
   //                           AlpsParameter(AlpsIntPar, conicCutMirStrategy)));
   // keys_.push_back(make_pair(std::string("Dco_conicCutGD1Strategy"),
@@ -176,6 +183,14 @@ void DcoParams::createKeywordList() {
                             AlpsParameter(AlpsDoublePar, presolveTolerance)));
   keys_.push_back(make_pair(std::string("Dco_approxFactor"),
                             AlpsParameter(AlpsDoublePar, approxFactor)));
+  keys_.push_back(make_pair(std::string("Dco_cutOaBeta"),
+                            AlpsParameter(AlpsDoublePar, cutOaBeta)));
+  keys_.push_back(make_pair(std::string("Dco_cutOaSlack1"),
+                            AlpsParameter(AlpsDoublePar, cutOaSlack1)));
+  keys_.push_back(make_pair(std::string("Dco_cutOaSlack2"),
+                            AlpsParameter(AlpsDoublePar, cutOaSlack2)));
+  keys_.push_back(make_pair(std::string("Dco_cutMilpBeta"),
+                            AlpsParameter(AlpsDoublePar, cutMilpBeta)));
 //--------------------------------------------------------
   // String Parameters.
   //--------------------------------------------------------
@@ -203,30 +218,35 @@ void DcoParams::setDefaultEntries() {
   setEntry(branchStrategyRampUp, DcoBranchingStrategyPseudoCost);
   setEntry(cutStrategy, DcoCutStrategyNotSet);
   setEntry(cutGenerationFrequency, 1);
-  setEntry(cutPass, 20);
-  setEntry(quickCutPass, 0);
   setEntry(cutDisable, 20);
-  setEntry(cutCliqueStrategy, DcoCutStrategyNotSet);
-  setEntry(cutGomoryStrategy, DcoCutStrategyNotSet);
-  setEntry(cutFlowCoverStrategy, DcoCutStrategyNotSet);
-  setEntry(cutKnapsackStrategy, DcoCutStrategyNotSet);
-  setEntry(cutMirStrategy, DcoCutStrategyNotSet);
-  setEntry(cutOddHoleStrategy, DcoCutStrategyNotSet);
-  setEntry(cutProbingStrategy, DcoCutStrategyNotSet);
-  setEntry(cutTwoMirStrategy, DcoCutStrategyNotSet);
+  setEntry(cutCliqueStrategy, DcoCutStrategyAuto);
+  setEntry(cutGomoryStrategy, DcoCutStrategyAuto);
+  setEntry(cutFlowCoverStrategy, DcoCutStrategyAuto);
+  setEntry(cutKnapsackStrategy, DcoCutStrategyAuto);
+  setEntry(cutMirStrategy, DcoCutStrategyAuto);
+  setEntry(cutOddHoleStrategy, DcoCutStrategyAuto);
+  setEntry(cutProbingStrategy, DcoCutStrategyNone);
+  setEntry(cutTwoMirStrategy, DcoCutStrategyAuto);
   setEntry(cutIpmStrategy, DcoCutStrategyNotSet);
   setEntry(cutIpmIntStrategy, DcoCutStrategyNotSet);
   setEntry(cutOaStrategy, DcoCutStrategyNotSet);
-  setEntry(cutGD1Strategy, DcoCutStrategyNotSet);
-  setEntry(cutIpmStrategy, DcoCutStrategyNotSet);
-  setEntry(cutCliqueFreq, 1);
-  setEntry(cutGomoryFreq, 1);
-  setEntry(cutFlowCoverFreq, 1);
-  setEntry(cutKnapsackFreq, 1);
-  setEntry(cutMirFreq, 1);
-  setEntry(cutOddHoleFreq, 1);
-  setEntry(cutProbingFreq, 1);
-  setEntry(cutTwoMirFreq, 1);
+  /// OA cut strategy parameters
+  setEntry(cutOaAlpha, 1);
+  setEntry(cutOaGamma, 50);
+  /// MILP Auto cut generation strategy parameters
+  setEntry(cutMilpAutoStatStart, 5);
+  setEntry(cutMilpAutoMinFreq, 10000);
+  setEntry(cutMilpAlpha, 1);
+  setEntry(cutMilpGamma, 20);
+
+  setEntry(cutCliqueFreq, 100);
+  setEntry(cutGomoryFreq, 100);
+  setEntry(cutFlowCoverFreq, 100);
+  setEntry(cutKnapsackFreq, 100);
+  setEntry(cutMirFreq, 100);
+  setEntry(cutOddHoleFreq, 100);
+  setEntry(cutProbingFreq, 100);
+  setEntry(cutTwoMirFreq, 100);
   setEntry(cutIpmFreq, 1);
   setEntry(cutIpmIntFreq, 1);
   setEntry(cutOaFreq, 1);
@@ -235,28 +255,15 @@ void DcoParams::setDefaultEntries() {
   setEntry(heurStrategy, DcoHeurStrategyPeriodic);
   setEntry(heurCallFrequency, 1);
   setEntry(heurRoundStrategy, DcoHeurStrategyPeriodic);
-  setEntry(heurRoundFreq, 1);
-  setEntry(heurIpmStrategy, DcoHeurStrategyPeriodic);
-  setEntry(heurIpmFreq, 1);
+  setEntry(heurRoundFreq, 100);
   setEntry(lookAhead, 4);
   setEntry(pseudoReliability, 8);
   setEntry(sharePcostDepth, 30);
   setEntry(sharePcostFrequency, 100);
-  setEntry(strongCandSize, 10);
-  // conic cut related parameters
-  // setEntry(conicCutStrategy, DcoConicCutStrategyNotSet);
-  // setEntry(conicCutGenerationFrequency, 1);
-  // setEntry(conicCutPass, 5);
-  // setEntry(quickConicCutPass, 0);
-  // setEntry(conicCutMirStrategy, DcoConicCutStrategyNotSet);
-  // setEntry(conicCutGD1Strategy, DcoConicCutStrategyNotSet);
-  // setEntry(conicCutGD2Strategy, DcoConicCutStrategyNotSet);
-  // setEntry(conicCutMirFreq, 1);
-  // setEntry(conicCutGD1Freq, 1);
-  // setEntry(conicCutGD2Freq, 1);
+  setEntry(strongCandSize, 1000);
   setEntry(logLevel, 2);
   setEntry(presolveNumPass, 5);
-  setEntry(approxNumPass, 50);
+  setEntry(approxNumPass, 400);
   //-------------------------------------------------------------
   // Double Parameters
   //-------------------------------------------------------------
@@ -275,7 +282,15 @@ void DcoParams::setDefaultEntries() {
   setEntry(presolveTolerance, 0.0);
   // approximation factor, used in OA
   setEntry(approxFactor, 1.0);
-
+  // threshold for cut activity used in approximateCones()
+  setEntry(cutOaSlack1, 0.0001);
+  // threshold for cut activity used in bounding loop
+  setEntry(cutOaSlack2, 0.005);
+  setEntry(cutOaBeta, 0.001);
+  /// MILP Auto cut generation strategy parameters
+  setEntry(cutMilpAutoFreqIncPercent, 0.5);
+  setEntry(cutMilpAutoFreqDecPercent, 0.05);
+  setEntry(cutMilpBeta, 0.0001);
   //-------------------------------------------------------------
   // String Parameters
   //-------------------------------------------------------------

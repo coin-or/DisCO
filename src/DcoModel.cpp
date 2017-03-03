@@ -337,8 +337,6 @@ void DcoModel::readInstance(char const * dataFile) {
   std::fill_n(rowUB_+numLinearRows_, numConicRows_, DISCO_INFINITY);
 
   matrix_ = new CoinPackedMatrix(*reader->getMatrixByRow());
-
-
   std::string sense = (dcoPar_->entry(DcoParams::objSense)==1.0) ? std::string("min") : std::string("min");
   dcoMessageHandler_->message(DISCO_PROBLEM_INFO,
                               *dcoMessages_)
@@ -352,9 +350,6 @@ void DcoModel::readInstance(char const * dataFile) {
     << CoinMessageEol;
   // free Coin MPS reader
   delete reader;
-
-
-
 
 #if defined(__CPLEX_EXIST__)
   // DisCO has access to a SOCO solver, generate cuts
@@ -586,6 +581,7 @@ void DcoModel::approximateCones() {
   // load problem to the solver
   solver_->loadProblem(*matrix_, colLB_, colUB_, objCoef_,
                        rowLB_, rowUB_);
+  origNumRows_ = solver_->getNumRows();
   bool dual_infeasible = false;
   int iter = 0;
   int ipm_iter;
@@ -645,11 +641,8 @@ void DcoModel::approximateCones() {
     dual_infeasible = solver_->isProvenDualInfeasible();
     iter++;
   } while(dual_infeasible);
-  // check problem status
-  if (solver_->isProvenPrimalInfeasible()) {
-    std::cerr << "Problem become infeasible after IPM cuts." << std::endl;
-  }
-  // add outer apprixmating cuts for 50 rounds
+  // add outer approximating cuts for DcoParams::approxNumPass (default is 50)
+  // many rounds
   ipm_iter = iter;
   iter = 0;
   int oa_iter_limit = dcoPar_->entry(DcoParams::approxNumPass);
@@ -686,6 +679,86 @@ void DcoModel::approximateCones() {
   delete[] coneSizes;
   delete[] coneMembers;
 
+  double cutOaSlack = dcoPar_->entry(DcoParams::cutOaSlack1);
+  // print cut activity
+  {
+    int numCuts = solver_->getNumRows() - origNumRows_;
+    double const * activity = solver_->getRowActivity();
+    double const * lb = solver_->getRowLower();
+    double const * ub = solver_->getRowUpper();
+    CoinWarmStartBasis const * ws =
+      dynamic_cast<CoinWarmStartBasis*> (solver_->getWarmStart());
+    for (int i=origNumRows_; i<solver_->getNumRows(); ++i) {
+      // double norm = 0.0;
+      // {
+      //   // compute norm of cut
+      //   CoinPackedMatrix const * mat = solver_->getMatrixByRow();
+      //   int start = mat->getVectorStarts()[i];
+      //   int size = mat->getVectorLengths()[i];
+      //   double const * value = mat->getElements() + start;
+      //   for (int j=0; j<size; ++j) {
+      //     norm += fabs(value[j]);
+      //   }
+      // }
+
+      // std::cout << "row: " << std::setw(4) << i
+      //           << " lb: " << std::setw(12) << lb[i]
+      //           << " activity: " << std::setw(12) << activity[i]
+      //           << " ub: " << std::setw(12) << ub[i]
+      //           << " status: " << (ws->getArtifStatus(i)==CoinWarmStartBasis::basic)
+      //           << " remove: " << ((ub[i]-activity[i])>cutOaSlack)
+      //           << " norm: " << norm
+      //           << std::endl;
+    }
+  }
+
+
+  // remove inactive cuts
+  {
+    int numCuts = solver_->getNumRows() - origNumRows_;
+    // get warm start basis
+    CoinWarmStartBasis const * ws =
+      dynamic_cast<CoinWarmStartBasis*> (solver_->getWarmStart());
+    if (ws==NULL) {
+      // nothing to do if there is no warm start information
+      std::cerr << "Disco warning: No warm start object exists in solver. "
+                << "Unable to clean cuts." << std::endl;
+    }
+    else if (numCuts==0) {
+      // nothing to do if there no any cuts
+    }
+    else {
+      int numDel = 0;
+      int * delInd = new int[numCuts];
+      double const * activity = solver_->getRowActivity();
+      //double const * lb = solver_->getRowLower();
+      double const * ub = solver_->getRowUpper();
+
+      // iterate over cuts and colect inactive ones
+      for (int i=0; i<numCuts; ++i) {
+        if (ws->getArtifStatus(origNumRows_+i) == CoinWarmStartBasis::basic) {
+          // cut is inactive
+          // do we really want to remove? check how much it is inactive
+          if (ub[origNumRows_+i] - activity[origNumRows_+i] > cutOaSlack) {
+            // remove since it is inactive too much
+            delInd[numDel++] = i+origNumRows_;
+          }
+        }
+      }
+      // delete cuts from solver
+      if (numDel) {
+        std::cout << "Approx cones: "
+                  << " removed: " << numDel
+                  << " remain: " << numCuts-numDel
+                  << std::endl;
+        solver_->deleteRows(numDel, delInd);
+        // resolve to correct status
+        solver_->resolve();
+      }
+      delete[] delInd;
+    }
+  }
+
   // get updated data from solver
   delete matrix_;
   matrix_ = new CoinPackedMatrix(*solver_->getMatrixByRow());
@@ -719,10 +792,20 @@ bool DcoModel::setupSelf() {
   relaxedCols_ = new int[numRelaxedCols_];
   std::copy(integerCols_, integerCols_+numIntegerCols_,
             relaxedCols_);
-
+#ifdef __OA__
+  solver_->reset();
+  solver_->setHintParam(OsiDoInBranchAndCut, true, OsiHintDo, NULL);
+  // clp specific options for getting unboundedness directions
+  dynamic_cast<OsiClpSolverInterface*>(solver_)->getModelPtr()->setMoreSpecialOptions(0);
+  dynamic_cast<OsiClpSolverInterface*>(solver_)->getModelPtr()->setLogLevel(0);
+#else
+  solver_->setHintParam(OsiDoReducePrint, true, OsiHintTry);
+#endif
   // load problem to the solver
   solver_->loadProblem(*matrix_, colLB_, colUB_, objCoef_,
                        rowLB_, rowUB_);
+  // set integer variables
+  solver_->setInteger(integerCols_, numIntegerCols_);
 
 #if defined(__OA__)
   // we relax conic constraints when OA is used.
@@ -779,7 +862,9 @@ bool DcoModel::setupSelf() {
   setBranchingStrategy();
 
   // add constraint generators
+#ifdef __OA__
   addConstraintGenerators();
+#endif
 
   // add heuristics
   addHeuristics();
@@ -879,8 +964,6 @@ void DcoModel::addConstraintGenerators() {
     (dcoPar_->entry(DcoParams::cutIpmIntStrategy));
   DcoCutStrategy oaStrategy = static_cast<DcoCutStrategy>
     (dcoPar_->entry(DcoParams::cutOaStrategy));
-  DcoCutStrategy gd1Strategy = static_cast<DcoCutStrategy>
-    (dcoPar_->entry(DcoParams::cutGD1Strategy));
 
   // get cut frequencies from parameters
   int cliqueFreq = dcoPar_->entry(DcoParams::cutCliqueFreq);
@@ -1113,7 +1196,7 @@ void DcoModel::addConstraintGenerators() {
       oaStrategy = cutStrategy_;
     }
   }
-  if (oaStrategy != DcoCutStrategyNone) {
+  if (oaStrategy != DcoCutStrategyNone && numConicRows_) {
     CglConicCutGenerator * oa_gen =
       new CglConicOA(dcoPar_->entry(DcoParams::coneTol));
     addConGenerator(oa_gen, "OA", oaStrategy, oaFreq);
@@ -1691,6 +1774,7 @@ AlpsReturnStatus DcoModel::encode(AlpsEncoded * encoded) const {
   encoded->writeRep(matrix_->getVectorLengths(), numLinearRows_);
   encoded->writeRep(matrix_->getIndices(), matrix_->getNumElements());
   encoded->writeRep(matrix_->getElements(), matrix_->getNumElements());
+  encoded->writeRep(origNumRows_);
   // encode parameters
   dcoPar_->pack(*encoded);
 
@@ -1755,6 +1839,7 @@ AlpsReturnStatus DcoModel::decodeToSelf(AlpsEncoded & encoded) {
   encoded.readRep(elements, num_elem);
   matrix_ = new CoinPackedMatrix(false, numCols_, numLinearRows_, num_elem,
                                  elements, indices, starts, lengths, 0.0, 0.0);
+  encoded.readRep(origNumRows_);
   delete[] starts;
   delete[] lengths;
   delete[] indices;

@@ -33,8 +33,6 @@ DcoSolution * DcoHeurRounding::searchSolution() {
   // get pointers for message logging
   CoinMessageHandler * message_handler = model()->dcoMessageHandler_;
   CoinMessages * messages = model()->dcoMessages_;
-  // update statistics
-  stats().addCalls();
 
   // Get a copy of original matrix (and by row for rounding);
   CoinPackedMatrix const * matrix = model()->solver()->getMatrixByCol();

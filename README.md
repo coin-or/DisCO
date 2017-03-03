@@ -1,4 +1,10 @@
-# DisCO [![Build Status](https://travis-ci.org/aykutbulut/DisCO.svg?branch=master)](https://travis-ci.org/aykutbulut/DisCO)
+# DisCO Version 0.95
+
+[![Build Status](https://travis-ci.org/aykutbulut/DisCO.svg?branch=master)](https://travis-ci.org/aykutbulut/DisCO)
+
+[ ![Download](https://api.bintray.com/packages/coin-or/download/DisCO/images/download.svg?version=0.95) ](https://bintray.com/coin-or/download/DisCO/0.95/link)
+
+[![DOI](https://zenodo.org/badge/36100320.svg)](https://zenodo.org/badge/latestdoi/36100320)
 
 DisCO (Discrete Conic Optimization) is a solver for Mixed Integer Second Order
 Conic Optimization (MISOCO) problems. It is developed on top of COIN-OR
@@ -8,13 +14,11 @@ DisCO does branch and bound search to solve MISOCO problems. DisCO depends on
 many other projects. It depends [OsiConic][1] on communicating with its
 relaxation solvers. It depends on [CglConic][9] to cut infeasible solutions.
 
-DisCO shares some commit history with COIN-OR project [CHiPPS-Blis][8]. DisCO
-version 0.1 has this heritage. Current master is re-written from scratch and
-does not have Blis commits.
+DisCO shares some commit history with COIN-OR project [CHiPPS-Blis][8]. Current master was re-written from scratch, however, and does not share any commits with BLIS.
 
 DisCO is distributed under the Eclipse Public License and is
 freely redistributable. All source code and documentation is Copyright
-2014-2016 by Lehigh University, Aykut Bulut and Ted Ralphs. This
+2001-2017 by Lehigh University, Aykut Bulut and Ted Ralphs. This
 README may be distributed freely.
 
 ## 1. Installation ##
@@ -136,22 +140,25 @@ path_to_disco/disco input.mps Alps_instance input.mps Dco_branchStrategy 3 Dco_c
     - Windows: Not tested.
   * Algorithms
     - OA: Well tested and works fine.
-    - Ipopt: Works fine. There are missing functions in the [interface][5]. Needs
-      testing.
+    - Ipopt: Works fine. There are missing functions in the [interface][5].
+      Tested on CBLIB 2014 and random problems. Ipopt fails to converge on some
+      instances.  We beleive this is due to nonsmooth formulation of the conic
+      constraints.
     - Cola: Well tested, works fine.
     - Mosek: Works fine. There are missing functions in the interface. It is
-      complete enough to work with DisCO. Needs extensive testing.
+      complete enough to work with DisCO. Well tested on CBLIB 2014 and random
+      problems. Mosek might fail on numerically challanging instances.
     - Cplex: Missing functions in the interface. Interface is complete enough
-      to work with DisCO. Needs extensive testing.
+      to work with DisCO. Tested on CBLIB 2014 and random problems. Cplex
+      rarely fails on some instances.
   * Branching/Cutting
     - When OA algorithm is used and Ipopt is chosen as an IPM solver in
       CglConic, Ipopt might fail, on some problems, at the root node. You can
       use Mosek or Cplex for this if it is available to you.
   * MPI testing,
-    - MPICH2: Hangs (or seems hanging on some instances of CBLIB). Works fine
-      in most of the instances. Needs more testing for performance assesment.
-    - OpenMPI: Hangs (or seems hanging on some instances of CBLIB). Works fine
-      in most of the instances. Needs more testing for performance assesment.
+    - MPICH2: Tested and works fine.
+    - OpenMPI: Tested up to 128 processors and works fine. Good parallelization
+      performance when the tree is well balanced.
 
 ## 4. Documentation ##
 

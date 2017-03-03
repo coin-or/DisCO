@@ -48,8 +48,6 @@ public:
     */
     cutStrategy, /** All constraint generators */
     cutGenerationFrequency,
-    cutPass,      /** The pass to generate cuts */
-    quickCutPass, /** The pass to generate cuts for quick branching */
     cutDisable,   /** if no cuts calls is greater than this, disable cg */
     cutCliqueStrategy,
     cutGomoryStrategy,
@@ -62,7 +60,16 @@ public:
     cutIpmStrategy,
     cutIpmIntStrategy,
     cutOaStrategy,
-    cutGD1Strategy,
+    /// OA cut strategy parameters
+    cutOaAlpha,
+    cutOaGamma,
+    /// MILP Auto cut generation strategy parameters
+    cutMilpAutoStatStart,
+    cutMilpAutoMinFreq,
+    cutMilpAlpha,
+    cutMilpGamma,
+    ///
+
     cutCliqueFreq,
     cutGomoryFreq,
     cutFlowCoverFreq,
@@ -108,8 +115,6 @@ public:
     */
     // conicCutStrategy, /** All constraint generators */
     // conicCutGenerationFrequency,
-    // conicCutPass,      /** The pass to generate cuts */
-    // quickConicCutPass, /** The pass to generate cuts for quick branching */
     // conicCutMirStrategy,
     // conicCutGD1Strategy,
     // conicCutGD2Strategy,
@@ -159,7 +164,16 @@ public:
     presolveTolerance,
     // approximation factor, used in OA
     approxFactor,
-    ///
+    /// OA cut generation strategy parameters
+    cutOaBeta,
+    // threshold for cut activity used in approximateCones()
+    cutOaSlack1,
+    // threshold for cut activity used in bounding loop
+    cutOaSlack2,
+    /// MILP Auto cut generation strategy parameters
+    cutMilpAutoFreqIncPercent,
+    cutMilpAutoFreqDecPercent,
+    cutMilpBeta,
     endOfDblParams
   };
   /** String parameters. */

@@ -220,6 +220,7 @@ class DcoModel: public BcpsModel {
   void writeParameters(std::ostream& outstream) const;
 
 public:
+  int origNumRows_;
   ///@name Message printing
   //@{
   /// DisCO message handler.
@@ -227,7 +228,7 @@ public:
   /// DisCO messages.
   CoinMessages * dcoMessages_;
   //@}
-public:
+
   ///@name Constructors and Destructors
   //@{
   /// Default constructor.
