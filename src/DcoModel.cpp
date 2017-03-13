@@ -376,26 +376,32 @@ void DcoModel::readInstance(char const * dataFile) {
                                     coneMembers_+coneStart_[i]);
   }
   temp_solver->initialSolve();
-  // generate cuts
-  CglConicGD1 cg(temp_solver);
-  OsiConicSolverInterface * nsi = cg.generateAndAddBestCut(*temp_solver);
-  //OsiConicSolverInterface * nsi = cg.generateAndAddCuts(*temp_solver);
-  // stats after cut
-  std::cout << "Problem stats after cuts " << std::endl;
-  std::cout << "  Number of variables: " << nsi->getNumCols()
-            << std::endl;
-  std::cout << "  Number of linear constraints: " << nsi->getNumRows()
-            << std::endl;
-  std::cout << "  Number of nonzero in coefficient matrix: " << nsi->getNumElements()
-            << std::endl;
-  std::cout << "  Number of conic constraints: " << nsi->getNumCones()
-            << std::endl;
-  delete temp_solver;
-  // load data from nsi and delete it.
-  loadProblem(nsi);
-  delete nsi;
+  if (temp_solver->isProvenOptimal()) {
+    // generate cuts
+    CglConicGD1 cg(temp_solver);
+    //OsiConicSolverInterface * nsi = cg.generateAndAddBestCut(*temp_solver);
+    OsiConicSolverInterface * nsi = cg.generateAndAddCuts(*temp_solver);
+    // stats after cut
+    std::cout << "Problem stats after cuts " << std::endl;
+    std::cout << "  Number of variables: " << nsi->getNumCols()
+              << std::endl;
+    std::cout << "  Number of linear constraints: " << nsi->getNumRows()
+              << std::endl;
+    std::cout << "  Number of nonzero in coefficient matrix: " << nsi->getNumElements()
+              << std::endl;
+    std::cout << "  Number of conic constraints: " << nsi->getNumCones()
+              << std::endl;
+    delete temp_solver;
+    // load data from nsi
+    loadProblem(nsi);
+    delete nsi;
+  }
+  else {
+    std::cout << "Cut generation stopped. "
+              << "Root problem is not solved to optimality."
+              << std::endl;
+  }
 #endif
-
 }
 
 /// Load problem from conic solver interface
@@ -472,6 +478,8 @@ void DcoModel::loadProblem(OsiConicSolverInterface * nsi) {
     int size;
     nsi->getConicConstraint(i, type, size, newConeMembers[i]);
     coneType_[i] = (type==OSI_QUAD) ? 1 : 2;
+    colLB_[newConeMembers[i][0]] = 0.0;
+    colLB_[newConeMembers[i][1]] = (type==OSI_RQUAD) ? 0.0 : colLB_[newConeMembers[i][1]] ;
     //std::copy(members, members+size, newConeMembers+newConeStart[i]);
     numColsInCone += size;
     coneStart_[i+1] = coneStart_[i]+size;
@@ -656,6 +664,17 @@ void DcoModel::approximateCones() {
     }
     coneSizes[i] = coneStart_[i+1]-coneStart_[i];
     coneMembers[i] = coneMembers_ + coneStart_[i];
+  }
+
+  // status should be optimal or (primal feasible and dual infeasible)
+  if (!solver_->isProvenOptimal() ||
+      !(!solver_->isProvenPrimalInfeasible() &&
+        solver_->isProvenDualInfeasible())) {
+    std::cout << "Solver status should be either optimal or dual infeasible"
+              << " (with primal feasible indicating unbounded problem)!"
+              << std::endl;
+    std::cout << "infeasible " << solver_->isProvenPrimalInfeasible() << std::endl;
+    return;
   }
   // used to decide on number of iterations in outer approximation
   int largest_cone_size = *std::max_element(coneSizes,
