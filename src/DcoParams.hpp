@@ -63,6 +63,7 @@ public:
     /// OA cut strategy parameters
     cutOaAlpha,
     cutOaGamma,
+    cutOaSlackLimit,
     /// MILP Auto cut generation strategy parameters
     cutMilpAutoStatStart,
     cutMilpAutoMinFreq,

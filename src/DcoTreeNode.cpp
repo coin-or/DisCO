@@ -797,6 +797,7 @@ void DcoTreeNode::checkCuts() {
   }
   // iterate over cuts and remove the ones that are inactive for
   // 3 or more iterations
+  int slackLimit = model->dcoPar()->entry(DcoParams::cutOaSlackLimit);
   {
     std::list<int>::iterator curr = st->inactive_.begin();
     //std::list<int>::iterator curr2 = st->generatorIndex_.begin();
