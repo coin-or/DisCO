@@ -68,6 +68,8 @@ void DcoParams::createKeywordList() {
                             AlpsParameter(AlpsIntPar, cutOaAlpha)));
   keys_.push_back(make_pair(std::string("Dco_cutOaGamma"),
                             AlpsParameter(AlpsIntPar, cutOaGamma)));
+  keys_.push_back(make_pair(std::string("Dco_cutOaSlackLimit"),
+                            AlpsParameter(AlpsIntPar, cutOaSlackLimit)));
   /// MILP Auto cut generation strategy parameters
   keys_.push_back(make_pair(std::string("Dco_cutMilpAutoStatStart"),
                             AlpsParameter(AlpsIntPar, cutMilpAutoStatStart)));
@@ -231,8 +233,9 @@ void DcoParams::setDefaultEntries() {
   setEntry(cutIpmIntStrategy, DcoCutStrategyNotSet);
   setEntry(cutOaStrategy, DcoCutStrategyNotSet);
   /// OA cut strategy parameters
-  setEntry(cutOaAlpha, 1);
+  setEntry(cutOaAlpha, 3);
   setEntry(cutOaGamma, 50);
+  setEntry(cutOaSlackLimit, 3);
   /// MILP Auto cut generation strategy parameters
   setEntry(cutMilpAutoStatStart, 5);
   setEntry(cutMilpAutoMinFreq, 10000);
