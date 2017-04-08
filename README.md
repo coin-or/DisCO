@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/aykutbulut/DisCO.svg?branch=master)](https://travis-ci.org/aykutbulut/DisCO)
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/a7c5abda08874549bee0324603ecaca1)](https://www.codacy.com/app/aykutbulut/DisCO?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=aykutbulut/DisCO&amp;utm_campaign=Badge_Grade)
+
 [ ![Download](https://api.bintray.com/packages/coin-or/download/DisCO/images/download.svg?version=0.95) ](https://bintray.com/coin-or/download/DisCO/0.95/link)
 
 [![DOI](https://zenodo.org/badge/36100320.svg)](https://zenodo.org/badge/latestdoi/36100320)
