@@ -379,8 +379,9 @@ void DcoModel::readInstance(char const * dataFile) {
   if (temp_solver->isProvenOptimal()) {
     // generate cuts
     CglConicGD1 cg(temp_solver);
-    //OsiConicSolverInterface * nsi = cg.generateAndAddBestCut(*temp_solver);
-    OsiConicSolverInterface * nsi = cg.generateAndAddCuts(*temp_solver);
+    OsiConicSolverInterface * nsi = cg.generateAndAddBestCut(*temp_solver);
+    //OsiConicSolverInterface * nsi = cg.generateAndAddCuts(*temp_solver);
+    nsi->setHintParam(OsiDoReducePrint, true, OsiHintTry);
     // stats after cut
     std::cout << "Problem stats after cuts " << std::endl;
     std::cout << "  Number of variables: " << nsi->getNumCols()
@@ -392,8 +393,11 @@ void DcoModel::readInstance(char const * dataFile) {
     std::cout << "  Number of conic constraints: " << nsi->getNumCones()
               << std::endl;
     delete temp_solver;
+    // write problem stored in nsi
+    nsi->writeMps("root", "mps", 0.0);
     // load data from nsi
     loadProblem(nsi);
+    nsi->writeMps("root", "lp", 0.0);
     delete nsi;
   }
   else {

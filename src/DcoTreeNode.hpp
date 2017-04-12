@@ -246,6 +246,8 @@ class DcoTreeNode: public BcpsTreeNode {
   /// status.
   void afterBound(DcoSubproblemStatus subproblem_status);
   int boundingLoop(bool isRoot, bool rampUp);
+  /// check whether solver reports a sane solution
+  void checkSolution();
   /// find number of infeasible integer variables.
   void checkRelaxedCols(int & numInf);
   /// update cut stats and clean in necessary

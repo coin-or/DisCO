@@ -570,6 +570,12 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
     keepBounding = false;
     // solve subproblem corresponds to this node
     BcpsSubproblemStatus subproblem_status = bound();
+
+    // todo(aykut) check whether solver gives a solution that makes sense
+    if (subproblem_status==BcpsSubproblemStatusOptimal) {
+      checkSolution();
+    }
+
     // update bcp statistics
     if (bcpStats_.numBoundIter_==0) {
       bcpStats_.startObjVal_ = model->solver()->getObjValue();
@@ -724,6 +730,33 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
   delete constraintPool;
   delete variablePool;
   return AlpsReturnStatusOk;
+}
+
+// check current solution of the solver, throw exceptions
+// if it does not make sense
+void DcoTreeNode::checkSolution() {
+  DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
+  CoinMessageHandler * message_handler = model->dcoMessageHandler_;
+  CoinMessages * messages = model->dcoMessages_;
+  double const * collb = model->solver()->getColLower();
+  double const * colub = model->solver()->getColUpper();
+  double const * sol = model->solver()->getColSolution();
+  int num_cols = model->solver()->getNumCols();
+  for (int i=0; i<num_cols; ++i) {
+    if ((sol[i]<collb[i]-1e-4) || (sol[i]>colub[i]+1e+4)) {
+      std::cerr << "Solver does not make sense."
+                << std::endl
+                << "For variable " << i << " reports solution as "
+                << sol[i]
+                << " lower bound as "
+                << collb[i]
+                << " upper bound as "
+                << colub[i]
+                << "."
+                << std::endl;
+      throw std::exception();
+    }
+  }
 }
 
 //1. update cut statistics
