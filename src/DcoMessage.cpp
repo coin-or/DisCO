@@ -155,6 +155,7 @@ static Dco_message us_english[]=
      "[%d] Subproblem solved, status %d, obj value %f, quality %f, estimate %f."},
     {DISCO_SOLVER_INFEASIBLE, 404, DISCO_DLOG_PROCESS, "[%d] Node %d is infeasible. Status set to fathom."},
     {DISCO_FAILED_WARM_START, 9405, DISCO_DLOG_PROCESS, "[%d] Node %d, setting warm start failed."},
+    {DISCO_SOLVER_ITERATIONS, 406, 1, "Total number of relaxation solver iterations %d"},
     // heuristics
     {DISCO_HEUR_BEFORE_ROOT, 501, 4, "%s heuristic found a solution; quality is %g"},
     {DISCO_HEUR_STATS_FINAL, 502, 1, "Called %s heuristic %d times, found %d solutions, CPU time %.4f seconds, current strategy %d"},

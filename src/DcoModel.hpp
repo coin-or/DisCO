@@ -190,6 +190,9 @@ class DcoModel: public BcpsModel {
   /// Constraint generators.
   std::vector<DcoConGenerator*> conGenerators_;
   //@}
+
+  /// Number of relaxation iterations.
+  long long int numRelaxIterations_;
   ///==========================================================================
 
 
@@ -263,6 +266,12 @@ public:
   DcoParams const * dcoPar() const {return dcoPar_;}
   /// get upper bound of the objective value for minimization
   double bestQuality();
+  /// Accumulate number of relaxation iterations
+  void addNumRelaxIterations(int iter) {numRelaxIterations_ += iter; }
+  /// Add current solver iterations to the total
+  void addNumRelaxIterations();
+  /// Get number of relaxation iterations
+  long long int numRelaxIterations() const {return numRelaxIterations_;}
   //@}
 
   ///@name Querry problem data

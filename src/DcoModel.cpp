@@ -649,6 +649,8 @@ bool DcoModel::setupSelf() {
   relaxedCols_ = new int[numRelaxedCols_];
   std::copy(integerCols_, integerCols_+numIntegerCols_,
             relaxedCols_);
+  // set iteration count to 0
+  numRelaxIterations_ = 0;
 #ifdef __OA__
   solver_->reset();
   solver_->setHintParam(OsiDoInBranchAndCut, true, OsiHintDo, NULL);
@@ -731,16 +733,6 @@ bool DcoModel::setupSelf() {
   if (cutoff!=ALPS_INC_MAX) {
     solver_->setDblParam(OsiDualObjectiveLimit, objSense_*cutoff);
   }
-  // free redundant data
-  // delete matrix_;
-  // matrix_ = NULL;
-  // delete[] coneStart_;
-  // coneStart_ = NULL;
-  // delete[] coneMembers_;
-  // coneMembers_ = NULL;
-  // delete[] coneType_;
-  // coneType_ = NULL;
-
   return true;
 }
 
@@ -1458,6 +1450,18 @@ void DcoModel::nodeLog(AlpsTreeNode * node, bool force) {
 /// Prints solution statistics
 void DcoModel::modelLog() {
   if (broker_->getProcType() == AlpsProcessTypeSerial) {
+#if defined(__OA__) || defined(__COLA__)
+    // report solver iterations
+
+    // notes(aykut) This will overflow if number of iterations is large, but I
+    // have no option since CoinMessageHandler does not overload operator <<
+    // for long long int.
+    int num_iter = static_cast<int> (numRelaxIterations_);
+    dcoMessageHandler_->message(DISCO_SOLVER_ITERATIONS, *dcoMessages_)
+      << num_iter
+      << CoinMessageEol;
+#endif
+    // report cut generator statistics
     for (unsigned int k=0; k<conGenerators_.size(); ++k) {
       if (conGenerators(k)->stats().numCalls() > 0) {
         dcoMessageHandler_->message(DISCO_CUT_STATS_FINAL,
@@ -1470,6 +1474,7 @@ void DcoModel::modelLog() {
           << CoinMessageEol;
       }
     }
+    // report heuristic statistics
     for (unsigned int k=0; k<heuristics_.size(); ++k) {
       if (heuristics(k)->stats().numCalls() > 0) {
         dcoMessageHandler_->message(DISCO_HEUR_STATS_FINAL,
@@ -1683,4 +1688,8 @@ AlpsReturnStatus DcoModel::decodeToSelf(AlpsEncoded & encoded) {
   // end of debug stuff
 
   return status;
+}
+
+void DcoModel::addNumRelaxIterations() {
+  numRelaxIterations_ += solver_->getIterationCount();
 }

@@ -566,6 +566,8 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
     keepBounding = false;
     // solve subproblem corresponds to this node
     BcpsSubproblemStatus subproblem_status = bound();
+    // update number of iterations statistics
+    model->addNumRelaxIterations();
     // update bcp statistics
     if (bcpStats_.numBoundIter_==0) {
       bcpStats_.startObjVal_ = model->solver()->getObjValue();
