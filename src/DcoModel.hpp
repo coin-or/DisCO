@@ -316,10 +316,10 @@ public:
   ///@name Constraint Generation related.
   //@{
   /// Add constraint generator using linear Cgl.
-  void addConGenerator(CglCutGenerator * cgl_gen, char const * name,
+  void addConGenerator(CglCutGenerator * cgl_gen, DcoConstraintType type,
                        DcoCutStrategy dco_strategy, int frequency);
   /// Add constraint generator using conic Cgl.
-  void addConGenerator(CglConicCutGenerator * cgl_gen, char const * name,
+  void addConGenerator(CglConicCutGenerator * cgl_gen, DcoConstraintType type,
                        DcoCutStrategy dco_strategy, int frequency);
   /// Add constraint generator.
   void addConGenerator(DcoConGenerator * dco_gen);

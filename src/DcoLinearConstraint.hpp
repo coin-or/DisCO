@@ -34,9 +34,6 @@ public:
   int const * getIndices() const;
   double const * getValues() const;
   virtual OsiRowCut * createOsiRowCut(DcoModel * model) const;
-  /// return constraint type, linear or conic
-  virtual DcoConstraintType constraintType() const {return DcoConstraintTypeLinear;}
-
   virtual double infeasibility(BcpsModel * m, int & preferredWay) const;
 
   ///@name Encode and Decode functions

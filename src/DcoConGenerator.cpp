@@ -9,10 +9,12 @@ void DcoConGeneratorStats::reset() {
 }
 
 DcoConGenerator::DcoConGenerator(DcoModel * model,
+                                 DcoConstraintType type,
                                  char const * name,
                                  DcoCutStrategy strategy,
                                  int frequency):
-  name_(name), model_(model), strategy_(strategy), frequency_(frequency) {
+  model_(model), type_(type), name_(name), strategy_(strategy),
+  frequency_(frequency) {
   stats_.reset();
 }
 

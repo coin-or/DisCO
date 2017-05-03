@@ -177,12 +177,36 @@
 
 */
 
+#include <vector>
+
 #define DISCO_INFINITY 1e30
 
+/*! Possible types of a constraint.
+ */
 enum DcoConstraintType {
-  DcoConstraintTypeLinear = 0,
-  DcoConstraintTypeConic
+  DcoConstraintTypeNotSet = 0,
+  // Core constraint that comes with the problem
+  DcoConstraintTypeCore ,
+  // MILP cuts
+  DcoConstraintTypeClique,
+  DcoConstraintTypeFCover,
+  DcoConstraintTypeGomory,
+  DcoConstraintTypeKnap,
+  DcoConstraintTypeMIR,
+  DcoConstraintTypeOddHole,
+  DcoConstraintTypeProbe,
+  DcoConstraintTypeTwoMIR,
+  // Conic Cuts
+  DcoConstraintTypeIPM,
+  DcoConstraintTypeIPMint,
+  DcoConstraintTypeOA,
+  DcoConstraintTypeCMIR,
+  DcoConstraintTypeGD1,
+  DcoConstraintTypeEnd
 };
+
+// declare variable name map. This will get defined in a source file.
+extern std::vector<char const *> const dcoConstraintTypeName;
 
 enum DcoLorentzConeType {
   DcoLorentzCone = 0,

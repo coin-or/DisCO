@@ -46,6 +46,32 @@
 #include <cmath>
 #include <iomanip>
 
+// ordering of conNames should match the ordering of DcoConstraintType enum
+// type.
+char const * conNames[] = {
+  "NotSet",
+  "Core",
+  "Clique",
+  "FCover",
+  "Gomory",
+  "Knap",
+  // Linear MIR
+  "MIR",
+  "OddHole",
+  "Probe",
+  "TwoMIR",
+  // Conic cuts
+  "IPM",
+  "IPMint",
+  "OA",
+  // Conic MIR
+  "CMIR",
+  "GD1"
+};
+
+std::vector<char const *> const
+  dcoConstraintTypeName (conNames, conNames + DcoConstraintTypeEnd);
+
 DcoModel::DcoModel() {
   solver_ = NULL;
   colLB_ = NULL;
@@ -858,7 +884,7 @@ void DcoModel::addConstraintGenerators() {
     // Only look at rows with fewer than this number of elements
     probing->setMaxElements(200);
     probing->setRowCuts(3);
-    addConGenerator(probing, "Probing", probeStrategy, probeFreq);
+    addConGenerator(probing, DcoConstraintTypeProbe, probeStrategy, probeFreq);
   }
 
   // Add clique cut generator.
@@ -879,7 +905,8 @@ void DcoModel::addConstraintGenerators() {
     CglClique *cliqueCut = new CglClique ;
     cliqueCut->setStarCliqueReport(false);
     cliqueCut->setRowCliqueReport(false);
-    addConGenerator(cliqueCut, "Clique", cliqueStrategy, cliqueFreq);
+    addConGenerator(cliqueCut, DcoConstraintTypeClique, cliqueStrategy,
+                    cliqueFreq);
   }
 
   // Add odd hole cut generator.
@@ -902,7 +929,8 @@ void DcoModel::addConstraintGenerators() {
     oldHoleCut->setMinimumViolationPer(0.00002);
     // try larger limit
     oldHoleCut->setMaximumEntries(200);
-    addConGenerator(oldHoleCut, "OddHole", oddHoleStrategy, oddHoleFreq);
+    addConGenerator(oldHoleCut, DcoConstraintTypeOddHole, oddHoleStrategy,
+                    oddHoleFreq);
   }
 
   // Add flow cover cut generator.
@@ -922,7 +950,8 @@ void DcoModel::addConstraintGenerators() {
   }
   if (fCoverStrategy != DcoCutStrategyNone) {
     CglFlowCover *flowGen = new CglFlowCover;
-    addConGenerator(flowGen, "Flow Cover", fCoverStrategy, fCoverFreq);
+    addConGenerator(flowGen, DcoConstraintTypeFCover, fCoverStrategy,
+                    fCoverFreq);
   }
 
   // Add knapsack cut generator.
@@ -941,7 +970,7 @@ void DcoModel::addConstraintGenerators() {
   }
   if (knapStrategy != DcoCutStrategyNone) {
     CglKnapsackCover *knapCut = new CglKnapsackCover;
-    addConGenerator(knapCut, "Knapsack", knapStrategy, knapFreq);
+    addConGenerator(knapCut, DcoConstraintTypeKnap, knapStrategy, knapFreq);
   }
 
   // Add MIR cut generator.
@@ -960,7 +989,7 @@ void DcoModel::addConstraintGenerators() {
   }
   if (mirStrategy != DcoCutStrategyNone) {
     CglMixedIntegerRounding2 *mixedGen = new CglMixedIntegerRounding2;
-    addConGenerator(mixedGen, "MIR", mirStrategy, mirFreq);
+    addConGenerator(mixedGen, DcoConstraintTypeMIR, mirStrategy, mirFreq);
   }
 
   // Add Gomory cut generator.
@@ -981,7 +1010,8 @@ void DcoModel::addConstraintGenerators() {
     CglGomory *gomoryCut = new CglGomory;
     // try larger limit
     gomoryCut->setLimit(300);
-    addConGenerator(gomoryCut, "Gomory", gomoryStrategy, gomoryFreq);
+    addConGenerator(gomoryCut, DcoConstraintTypeGomory, gomoryStrategy,
+                    gomoryFreq);
   }
 
   // Add Tow MIR cut generator.
@@ -989,7 +1019,8 @@ void DcoModel::addConstraintGenerators() {
   twoMirStrategy = DcoCutStrategyNone;
   if (twoMirStrategy != DcoCutStrategyNone) {
     CglTwomir *twoMirCut =  new CglTwomir;
-    addConGenerator(twoMirCut, "Two MIR", twoMirStrategy, twoMirFreq);
+    addConGenerator(twoMirCut, DcoConstraintTypeTwoMIR, twoMirStrategy,
+                    twoMirFreq);
   }
 
   // Add IPM cut generator
@@ -1008,7 +1039,7 @@ void DcoModel::addConstraintGenerators() {
   }
   if (ipmStrategy != DcoCutStrategyNone) {
     CglConicCutGenerator * ipm_gen = new CglConicIPM();
-    addConGenerator(ipm_gen, "IPM", ipmStrategy, ipmFreq);
+    addConGenerator(ipm_gen, DcoConstraintTypeIPM, ipmStrategy, ipmFreq);
   }
 
   // Add IPM integer cut generator
@@ -1027,7 +1058,8 @@ void DcoModel::addConstraintGenerators() {
   }
   if (ipmintStrategy != DcoCutStrategyNone) {
     CglConicCutGenerator * ipm_int_gen = new CglConicIPMint();
-    addConGenerator(ipm_int_gen, "IPMint", ipmintStrategy, ipmintFreq);
+    addConGenerator(ipm_int_gen, DcoConstraintTypeIPMint, ipmintStrategy,
+                    ipmintFreq);
   }
 
   // Add Outer approximation cut generator
@@ -1047,7 +1079,7 @@ void DcoModel::addConstraintGenerators() {
   if (oaStrategy != DcoCutStrategyNone && numConicRows_) {
     CglConicCutGenerator * oa_gen =
       new CglConicOA(dcoPar_->entry(DcoParams::coneTol));
-    addConGenerator(oa_gen, "OA", oaStrategy, oaFreq);
+    addConGenerator(oa_gen, DcoConstraintTypeOA, oaStrategy, oaFreq);
   }
 
   // Adjust cutStrategy_ according to the strategies of each cut generators.
@@ -1083,10 +1115,12 @@ void DcoModel::addConstraintGenerators() {
 
 
 void DcoModel::addConGenerator(CglCutGenerator * cgl_gen,
-                               char const * name,
+                               DcoConstraintType type,
                                DcoCutStrategy dco_strategy,
                                int frequency) {
-  DcoConGenerator * con_gen = new DcoLinearConGenerator(this, cgl_gen, name,
+  char const * name = dcoConstraintTypeName[type];
+  DcoConGenerator * con_gen = new DcoLinearConGenerator(this, cgl_gen, type,
+                                                        name,
                                                         dco_strategy,
                                                         frequency);
   conGenerators_.push_back(con_gen);
@@ -1094,10 +1128,12 @@ void DcoModel::addConGenerator(CglCutGenerator * cgl_gen,
 
 /// Add constraint generator.
 void DcoModel::addConGenerator(CglConicCutGenerator * cgl_gen,
-                               char const * name,
+                               DcoConstraintType type,
                                DcoCutStrategy dco_strategy,
                                int frequency) {
-  DcoConGenerator * con_gen = new DcoConicConGenerator(this, cgl_gen, name,
+  char const * name = dcoConstraintTypeName[type];
+  DcoConGenerator * con_gen = new DcoConicConGenerator(this, cgl_gen, type,
+                                                       name,
                                                        dco_strategy,
                                                        frequency);
   conGenerators_.push_back(con_gen);

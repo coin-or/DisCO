@@ -9,10 +9,11 @@
 /// Useful constructor.
 DcoLinearConGenerator::DcoLinearConGenerator(DcoModel * model,
                         CglCutGenerator * generator,
+                        DcoConstraintType type,
                         char const * name ,
                         DcoCutStrategy strategy,
                         int frequency):
-  DcoConGenerator(model, name, strategy, frequency) {
+  DcoConGenerator(model, type, name, strategy, frequency) {
   generator_ = generator;
 }
 
@@ -77,6 +78,7 @@ bool DcoLinearConGenerator::generateConstraints(BcpsConstraintPool & conPool) {
     if (len > 0) {
       // create DcoConstraints from OsiCuts.
       DcoConstraint * con = new DcoLinearConstraint(len, ind, val, lb, ub);
+      con->setConstraintType(type());
       conPool.addConstraint(con);
     }
     else if (len==0) {

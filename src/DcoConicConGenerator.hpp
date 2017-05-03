@@ -14,6 +14,7 @@ public:
   /// Useful constructor.
   DcoConicConGenerator(DcoModel * model,
                        CglConicCutGenerator * generator,
+                       DcoConstraintType type,
                        char const * name = NULL,
                        DcoCutStrategy strategy = DcoCutStrategyAuto,
                        int frequency = 1);

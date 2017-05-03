@@ -65,6 +65,9 @@ class DcoConGenerator {
   ///@name Constraint generator info
   /// Name of generator.
   std::string name_;
+  /// Generator type.
+  // todo(aykut) This field makes name_ redundant. It will be removed.
+  DcoConstraintType const type_;
   /// The client model.
   DcoModel * model_;
   /// Statistics of this generator.
@@ -84,6 +87,7 @@ public:
   //@{
   /// Constructor with usefull inputs.
   DcoConGenerator(DcoModel * model,
+                  DcoConstraintType type,
                   char const * name = NULL,
                   DcoCutStrategy strategy = DcoCutStrategyAuto,
                   int frequency = 1);
@@ -115,6 +119,8 @@ public:
   DcoCutStrategy strategy() const { return strategy_; }
   /// Get the frequency of calls to this cut generator.
   int frequency() const { return frequency_; }
+  /// Get type of generator
+  DcoConstraintType type() const { return type_; }
   //@}
 
   /// Get mutable statistics

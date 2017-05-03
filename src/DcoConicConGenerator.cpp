@@ -5,13 +5,17 @@
 
 #include <CglConicCutGenerator.hpp>
 
+
+extern std::vector<char const *> const dcoConstraintTypeName;
+
 /// Useful constructor.
 DcoConicConGenerator::DcoConicConGenerator(DcoModel * model,
                         CglConicCutGenerator * generator,
+                        DcoConstraintType type,
                         char const * name,
                         DcoCutStrategy strategy,
                         int frequency):
-  DcoConGenerator(model, name, strategy, frequency) {
+  DcoConGenerator(model, type, name, strategy, frequency) {
   generator_ = generator;
 }
 
@@ -65,7 +69,7 @@ bool DcoConicConGenerator::generateConstraints(BcpsConstraintPool & conPool) {
   message_handler->message(DISCO_CUT_GENERATED, *messages)
     << model->broker()->getProcRank()
     // todo(aykut) fix name
-    << "FIXME"
+    << dcoConstraintTypeName[type()]
     << cuts->sizeRowCuts()
     << CoinMessageEol;
   // end of debug
@@ -79,7 +83,8 @@ bool DcoConicConGenerator::generateConstraints(BcpsConstraintPool & conPool) {
     double const * val = rcut.row().getElements();
     DcoConstraint * con =
       new DcoLinearConstraint(num_elem, ind, val, rcut.lb(), rcut.ub());
-      conPool.addConstraint(con);
+    con->setConstraintType(type());
+    conPool.addConstraint(con);
   }
   delete cuts;
   for (int i=0; i<num_cones; ++i) {

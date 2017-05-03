@@ -322,6 +322,7 @@ DcoSolution * DcoHeurRounding::searchSolution() {
     if (feasible!=false) {
       // check whether the solution is conic feasible
       double cone_tol = model()->dcoPar()->entry(DcoParams::coneTol);
+      //cone_tol = 1e-10;
       int num_linear_rows = model()->getNumCoreLinearConstraints();
       int num_conic_rows = model()->getNumCoreConicConstraints();
       for (int i=num_linear_rows; i<num_linear_rows+num_conic_rows; ++i) {

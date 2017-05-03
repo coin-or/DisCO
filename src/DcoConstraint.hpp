@@ -54,16 +54,21 @@ class DcoModel;
  */
 
 class DcoConstraint: public BcpsConstraint {
+  /// Constraint can be from problem definition or created afterwards. For
+  /// generated constraints, possible sources are MILP cut, OA or IPM cut.
+  // todo(aykut) should we make type a const member?
+  DcoConstraintType type_;
 public:
-  DcoConstraint() {}
+  DcoConstraint() { type_ = DcoConstraintTypeNotSet; }
   DcoConstraint(double lb, double ub);
   virtual ~DcoConstraint();
   /// Create an OsiRowCut based on this constraint. Returns NULL if this is a
   /// conic constraint.
   virtual OsiRowCut * createOsiRowCut(DcoModel * model) const = 0;
-  /// return constraint type, linear or conic
-  virtual DcoConstraintType constraintType() const = 0;
-private:
+  /// return constraint type
+  virtual DcoConstraintType constraintType() const { return type_; }
+  /// set type of the constraint
+  void setConstraintType(DcoConstraintType type) { type_ = type; }
 };
 
 #endif

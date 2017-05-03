@@ -20,6 +20,7 @@
 
 // STL headers
 #include <vector>
+#include <numeric>
 
 extern std::map<DISCO_Grumpy_Msg_Type, char const *> grumpyMessage;
 extern std::map<DcoNodeBranchDir, char> grumpyDirection;
@@ -314,6 +315,12 @@ int DcoTreeNode::generateConstraints(BcpsConstraintPool * conPool) {
     return 0;
   }
 #endif
+  int numColsInf;
+  double colInf;
+  int numRowsInf;
+  double rowInf;
+  DcoSolution * sol = disco_model->feasibleSolution(numColsInf, colInf,
+                                              numRowsInf, rowInf);
   // number of constraint generators in model
   long unsigned int num_cg = disco_model->numConGenerators();
   for (long unsigned int i=0; i<num_cg; ++i) {
@@ -321,7 +328,7 @@ int DcoTreeNode::generateConstraints(BcpsConstraintPool * conPool) {
     DcoConGenerator * cg = disco_model->conGenerators(i);
     // decide whether we should use this cut generator with respect to the
     // specified cut strategy
-    decide_using_cg(do_use, cg);
+    decide_using_cg(do_use, cg, numColsInf, numRowsInf);
     if (!do_use) {
       // jump to the next geenrator if we will not use this one.
       continue;
@@ -364,12 +371,18 @@ int DcoTreeNode::generateConstraints(BcpsConstraintPool * conPool) {
 //todo(aykut) if all columns are feasible, fix columns and call IPM. If the
 // resulting solution is better update UB. Fathom otherwise.
 void DcoTreeNode::decide_using_cg(bool & do_use,
-                                  DcoConGenerator * cg) const {
+                                  DcoConGenerator * cg,
+                                  int numRowsInf,
+                                  int numColsInf) const {
   DcoModel * model = dynamic_cast<DcoModel*> (broker_->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
   DcoCutStrategy strategy = cg->strategy();
   do_use = false;
+  if (numRowsInf && cg->name().compare("OA")!=0) {
+    // there is at least one infeasible row and cut generator is MILP
+    // return;
+  }
   if (strategy==DcoCutStrategyNone) {
     // do nothing,
   }
@@ -379,62 +392,68 @@ void DcoTreeNode::decide_using_cg(bool & do_use,
     }
   }
   else if (strategy==DcoCutStrategyAuto) {
-    // get auto strategy parameters
-    int cutMilpAutoStatStart =
-      model->dcoPar()->entry(DcoParams::cutMilpAutoStatStart);
-    int cutMilpAutoMinFreq =
-      model->dcoPar()->entry(DcoParams::cutMilpAutoMinFreq);
-    double cutMilpAutoFreqIncPercent =
-      model->dcoPar()->entry(DcoParams::cutMilpAutoFreqIncPercent);
-    double cutMilpAutoFreqDecPercent =
-      model->dcoPar()->entry(DcoParams::cutMilpAutoFreqDecPercent);
-    int numCalls = cg->stats().numCalls();
-    int numNoConsCalls = cg->stats().numNoConsCalls();
-    //if (index_%cg->frequency()==0) {
-    if (true) {
+    // // get auto strategy parameters
+    // int cutMilpAutoStatStart =
+    //   model->dcoPar()->entry(DcoParams::cutMilpAutoStatStart);
+    // int cutMilpAutoMinFreq =
+    //   model->dcoPar()->entry(DcoParams::cutMilpAutoMinFreq);
+    // double cutMilpAutoFreqIncPercent =
+    //   model->dcoPar()->entry(DcoParams::cutMilpAutoFreqIncPercent);
+    // double cutMilpAutoFreqDecPercent =
+    //   model->dcoPar()->entry(DcoParams::cutMilpAutoFreqDecPercent);
+    // int numCalls = cg->stats().numCalls();
+    // int numNoConsCalls = cg->stats().numNoConsCalls();
+    // //if (index_%cg->frequency()==0) {
+    // if (true) {
+    //   do_use = true;
+    //   if (numCalls<cutMilpAutoStatStart) {
+    //     // not enough data, keep current
+    //   }
+    //   else if (numCalls==numNoConsCalls) {
+    //     int new_freq = 2*cg->frequency();
+    //     if (new_freq<cutMilpAutoMinFreq) {
+    //       //std::cout << cg->name() << " new freq:" << new_freq << std::endl;
+    //       cg->setFrequency(new_freq);
+    //     }
+    //     else {
+    //       cg->setStrategy(DcoCutStrategyNone);
+    //     }
+    //   }
+    //   else {
+    //     // generated cuts on some of the calls
+    //     // cut generation is less than 5% of the time, double freq
+    //     // else do nothing
+    //     double percent = double(numCalls-numNoConsCalls)/double(numCalls);
+    //     if (percent<cutMilpAutoFreqDecPercent) {
+    //       int new_freq = 2*cg->frequency();
+    //       if (new_freq<cutMilpAutoMinFreq) {
+    //         //std::cout << cg->name() << " new freq:" << new_freq << std::endl;
+    //         cg->setFrequency(new_freq);
+    //       }
+    //       else {
+    //         cg->setStrategy(DcoCutStrategyNone);
+    //       }
+    //     }
+    //     else if (percent>cutMilpAutoFreqIncPercent) {
+    //       // increase cut generation
+    //       int new_freq;
+    //       if (cg->frequency()>2) {
+    //         new_freq = cg->frequency()/2;
+    //       }
+    //       else {
+    //         new_freq = 1;
+    //       }
+    //       //std::cout << cg->name() << " new freq:" << new_freq << std::endl;
+    //       cg->setFrequency(new_freq);
+    //     }
+    //   }
+    // }
+
+    // generate MILP cuts at every 100 nodes.
+    if (numColsInf and (index_ % cg->frequency() == 0)) {
       do_use = true;
-      if (numCalls<cutMilpAutoStatStart) {
-        // not enough data, keep current
-      }
-      else if (numCalls==numNoConsCalls) {
-        int new_freq = 2*cg->frequency();
-        if (new_freq<cutMilpAutoMinFreq) {
-          //std::cout << cg->name() << " new freq:" << new_freq << std::endl;
-          cg->setFrequency(new_freq);
-        }
-        else {
-          cg->setStrategy(DcoCutStrategyNone);
-        }
-      }
-      else {
-        // generated cuts on some of the calls
-        // cut generation is less than 5% of the time, double freq
-        // else do nothing
-        double percent = double(numCalls-numNoConsCalls)/double(numCalls);
-        if (percent<cutMilpAutoFreqDecPercent) {
-          int new_freq = 2*cg->frequency();
-          if (new_freq<cutMilpAutoMinFreq) {
-            //std::cout << cg->name() << " new freq:" << new_freq << std::endl;
-            cg->setFrequency(new_freq);
-          }
-          else {
-            cg->setStrategy(DcoCutStrategyNone);
-          }
-        }
-        else if (percent>cutMilpAutoFreqIncPercent) {
-          // increase cut generation
-          int new_freq;
-          if (cg->frequency()>2) {
-            new_freq = cg->frequency()/2;
-          }
-          else {
-            new_freq = 1;
-          }
-          //std::cout << cg->name() << " new freq:" << new_freq << std::endl;
-          cg->setFrequency(new_freq);
-        }
-      }
     }
+
   }
   else if (strategy==DcoCutStrategyPeriodic) {
     if (index_ % cg->frequency() == 0) {
@@ -837,7 +856,7 @@ void DcoTreeNode::callHeuristics() {
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
   long unsigned int num_heur = model->numHeuristics();
-  DcoSolution * sol;
+  DcoSolution * sol = NULL;
   for (long unsigned int i=0; i<num_heur; ++i) {
     DcoHeuristic * curr = model->heuristics(i);
     double start_time = CoinCpuTime();
@@ -876,6 +895,19 @@ void DcoTreeNode::callHeuristics() {
         << broker()->getProcRank()
         << curr->name();
     }
+  }
+
+  if (sol) {
+    double comp_obj = 0.0;
+    int num_cols = model->solver()->getNumCols();
+    double const * obj_coef = model->solver()->getObjCoefficients();
+    comp_obj = std::inner_product(sol->getValues(), sol->getValues()+num_cols, obj_coef, 0.0);
+    std::cout << "==================== "
+              << "objective "
+              << "===================="
+              << std::endl
+              << comp_obj
+              << std::endl;
   }
 }
 
@@ -1839,12 +1871,12 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
 
   // iterate over cuts and
   //------------------------------------------
-  // Remove:
+  // Remove following MILP cuts:
   //  - empty cuts
   //  - dense cuts
   //  - bad scaled cuts
   //  - weak cuts
-  //  - parallel cuts
+  //  - almost parallel cuts
   //------------------------------------------
   for (int i=0; i<num_cuts; ++i) {
     DcoLinearConstraint * curr_con =
@@ -1853,8 +1885,8 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
     double const * elements = curr_con->getValues();
     int const * indices = curr_con->getIndices();
 
-    // if problem is unbounded add all cuts
-    if (model->solver()->isProvenDualInfeasible()) {
+    // add all OA cuts
+    if (curr_con->constraintType() == DcoConstraintTypeOA) {
       cuts_to_add[num_add++] = curr_con->createOsiRowCut(model);
       continue;
     }
@@ -1867,8 +1899,8 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
     // check whether cut is dense.
     if(length > 100) {
       // discard the cut
-      //cuts_to_del.push_back(i);
-      //continue;
+      cuts_to_del.push_back(i);
+      continue;
     }
 
     // check cut scaling
@@ -1901,8 +1933,8 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
 
     if (scaleFactor > scale_par) {
       // skip the cut since it is badly scaled.
-      //cuts_to_del.push_back(i);
-      //continue;
+      cuts_to_del.push_back(i);
+      continue;
     }
 
     // Check whether the cut is weak.
@@ -1918,7 +1950,6 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
     if (rowUpper < ALPS_INFINITY) {
       violation = CoinMax(violation, activity-rowUpper);
     }
-    // if problem is unbounded ignore activity check.
     if (violation < tailoff) {
       // cut is weak, skip it.
       cuts_to_del.push_back(i);
@@ -1929,14 +1960,54 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
       continue;
     }
 
-    // todo(aykut)
-    // Check whether cut is parallel to an existing constraint or cut.
-    bool parallel = false;
-    if (parallel) {
-      cuts_to_del.push_back(i);
-      continue;
+    // create dense cut
+    int num_cols = model->solver()->getNumCols();
+    double * dense_cut = new double[num_cols]();
+    double cut_norm = 0.0;
+    for (int i = 0; i < length; ++i) {
+      dense_cut[indices[i]] = elements[i];
+      cut_norm += elements[i]*elements[i];
     }
-    cuts_to_add[num_add++] = curr_con->createOsiRowCut(model);
+    cut_norm = sqrt(cut_norm);
+    // Check whether cut is parallel to an existing constraint or cut.
+    {
+      // cut is stored at dense_cut
+      // compute par := max _i { cut^T a_i / |cut| |a_i| } where a_i is
+      // constraint. cut is discarded if par > 0.98
+      double par_factor = 0.0;
+      // iterate over constraints
+      CoinPackedMatrix const * mat = model->solver()->getMatrixByRow();
+      int num_rows = model->solver()->getNumRows();
+      // iterate over rows
+      for (int i = 0; i < num_rows; ++i) {
+        double inn_prod = 0.0;
+        // get row
+        int row_size = mat->getVectorStarts()[i+1] - mat->getVectorStarts()[i];
+        int const * ind = mat->getIndices() + mat->getVectorStarts()[i];
+        double const * val = mat->getElements() + mat->getVectorStarts()[i];
+        double row_norm = 0.0;
+        for (int j = 0; j < row_size; ++j) {
+          inn_prod += val[j]*dense_cut[ind[j]];
+          row_norm += val[j]*val[j];
+        }
+        row_norm = sqrt(row_norm);
+        // divide by norms
+        inn_prod = inn_prod/(cut_norm*row_norm);
+        if (inn_prod > par_factor) {
+          par_factor = inn_prod;
+        }
+      }
+      bool parallel = (par_factor > 0.98);
+      if (parallel) {
+        std::cout << "Cut " << i << " is almost parallel. Discarding..." << std::endl;
+        cuts_to_del.push_back(i);
+        continue;
+      }
+      cuts_to_add[num_add++] = curr_con->createOsiRowCut(model);
+
+      // map constraint type to its generator index at conGenerators_.
+      // update conGenerator statistics based on the number of cuts used.
+    }
   }
 
   // Add cuts to lp and adjust basis.

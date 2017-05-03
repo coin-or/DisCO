@@ -19,6 +19,7 @@ public:
   /// Useful constructor.
   DcoLinearConGenerator(DcoModel * model,
                         CglCutGenerator * generator,
+                        DcoConstraintType type,
                         char const * name = NULL,
                         DcoCutStrategy strategy = DcoCutStrategyAuto,
                         int frequency = 1);

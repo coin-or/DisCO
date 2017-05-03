@@ -236,7 +236,8 @@ class DcoTreeNode: public BcpsTreeNode {
   BcpStats bcpStats_;
   /// Decide whether the given cut generator should be used, based on the cut
   /// strategy.
-  void decide_using_cg(bool & do_use, DcoConGenerator * cg) const;
+  void decide_using_cg(bool & do_use, DcoConGenerator * cg,
+                       int numRowsInf, int numColsInf) const;
   /// Copies node description of this node to given child node.
   /// New node is explicitly stored in the memory (no differencing).
   void copyFullNode(DcoNodeDesc * child_node) const;
