@@ -186,9 +186,10 @@ DcoModel::~DcoModel() {
     delete[] relaxedRows_;
     relaxedRows_=NULL;
   }
-  for (std::vector<DcoConGenerator*>::iterator it=conGenerators_.begin();
+  std::map<DcoConstraintType, DcoConGenerator*>::iterator it;
+  for (it=conGenerators_.begin();
        it!=conGenerators_.end(); ++it) {
-    delete *it;
+    delete it->second;
   }
   conGenerators_.clear();
   for (std::vector<DcoHeuristic*>::iterator it=heuristics_.begin();
@@ -1091,9 +1092,9 @@ void DcoModel::addConstraintGenerators() {
   cutGenerationFrequency_ = 100;
   bool periodic_exists = false;
   bool root_exists = false;
-  std::vector<DcoConGenerator*>::iterator it;
+  std::map<DcoConstraintType, DcoConGenerator*>::iterator it;
   for (it=conGenerators_.begin(); it!=conGenerators_.end(); ++it) {
-    DcoCutStrategy curr = (*it)->strategy();
+    DcoCutStrategy curr = it->second->strategy();
     if (curr==DcoCutStrategyPeriodic) {
       periodic_exists = true;
       break;
@@ -1123,7 +1124,7 @@ void DcoModel::addConGenerator(CglCutGenerator * cgl_gen,
                                                         name,
                                                         dco_strategy,
                                                         frequency);
-  conGenerators_.push_back(con_gen);
+  conGenerators_[type] = con_gen;
 }
 
 /// Add constraint generator.
@@ -1136,7 +1137,7 @@ void DcoModel::addConGenerator(CglConicCutGenerator * cgl_gen,
                                                        name,
                                                        dco_strategy,
                                                        frequency);
-  conGenerators_.push_back(con_gen);
+  conGenerators_[type] = con_gen;
 }
 
 void DcoModel::addHeuristics() {
@@ -1498,15 +1499,18 @@ void DcoModel::modelLog() {
       << CoinMessageEol;
 #endif
     // report cut generator statistics
-    for (unsigned int k=0; k<conGenerators_.size(); ++k) {
-      if (conGenerators(k)->stats().numCalls() > 0) {
+    std::map<DcoConstraintType, DcoConGenerator*>::iterator it;
+    for (it=conGenerators_.begin(); it != conGenerators_.end(); ++it) {
+      DcoConGenerator * curr = it->second;
+      if (curr->stats().numCalls() > 0) {
         dcoMessageHandler_->message(DISCO_CUT_STATS_FINAL,
                                         *dcoMessages_)
-          << conGenerators(k)->name()
-          << conGenerators(k)->stats().numCalls()
-          << conGenerators(k)->stats().numConsGenerated()
-          << conGenerators(k)->stats().time()
-          << conGenerators(k)->strategy()
+          << curr->name()
+          << curr->stats().numCalls()
+          << curr->stats().numConsGenerated()
+          << curr->stats().numConsUsed()
+          << curr->stats().time()
+          << curr->strategy()
           << CoinMessageEol;
       }
     }

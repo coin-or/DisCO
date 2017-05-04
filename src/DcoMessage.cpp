@@ -103,8 +103,8 @@ typedef struct {
 static Dco_message us_english[]=
 {
     {DISCO_CUTOFF_INC, 43, 1, "Objective coefficients are multiples of %g"},
-    {DISCO_CUT_STATS_FINAL, 53, 1, "Called %s cut generator %d times, generated %d cuts, CPU time %.4f seconds, current strategy %d"},
-    {DISCO_CUT_STATS_NODE, 55, 1, "Node %d, called %s cut generator %d times, generated %d cuts, CPU time %.4f seconds, current strategy %d"},
+    {DISCO_CUT_STATS_FINAL, 53, 1, "Called %s cut generator %d times, generated %d cuts, used %d, CPU time %.4f seconds, current strategy %d"},
+    {DISCO_CUT_STATS_NODE, 55, 1, "Node %d, called %s cut generator %d times, generated %d cuts, used %d, CPU time %.4f seconds, current strategy %d"},
     {DISCO_CUT_GENERATED, 56, DISCO_DLOG_CUT, "[%d] Cut generator %s generated %d cuts."},
     {DISCO_GAP_NO, 57, 1, "Relative optimality gap is infinity because no solution was found"},
     {DISCO_GAP_YES, 58, 1, "Relative optimality gap is %.2f%%"},

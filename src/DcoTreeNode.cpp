@@ -279,9 +279,11 @@ int DcoTreeNode::generateConstraints(BcpsConstraintPool * conPool) {
   OsiSolverInterface * solver = disco_model->solver();
   if (!solver->isProvenPrimalInfeasible()
       and solver->isProvenDualInfeasible()) {
-    long unsigned int num_cg = disco_model->numConGenerators();
-    for (long unsigned int i=0; i<num_cg; ++i) {
-      DcoConGenerator * cg = disco_model->conGenerators(i);
+    //long unsigned int num_cg = disco_model->numConGenerators();
+    std::map<DcoConstraintType, DcoConGenerator*>::iterator it;
+    std::map<DcoConstraintType, DcoConGenerator*> con_generators = disco_model->conGenerators();
+    for (it=con_generators.begin(); it != con_generators.end(); ++it) {
+      DcoConGenerator * cg = it->second;
       if (cg->name().compare("OA")!=0) {
         continue;
       }
@@ -322,10 +324,12 @@ int DcoTreeNode::generateConstraints(BcpsConstraintPool * conPool) {
   DcoSolution * sol = disco_model->feasibleSolution(numColsInf, colInf,
                                               numRowsInf, rowInf);
   // number of constraint generators in model
-  long unsigned int num_cg = disco_model->numConGenerators();
-  for (long unsigned int i=0; i<num_cg; ++i) {
+  //long unsigned int num_cg = disco_model->numConGenerators();
+  std::map<DcoConstraintType, DcoConGenerator*>::iterator it;
+  std::map<DcoConstraintType, DcoConGenerator*> con_generators = disco_model->conGenerators();
+  for (it=con_generators.begin(); it != con_generators.end(); ++it) {
     bool do_use = false;
-    DcoConGenerator * cg = disco_model->conGenerators(i);
+    DcoConGenerator * cg = it->second;
     // decide whether we should use this cut generator with respect to the
     // specified cut strategy
     decide_using_cg(do_use, cg, numColsInf, numRowsInf);
@@ -1999,14 +2003,14 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
       }
       bool parallel = (par_factor > 0.98);
       if (parallel) {
-        std::cout << "Cut " << i << " is almost parallel. Discarding..." << std::endl;
+        //std::cout << "Cut " << i << " is almost parallel. Discarding..." << std::endl;
         cuts_to_del.push_back(i);
         continue;
       }
+      // update cut statistics
+      model->conGenerators(curr_con->constraintType())->stats().addNumConsUsed(1);
       cuts_to_add[num_add++] = curr_con->createOsiRowCut(model);
 
-      // map constraint type to its generator index at conGenerators_.
-      // update conGenerator statistics based on the number of cuts used.
     }
   }
 

@@ -188,7 +188,8 @@ class DcoModel: public BcpsModel {
   /// strategies with frequencies 10 and 20, it will be set to 10.
   int cutGenerationFrequency_;
   /// Constraint generators.
-  std::vector<DcoConGenerator*> conGenerators_;
+  //std::vector<DcoConGenerator*> conGenerators_;
+  std::map<DcoConstraintType, DcoConGenerator*> conGenerators_;
   //@}
 
   /// Number of relaxation iterations.
@@ -326,7 +327,8 @@ public:
   /// Get the number of constraint generators.
   long unsigned int numConGenerators() const { return conGenerators_.size(); }
   /// Get a specific constraint generator.
-  DcoConGenerator * conGenerators(long unsigned int i) const { return conGenerators_[i]; }
+  DcoConGenerator * conGenerators(DcoConstraintType type) const { return conGenerators_.at(type); }
+  std::map<DcoConstraintType, DcoConGenerator*> conGenerators() { return conGenerators_; }
   /// Get global cut strategy. It will be set using specific cut strategies, to
   /// the most allowing one. If we have strategies with root and periodic
   /// calls, it will be set to periodic.
