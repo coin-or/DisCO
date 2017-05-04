@@ -332,7 +332,7 @@ int DcoTreeNode::generateConstraints(BcpsConstraintPool * conPool) {
     DcoConGenerator * cg = it->second;
     // decide whether we should use this cut generator with respect to the
     // specified cut strategy
-    decide_using_cg(do_use, cg, numColsInf, numRowsInf);
+    decide_using_cg(do_use, cg, numRowsInf, numColsInf);
     if (!do_use) {
       // jump to the next geenrator if we will not use this one.
       continue;
@@ -902,16 +902,16 @@ void DcoTreeNode::callHeuristics() {
   }
 
   if (sol) {
-    double comp_obj = 0.0;
-    int num_cols = model->solver()->getNumCols();
-    double const * obj_coef = model->solver()->getObjCoefficients();
-    comp_obj = std::inner_product(sol->getValues(), sol->getValues()+num_cols, obj_coef, 0.0);
-    std::cout << "==================== "
-              << "objective "
-              << "===================="
-              << std::endl
-              << comp_obj
-              << std::endl;
+    //double comp_obj = 0.0;
+    //int num_cols = model->solver()->getNumCols();
+    //double const * obj_coef = model->solver()->getObjCoefficients();
+    //comp_obj = std::inner_product(sol->getValues(), sol->getValues()+num_cols, obj_coef, 0.0);
+    // std::cout << "==================== "
+    //           << "objective "
+    //           << "===================="
+    //           << std::endl
+    //           << comp_obj
+    //           << std::endl;
   }
 }
 
