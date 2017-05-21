@@ -462,10 +462,17 @@ void DcoModel::approximateCones() {
 #ifdef __OA__
   // need to load problem to the solver.
 
+  origNumRows_ = matrix_->getNumRows();
+
+  // add x_lead - x_member >= 0 rows to the matrix
+  // update row bounds
+  add_more_rows();
+
   // load problem to the solver
   solver_->loadProblem(*matrix_, colLB_, colUB_, objCoef_,
                        rowLB_, rowUB_);
-  origNumRows_ = solver_->getNumRows();
+
+
   bool dual_infeasible = false;
   int iter = 0;
   int ipm_iter;
@@ -1732,4 +1739,72 @@ AlpsReturnStatus DcoModel::decodeToSelf(AlpsEncoded & encoded) {
 
 void DcoModel::addNumRelaxIterations() {
   numRelaxIterations_ += solver_->getIterationCount();
+}
+
+
+// add x_lead - x_member >= 0 rows to the matrix
+// add x_lead + x_member >= 0 rows to the matrix
+// update row bounds
+void DcoModel::add_more_rows() {
+  for (int i=0; i<numConicRows_; ++i) {
+    if (coneType_[i]!=1) {
+      return;
+    }
+  }
+  // update rowLB_, rowUB_, matrix_
+  int numAdditionalRows = 0;
+  for (int i=0; i<numConicRows_; ++i) {
+    numAdditionalRows += 2*(coneStart_[i+1] - coneStart_[i] - 1);
+  }
+  int newNumLinearRows = numLinearRows_ + numAdditionalRows;
+  double * newRowlb = new double[newNumLinearRows]();
+  std::copy(rowLB_, rowLB_+numLinearRows_, newRowlb);
+  double * newRowub = new double[newNumLinearRows];
+  std::copy(rowUB_, rowUB_+numLinearRows_, newRowub);
+  std::fill_n(newRowub+numLinearRows_, numAdditionalRows, 1e+20);
+  // update matrix_
+  int * rowStarts = new int[numAdditionalRows+1];
+  int * columns = new int[numAdditionalRows*2];
+  double * values = new double[numAdditionalRows*2];
+  rowStarts[0] = 0;
+  for (int i=1; i<numAdditionalRows+1; ++i) {
+    rowStarts[i] = i*2;
+  }
+  // index for columns array
+  int k = 0;
+  for (int i=0; i<numConicRows_; ++i) {
+    // for each conic row we add 2*(size-1) many rows
+    int size = coneStart_[i+1] - coneStart_[i];
+    for (int j=1; j<size; ++j) {
+      // add two rows for each cone member
+      // x_lead - x_mem >= 0
+      // x_lead + x_mem >= 0
+      // leading variable
+      columns[k] = coneMembers_[coneStart_[i]];
+      columns[k+1] = coneMembers_[coneStart_[i]+j];
+      columns[k+2] = coneMembers_[coneStart_[i]];
+      columns[k+3] = coneMembers_[coneStart_[i]+j];
+      values[k] = 1.0;
+      values[k+1] = 1.0;
+      values[k+2] = 1.0;
+      values[k+3] = -1.0;
+      k += 4;
+    }
+  }
+  //matrix_
+  matrix_->appendRows(numAdditionalRows, rowStarts, columns, values);
+
+  numLinearRows_ = newNumLinearRows;
+  delete[] rowLB_;
+  rowLB_ = newRowlb;
+  delete[] rowUB_;
+  rowUB_ = newRowub;
+
+  delete[] rowStarts;
+  delete[] columns;
+  delete[] values;
+  // update lower bound of leading variables.
+  for (int i=0; i<numConicRows_; ++i) {
+    colLB_[coneMembers_[coneStart_[i]]] = 0.00001;
+  }
 }

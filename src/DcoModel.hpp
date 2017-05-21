@@ -192,6 +192,9 @@ class DcoModel: public BcpsModel {
   std::map<DcoConstraintType, DcoConGenerator*> conGenerators_;
   //@}
 
+  //todo(aykut) heuristics and cut statistics should be sent to master
+  //to report.
+
   /// Number of relaxation iterations.
   long long int numRelaxIterations_;
   ///==========================================================================
@@ -222,6 +225,9 @@ class DcoModel: public BcpsModel {
 
   /// write parameters to oustream
   void writeParameters(std::ostream& outstream) const;
+
+  // add_more_rows
+  void add_more_rows();
 
 public:
   int origNumRows_;
