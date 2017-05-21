@@ -1892,6 +1892,8 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
     // add all OA cuts
     if (curr_con->constraintType() == DcoConstraintTypeOA) {
       cuts_to_add[num_add++] = curr_con->createOsiRowCut(model);
+      // update cut statistics
+      model->conGenerators(curr_con->constraintType())->stats().addNumConsUsed(1);
       continue;
     }
 
@@ -1982,6 +1984,7 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
       // iterate over constraints
       CoinPackedMatrix const * mat = model->solver()->getMatrixByRow();
       int num_rows = model->solver()->getNumRows();
+      bool parallel = false;
       // iterate over rows
       for (int i = 0; i < num_rows; ++i) {
         double inn_prod = 0.0;
@@ -1997,11 +2000,11 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
         row_norm = sqrt(row_norm);
         // divide by norms
         inn_prod = inn_prod/(cut_norm*row_norm);
-        if (inn_prod > par_factor) {
-          par_factor = inn_prod;
+        if (inn_prod > 0.95) {
+          parallel = true;
+          break;
         }
       }
-      bool parallel = (par_factor > 0.98);
       if (parallel) {
         //std::cout << "Cut " << i << " is almost parallel. Discarding..." << std::endl;
         cuts_to_del.push_back(i);
