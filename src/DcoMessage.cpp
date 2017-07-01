@@ -70,7 +70,7 @@ typedef struct {
 // 300-399 Constraint generation information messages
 // 400-499 Relaxation solver information messages
 // 500-599 Heuristics messages
-// 600-649 Parallelization related messages
+// 600-649 General messages
 // 700-800 Solution process information
 // 900     Grumpy messages
 //
@@ -181,6 +181,8 @@ static Dco_message us_english[]=
     // general messages
     {DISCO_INFEAS_REPORT, 603, DISCO_DLOG_PROCESS, "[%d] Column infeas %f, row infeas %f."},
     {DISCO_SOL_FOUND, 604, DISCO_DLOG_PROCESS, "[%d] Solution found, quality %f."},
+    {DISCO_SOL_INT_FEAS_REPORT, 605, 1, "Integrality maximum violation %f."},
+    {DISCO_SOL_CONE_FEAS_REPORT, 606, 1, "Conic constraints maximum violation %f."},
     // welcome message
     {DISCO_WELCOME, 1, 0,
      "\nThis program contains DisCO, a library for solving mixed integer second order\n"

@@ -1609,6 +1609,62 @@ void DcoModel::reportFeasibility() {
     msg.str(std::string());
     delete[] values;
   }
+
+  // print maximimum violation for integrality
+  {
+    double max_violation = 0.0;
+    for (int i=0; i<numRelaxedCols_; ++i) {
+      double value = sol[relaxedCols_[i]];
+      double dist_to_floor = value - floor(value);
+      double dist_to_ceil = ceil(value) - value;
+      double viol = std::min(dist_to_floor, dist_to_ceil);
+      if (viol > max_violation) {
+        max_violation = viol;
+      }
+    }
+    dcoMessageHandler_->message(DISCO_SOL_INT_FEAS_REPORT,
+                                *dcoMessages_)
+      << max_violation << CoinMessageEol;
+  }
+
+  // print maximimum violation for conic constraints
+  {
+    double max_violation = 0.0;
+    for (int i=numLinearRows_; i<numLinearRows_+numConicRows_; ++i) {
+      DcoConicConstraint * con =
+        dynamic_cast<DcoConicConstraint*> (constraints_[i]);
+      int const * members = con->coneMembers();
+      DcoLorentzConeType type = con->coneType();
+      int size = con->coneSize();
+      double * values = new double[size];
+      for (int j=0; j<size; ++j) {
+        values[j] = sol[members[j]];
+      }
+      double term1;
+      double term2;
+      if (type==DcoLorentzCone) {
+        term1 = values[0];
+        term2 = std::inner_product(values+1, values+size, values+1, 0.0);
+        term2 = sqrt(term2);
+      }
+      else if (type==DcoRotatedLorentzCone) {
+        term1 = 2.0*sol[members[0]]*sol[members[1]];
+        term2 = std::inner_product(values+2, values+size, values+2, 0.0);
+      }
+      else {
+        dcoMessageHandler_->message(DISCO_UNKNOWN_CONETYPE,
+                                    *dcoMessages_)
+          << type << CoinMessageEol;
+      }
+      double viol = term2 - term1;
+      if (viol > max_violation) {
+        max_violation = viol;
+      }
+    }
+    dcoMessageHandler_->message(DISCO_SOL_CONE_FEAS_REPORT,
+                                *dcoMessages_)
+      << max_violation << CoinMessageEol;
+  }
 }
 
 /// The method that encodes the this instance of model into the given

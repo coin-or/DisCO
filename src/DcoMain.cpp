@@ -76,10 +76,10 @@ int main(int argc, char *argv[]) {
 
   // Search for best solution
   broker.search(&model);
+  model.reportFeasibility();
   // Report the best solution found and its ojective value
   broker.printBestSolution();
 
-  model.reportFeasibility();
   delete solver;
   return 0;
 }

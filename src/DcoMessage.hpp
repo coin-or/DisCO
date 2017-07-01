@@ -80,6 +80,8 @@ enum DISCO_Message {
     DISCO_UNEXPECTED_DECODE_STATUS,
     // more general messages
     DISCO_INFEAS_REPORT,
+    DISCO_SOL_INT_FEAS_REPORT,
+    DISCO_SOL_CONE_FEAS_REPORT,
     DISCO_SOL_FOUND,
     // welcome message
     DISCO_WELCOME,
