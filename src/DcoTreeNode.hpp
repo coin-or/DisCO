@@ -236,8 +236,7 @@ class DcoTreeNode: public BcpsTreeNode {
   BcpStats bcpStats_;
   /// Decide whether the given cut generator should be used, based on the cut
   /// strategy.
-  void decide_using_cg(bool & do_use, DcoConGenerator * cg,
-                       int numRowsInf, int numColsInf) const;
+  void decide_using_cg(bool & do_use, DcoConGenerator * cg, int type) const;
   /// Copies node description of this node to given child node.
   /// New node is explicitly stored in the memory (no differencing).
   void copyFullNode(DcoNodeDesc * child_node) const;
@@ -284,7 +283,8 @@ class DcoTreeNode: public BcpsTreeNode {
   ///@name Virtual functions inherited from BcpsTreeNode
   //@{
   /// Generate constraints (cuts) and store them in the given constraint pool.
-  virtual int generateConstraints(BcpsConstraintPool * conPool);
+  int generateConstraints(BcpsConstraintPool * conPool, int type);
+  virtual int generateConstraints(BcpsConstraintPool * conPool) {}
   /// Generate variables (lift the problem) and store them in the given
   /// variable pool.
   virtual int generateVariables(BcpsVariablePool * varPool);
@@ -294,11 +294,16 @@ class DcoTreeNode: public BcpsTreeNode {
   virtual int installSubProblem();
   /// decide what to do, keepBounding?, generate constraints?, generate
   /// variables?. Fromerly known handleBoundStatus
+  void branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
+                              bool & keepBounding,
+                              bool & branch,
+                              int & generateConstraints,
+                              bool & generateVariables);
   virtual void branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
                                       bool & keepBounding,
                                       bool & branch,
                                       bool & generateConstraints,
-                                      bool & generateVariables);
+                                      bool & generateVariables) {}
   /// Bounds the problem by solving the subproblem corresponds to this node.
   virtual BcpsSubproblemStatus bound();
   /// Call heuristics to search for solutions.

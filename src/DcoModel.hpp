@@ -337,6 +337,8 @@ public:
   /// the most allowing one. If we have strategies with root and periodic
   /// calls, it will be set to periodic.
   void setCutStrategy(DcoCutStrategy strategy) {cutStrategy_ = strategy;}
+  /// greatest common divisor of all cut generation strategies
+  int cutGenerationFrequency() const { return cutGenerationFrequency_; }
   //@}
 
   ///@name Heuristics related

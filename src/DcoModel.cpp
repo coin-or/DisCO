@@ -1104,6 +1104,7 @@ void DcoModel::addConstraintGenerators() {
     }
   }
   if (periodic_exists) {
+    // greatest divisor of all frequencies
     cutStrategy_ = DcoCutStrategyPeriodic;
     cutGenerationFrequency_ = 1;
   }

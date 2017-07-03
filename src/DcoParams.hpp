@@ -64,10 +64,6 @@ public:
     cutOaAlpha,
     cutOaGamma,
     cutOaSlackLimit,
-    /// MILP Auto cut generation strategy parameters
-    cutMilpAutoStatStart,
-    cutMilpAutoMinFreq,
-    cutMilpAlpha,
     cutMilpGamma,
     ///
 
@@ -169,10 +165,9 @@ public:
     cutOaSlack1,
     // threshold for cut activity used in bounding loop
     cutOaSlack2,
-    /// MILP Auto cut generation strategy parameters
-    cutMilpAutoFreqIncPercent,
-    cutMilpAutoFreqDecPercent,
-    cutMilpBeta,
+    /// MILP cut tailoff, keep generating as long as imprvement is larger than
+    /// delta
+    cutMilpDelta,
     endOfDblParams
   };
   /** String parameters. */

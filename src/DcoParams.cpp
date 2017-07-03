@@ -71,20 +71,8 @@ void DcoParams::createKeywordList() {
   keys_.push_back(make_pair(std::string("Dco_cutOaSlackLimit"),
                             AlpsParameter(AlpsIntPar, cutOaSlackLimit)));
   /// MILP Auto cut generation strategy parameters
-  keys_.push_back(make_pair(std::string("Dco_cutMilpAutoStatStart"),
-                            AlpsParameter(AlpsIntPar, cutMilpAutoStatStart)));
-  keys_.push_back(make_pair(std::string("Dco_cutMilpAutoMinFreq"),
-                            AlpsParameter(AlpsIntPar, cutMilpAutoMinFreq)));
-  keys_.push_back(make_pair(std::string("Dco_cutMilpAutoFreqIncPercent"),
-                            AlpsParameter(AlpsIntPar, cutMilpAutoFreqIncPercent)));
-  keys_.push_back(make_pair(std::string("Dco_cutMilpAutoFreqDecPercent"),
-                            AlpsParameter(AlpsIntPar, cutMilpAutoFreqDecPercent)));
-  keys_.push_back(make_pair(std::string("Dco_cutMilpAlpha"),
-                            AlpsParameter(AlpsIntPar, cutMilpAlpha)));
   keys_.push_back(make_pair(std::string("Dco_cutMilpGamma"),
                             AlpsParameter(AlpsIntPar, cutMilpGamma)));
-
-
 
   keys_.push_back(make_pair(std::string("Dco_cutCliqueFreq"),
                             AlpsParameter(AlpsIntPar, cutCliqueFreq)));
@@ -188,8 +176,8 @@ void DcoParams::createKeywordList() {
                             AlpsParameter(AlpsDoublePar, cutOaSlack1)));
   keys_.push_back(make_pair(std::string("Dco_cutOaSlack2"),
                             AlpsParameter(AlpsDoublePar, cutOaSlack2)));
-  keys_.push_back(make_pair(std::string("Dco_cutMilpBeta"),
-                            AlpsParameter(AlpsDoublePar, cutMilpBeta)));
+  keys_.push_back(make_pair(std::string("Dco_cutMilpDelta"),
+                            AlpsParameter(AlpsDoublePar, cutMilpDelta)));
 //--------------------------------------------------------
   // String Parameters.
   //--------------------------------------------------------
@@ -233,10 +221,7 @@ void DcoParams::setDefaultEntries() {
   setEntry(cutOaAlpha, 3);
   setEntry(cutOaGamma, 50);
   setEntry(cutOaSlackLimit, 3);
-  /// MILP Auto cut generation strategy parameters
-  setEntry(cutMilpAutoStatStart, 5);
-  setEntry(cutMilpAutoMinFreq, 10000);
-  setEntry(cutMilpAlpha, 1);
+  /// MILP cut generation strategy parameters
   setEntry(cutMilpGamma, 20);
 
   setEntry(cutCliqueFreq, 100);
@@ -286,10 +271,8 @@ void DcoParams::setDefaultEntries() {
   // threshold for cut activity used in bounding loop
   setEntry(cutOaSlack2, 0.005);
   setEntry(cutOaBeta, 0.001);
-  /// MILP Auto cut generation strategy parameters
-  setEntry(cutMilpAutoFreqIncPercent, 0.5);
-  setEntry(cutMilpAutoFreqDecPercent, 0.05);
-  setEntry(cutMilpBeta, 0.0001);
+  /// MILP cut generation strategy parameters
+  setEntry(cutMilpDelta, 0.0001);
   //-------------------------------------------------------------
   // String Parameters
   //-------------------------------------------------------------
