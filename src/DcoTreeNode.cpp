@@ -1630,7 +1630,7 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
       double delta = model->dcoPar()->entry(DcoParams::cutMilpDelta);
       if (bcpStats_.numMilpIter_ == 0 or
           (model->numConGenerators() > 1 and index_ % freq == 0
-           and bcpStats_.lastImp_ > delta)) {
+           and bcpStats_.lastImp_/bcpStats_.lastObjVal_ > delta)) {
         // generate MILP
         keepBounding = true;
         branch = false;
@@ -1656,7 +1656,7 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     double delta = model->dcoPar()->entry(DcoParams::cutMilpDelta);
     if (bcpStats_.numMilpIter_ == 0 or
         (model->numConGenerators() > 1 and index_%freq == 0
-         and bcpStats_.lastImp_ > delta)) {
+         and bcpStats_.lastImp_/bcpStats_.lastObjVal_ > delta)) {
       // generate MILP
       keepBounding = true;
       branch = false;
@@ -1788,6 +1788,14 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
     double curr_con_lb = curr_con->getLbSoft();
     double curr_con_ub = curr_con->getUbSoft();
 
+
+
+
+
+
+
+
+
     // add all OA cuts
     if (curr_con->constraintType() == DcoConstraintTypeOA) {
       cuts_to_add[num_add++] = curr_con->createOsiRowCut(model);
@@ -1873,6 +1881,44 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
       cut_norm += elements[i]*elements[i];
     }
     cut_norm = sqrt(cut_norm);
+
+    // {
+    //   // check which one cuts the solution for problem r22c30k10i20
+    //   double sol[] = {7.0, 2.0, 6.25, 8.0, 7.0, 3.85714285091261, 6.0,
+    //                   3.0, 3.85714279912700, 8.0, 3.0, 7.4, 12, 5,
+    //                   10.75, 8, 4, 6, 12, 3, 9, 9,
+    //                   6, 5, 10, 4, 8.2, 7, 6, 2.4, 0.0};
+    //   // check whether cut_i cuts the sol
+    //   double activity = std::inner_product(sol, sol+30, dense_cut, 0.0);
+    //   std::cout << curr_con_lb << " " << activity << " " << curr_con_ub << std::endl;
+    //   if (activity < curr_con_lb or activity > curr_con_ub) {
+    //     std::cout << "=================================================="
+    //               << std::endl;
+    //     std::cout << "size: " <<  curr_con->getSize() << std::endl;
+    //     std::cout << "ind" << std::endl;
+    //     for (int ii=0; ii<curr_con->getSize(); ++ii) {
+    //       std::cout << curr_con->getIndices()[ii] << " ";
+    //     }
+    //     std::cout << std::endl;
+    //     std::cout << "val" << std::endl;
+    //     for (int ii=0; ii<curr_con->getSize(); ++ii) {
+    //       std::cout << curr_con->getValues()[ii] << " ";
+    //     }
+    //     std::cout << std::endl;
+    //     std::cout << "lb " << curr_con_lb << std::endl;
+    //     std::cout << "ub " << curr_con_ub << std::endl;
+
+    //     std::cout << "=================================================="
+    //               << std::endl;
+    //     //throw std::exception();
+    //   }
+    // }
+
+
+
+
+
+
     // Check whether cut is parallel to an existing constraint or cut.
     {
       // cut is stored at dense_cut
@@ -1883,15 +1929,23 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
       CoinPackedMatrix const * mat = model->solver()->getMatrixByRow();
       double const * lb = model->solver()->getRowLower();
       double const * ub = model->solver()->getRowUpper();
-      int num_rows = model->solver()->getNumRows();
-      double inn_prod = 0.0;
+      int num_rows = mat->getNumRows();
       // iterate over rows
       for (int k = 0; k < num_rows; ++k) {
         // get row
-        int row_size = mat->getVectorStarts()[k+1] - mat->getVectorStarts()[k];
-        int const * ind = mat->getIndices() + mat->getVectorStarts()[k];
-        double const * val = mat->getElements() + mat->getVectorStarts()[k];
+        //int row_size = mat->getVectorStarts()[k+1] - mat->getVectorStarts()[k];
+        int row_size = mat->getVectorLast(k) - mat->getVectorFirst(k);
+        int const * ind = mat->getIndices() + mat->getVectorFirst(k);
+        double const * val = mat->getElements() + mat->getVectorFirst(k);
+        double inn_prod = 0.0;
         double row_norm = 0.0;
+
+        if (length != row_size) {
+          // cut and rows are of different size
+          // check next row
+          continue;
+        }
+
         for (int j = 0; j < row_size; ++j) {
           inn_prod += val[j]*dense_cut[ind[j]];
           row_norm += val[j]*val[j];
@@ -1899,18 +1953,45 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
         row_norm = sqrt(row_norm);
         // divide by norms
         inn_prod = inn_prod/(cut_norm*row_norm);
-        if (inn_prod > 0.9999999) {
+        if (inn_prod > 0.99) {
+
           // cut coeff are same, update bound if tighter
-          if (lb[k] < curr_con_lb) {
-            std::cout << "Cut " << i << " is same with better lb." << std::endl;
-            cuts_to_del.push_back(i);
-            model->solver()->setRowLower(k, curr_con_lb);
+
+          // scale cut lower and upper bounds
+          double scale = 0.0;
+
+          scale = val[0]/dense_cut[ind[0]];
+
+          std::cout << "inn prod " << inn_prod << std::endl;
+          if (curr_con_lb > -1e-8 and lb[k] < scale * curr_con_lb) {
+            std::cout << "Cut " << i << " is same with better lb. "
+                      << lb[k] << " " << scale*curr_con_lb
+                      << " " << scale
+                      << std::endl;
+            //cuts_to_del.push_back(i);
+            if (index_ == 0) {
+              model->solver()->setRowLower(k, scale*curr_con_lb);
+            }
+            else {
+              // keep the cut
+              inn_prod = 0.0;
+            }
           }
-          if (ub[k] > curr_con_ub) {
-            std::cout << "Cut " << i << " is same with better ub." << std::endl;
-            if (!cuts_to_del.empty() and i != cuts_to_del.back())
-              cuts_to_del.push_back(i);
-            model->solver()->setRowUpper(k, curr_con_ub);
+          if (curr_con_ub < 1e8 and ub[k] > scale * curr_con_ub) {
+            std::cout << "Cut " << i << " is same with better ub. "
+                      << ub[k] << " " << scale*curr_con_ub
+                      << " " << scale
+                      << std::endl;
+            if (!cuts_to_del.empty() and i != cuts_to_del.back()) {
+              //cuts_to_del.push_back(i);
+            }
+            // we can do this only at root, else just keep it as a cut
+            if (index_ == 0) {
+              model->solver()->setRowUpper(k, scale*curr_con_ub);
+            }
+            else {
+              inn_prod = 0.0;
+            }
           }
         }
         if (inn_prod > 0.95 and !cuts_to_del.empty() and i != cuts_to_del.back()) {

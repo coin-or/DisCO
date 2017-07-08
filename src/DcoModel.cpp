@@ -29,6 +29,7 @@
 #include <CglKnapsackCover.hpp>
 #include <CglMixedIntegerRounding2.hpp>
 #include <CglGomory.hpp>
+#include <CglGMI.hpp>
 #include <CglTwomir.hpp>
 
 // Conic cuts
@@ -54,6 +55,7 @@ char const * conNames[] = {
   "Clique",
   "FCover",
   "Gomory",
+  //"GMI",
   "Knap",
   // Linear MIR
   "MIR",
@@ -1009,8 +1011,9 @@ void DcoModel::addConstraintGenerators() {
   }
   if (gomoryStrategy != DcoCutStrategyNone) {
     CglGomory *gomoryCut = new CglGomory;
+    //CglGMI *gomoryCut = new CglGMI;
     // try larger limit
-    gomoryCut->setLimit(300);
+    gomoryCut->setLimit(40);
     addConGenerator(gomoryCut, DcoConstraintTypeGomory, gomoryStrategy,
                     gomoryFreq);
   }

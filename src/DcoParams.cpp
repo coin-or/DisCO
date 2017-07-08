@@ -261,7 +261,7 @@ void DcoParams::setDefaultEntries() {
   setEntry(optimalRelGap, 1.0e-4);
   setEntry(optimalAbsGap, 1.0e-6);
   setEntry(pseudoWeight, 0.8);
-  setEntry(scaleConFactor, 1000000.0);
+  setEntry(scaleConFactor, 1000.0);
   setEntry(tailOff, 1e-8);
   setEntry(presolveTolerance, 0.0);
   // approximation factor, used in OA
