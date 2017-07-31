@@ -80,6 +80,7 @@ class DcoModel: public BcpsModel {
 #else
   OsiConicSolverInterface * solver_;
 #endif
+  std::string problemName_;
 
   ///==========================================================================
   /// Fields that will be set by ::readInstance() and sent to other processors
@@ -362,6 +363,8 @@ public:
   /// Read in the problem instance. Currently linear Mps files and Mosek
   /// style conic mps files.
   virtual void readInstance(char const * dataFile);
+  void readInstanceMps(char const * dataFile);
+  void readInstanceCbf(char const * dataFile);
   /// Reads in parameters.
   /// This function is called from AlpsKnowledgeBrokerSerial::initializeSearch
   /// It reads and stores the parameters in alpsPar_ inherited from AlpsModel.

@@ -101,7 +101,7 @@ am_libDisco_la_OBJECTS = DcoConGenerator.lo DcoLinearConGenerator.lo \
 	DcoConstraint.lo DcoLinearConstraint.lo DcoConicConstraint.lo \
 	DcoMessage.lo DcoModel.lo DcoNodeDesc.lo DcoParams.lo \
 	DcoSolution.lo DcoSubTree.lo DcoTreeNode.lo DcoVariable.lo \
-	DcoPresolve.lo DcoHeuristic.lo DcoHeurRounding.lo
+	DcoPresolve.lo DcoHeuristic.lo DcoHeurRounding.lo DcoCbfIO.lo
 libDisco_la_OBJECTS = $(am_libDisco_la_OBJECTS)
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
@@ -438,6 +438,8 @@ libDisco_la_SOURCES = \
 	DcoHeuristic.cpp \
 	DcoHeurRounding.hpp \
 	DcoHeurRounding.cpp \
+	DcoCbfIO.hpp \
+	DcoCbfIO.cpp \
 	DcoConfig.hpp
 
 
@@ -491,6 +493,7 @@ includecoin_HEADERS = \
 	DcoTreeNode.hpp \
 	DcoVariable.hpp \
 	DcoPresolve.hpp \
+	DcoCbfIO.hpp \
 	DcoConfig.hpp
 
 all: config.h config_dco.h
@@ -628,6 +631,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyPseudo.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyRel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoBranchStrategyStrong.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoCbfIO.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConGenerator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConicConGenerator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoConicConstraint.Plo@am__quote@

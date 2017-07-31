@@ -19,6 +19,7 @@
 #include "DcoPresolve.hpp"
 #include "DcoHeuristic.hpp"
 #include "DcoHeurRounding.hpp"
+#include "DcoCbfIO.hpp"
 
 // MILP cuts
 #include <CglCutGenerator.hpp>
@@ -29,6 +30,7 @@
 #include <CglKnapsackCover.hpp>
 #include <CglMixedIntegerRounding2.hpp>
 #include <CglGomory.hpp>
+#include <CglGMI.hpp>
 #include <CglTwomir.hpp>
 
 // Conic cuts
@@ -54,6 +56,7 @@ char const * conNames[] = {
   "Clique",
   "FCover",
   "Gomory",
+  //"GMI",
   "Knap",
   // Linear MIR
   "MIR",
@@ -73,6 +76,7 @@ std::vector<char const *> const
   dcoConstraintTypeName (conNames, conNames + DcoConstraintTypeEnd);
 
 DcoModel::DcoModel() {
+  problemName_ = "";
   solver_ = NULL;
   colLB_ = NULL;
   colUB_ = NULL;
@@ -218,11 +222,98 @@ void DcoModel::readInstance(char const * dataFile) {
   std::string input_file(dataFile);
   std::string base_name = input_file.substr(0, input_file.rfind('.'));
   std::string extension = input_file.substr(input_file.rfind('.')+1);
-  if (extension.compare("mps")) {
-    dcoMessageHandler_->message(DISCO_READ_MPSFILEONLY,
+  if (!extension.compare("mps")) {
+    readInstanceMps(dataFile);
+  }
+  else if (!extension.compare("cbf")) {
+    problemName_ = base_name;
+    readInstanceCbf(dataFile);
+  }
+  else {
+    dcoMessageHandler_->message(DISCO_READ_MPSCBFFILEONLY,
                                 *dcoMessages_) << CoinMessageEol;
   }
 
+  // == log cone information messages
+  if (numConicRows_) {
+    dcoMessageHandler_->message(DISCO_READ_CONESTATS1,
+                                *dcoMessages_) << numConicRows_
+                                               << CoinMessageEol;
+    for (int i=0; i<numConicRows_; ++i) {
+      dcoMessageHandler_->message(DISCO_READ_CONESTATS2,
+                                  *dcoMessages_)
+        << i
+        << coneStart_[i+1] - coneStart_[i]
+        << coneType_[i]
+        << CoinMessageEol;
+    }
+  }
+  else {
+    dcoMessageHandler_->message(DISCO_READ_NOCONES,
+                                *dcoMessages_);
+  }
+
+  // log problem information
+  std::string sense = (dcoPar_->entry(DcoParams::objSense)==1.0) ? std::string("min") : std::string("min");
+  dcoMessageHandler_->message(DISCO_PROBLEM_INFO,
+                              *dcoMessages_)
+    << problemName_
+    << sense.c_str()
+    << numCols_
+    << numLinearRows_
+    << matrix_->getNumElements()
+    << numConicRows_
+    << numIntegerCols_
+    << CoinMessageEol;
+}
+
+// this should go into OsiConicSolverInterface or CoinUtils?
+void DcoModel::readInstanceCbf(char const * dataFile) {
+  // mps file reader
+  DcoCbfIO * reader = new DcoCbfIO();
+  reader->readCbf(dataFile);
+  // set objective sense
+  objSense_ = reader->objSense();
+  // set dcoPar_
+  dcoPar_->setEntry(DcoParams::objSense, objSense_);
+
+  reader->getProblem(colLB_, colUB_, rowLB_, rowUB_, matrix_,
+                     numConicRows_, coneStart_, coneMembers_, coneType_);
+  numCols_ = matrix_->getNumCols();
+  numLinearRows_ = matrix_->getNumRows();
+  numRows_ = numLinearRows_ + numConicRows_;
+
+  // add conic row bounds to rowLB and rowUB
+  double * tempRowLB = new double[numRows_];
+  std::copy(rowLB_, rowLB_+numLinearRows_, tempRowLB);
+  std::fill_n(tempRowLB+numLinearRows_, numConicRows_, -DISCO_INFINITY);
+  delete[] rowLB_;
+  rowLB_ = tempRowLB;
+  tempRowLB = NULL;
+  double * tempRowUB = new double[numRows_];
+  std::copy(rowUB_, rowUB_+numLinearRows_, tempRowUB);
+  std::fill_n(tempRowUB+numLinearRows_, numConicRows_, 0.0);
+  delete[] rowUB_;
+  rowUB_ = tempRowUB;
+  tempRowUB = NULL;
+
+  objCoef_ = new double [numCols_]();
+
+  std::copy(reader->objCoef(), reader->objCoef()+reader->getNumCols(),
+            objCoef_);
+
+  // get integrality info
+  numIntegerCols_ = reader->getNumInteger();
+  integerCols_ = new int[numIntegerCols_];
+  std::copy(reader->integerCols(), reader->integerCols()+numIntegerCols_,
+            integerCols_);
+  isInteger_ = new int[numCols_]();
+  for (int i=0; i<numIntegerCols_; ++i) {
+    isInteger_[integerCols_[i]] = 1;
+  }
+}
+
+void DcoModel::readInstanceMps(char const * dataFile) {
   // mps file reader
   CoinMpsIO * reader = new CoinMpsIO;
   // set reader log level
@@ -296,29 +387,13 @@ void DcoModel::readInstance(char const * dataFile) {
                                            coneType_, numConicRows_);
   // when there is no conic section, status is -3.
   if (reader_return==-3) {
-    dcoMessageHandler_->message(DISCO_READ_NOCONES,
-                                *dcoMessages_);
+    // no cones in problem
   }
   else if (reader_return!=0) {
     dcoMessageHandler_->message(DISCO_READ_MPSERROR,
                                 *dcoMessages_) << reader_return
                                                << CoinMessageEol;
   }
-  // == log cone information messages
-  if (numConicRows_) {
-    dcoMessageHandler_->message(DISCO_READ_CONESTATS1,
-                                *dcoMessages_) << numConicRows_
-                                               << CoinMessageEol;
-    for (int i=0; i<numConicRows_; ++i) {
-      dcoMessageHandler_->message(DISCO_READ_CONESTATS2,
-                                  *dcoMessages_)
-        << i
-        << coneStart_[i+1] - coneStart_[i]
-        << coneType_[i]
-        << CoinMessageEol;
-    }
-  }
-
   // store number of constraints in the problem
   numLinearRows_ = reader->getNumRows();
   numRows_ = numLinearRows_ + numConicRows_;
@@ -334,19 +409,8 @@ void DcoModel::readInstance(char const * dataFile) {
   std::fill_n(rowUB_+numLinearRows_, numConicRows_, DISCO_INFINITY);
 
   matrix_ = new CoinPackedMatrix(*reader->getMatrixByRow());
+  problemName_ = reader->getProblemName();
 
-
-  std::string sense = (dcoPar_->entry(DcoParams::objSense)==1.0) ? std::string("min") : std::string("min");
-  dcoMessageHandler_->message(DISCO_PROBLEM_INFO,
-                              *dcoMessages_)
-    << reader->getProblemName()
-    << sense.c_str()
-    << numCols_
-    << numLinearRows_
-    << reader->getNumElements()
-    << numConicRows_
-    << numIntegerCols_
-    << CoinMessageEol;
   // free Coin MPS reader
   delete reader;
 }
@@ -1009,8 +1073,9 @@ void DcoModel::addConstraintGenerators() {
   }
   if (gomoryStrategy != DcoCutStrategyNone) {
     CglGomory *gomoryCut = new CglGomory;
+    //CglGMI *gomoryCut = new CglGMI;
     // try larger limit
-    gomoryCut->setLimit(300);
+    gomoryCut->setLimit(40);
     addConGenerator(gomoryCut, DcoConstraintTypeGomory, gomoryStrategy,
                     gomoryFreq);
   }
@@ -1668,7 +1733,7 @@ void DcoModel::reportFeasibility() {
   }
 }
 
-/// The method that encodes the this instance of model into the given
+/// The method that encodes this instance of model into the given
 /// #AlpsEncoded object.
 AlpsReturnStatus DcoModel::encode(AlpsEncoded * encoded) const {
   AlpsReturnStatus status;
@@ -1678,6 +1743,10 @@ AlpsReturnStatus DcoModel::encode(AlpsEncoded * encoded) const {
     dcoMessageHandler_->message(DISCO_UNEXPECTED_ENCODE_STATUS, *dcoMessages_)
       << __FILE__ << __LINE__ << CoinMessageEol;
   }
+  // encode problem name
+  int probname_size = problemName_.size();
+  encoded->writeRep(probname_size);
+  encoded->writeRep(problemName_.c_str(), problemName_.size());
   // encode number of constraints
   encoded->writeRep(numCols_);
   encoded->writeRep(colLB_, numCols_);
@@ -1734,6 +1803,14 @@ AlpsReturnStatus DcoModel::decodeToSelf(AlpsEncoded & encoded) {
     dcoMessageHandler_->message(DISCO_UNEXPECTED_DECODE_STATUS, *dcoMessages_)
       << __FILE__ << __LINE__ << CoinMessageEol;
   }
+  // decode problem name
+  int probname_size = 0;
+  char * probname = NULL;
+  encoded.readRep(probname_size);
+  encoded.readRep(probname, probname_size);
+  problemName_ = probname;
+  delete[] probname;
+  // decode rest
   encoded.readRep(numCols_);
   encoded.readRep(colLB_, numCols_);
   encoded.readRep(colUB_, numCols_);
