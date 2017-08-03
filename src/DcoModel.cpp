@@ -286,13 +286,13 @@ void DcoModel::readInstanceCbf(char const * dataFile) {
   // add conic row bounds to rowLB and rowUB
   double * tempRowLB = new double[numRows_];
   std::copy(rowLB_, rowLB_+numLinearRows_, tempRowLB);
-  std::fill_n(tempRowLB+numLinearRows_, numConicRows_, -DISCO_INFINITY);
+  std::fill_n(tempRowLB+numLinearRows_, numConicRows_, 0.0);
   delete[] rowLB_;
   rowLB_ = tempRowLB;
   tempRowLB = NULL;
   double * tempRowUB = new double[numRows_];
   std::copy(rowUB_, rowUB_+numLinearRows_, tempRowUB);
-  std::fill_n(tempRowUB+numLinearRows_, numConicRows_, 0.0);
+  std::fill_n(tempRowUB+numLinearRows_, numConicRows_, DISCO_INFINITY);
   delete[] rowUB_;
   rowUB_ = tempRowUB;
   tempRowUB = NULL;
@@ -411,6 +411,20 @@ void DcoModel::readInstanceMps(char const * dataFile) {
   matrix_ = new CoinPackedMatrix(*reader->getMatrixByRow());
   problemName_ = reader->getProblemName();
 
+  for (int i=0; i<numCols_; ++i) {
+    if (colLB_[i] < -DISCO_INFINITY) {
+      colLB_[i] = -DISCO_INFINITY;
+    }
+    if (colUB_[i] > DISCO_INFINITY) {
+      colUB_[i] = DISCO_INFINITY;
+    }
+    if (rowLB_[i] < -DISCO_INFINITY) {
+      rowLB_[i] = -DISCO_INFINITY;
+    }
+    if (rowUB_[i] > DISCO_INFINITY) {
+      rowUB_[i] = DISCO_INFINITY;
+    }
+  }
   // free Coin MPS reader
   delete reader;
 }

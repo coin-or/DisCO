@@ -364,9 +364,6 @@ void DcoCbfIO::getProblem(double *& colLB, double *& colUB,
     // to -y + Ax + b = 0 and y in L
     int numcols = 0;
 
-    // colstarts is always col_index, col_index+1, ...,
-    // col_index+row_domain_size[i]-1
-    std::vector<int> colstarts;
 
     // rows is always row_index, row_index+1, ...,
     // row_index+row_domain_size[i]-1
@@ -381,22 +378,27 @@ void DcoCbfIO::getProblem(double *& colLB, double *& colUB,
       row_index += row_domain_size_[i];
     }
 
-    for (int j=0; j<numcols; ++j)
-      colstarts.push_back(j);
-    colstarts.push_back(numcols);
+    if (numcols) {
+      // colstarts is always col_index, col_index+1, ...,
+      // col_index+row_domain_size[i]-1
+      std::vector<int> colstarts;
+      for (int j=0; j<numcols; ++j)
+        colstarts.push_back(j);
+      colstarts.push_back(numcols);
 
-    double * elements = new double[numcols];
-    std::fill_n(elements, numcols, -1.0);
-    // colstarts, rows
-    int * colstarts_arr = new int[numcols+1];
-    std::copy(colstarts.begin(), colstarts.end(), colstarts_arr);
-    int * rows_arr = new int[numcols];
-    std::copy(rows.begin(), rows.end(), rows_arr);
-    matrix->appendCols(numcols, colstarts_arr, rows_arr, elements);
-    delete[] rows_arr;
-    delete[] colstarts_arr;
-    delete[] elements;
-    colstarts.clear();
+      double * elements = new double[numcols];
+      std::fill_n(elements, numcols, -1.0);
+      // colstarts, rows
+      int * colstarts_arr = new int[numcols+1];
+      std::copy(colstarts.begin(), colstarts.end(), colstarts_arr);
+      int * rows_arr = new int[numcols];
+      std::copy(rows.begin(), rows.end(), rows_arr);
+      matrix->appendCols(numcols, colstarts_arr, rows_arr, elements);
+      delete[] rows_arr;
+      delete[] colstarts_arr;
+      delete[] elements;
+      colstarts.clear();
+    }
     rows.clear();
   }
 
