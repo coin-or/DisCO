@@ -86,6 +86,7 @@ public:
                   CoinPackedMatrix *& matrix,
                   int & numCones, int *& coneStart,
                   int *& coneMembers, int *& coneType) const;
+  double getInfinity() const { return 1.7976931348623157e+308; }
 private:
   DcoCbfIO(DcoCbfIO const &);
   DcoCbfIO & operator=(DcoCbfIO const &);

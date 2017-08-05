@@ -292,7 +292,7 @@ void DcoModel::readInstanceCbf(char const * dataFile) {
   tempRowLB = NULL;
   double * tempRowUB = new double[numRows_];
   std::copy(rowUB_, rowUB_+numLinearRows_, tempRowUB);
-  std::fill_n(tempRowUB+numLinearRows_, numConicRows_, DISCO_INFINITY);
+  std::fill_n(tempRowUB+numLinearRows_, numConicRows_, reader->getInfinity());
   delete[] rowUB_;
   rowUB_ = tempRowUB;
   tempRowUB = NULL;
@@ -406,25 +406,25 @@ void DcoModel::readInstanceMps(char const * dataFile) {
   std::copy(reader->getRowUpper(), reader->getRowUpper()+numLinearRows_, rowUB_);
   // set conic row bounds
   std::fill_n(rowLB_+numLinearRows_, numConicRows_, 0.0);
-  std::fill_n(rowUB_+numLinearRows_, numConicRows_, DISCO_INFINITY);
+  std::fill_n(rowUB_+numLinearRows_, numConicRows_, reader->getInfinity());
 
   matrix_ = new CoinPackedMatrix(*reader->getMatrixByRow());
   problemName_ = reader->getProblemName();
 
-  for (int i=0; i<numCols_; ++i) {
-    if (colLB_[i] < -DISCO_INFINITY) {
-      colLB_[i] = -DISCO_INFINITY;
-    }
-    if (colUB_[i] > DISCO_INFINITY) {
-      colUB_[i] = DISCO_INFINITY;
-    }
-    if (rowLB_[i] < -DISCO_INFINITY) {
-      rowLB_[i] = -DISCO_INFINITY;
-    }
-    if (rowUB_[i] > DISCO_INFINITY) {
-      rowUB_[i] = DISCO_INFINITY;
-    }
-  }
+  // for (int i=0; i<numCols_; ++i) {
+  //   if (colLB_[i] < -DISCO_INFINITY) {
+  //     colLB_[i] = -DISCO_INFINITY;
+  //   }
+  //   if (colUB_[i] > DISCO_INFINITY) {
+  //     colUB_[i] = DISCO_INFINITY;
+  //   }
+  //   if (rowLB_[i] < -DISCO_INFINITY) {
+  //     rowLB_[i] = -DISCO_INFINITY;
+  //   }
+  //   if (rowUB_[i] > DISCO_INFINITY) {
+  //     rowUB_[i] = DISCO_INFINITY;
+  //   }
+  //}
   // free Coin MPS reader
   delete reader;
 }
@@ -737,7 +737,7 @@ void DcoModel::approximateCones() {
   rowUB_ = new double[numRows_];
   std::copy(solver_->getRowUpper(),
             solver_->getRowUpper()+numLinearRows_, rowUB_);
-  std::fill_n(rowUB_+numLinearRows_, numConicRows_, DISCO_INFINITY);
+  std::fill_n(rowUB_+numLinearRows_, numConicRows_, solver_->getInfinity());
 #endif
 }
 
