@@ -109,6 +109,8 @@ libDisco_la_SOURCES = \
 	DcoHeuristic.cpp \
 	DcoHeurRounding.hpp \
 	DcoHeurRounding.cpp \
+	DcoCbfIO.hpp \
+	DcoCbfIO.cpp \
 	DcoConfig.hpp
 
 
@@ -170,6 +172,7 @@ includecoin_HEADERS = \
 	DcoTreeNode.hpp \
 	DcoVariable.hpp \
 	DcoPresolve.hpp \
+	DcoCbfIO.hpp \
 	DcoConfig.hpp
 
 ########################################################################

@@ -118,7 +118,7 @@ static Dco_message us_english[]=
     {DISCO_READ_NOINTS, 20, 1, "Problem does not have integer variables"},
     {DISCO_READ_NOCONES, 21, 1, "Problem does not have conic constraints."},
     {DISCO_READ_MPSERROR, 9001, 1, "Reading conic mps file failed with code %d." },
-    {DISCO_READ_MPSFILEONLY,9002, 1, "Mosek style conic mps files only."},
+    {DISCO_READ_MPSCBFFILEONLY,9002, 1, "Input should be in CBLIB's cbf or Mosek's conic mps format with extension cbf or mps."},
     {DISCO_READ_CONEERROR, 9003, 1, "Invalid cone type."},
     {DISCO_READ_ROTATEDCONESIZE, 9004, 1, "Rotated cones should have at least 3 members."},
     {DISCO_READ_CONESTATS1, 101, 3, "Problem has %d cones."},
