@@ -190,7 +190,9 @@ DcoCbfIO::~DcoCbfIO() {
   if (coef_) {
     delete[] coef_;
   }
-  delete[] fixed_term_;
+  if (fixed_term_) {
+    delete[] fixed_term_;
+  }
 }
 
 
@@ -224,8 +226,8 @@ void DcoCbfIO::getProblem(double *& colLB, double *& colUB,
   cStart.push_back(0);
   // set upper and lower bounds to inf and -inf
   // no column bounds initially
-  std::fill_n(colLB, numCols, -DISCO_INFINITY);
-  std::fill_n(colUB, numCols, DISCO_INFINITY);
+  std::fill_n(colLB, numCols, -getInfinity());
+  std::fill_n(colUB, numCols, getInfinity());
   // iterate over col domains and set column bounds and get cone info
   int col_index = 0;
   for (int i=0; i<num_col_domains_; ++i) {
@@ -281,8 +283,8 @@ void DcoCbfIO::getProblem(double *& colLB, double *& colUB,
   rowLB = new double[num_rows_];
   rowUB = new double[num_rows_];
   // no row bounds initially
-  std::fill_n(rowLB, num_rows_, -DISCO_INFINITY);
-  std::fill_n(rowUB, num_rows_, DISCO_INFINITY);
+  std::fill_n(rowLB, num_rows_, -getInfinity());
+  std::fill_n(rowUB, num_rows_, getInfinity());
   // iterate over row domains and set row bounds and get cone info
   for (int i=0, row_index=0; i<num_row_domains_; ++i) {
     if (row_domains_[i]==FREE_RANGE) {

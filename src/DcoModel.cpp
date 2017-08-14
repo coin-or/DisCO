@@ -311,6 +311,8 @@ void DcoModel::readInstanceCbf(char const * dataFile) {
   for (int i=0; i<numIntegerCols_; ++i) {
     isInteger_[integerCols_[i]] = 1;
   }
+
+  delete reader;
 }
 
 void DcoModel::readInstanceMps(char const * dataFile) {
@@ -411,20 +413,6 @@ void DcoModel::readInstanceMps(char const * dataFile) {
   matrix_ = new CoinPackedMatrix(*reader->getMatrixByRow());
   problemName_ = reader->getProblemName();
 
-  // for (int i=0; i<numCols_; ++i) {
-  //   if (colLB_[i] < -DISCO_INFINITY) {
-  //     colLB_[i] = -DISCO_INFINITY;
-  //   }
-  //   if (colUB_[i] > DISCO_INFINITY) {
-  //     colUB_[i] = DISCO_INFINITY;
-  //   }
-  //   if (rowLB_[i] < -DISCO_INFINITY) {
-  //     rowLB_[i] = -DISCO_INFINITY;
-  //   }
-  //   if (rowUB_[i] > DISCO_INFINITY) {
-  //     rowUB_[i] = DISCO_INFINITY;
-  //   }
-  //}
   // free Coin MPS reader
   delete reader;
 }

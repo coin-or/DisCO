@@ -86,6 +86,7 @@ public:
                   CoinPackedMatrix *& matrix,
                   int & numCones, int *& coneStart,
                   int *& coneMembers, int *& coneType) const;
+  /// todo(aykut) this will overflow in 32 bit.
   double getInfinity() const { return 1.7976931348623157e+308; }
 private:
   DcoCbfIO(DcoCbfIO const &);

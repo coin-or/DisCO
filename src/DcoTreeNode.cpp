@@ -657,6 +657,7 @@ void DcoTreeNode::checkCuts() {
   //CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   //CoinMessages * messages = model->dcoMessages_;
   int origNumRows = model->origNumRows_;
+  origNumRows = model->getNumCoreLinearConstraints();
   int solverNumRows = model->solver()->getNumRows();
   int numCuts = solverNumRows - origNumRows;
   if (numCuts==0) {
