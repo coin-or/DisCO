@@ -21,6 +21,11 @@
 #include "DcoHeurRounding.hpp"
 #include "DcoCbfIO.hpp"
 
+
+#if defined(__CPLEX_EXIST__)
+#include <OsiCplexSolverInterface.hpp>
+#endif
+
 // MILP cuts
 #include <CglCutGenerator.hpp>
 #include <CglProbing.hpp>
@@ -32,6 +37,7 @@
 #include <CglGomory.hpp>
 #include <CglGMI.hpp>
 #include <CglTwomir.hpp>
+#include <CglConicGD1.hpp>
 
 // Conic cuts
 #include <CglConicCutGenerator.hpp>
@@ -311,6 +317,78 @@ void DcoModel::readInstanceCbf(char const * dataFile) {
   for (int i=0; i<numIntegerCols_; ++i) {
     isInteger_[integerCols_[i]] = 1;
   }
+
+  //delete reader;
+
+  // add conic cuts
+#if defined(__CPLEX_EXIST__)
+  // DisCO has access to a SOCO solver, generate cuts
+  OsiConicSolverInterface * temp_solver = new OsiCplexSolverInterface();
+  temp_solver->setHintParam(OsiDoReducePrint, true, OsiHintTry);
+  // load problem to solver
+  temp_solver->loadProblem(*matrix_, colLB_, colUB_, objCoef_,
+                       rowLB_, rowUB_);
+  // set integers
+  for (int i=0; i<numIntegerCols_; ++i) {
+    temp_solver->setInteger(integerCols_[i]);
+  }
+  // add conic constraints to the solver
+  for (int i=0; i<numConicRows_; ++i) {
+    // do not relax conic constraints, add them to the conic solver
+    OsiLorentzConeType osi_type;
+    if (coneType_[i]==1) {
+      osi_type = OSI_QUAD;
+    }
+    else if (coneType_[i]==2) {
+      osi_type = OSI_RQUAD;
+    }
+    temp_solver->addConicConstraint(osi_type, coneStart_[i+1]-coneStart_[i],
+                                    coneMembers_+coneStart_[i]);
+  }
+  temp_solver->initialSolve();
+  if (temp_solver->isProvenOptimal()) {
+    // iterate over cones in dual form
+    std::vector<CoinPackedMatrix*> AA;
+    std::vector<double*> bb;
+    for (int i=0; i<reader->numRowDomains(); ++i) {
+      if (reader->rowDomains()[i] == QUAD_CONE) {
+        continue;
+      }
+      // get row domain i
+      CoinPackedMatrix * A = NULL;
+      double * b = NULL;
+      AA.push_back(A);
+      bb.push_back(b);
+    }
+    // generate cuts
+    CglConicGD1 cg(temp_solver);
+    OsiConicSolverInterface * nsi = cg.generateAndAddBestCut(*temp_solver, AA, bb);
+    //OsiConicSolverInterface * nsi = cg.generateAndAddCuts(*temp_solver, AA, bb);
+    nsi->setHintParam(OsiDoReducePrint, true, OsiHintTry);
+    // stats after cut
+    std::cout << "Problem stats after cuts " << std::endl;
+    std::cout << "  Number of variables: " << nsi->getNumCols()
+              << std::endl;
+    std::cout << "  Number of linear constraints: " << nsi->getNumRows()
+              << std::endl;
+    std::cout << "  Number of nonzero in coefficient matrix: " << nsi->getNumElements()
+              << std::endl;
+    std::cout << "  Number of conic constraints: " << nsi->getNumCones()
+              << std::endl;
+    delete temp_solver;
+    // write problem stored in nsi
+    nsi->writeMps("root", "mps", 0.0);
+    // load data from nsi
+    loadProblem(nsi);
+    nsi->writeMps("root", "lp", 0.0);
+    delete nsi;
+  }
+  else {
+    std::cout << "Cut generation stopped. "
+              << "Root problem is not solved to optimality."
+              << std::endl;
+  }
+#endif
 
   delete reader;
 }
