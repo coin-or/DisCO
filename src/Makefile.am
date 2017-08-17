@@ -53,6 +53,14 @@ if CPLEX_SOCO_SOLVER
   AM_CPPFLAGS += -D__OSI_CPLEX__
 endif
 
+if MOSEK_EXIST
+  AM_CPPFLAGS += -D__MOSEK_EXIST__
+endif
+
+if CPLEX_EXIST
+  AM_CPPFLAGS += -D__CPLEX_EXIST__
+endif
+
 ########################################################################
 #                               libDisco                                #
 ########################################################################
