@@ -108,6 +108,8 @@ DcoModel::DcoModel() {
   rampUpBranchStrategy_ = NULL;
   // cut and heuristics objects will be set in setupSelf.
 
+  initOAcuts_ = 0;
+
   dcoMessageHandler_->setPrefix(0);
   dcoMessageHandler_->message(DISCO_WELCOME, *dcoMessages_)
     << DISCO_VERSION
@@ -531,7 +533,6 @@ void DcoModel::approximateCones() {
   // load problem to the solver
   solver_->loadProblem(*matrix_, colLB_, colUB_, objCoef_,
                        rowLB_, rowUB_);
-  origNumRows_ = solver_->getNumRows();
   bool dual_infeasible = false;
   int iter = 0;
   int ipm_iter;
@@ -631,14 +632,14 @@ void DcoModel::approximateCones() {
 
   double cutOaSlack = dcoPar_->entry(DcoParams::cutOaSlack1);
   // print cut activity
-  {
-    int numCuts = solver_->getNumRows() - origNumRows_;
-    double const * activity = solver_->getRowActivity();
-    double const * lb = solver_->getRowLower();
-    double const * ub = solver_->getRowUpper();
-    CoinWarmStartBasis const * ws =
-      dynamic_cast<CoinWarmStartBasis*> (solver_->getWarmStart());
-    for (int i=origNumRows_; i<solver_->getNumRows(); ++i) {
+  // {
+  //   int numCuts = solver_->getNumRows() - numLinearRows_;
+  //   double const * activity = solver_->getRowActivity();
+  //   double const * lb = solver_->getRowLower();
+  //   double const * ub = solver_->getRowUpper();
+  //   CoinWarmStartBasis const * ws =
+  //     dynamic_cast<CoinWarmStartBasis*> (solver_->getWarmStart());
+    //for (int i=numLinearRows_; i<solver_->getNumRows(); ++i) {
       // double norm = 0.0;
       // {
       //   // compute norm of cut
@@ -659,13 +660,13 @@ void DcoModel::approximateCones() {
       //           << " remove: " << ((ub[i]-activity[i])>cutOaSlack)
       //           << " norm: " << norm
       //           << std::endl;
-    }
-  }
+    //}
+  //}
 
 
   // remove inactive cuts
   {
-    int numCuts = solver_->getNumRows() - origNumRows_;
+    int numCuts = solver_->getNumRows() - numLinearRows_;
     // get warm start basis
     CoinWarmStartBasis const * ws =
       dynamic_cast<CoinWarmStartBasis*> (solver_->getWarmStart());
@@ -686,12 +687,12 @@ void DcoModel::approximateCones() {
 
       // iterate over cuts and colect inactive ones
       for (int i=0; i<numCuts; ++i) {
-        if (ws->getArtifStatus(origNumRows_+i) == CoinWarmStartBasis::basic) {
+        if (ws->getArtifStatus(numLinearRows_+i) == CoinWarmStartBasis::basic) {
           // cut is inactive
           // do we really want to remove? check how much it is inactive
-          if (ub[origNumRows_+i] - activity[origNumRows_+i] > cutOaSlack) {
+          if (ub[numLinearRows_+i] - activity[numLinearRows_+i] > cutOaSlack) {
             // remove since it is inactive too much
-            delInd[numDel++] = i+origNumRows_;
+            delInd[numDel++] = i+numLinearRows_;
           }
         }
       }
@@ -708,24 +709,25 @@ void DcoModel::approximateCones() {
       delete[] delInd;
     }
   }
+  initOAcuts_ = solver_->getNumRows() - numLinearRows_;
 
   // get updated data from solver
-  delete matrix_;
-  matrix_ = new CoinPackedMatrix(*solver_->getMatrixByRow());
-  // update number of rows
-  numLinearRows_ = solver_->getNumRows();
-  numRows_ = numLinearRows_+numConicRows_;
-  // update row bounds
-  delete[] rowLB_;
-  rowLB_ = new double[numRows_];
-  std::copy(solver_->getRowLower(),
-            solver_->getRowLower()+numLinearRows_, rowLB_);
-  std::fill_n(rowLB_+numLinearRows_, numConicRows_, 0.0);
-  delete[] rowUB_;
-  rowUB_ = new double[numRows_];
-  std::copy(solver_->getRowUpper(),
-            solver_->getRowUpper()+numLinearRows_, rowUB_);
-  std::fill_n(rowUB_+numLinearRows_, numConicRows_, solver_->getInfinity());
+  // delete matrix_;
+  // matrix_ = new CoinPackedMatrix(*solver_->getMatrixByRow());
+  // // update number of rows
+  // numLinearRows_ = solver_->getNumRows();
+  // numRows_ = numLinearRows_+numConicRows_;
+  // // update row bounds
+  // delete[] rowLB_;
+  // rowLB_ = new double[numRows_];
+  // std::copy(solver_->getRowLower(),
+  //           solver_->getRowLower()+numLinearRows_, rowLB_);
+  // std::fill_n(rowLB_+numLinearRows_, numConicRows_, 0.0);
+  // delete[] rowUB_;
+  // rowUB_ = new double[numRows_];
+  // std::copy(solver_->getRowUpper(),
+  //           solver_->getRowUpper()+numLinearRows_, rowUB_);
+  // std::fill_n(rowUB_+numLinearRows_, numConicRows_, solver_->getInfinity());
 #endif
 }
 
@@ -1774,7 +1776,7 @@ AlpsReturnStatus DcoModel::encode(AlpsEncoded * encoded) const {
   encoded->writeRep(matrix_->getVectorLengths(), numLinearRows_);
   encoded->writeRep(matrix_->getIndices(), matrix_->getNumElements());
   encoded->writeRep(matrix_->getElements(), matrix_->getNumElements());
-  encoded->writeRep(origNumRows_);
+  encoded->writeRep(initOAcuts_);
   // encode parameters
   dcoPar_->pack(*encoded);
 
@@ -1847,7 +1849,7 @@ AlpsReturnStatus DcoModel::decodeToSelf(AlpsEncoded & encoded) {
   encoded.readRep(elements, num_elem);
   matrix_ = new CoinPackedMatrix(false, numCols_, numLinearRows_, num_elem,
                                  elements, indices, starts, lengths, 0.0, 0.0);
-  encoded.readRep(origNumRows_);
+  encoded.readRep(initOAcuts_);
   delete[] starts;
   delete[] lengths;
   delete[] indices;

@@ -191,6 +191,9 @@ class DcoModel: public BcpsModel {
   /// Constraint generators.
   //std::vector<DcoConGenerator*> conGenerators_;
   std::map<DcoConstraintType, DcoConGenerator*> conGenerators_;
+  /// Current number of approximation cuts in solver added by
+  /// #approximateCones().
+  int initOAcuts_;
   //@}
 
   /// Number of relaxation iterations.
@@ -225,7 +228,6 @@ class DcoModel: public BcpsModel {
   void writeParameters(std::ostream& outstream) const;
 
 public:
-  int origNumRows_;
   ///@name Message printing
   //@{
   /// DisCO message handler.
@@ -262,6 +264,12 @@ public:
   //@{
   /// Approximate cones.
   void approximateCones();
+  /// Return the current number of approximation cuts in solver that are added
+  /// by #approximateCones()
+  int initOAcuts() const { return initOAcuts_; }
+  /// Decrease #initOAcuts_ by input.
+  void decreaseInitOAcuts( int num) { initOAcuts_ -= num; }
+
   /// return to branch strategy.
   BcpsBranchStrategy * branchStrategy() {return branchStrategy_;}
   /// return Dco Parameter

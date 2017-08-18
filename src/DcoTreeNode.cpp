@@ -656,8 +656,8 @@ void DcoTreeNode::checkCuts() {
   DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
   //CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   //CoinMessages * messages = model->dcoMessages_;
-  int origNumRows = model->origNumRows_;
-  origNumRows = model->getNumCoreLinearConstraints();
+  int origNumRows = model->getNumCoreLinearConstraints();
+  int initOAcuts = model->initOAcuts();
   int solverNumRows = model->solver()->getNumRows();
   int numCuts = solverNumRows - origNumRows;
   if (numCuts==0) {
@@ -732,9 +732,14 @@ void DcoTreeNode::checkCuts() {
     //std::list<int>::iterator curr2 = st->generatorIndex_.begin();
     int numDel = 0;
     int * delInd = new int[numCuts];
+    int num_del_init_oa = 0;
     for (int i=0; i<numCuts; ++i) {
       if (*curr>3) {
         delInd[numDel++] = i+origNumRows;
+        // check whether cut is an initial OA cut
+        if (i<initOAcuts) {
+          num_del_init_oa++;
+        }
         // delete curr from inactivity_
         curr = st->inactive_.erase(curr);
         //curr2 = st->inactive_.erase(curr2);
@@ -756,6 +761,7 @@ void DcoTreeNode::checkCuts() {
       model->solver()->resolve();
     }
     delete[] delInd;
+    model->decreaseInitOAcuts(num_del_init_oa);
   }
 }
 
@@ -918,10 +924,15 @@ int DcoTreeNode::installSubProblem() {
   //int numSolverCols = model->solver()->getNumCols();
   // solver rows are all linear, for both Osi and OsiConic.
   int numSolverRows = model->solver()->getNumRows();
+  int initOAcuts = model->initOAcuts();
 
   // 1. Remove noncore columns and rows
   // 1.1 Remove non-core rows from solver, i.e. cuts
-  int numDelRows = numSolverRows - numCoreLinearRows;
+
+  // we want to remove all cuts that are not added initialy after approximating
+  // cones in #DcoModel::approximateCones(). Approximation cuts that are added
+  // initially comes first in the order in solver rows.
+  int numDelRows = numSolverRows - numCoreLinearRows - initOAcuts;
 #ifndef __COLA__
   if (numDelRows > 0) {
     int * indices = new int[numDelRows];
@@ -932,7 +943,7 @@ int DcoTreeNode::installSubProblem() {
       throw CoinError("Out of memory", "installSubProblem", "DcoTreeNode");
     }
     for (int i=0; i<numDelRows; ++i) {
-      indices[i] = numCoreLinearRows + i;
+      indices[i] = numCoreLinearRows + initOAcuts + i;
     }
     model->solver()->deleteRows(numDelRows, indices);
     delete[] indices;
@@ -1762,10 +1773,13 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
   double scale_par = model->dcoPar()->entry(DcoParams::scaleConFactor);
+  double density_par = model->dcoPar()->entry(DcoParams::denseConFactor);
   double tailoff = model->dcoPar()->entry(DcoParams::tailOff);
+  double cone_tol = model->dcoPar()->entry(DcoParams::coneTol);
   double const * sol = model->solver()->getColSolution();
+  int num_cols = model->solver()->getNumCols();
 
-  // Tranform constraints to Osi cut so that easily add them to LP.
+  // Tranform constraints to Osi cut.
   int num_cuts = conPool->getNumConstraints();
   OsiRowCut const ** cuts_to_add = new OsiRowCut const * [num_cuts];
   int num_add = 0;
@@ -1774,11 +1788,11 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
   // iterate over cuts and
   //------------------------------------------
   // Remove following MILP cuts:
-  //  - empty cuts
-  //  - dense cuts
-  //  - bad scaled cuts
-  //  - weak cuts
-  //  - almost parallel cuts
+  //  (1) empty cuts
+  //  (2) dense cuts
+  //  (3) bad scaled cuts
+  //  (4) weak cuts
+  //  (5) almost parallel cuts
   //------------------------------------------
   for (int i=0; i<num_cuts; ++i) {
     DcoLinearConstraint * curr_con =
@@ -1789,14 +1803,6 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
     double curr_con_lb = curr_con->getLbSoft();
     double curr_con_ub = curr_con->getUbSoft();
 
-
-
-
-
-
-
-
-
     // add all OA cuts
     if (curr_con->constraintType() == DcoConstraintTypeOA) {
       cuts_to_add[num_add++] = curr_con->createOsiRowCut(model);
@@ -1805,19 +1811,20 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
       continue;
     }
 
-    // check whether cut is empty.
+    // (1) check whether cut is empty.
     if (length <= 0) {
       cuts_to_del.push_back(i);
       continue;
     }
-    // check whether cut is dense.
-    if(length > 100) {
+
+    // (2) check whether cut is dense.
+    if((int) density_par * length > num_cols) {
       // discard the cut
       cuts_to_del.push_back(i);
       continue;
     }
 
-    // check cut scaling
+    // (3) check cut scaling
     double activity = 0.0;
     double maxElem = 0.0;
     double minElem = ALPS_DBL_MAX;
@@ -1851,7 +1858,7 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
       continue;
     }
 
-    // Check whether the cut is weak.
+    // (4) Check whether the cut is weak.
     double rowLower = CoinMax(curr_con->getLbHard(),
                               curr_con->getLbSoft());
     double rowUpper = CoinMin(curr_con->getUbHard(),
@@ -1864,7 +1871,7 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
     if (rowUpper < ALPS_INFINITY) {
       violation = CoinMax(violation, activity-rowUpper);
     }
-    if (violation < tailoff) {
+    if (violation < cone_tol) {
       // cut is weak, skip it.
       cuts_to_del.push_back(i);
       message_handler->message(DISCO_INEFFECTIVE_CUT, *messages)
@@ -1873,8 +1880,9 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
         << CoinMessageEol;
       continue;
     }
+
+    // (5) Check almost parallel cuts
     // create dense cut
-    int num_cols = model->solver()->getNumCols();
     double * dense_cut = new double[num_cols]();
     double cut_norm = 0.0;
     for (int i = 0; i < length; ++i) {
@@ -1882,43 +1890,6 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
       cut_norm += elements[i]*elements[i];
     }
     cut_norm = sqrt(cut_norm);
-
-    // {
-    //   // check which one cuts the solution for problem r22c30k10i20
-    //   double sol[] = {7.0, 2.0, 6.25, 8.0, 7.0, 3.85714285091261, 6.0,
-    //                   3.0, 3.85714279912700, 8.0, 3.0, 7.4, 12, 5,
-    //                   10.75, 8, 4, 6, 12, 3, 9, 9,
-    //                   6, 5, 10, 4, 8.2, 7, 6, 2.4, 0.0};
-    //   // check whether cut_i cuts the sol
-    //   double activity = std::inner_product(sol, sol+30, dense_cut, 0.0);
-    //   std::cout << curr_con_lb << " " << activity << " " << curr_con_ub << std::endl;
-    //   if (activity < curr_con_lb or activity > curr_con_ub) {
-    //     std::cout << "=================================================="
-    //               << std::endl;
-    //     std::cout << "size: " <<  curr_con->getSize() << std::endl;
-    //     std::cout << "ind" << std::endl;
-    //     for (int ii=0; ii<curr_con->getSize(); ++ii) {
-    //       std::cout << curr_con->getIndices()[ii] << " ";
-    //     }
-    //     std::cout << std::endl;
-    //     std::cout << "val" << std::endl;
-    //     for (int ii=0; ii<curr_con->getSize(); ++ii) {
-    //       std::cout << curr_con->getValues()[ii] << " ";
-    //     }
-    //     std::cout << std::endl;
-    //     std::cout << "lb " << curr_con_lb << std::endl;
-    //     std::cout << "ub " << curr_con_ub << std::endl;
-
-    //     std::cout << "=================================================="
-    //               << std::endl;
-    //     //throw std::exception();
-    //   }
-    // }
-
-
-
-
-
 
     // Check whether cut is parallel to an existing constraint or cut.
     {
@@ -1954,22 +1925,14 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
         row_norm = sqrt(row_norm);
         // divide by norms
         inn_prod = inn_prod/(cut_norm*row_norm);
-        if (inn_prod > 0.99) {
-
+        // todo(aykut) parametrize the following.
+        if (inn_prod > 0.99999) {
           // cut coeff are same, update bound if tighter
 
           // scale cut lower and upper bounds
           double scale = 0.0;
-
           scale = val[0]/dense_cut[ind[0]];
-
-          std::cout << "inn prod " << inn_prod << std::endl;
-          if (curr_con_lb > -1e-8 and lb[k] < scale * curr_con_lb) {
-            std::cout << "Cut " << i << " is same with better lb. "
-                      << lb[k] << " " << scale*curr_con_lb
-                      << " " << scale
-                      << std::endl;
-            //cuts_to_del.push_back(i);
+          if (curr_con_lb > -1e8 and lb[k] < scale * curr_con_lb) {
             if (index_ == 0) {
               model->solver()->setRowLower(k, scale*curr_con_lb);
             }
@@ -1979,25 +1942,18 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
             }
           }
           if (curr_con_ub < 1e8 and ub[k] > scale * curr_con_ub) {
-            std::cout << "Cut " << i << " is same with better ub. "
-                      << ub[k] << " " << scale*curr_con_ub
-                      << " " << scale
-                      << std::endl;
-            if (!cuts_to_del.empty() and i != cuts_to_del.back()) {
-              //cuts_to_del.push_back(i);
-            }
             // we can do this only at root, else just keep it as a cut
             if (index_ == 0) {
               model->solver()->setRowUpper(k, scale*curr_con_ub);
             }
             else {
+              // keep the cut
               inn_prod = 0.0;
             }
           }
         }
         if (inn_prod > 0.95 and !cuts_to_del.empty() and i != cuts_to_del.back()) {
           // almost parallel
-          //std::cout << "Cut " << i << " is almost parallel. Discarding..." << std::endl;
           cuts_to_del.push_back(i);
         }
         if (!cuts_to_del.empty() and i == cuts_to_del.back()) {
