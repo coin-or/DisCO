@@ -1494,17 +1494,6 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
   DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
-  // get cone info
-  int num_cones = model->getNumCoreConicConstraints();
-  int const * cone_start = model->coneStart();
-  int largest_cone_size = 0;
-  for (int i=0; i<num_cones; ++i) {
-    int size = cone_start[i+1]-cone_start[i];
-    if (size>largest_cone_size) {
-      largest_cone_size = size;
-    }
-  }
-
   // check whether the subproblem solved properly, solver status should be
   // infeasible or optimal.
   if (subproblem_status==BcpsSubproblemStatusPrimalInfeasible) {
@@ -1535,14 +1524,13 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
   if (subproblem_status!=BcpsSubproblemStatusOptimal and
       subproblem_status!=BcpsSubproblemStatusDualInfeasible) {
     // write the failed subproblem to mps file
-    model->solver()->writeMps("failed", "mps", 0.0);
+    //model->solver()->writeMps("failed", "mps", 0.0);
     // log error message
     message_handler->message(DISCO_SOLVER_FAILED, *messages)
       << broker()->getProcRank()
       << getIndex()
       << CoinMessageEol;
   }
-
   if (subproblem_status==BcpsSubproblemStatusDualInfeasible) {
     // unbounded problem add cuts
     keepBounding = true;
@@ -1963,12 +1951,12 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
 
           scale = val[0]/dense_cut[ind[0]];
 
-          std::cout << "inn prod " << inn_prod << std::endl;
+          //std::cout << "inn prod " << inn_prod << std::endl;
           if (curr_con_lb > -1e-8 and lb[k] < scale * curr_con_lb) {
-            std::cout << "Cut " << i << " is same with better lb. "
-                      << lb[k] << " " << scale*curr_con_lb
-                      << " " << scale
-                      << std::endl;
+            // std::cout << "Cut " << i << " is same with better lb. "
+            //           << lb[k] << " " << scale*curr_con_lb
+            //           << " " << scale
+            //           << std::endl;
             //cuts_to_del.push_back(i);
             if (index_ == 0) {
               model->solver()->setRowLower(k, scale*curr_con_lb);
@@ -1979,10 +1967,10 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
             }
           }
           if (curr_con_ub < 1e8 and ub[k] > scale * curr_con_ub) {
-            std::cout << "Cut " << i << " is same with better ub. "
-                      << ub[k] << " " << scale*curr_con_ub
-                      << " " << scale
-                      << std::endl;
+            // std::cout << "Cut " << i << " is same with better ub. "
+            //           << ub[k] << " " << scale*curr_con_ub
+            //           << " " << scale
+            //           << std::endl;
             if (!cuts_to_del.empty() and i != cuts_to_del.back()) {
               //cuts_to_del.push_back(i);
             }
