@@ -656,8 +656,7 @@ void DcoTreeNode::checkCuts() {
   DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
   //CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   //CoinMessages * messages = model->dcoMessages_;
-  int origNumRows = model->origNumRows_;
-  origNumRows = model->getNumCoreLinearConstraints();
+  int origNumRows = model->getNumCoreLinearConstraints();
   int solverNumRows = model->solver()->getNumRows();
   int numCuts = solverNumRows - origNumRows;
   if (numCuts==0) {
@@ -1567,7 +1566,7 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
         !broker()->hasKnowledge(AlpsKnowledgeTypeSolution)) {
       // subproblem is not solved yet, or
       // no incumbent solution in broker
-      gap = DISCO_INFINITY;
+      gap = COIN_DBL_MAX;
     }
     else if (broker()->getIncumbentValue()<quality_) {
       // this node should be fathomed

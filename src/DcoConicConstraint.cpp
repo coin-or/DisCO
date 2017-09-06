@@ -13,7 +13,7 @@ DcoConicConstraint::DcoConicConstraint() {
 /// Initializes constraint from given data.
 DcoConicConstraint::DcoConicConstraint(DcoLorentzConeType type, int size,
                                        int const * members):
-  DcoConstraint(0.0, DISCO_INFINITY) {
+  DcoConstraint(0.0, COIN_DBL_MAX) {
   coneType_ = type;
   coneSize_ = size;
   members_ = new int[coneSize_];
