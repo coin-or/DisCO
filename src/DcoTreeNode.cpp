@@ -1903,10 +1903,7 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
     // }
 
 
-
-
-
-
+    bool added = false;
     // Check whether cut is parallel to an existing constraint or cut.
     {
       // cut is stored at dense_cut
@@ -1958,7 +1955,9 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
             //           << std::endl;
             //cuts_to_del.push_back(i);
             if (index_ == 0) {
-              model->solver()->setRowLower(k, scale*curr_con_lb);
+              added = true;
+              model->solver()->setRowLower(k, scale*curr_con_lb-0.000001);
+              break;
             }
             else {
               // keep the cut
@@ -1975,7 +1974,9 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
             }
             // we can do this only at root, else just keep it as a cut
             if (index_ == 0) {
-              model->solver()->setRowUpper(k, scale*curr_con_ub);
+              added = true;
+              model->solver()->setRowUpper(k, scale*curr_con_ub+0.000001);
+              break;
             }
             else {
               inn_prod = 0.0;
@@ -2002,7 +2003,9 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
     }
     // update cut statistics
     model->conGenerators(curr_con->constraintType())->stats().addNumConsUsed(1);
-    cuts_to_add[num_add++] = curr_con->createOsiRowCut(model);
+    if (not added) {
+      cuts_to_add[num_add++] = curr_con->createOsiRowCut(model);
+    }
     delete[] dense_cut;
   }
 
