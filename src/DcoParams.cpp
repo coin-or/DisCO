@@ -218,7 +218,7 @@ void DcoParams::setDefaultEntries() {
   setEntry(cutIpmIntStrategy, DcoCutStrategyNotSet);
   setEntry(cutOaStrategy, DcoCutStrategyNotSet);
   /// OA cut strategy parameters
-  setEntry(cutOaAlpha, 3);
+  setEntry(cutOaAlpha, 1);
   setEntry(cutOaGamma, 50);
   setEntry(cutOaSlackLimit, 3);
   /// MILP cut generation strategy parameters

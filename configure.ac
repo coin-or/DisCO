@@ -198,6 +198,9 @@ test $coin_has_mosek = yes])
 AM_CONDITIONAL(CPLEX_SOCO_SOLVER,[test $dco_soco_solver = cplex &&
 test $coin_has_cplex = yes])
 
+AM_CONDITIONAL(MOSEK_EXIST,[test $coin_has_mosek = yes])
+AM_CONDITIONAL(CPLEX_EXIST,[test $coin_has_cplex = yes])
+
 ##############################################################################
 #                   VPATH links for example input files                      #
 ##############################################################################

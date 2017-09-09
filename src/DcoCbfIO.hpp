@@ -87,7 +87,7 @@ public:
                   int & numCones, int *& coneStart,
                   int *& coneMembers, int *& coneType) const;
   /// todo(aykut) this will overflow in 32 bit.
-  double getInfinity() const { return 1.7976931348623157e+308; }
+  double getInfinity() const;
 private:
   DcoCbfIO(DcoCbfIO const &);
   DcoCbfIO & operator=(DcoCbfIO const &);

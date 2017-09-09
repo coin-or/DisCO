@@ -179,8 +179,6 @@
 
 #include <vector>
 
-#define DISCO_INFINITY 1e30
-
 /*! Possible types of a constraint.
  */
 enum DcoConstraintType {
