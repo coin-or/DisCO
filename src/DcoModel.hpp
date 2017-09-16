@@ -224,6 +224,8 @@ class DcoModel: public BcpsModel {
   /// write parameters to oustream
   void writeParameters(std::ostream& outstream) const;
 
+  void addConicCuts();
+
 public:
   int origNumRows_;
   ///@name Message printing
@@ -313,6 +315,12 @@ public:
   int numRelaxedRows() const {return numRelaxedRows_;}
   /// Get array of indices to relaxed rows.
   int const * relaxedRows() const {return relaxedRows_;}
+  //@}
+
+  ///@name Problem building Functions
+  //@{
+  /// Load problem from conic solver interface
+  void loadProblem(OsiConicSolverInterface * si);
   //@}
 
   ///@name Constraint Generation related.

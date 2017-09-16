@@ -271,6 +271,8 @@ void DcoModel::readInstance(char const * dataFile) {
     << numConicRows_
     << numIntegerCols_
     << CoinMessageEol;
+
+  addConicCuts();
 }
 
 // this should go into OsiConicSolverInterface or CoinUtils?
@@ -317,80 +319,9 @@ void DcoModel::readInstanceCbf(char const * dataFile) {
   for (int i=0; i<numIntegerCols_; ++i) {
     isInteger_[integerCols_[i]] = 1;
   }
-
-  //delete reader;
-
-  // add conic cuts
-#if defined(__CPLEX_EXIST__)
-  // DisCO has access to a SOCO solver, generate cuts
-  OsiConicSolverInterface * temp_solver = new OsiCplexSolverInterface();
-  temp_solver->setHintParam(OsiDoReducePrint, true, OsiHintTry);
-  // load problem to solver
-  temp_solver->loadProblem(*matrix_, colLB_, colUB_, objCoef_,
-                       rowLB_, rowUB_);
-  // set integers
-  for (int i=0; i<numIntegerCols_; ++i) {
-    temp_solver->setInteger(integerCols_[i]);
-  }
-  // add conic constraints to the solver
-  for (int i=0; i<numConicRows_; ++i) {
-    // do not relax conic constraints, add them to the conic solver
-    OsiLorentzConeType osi_type;
-    if (coneType_[i]==1) {
-      osi_type = OSI_QUAD;
-    }
-    else if (coneType_[i]==2) {
-      osi_type = OSI_RQUAD;
-    }
-    temp_solver->addConicConstraint(osi_type, coneStart_[i+1]-coneStart_[i],
-                                    coneMembers_+coneStart_[i]);
-  }
-  temp_solver->initialSolve();
-  if (temp_solver->isProvenOptimal()) {
-    // iterate over cones in dual form
-    std::vector<CoinPackedMatrix*> AA;
-    std::vector<double*> bb;
-    for (int i=0; i<reader->numRowDomains(); ++i) {
-      if (reader->rowDomains()[i] == QUAD_CONE) {
-        continue;
-      }
-      // get row domain i
-      CoinPackedMatrix * A = NULL;
-      double * b = NULL;
-      AA.push_back(A);
-      bb.push_back(b);
-    }
-    // generate cuts
-    CglConicGD1 cg(temp_solver);
-    OsiConicSolverInterface * nsi = cg.generateAndAddBestCut(*temp_solver, AA, bb);
-    //OsiConicSolverInterface * nsi = cg.generateAndAddCuts(*temp_solver, AA, bb);
-    nsi->setHintParam(OsiDoReducePrint, true, OsiHintTry);
-    // stats after cut
-    std::cout << "Problem stats after cuts " << std::endl;
-    std::cout << "  Number of variables: " << nsi->getNumCols()
-              << std::endl;
-    std::cout << "  Number of linear constraints: " << nsi->getNumRows()
-              << std::endl;
-    std::cout << "  Number of nonzero in coefficient matrix: " << nsi->getNumElements()
-              << std::endl;
-    std::cout << "  Number of conic constraints: " << nsi->getNumCones()
-              << std::endl;
-    delete temp_solver;
-    // write problem stored in nsi
-    nsi->writeMps("root", "mps", 0.0);
-    // load data from nsi
-    loadProblem(nsi);
-    nsi->writeMps("root", "lp", 0.0);
-    delete nsi;
-  }
-  else {
-    std::cout << "Cut generation stopped. "
-              << "Root problem is not solved to optimality."
-              << std::endl;
-  }
-#endif
-
   delete reader;
+
+  addConicCuts();
 }
 
 void DcoModel::readInstanceMps(char const * dataFile) {
@@ -494,6 +425,83 @@ void DcoModel::readInstanceMps(char const * dataFile) {
   // free Coin MPS reader
   delete reader;
 }
+
+
+void DcoModel::addConicCuts() {
+  // add conic cuts
+#if defined(__CPLEX_EXIST__)
+  // DisCO has access to a SOCO solver, generate cuts
+  OsiConicSolverInterface * temp_solver = new OsiCplexSolverInterface();
+  temp_solver->setHintParam(OsiDoReducePrint, true, OsiHintTry);
+
+
+  temp_solver->setHintParam(OsiDoReducePrint, true, OsiHintTry);
+  // load problem to solver
+  temp_solver->loadProblem(*matrix_, colLB_, colUB_, objCoef_,
+                       rowLB_, rowUB_);
+  // set integers
+  for (int i=0; i<numIntegerCols_; ++i) {
+    temp_solver->setInteger(integerCols_[i]);
+  }
+  // add conic constraints to the solver
+  for (int i=0; i<numConicRows_; ++i) {
+    // do not relax conic constraints, add them to the conic solver
+    OsiLorentzConeType osi_type;
+    if (coneType_[i]==1) {
+      osi_type = OSI_QUAD;
+    }
+    else if (coneType_[i]==2) {
+      osi_type = OSI_RQUAD;
+    }
+    temp_solver->addConicConstraint(osi_type, coneStart_[i+1]-coneStart_[i],
+                                    coneMembers_+coneStart_[i]);
+  }
+  temp_solver->initialSolve();
+  if (temp_solver->isProvenOptimal()) {
+    // iterate over cones in dual form
+    // std::vector<CoinPackedMatrix*> AA;
+    // std::vector<double*> bb;
+    // for (int i=0; i<reader->numRowDomains(); ++i) {
+    //   if (reader->rowDomains()[i] == QUAD_CONE) {
+    //     continue;
+    //   }
+    //   // get row domain i
+    //   CoinPackedMatrix * A = NULL;
+    //   double * b = NULL;
+    //   AA.push_back(A);
+    //   bb.push_back(b);
+    // }
+    // generate cuts
+    CglConicGD1 cg(temp_solver);
+    //OsiConicSolverInterface * nsi = cg.generateAndAddBestCut(*temp_solver);
+    OsiConicSolverInterface * nsi = cg.generateAndAddCuts(*temp_solver);
+    nsi->setHintParam(OsiDoReducePrint, true, OsiHintTry);
+    // stats after cut
+    std::cout << "Problem stats after cuts " << std::endl;
+    std::cout << "  Number of variables: " << nsi->getNumCols()
+              << std::endl;
+    std::cout << "  Number of linear constraints: " << nsi->getNumRows()
+              << std::endl;
+    std::cout << "  Number of nonzero in coefficient matrix: " << nsi->getNumElements()
+              << std::endl;
+    std::cout << "  Number of conic constraints: " << nsi->getNumCones()
+              << std::endl;
+    delete temp_solver;
+    // write problem stored in nsi
+    nsi->writeMps("root", "mps", 0.0);
+    // load data from nsi
+    loadProblem(nsi);
+    nsi->writeMps("root", "lp", 0.0);
+    delete nsi;
+  }
+  else {
+    std::cout << "Cut generation stopped. "
+              << "Root problem is not solved to optimality."
+              << std::endl;
+  }
+#endif
+}
+
 
 
 void DcoModel::readParameters(const int argnum,
@@ -601,6 +609,128 @@ void DcoModel::preprocess() {
   approximateCones();
 
 }
+
+/// Load problem from conic solver interface
+void DcoModel::loadProblem(OsiConicSolverInterface * nsi) {
+  numCols_ = nsi->getNumCols();
+  // update colLB_, colUB_
+  if (colLB_) {
+    delete[] colLB_;
+    colLB_ = NULL;
+  }
+  if (colUB_) {
+    delete[] colUB_;
+    colUB_ = NULL;
+  }
+  colLB_ = new double[numCols_];
+  colUB_ = new double[numCols_];
+  std::copy(nsi->getColLower(), nsi->getColLower()+numCols_, colLB_);
+  std::copy(nsi->getColUpper(), nsi->getColUpper()+numCols_, colUB_);
+  // get objSense_
+  objSense_ = nsi->getObjSense();
+  // objCoef_
+  if (objCoef_) {
+    delete[] objCoef_;
+    objCoef_ = NULL;
+  }
+  objCoef_ = new double[numCols_];
+  std::copy(nsi->getObjCoefficients(),
+            nsi->getObjCoefficients()+numCols_, objCoef_);
+  // get numIntegerCols_
+  numIntegerCols_ = nsi->getNumIntegers();
+  // get integerCols_
+  if (integerCols_) {
+    delete[] integerCols_;
+    integerCols_ = NULL;
+  }
+  // update isInteger_ and integerCols_
+  if (isInteger_) {
+    delete[] isInteger_;
+    isInteger_ = NULL;
+  }
+  if (integerCols_) {
+    delete[] integerCols_;
+    integerCols_ = NULL;
+  }
+  integerCols_ = new int[numIntegerCols_];
+  int numInteger = 0;
+  isInteger_ = new int[numCols_]();
+  for (int i=0; i<numCols_; ++i) {
+    if (nsi->isInteger(i)) {
+      isInteger_[i] = 1;
+      integerCols_[numInteger++] = i;
+    }
+  }
+  if (numInteger!=numIntegerCols_) {
+    std::cerr << "Solver is inconsistent!" << std::endl;
+    throw std::exception();
+  }
+  // coneStart_, coneMembers_, coneType_, numConicRows_
+  numConicRows_ = nsi->getNumCones();
+  if (coneType_) {
+    delete[] coneType_;
+    coneType_ = NULL;
+  }
+  if (coneStart_) {
+    delete[] coneStart_;
+    coneStart_ = NULL;
+  }
+  coneType_ = new int[numConicRows_]();
+  coneStart_ = new int[numConicRows_+1]();
+  int ** newConeMembers = new int*[numConicRows_];
+  int numColsInCone = 0;
+  for (int i=0; i<numConicRows_; ++i) {
+    OsiLorentzConeType type;
+    int size;
+    nsi->getConicConstraint(i, type, size, newConeMembers[i]);
+    coneType_[i] = (type==OSI_QUAD) ? 1 : 2;
+    colLB_[newConeMembers[i][0]] = 0.0;
+    colLB_[newConeMembers[i][1]] = (type==OSI_RQUAD) ? 0.0 : colLB_[newConeMembers[i][1]] ;
+    //std::copy(members, members+size, newConeMembers+newConeStart[i]);
+    numColsInCone += size;
+    coneStart_[i+1] = coneStart_[i]+size;
+  }
+  if (coneMembers_) {
+    delete[] coneMembers_;
+    coneMembers_ = NULL;
+  }
+  coneMembers_ = new int[numColsInCone];
+  for (int i=0; i<numConicRows_; ++i) {
+    int size = coneStart_[i+1] - coneStart_[i];
+    std::copy(newConeMembers[i], newConeMembers[i]+size,
+              coneMembers_+coneStart_[i]);
+    delete[] newConeMembers[i];
+    newConeMembers[i] = NULL;
+  }
+  delete[] newConeMembers;
+  // numLinearRows_, numRows_
+  numLinearRows_ = nsi->getNumRows();
+  numRows_ = numLinearRows_ + numConicRows_;
+  // rowLB_, rowUB_,
+  if (rowLB_) {
+    delete[] rowLB_;
+    rowLB_ = NULL;
+  }
+  if (rowUB_) {
+    delete[] rowUB_;
+    rowUB_ = NULL;
+  }
+  rowLB_ = new double[numRows_];
+  rowUB_ = new double[numRows_];
+  std::copy(nsi->getRowLower(), nsi->getRowLower()+numLinearRows_, rowLB_);
+  std::copy(nsi->getRowUpper(), nsi->getRowUpper()+numLinearRows_, rowUB_);
+  std::fill_n(rowLB_+numLinearRows_, numConicRows_, 0.0);
+  std::fill_n(rowUB_+numLinearRows_, numConicRows_, nsi->getInfinity());
+  // matrix_
+  if (matrix_) {
+    delete matrix_;
+    matrix_ = NULL;
+  }
+  matrix_ = new CoinPackedMatrix(*nsi->getMatrixByRow());;
+}
+
+
+
 
 void DcoModel::approximateCones() {
 #ifdef __OA__
