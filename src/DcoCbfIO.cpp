@@ -404,9 +404,6 @@ void DcoCbfIO::getProblem(double *& colLB, double *& colUB,
     }
     rows.clear();
   }
-
-
-
 }
 
 

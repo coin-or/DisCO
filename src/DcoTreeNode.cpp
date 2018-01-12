@@ -1776,14 +1776,6 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
     double curr_con_lb = curr_con->getLbSoft();
     double curr_con_ub = curr_con->getUbSoft();
 
-
-
-
-
-
-
-
-
     // add all OA cuts
     if (curr_con->constraintType() == DcoConstraintTypeOA) {
       cuts_to_add[num_add++] = curr_con->createOsiRowCut(model);
@@ -1902,7 +1894,6 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
     //   }
     // }
 
-
     bool added = false;
     // Check whether cut is parallel to an existing constraint or cut.
     {
@@ -1994,12 +1985,6 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
           break;
         }
       }
-      // the following if condition is redundant
-      // it will be required in case we add more checks for cuts.
-      // if (i == cuts_to_del.back()) {
-      //   // cut is deleted move to the next one.
-      //   continue;
-      // }
     }
     // update cut statistics
     model->conGenerators(curr_con->constraintType())->stats().addNumConsUsed(1);
