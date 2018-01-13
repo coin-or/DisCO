@@ -1,4 +1,4 @@
-Alps_instance p0033.mps
+Alps_instance @SAMPLE_DATA@/p0033.mps
 
 Alps_timeLimit 720
 #Alps_nodeLimit 4000000

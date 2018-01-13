@@ -61,7 +61,8 @@ build_triplet = @build@
 host_triplet = @host@
 noinst_PROGRAMS = unitTest$(EXEEXT)
 subdir = test
-DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
+DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
+	$(srcdir)/disco.par.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.ac
@@ -70,10 +71,11 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/src/config.h \
 	$(top_builddir)/src/config_dco.h
-CONFIG_CLEAN_FILES = disco.par
+CONFIG_CLEAN_FILES = disco.par DcoMain.cpp
 PROGRAMS = $(noinst_PROGRAMS)
-nodist_unitTest_OBJECTS = BlisMain.$(OBJEXT)
+nodist_unitTest_OBJECTS = DcoMain.$(OBJEXT)
 unitTest_OBJECTS = $(nodist_unitTest_OBJECTS)
+am__DEPENDENCIES_1 =
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -335,16 +337,16 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 AUTOMAKE_OPTIONS = foreign
 nodist_unitTest_SOURCES = \
-	BlisMain.cpp 
+	DcoMain.cpp 
 
 
 # List libraries of COIN projects
-unitTest_LDADD = ../src/libBlis.la $(BLISLIB_LIBS)
-unitTest_DEPENDENCIES = ../src/libBlis.la $(BLISLIB_DEPENDENCIES)
+unitTest_LDADD = ../src/libDisco.la $(DISCOLIB_LIBS)
+unitTest_DEPENDENCIES = ../src/libDisco.la $(DISCOLIB_DEPENDENCIES)
 
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Cygwin
-AM_CPPFLAGS = -I`$(CYGPATH_W) $(srcdir)/../src` $(BLISLIB_CFLAGS)
+AM_CPPFLAGS = -I`$(CYGPATH_W) $(srcdir)/../src` $(DISCOLIB_CFLAGS) -D__OA__
 
 # This line is necessary to allow VPATH compilation
 DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/src
@@ -389,6 +391,8 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
+disco.par: $(top_builddir)/config.status $(srcdir)/disco.par.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 
 clean-noinstPROGRAMS:
 	@list='$(noinst_PROGRAMS)'; for p in $$list; do \
@@ -406,7 +410,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BlisMain.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DcoMain.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
