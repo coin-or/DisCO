@@ -1,6 +1,7 @@
 #include "DcoCbfIO.hpp"
 #include "Dco.hpp"
 #include <CoinPackedMatrix.hpp>
+#include <CoinFinite.hpp>
 
 #include <iostream>
 #include <sstream>
@@ -406,4 +407,9 @@ void DcoCbfIO::getProblem(double *& colLB, double *& colUB,
 
 
 
+}
+
+
+double DcoCbfIO::getInfinity() const {
+  return COIN_DBL_MAX;
 }
