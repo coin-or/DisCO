@@ -39,7 +39,7 @@ Alps_timeLimit 720
 #Dco_cutCliqueStrategy       2    # 0: disable, 1: root, 2: auto, 3: periodic
 #Dco_cutCliqueFreq         100
 
-Dco_cutGomoryStrategy       0
+#Dco_cutGomoryStrategy       0
 #Dco_cutGomoryFreq         100
 
 #Dco_cutFlowCoverStrategy    2
@@ -49,7 +49,7 @@ Dco_cutGomoryStrategy       0
 #Dco_cutKnapsackFreq       100
 
 ##---- Following cuts not useful
-Dco_cutMirStrategy         0
+#Dco_cutMirStrategy         0
 #Dco_cutMirFreq           100
 
 #Dco_cutOddHoleStrategy     1
@@ -65,10 +65,10 @@ Dco_cutMirStrategy         0
 ####### the strategy and frequency of a spefic heuristic only if
 ####### users do not set the strategy for that heuristic.
 
-Dco_heurStrategy         0    # 0: disable, 1: root, 2: auto, 3: periodic
+#Dco_heurStrategy         0    # 0: disable, 1: root, 2: auto, 3: periodic
 #Dco_heurCallFrequency  100
 
-Dco_heurRoundStrategy      0  # 0: disable, 1: root, 2: auto, 3: periodic
+#Dco_heurRoundStrategy      0  # 0: disable, 1: root, 2: auto, 3: periodic
 #Dco_heurRoundFreq        100
 
 #Dco_branchStrategy 1   # 0: max inf, 1: pseudocost, 2: reliability, 3: strong
