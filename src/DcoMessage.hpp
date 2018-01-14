@@ -1,9 +1,24 @@
+/*===========================================================================*
+ * This file is part of the Discrete Conic Optimization (DisCO) Solver.      *
+ *                                                                           *
+ * DisCO is distributed under the Eclipse Public License as part of the      *
+ * COIN-OR repository (http://www.coin-or.org).                              *
+ *                                                                           *
+ * Authors:                                                                  *
+ *          Aykut Bulut, Lehigh University                                   *
+ *          Yan Xu, Lehigh University                                        *
+ *          Ted Ralphs, Lehigh University                                    *
+ *                                                                           *
+ * Copyright (C) 2001-2018, Lehigh University, Aykut Bulut, Yan Xu, and      *
+ * Ted Ralphs. All Rights Reserved.                                          *
+ *===========================================================================*/
+
+
 #ifndef DcoMessage_hpp_
 #define DcoMessage_hpp_
 
 #include <Dco.hpp>
 
-//#############################################################################
 
 #if defined(_MSC_VER)
 // Turn off compiler warning about long names
@@ -13,7 +28,6 @@
 /** This deals with Dco messages. */
 #include "CoinMessageHandler.hpp"
 
-//#############################################################################
 
 //todo(aykut) order these messages properly before publishing in github.
 enum DISCO_Message {

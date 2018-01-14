@@ -1,26 +1,18 @@
-#==========================================================================#
-# This file is part of the Discrete Conic Optimization (DisCO) solver.     #
-#                                                                          #
-# DisCO is distributed under the Eclipse Public License.                   #
-#                                                                          #
-# Authors:                                                                 #
-#                                                                          #
-#          Yan Xu, Lehigh University                                       #
-#          Ted Ralphs, Lehigh University                                   #
-#          Aykut Bulut, Lehigh University                                  #
-#                                                                          #
-# Conceptual Design:                                                       #
-#                                                                          #
-#          Yan Xu, Lehigh University                                       #
-#          Ted Ralphs, Lehigh University                                   #
-#          Laszlo Ladanyi, IBM T.J. Watson Research Center                 #
-#          Matthew Saltzman, Clemson University                            #
-#          Aykut Bulut, Lehigh University                                  #
-#                                                                          #
-#                                                                          #
-# Copyright (C) 2001-2017, Lehigh University, Yan Xu, Ted Ralphs and       #
-# Aykut Bulut. All Rights Reserved.                                        #
-#==========================================================================#
+#============================================================================#
+# This file is part of the Discrete Conic Optimization (DisCO) Solver.       #
+#                                                                            #
+# DisCO is distributed under the Eclipse Public License as part of the       #
+# COIN-OR repository (http://www.coin-or.org).                               #
+#                                                                            #
+# Authors:                                                                   #
+#          Aykut Bulut, Lehigh University                                    #
+#          Yan Xu, Lehigh University                                         #
+#          Ted Ralphs, Lehigh University                                     #
+#                                                                            #
+# Copyright (C) 2001-2018, Lehigh University, Aykut Bulut, Yan Xu, and       #
+# Ted Ralphs. All Rights Reserved.                                           #
+#============================================================================#
+
 
 #############################################################################
 #                       Names and other basic things                        #
@@ -34,29 +26,20 @@ AC_INIT([Disco],[gitversion],[https://github.com/aykutbulut/DisCO/issues/new])
 AC_DEFINE([DISCO_GIT_VERSION], [gitversion], [DisCO git version])
 
 AC_COPYRIGHT([
-#==========================================================================#
-# This file is part of the Discrete Conic Optimization (DisCO) solver.     #
-#                                                                          #
-# DisCO is distributed under the Eclipse Public License.                   #
-#                                                                          #
-# Authors:                                                                 #
-#                                                                          #
-#          Yan Xu, Lehigh University                                       #
-#          Ted Ralphs, Lehigh University                                   #
-#          Aykut Bulut, Lehigh University                                  #
-#                                                                          #
-# Conceptual Design:                                                       #
-#                                                                          #
-#          Yan Xu, Lehigh University                                       #
-#          Ted Ralphs, Lehigh University                                   #
-#          Laszlo Ladanyi, IBM T.J. Watson Research Center                 #
-#          Matthew Saltzman, Clemson University                            #
-#          Aykut Bulut, Lehigh University                                  #
-#                                                                          #
-#                                                                          #
-# Copyright (C) 2001-2017, Lehigh University, Yan Xu, Ted Ralphs and       #
-# Aykut Bulut. All Rights Reserved.                                        #
-#==========================================================================#
+#============================================================================#
+# This file is part of the Discrete Conic Optimization (DisCO) Solver.       #
+#                                                                            #
+# DisCO is distributed under the Eclipse Public License as part of the       #
+# COIN-OR repository (http://www.coin-or.org).                               #
+#                                                                            #
+# Authors:                                                                   #
+#          Aykut Bulut, Lehigh University                                    #
+#          Yan Xu, Lehigh University                                         #
+#          Ted Ralphs, Lehigh University                                     #
+#                                                                            #
+# Copyright (C) 2001-2018, Lehigh University, Aykut Bulut, Yan Xu, and       #
+# Ted Ralphs. All Rights Reserved.                                           #
+#============================================================================#
 ])
 
 ##AC_REVISION([m4_esyscmd([./configure.commit])])
