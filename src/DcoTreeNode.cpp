@@ -1879,6 +1879,40 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
     }
     cut_norm = sqrt(cut_norm);
 
+    // {
+    //   // check which one cuts the solution for problem r22c30k10i20
+    //   double sol[] = {7.0, 2.0, 6.25, 8.0, 7.0, 3.85714285091261, 6.0,
+    //                   3.0, 3.85714279912700, 8.0, 3.0, 7.4, 12, 5,
+    //                   10.75, 8, 4, 6, 12, 3, 9, 9,
+    //                   6, 5, 10, 4, 8.2, 7, 6, 2.4, 0.0};
+    //   // check whether cut_i cuts the sol
+    //   double activity = std::inner_product(sol, sol+30, dense_cut, 0.0);
+    //   std::cout << curr_con_lb << " " << activity << " " << curr_con_ub << std::endl;
+    //   if (activity < curr_con_lb or activity > curr_con_ub) {
+    //     std::cout << "=================================================="
+    //               << std::endl;
+    //     std::cout << "size: " <<  curr_con->getSize() << std::endl;
+    //     std::cout << "ind" << std::endl;
+    //     for (int ii=0; ii<curr_con->getSize(); ++ii) {
+    //       std::cout << curr_con->getIndices()[ii] << " ";
+    //     }
+    //     std::cout << std::endl;
+    //     std::cout << "val" << std::endl;
+    //     for (int ii=0; ii<curr_con->getSize(); ++ii) {
+    //       std::cout << curr_con->getValues()[ii] << " ";
+    //     }
+    //     std::cout << std::endl;
+    //     std::cout << "lb " << curr_con_lb << std::endl;
+    //     std::cout << "ub " << curr_con_ub << std::endl;
+
+    //     std::cout << "=================================================="
+    //               << std::endl;
+    //     //throw std::exception();
+    //   }
+    // }
+
+    bool added = false;
+>>>>>>> origin/master
     // Check whether cut is parallel to an existing constraint or cut.
     {
       // cut is stored at dense_cut
@@ -1954,12 +1988,6 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
           break;
         }
       }
-      // the following if condition is redundant
-      // it will be required in case we add more checks for cuts.
-      // if (i == cuts_to_del.back()) {
-      //   // cut is deleted move to the next one.
-      //   continue;
-      // }
     }
     // update cut statistics
     model->conGenerators(curr_con->constraintType())->stats().addNumConsUsed(1);

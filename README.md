@@ -1,13 +1,16 @@
-# DisCO Version 0.95
-
+## Master Branch Build Status
 [![Build Status](https://travis-ci.org/aykutbulut/DisCO.svg?branch=master)](https://travis-ci.org/aykutbulut/DisCO)
 
+## Master Branch Code Quality Report
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/a7c5abda08874549bee0324603ecaca1)](https://www.codacy.com/app/aykutbulut/DisCO?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=aykutbulut/DisCO&amp;utm_campaign=Badge_Grade)
 
+## Download version 0.95
 [ ![Download](https://api.bintray.com/packages/coin-or/download/DisCO/images/download.svg?version=0.95) ](https://bintray.com/coin-or/download/DisCO/0.95/link)
 
+## Cite DisCO
 [![DOI](https://zenodo.org/badge/36100320.svg)](https://zenodo.org/badge/latestdoi/36100320)
 
+# DisCO
 DisCO (Discrete Conic Optimization) is a solver for Mixed Integer Second Order
 Conic Optimization (MISOCO) problems. It is developed on top of COIN-OR
 High-Performance Parallel Search ([CHiPPS][8]) framework.

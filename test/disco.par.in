@@ -1,4 +1,4 @@
-Alps_instance p0033.mps
+Alps_instance @SAMPLE_DATA@/p0033.mps
 
 Alps_timeLimit 720
 #Alps_nodeLimit 4000000
@@ -39,7 +39,7 @@ Alps_timeLimit 720
 #Dco_cutCliqueStrategy       2    # 0: disable, 1: root, 2: auto, 3: periodic
 #Dco_cutCliqueFreq         100
 
-#Dco_cutGomoryStrategy       2
+Dco_cutGomoryStrategy       0
 #Dco_cutGomoryFreq         100
 
 #Dco_cutFlowCoverStrategy    2
@@ -49,7 +49,7 @@ Alps_timeLimit 720
 #Dco_cutKnapsackFreq       100
 
 ##---- Following cuts not useful
-#Dco_cutMirStrategy         0
+Dco_cutMirStrategy         0
 #Dco_cutMirFreq           100
 
 #Dco_cutOddHoleStrategy     1
@@ -65,10 +65,10 @@ Alps_timeLimit 720
 ####### the strategy and frequency of a spefic heuristic only if
 ####### users do not set the strategy for that heuristic.
 
-#Dco_heurStrategy         3    # 0: disable, 1: root, 2: auto, 3: periodic
+Dco_heurStrategy         0    # 0: disable, 1: root, 2: auto, 3: periodic
 #Dco_heurCallFrequency  100
 
-#Dco_heurRoundStrategy      3  # 0: disable, 1: root, 2: auto, 3: periodic
+Dco_heurRoundStrategy      0  # 0: disable, 1: root, 2: auto, 3: periodic
 #Dco_heurRoundFreq        100
 
 #Dco_branchStrategy 1   # 0: max inf, 1: pseudocost, 2: reliability, 3: strong
@@ -90,13 +90,13 @@ Alps_timeLimit 720
 ####### the strategy and frequency of a spefic conic cut generator only if
 ####### users do not set the strategy for that cut generator.
 
-Dco_conicCutStrategy             1  # 0: disable, 1: root, 2: auto, 3: periodic
+Dco_conicCutStrategy             0  # 0: disable, 1: root, 2: auto, 3: periodic
 Dco_conicCutGenerationFrequency  1
 
 Dco_conicCutMirStrategy          0
 Dco_conicCutMirFreq              100
 
-Dco_conicCutGD1Strategy          1
+Dco_conicCutGD1Strategy          0
 Dco_conicCutGD1Freq              100
 
 Dco_conicCutGD2Strategy          0

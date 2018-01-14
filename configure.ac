@@ -207,7 +207,7 @@ AM_CONDITIONAL(CPLEX_EXIST,[test $coin_has_cplex = yes])
 
 # In this case, the source code is taken from the DisCO examples directory
 
-AC_CONFIG_LINKS(test/disco.par:src/DcoMain.cpp)
+AC_CONFIG_LINKS(test/DcoMain.cpp:src/DcoMain.cpp)
 
 # In case this is a VPATH configuration we need to make sure that the
 # input files for the examples are available in the VPATH directory.
@@ -232,7 +232,7 @@ AC_COIN_DOXYGEN(CoinUtils Osi Clp Cgl Alps Bcps CglConic Cola OsiConic OsiCplex 
 AC_CONFIG_FILES([Makefile
                  examples/VRP/Makefile
                  src/Makefile
-                 src/disco.par
+                 test/disco.par
                  test/Makefile
                  disco.pc])
 

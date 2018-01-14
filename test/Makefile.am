@@ -32,22 +32,22 @@ AUTOMAKE_OPTIONS = foreign
 noinst_PROGRAMS = unitTest
 
 nodist_unitTest_SOURCES = \
-	BlisMain.cpp 
+	DcoMain.cpp
 
 # List libraries of COIN projects
-unitTest_LDADD = ../src/libBlis.la $(BLISLIB_LIBS)
-unitTest_DEPENDENCIES = ../src/libBlis.la $(BLISLIB_DEPENDENCIES)
+unitTest_LDADD = ../src/libDisco.la $(DISCOLIB_LIBS)
+unitTest_DEPENDENCIES = ../src/libDisco.la $(DISCOLIB_DEPENDENCIES)
 
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Cygwin
-AM_CPPFLAGS = -I`$(CYGPATH_W) $(srcdir)/../src` $(BLISLIB_CFLAGS)
+AM_CPPFLAGS = -I`$(CYGPATH_W) $(srcdir)/../src` $(DISCOLIB_CFLAGS) -D__OA__
 
 # This line is necessary to allow VPATH compilation
 DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/src
 
 if COIN_HAS_SAMPLE
 test: unitTest$(EXEEXT)
-	./unitTest$(EXEEXT) -Alps_instance `$(CYGPATH_W) $(SAMPLE_DATA)/`p0033.mps
+	./unitTest$(EXEEXT) param disco.par
 else
 test:
 	echo "Required Data/Sample for test not available."
