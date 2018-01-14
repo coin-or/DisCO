@@ -32,7 +32,7 @@ AUTOMAKE_OPTIONS = foreign
 noinst_PROGRAMS = unitTest
 
 nodist_unitTest_SOURCES = \
-	DcoMain.cpp 
+	DcoMain.cpp
 
 # List libraries of COIN projects
 unitTest_LDADD = ../src/libDisco.la $(DISCOLIB_LIBS)
@@ -47,7 +47,7 @@ DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/src
 
 if COIN_HAS_SAMPLE
 test: unitTest$(EXEEXT)
-	./unitTest$(EXEEXT) -Alps_instance `$(CYGPATH_W) $(SAMPLE_DATA)/`p0033.mps
+	./unitTest$(EXEEXT) param disco.par
 else
 test:
 	echo "Required Data/Sample for test not available."

@@ -39,7 +39,7 @@ Alps_timeLimit 720
 #Dco_cutCliqueStrategy       2    # 0: disable, 1: root, 2: auto, 3: periodic
 #Dco_cutCliqueFreq         100
 
-#Dco_cutGomoryStrategy       2
+Dco_cutGomoryStrategy       0
 #Dco_cutGomoryFreq         100
 
 #Dco_cutFlowCoverStrategy    2
@@ -49,7 +49,7 @@ Alps_timeLimit 720
 #Dco_cutKnapsackFreq       100
 
 ##---- Following cuts not useful
-#Dco_cutMirStrategy         0
+Dco_cutMirStrategy         0
 #Dco_cutMirFreq           100
 
 #Dco_cutOddHoleStrategy     1

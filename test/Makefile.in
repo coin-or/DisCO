@@ -337,7 +337,7 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 AUTOMAKE_OPTIONS = foreign
 nodist_unitTest_SOURCES = \
-	DcoMain.cpp 
+	DcoMain.cpp
 
 
 # List libraries of COIN projects
@@ -612,7 +612,7 @@ uninstall-am: uninstall-info-am
 
 
 @COIN_HAS_SAMPLE_TRUE@test: unitTest$(EXEEXT)
-@COIN_HAS_SAMPLE_TRUE@	./unitTest$(EXEEXT) -Alps_instance `$(CYGPATH_W) $(SAMPLE_DATA)/`p0033.mps
+@COIN_HAS_SAMPLE_TRUE@	./unitTest$(EXEEXT) param disco.par
 @COIN_HAS_SAMPLE_FALSE@test:
 @COIN_HAS_SAMPLE_FALSE@	echo "Required Data/Sample for test not available."
 
