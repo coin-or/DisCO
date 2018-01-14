@@ -1912,7 +1912,6 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
     // }
 
     bool added = false;
->>>>>>> origin/master
     // Check whether cut is parallel to an existing constraint or cut.
     {
       // cut is stored at dense_cut
