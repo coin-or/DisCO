@@ -29,7 +29,7 @@ DcoConGenerator::DcoConGenerator(DcoModel * model,
                                  char const * name,
                                  DcoCutStrategy strategy,
                                  int frequency):
-  model_(model), type_(type), name_(name), strategy_(strategy),
+  name_(name), type_(type), model_(model), strategy_(strategy),
   frequency_(frequency) {
   stats_.reset();
 }

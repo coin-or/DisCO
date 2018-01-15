@@ -300,7 +300,7 @@ class DcoTreeNode: public BcpsTreeNode {
   //@{
   /// Generate constraints (cuts) and store them in the given constraint pool.
   int generateConstraints(BcpsConstraintPool * conPool, int type);
-  virtual int generateConstraints(BcpsConstraintPool * conPool) {}
+  virtual int generateConstraints(BcpsConstraintPool * conPool) {return 0;}
   /// Generate variables (lift the problem) and store them in the given
   /// variable pool.
   virtual int generateVariables(BcpsVariablePool * varPool);

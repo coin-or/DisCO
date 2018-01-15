@@ -742,7 +742,7 @@ void DcoTreeNode::checkCuts() {
   }
   // iterate over cuts and remove the ones that are inactive for
   // 3 or more iterations
-  int slackLimit = model->dcoPar()->entry(DcoParams::cutOaSlackLimit);
+  //int slackLimit = model->dcoPar()->entry(DcoParams::cutOaSlackLimit);
   {
     std::list<int>::iterator curr = st->inactive_.begin();
     //std::list<int>::iterator curr2 = st->generatorIndex_.begin();
@@ -1778,7 +1778,7 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
   CoinMessages * messages = model->dcoMessages_;
   double scale_par = model->dcoPar()->entry(DcoParams::scaleConFactor);
   double density_par = model->dcoPar()->entry(DcoParams::denseConFactor);
-  double tailoff = model->dcoPar()->entry(DcoParams::tailOff);
+  //double tailoff = model->dcoPar()->entry(DcoParams::tailOff);
   double cone_tol = model->dcoPar()->entry(DcoParams::coneTol);
   double const * sol = model->solver()->getColSolution();
   int num_cols = model->solver()->getNumCols();
@@ -1933,7 +1933,7 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
       // cut is stored at dense_cut
       // compute par := max _i { cut^T a_i / |cut| |a_i| } where a_i is
       // constraint. cut is discarded if par > 0.98
-      double par_factor = 0.0;
+      //double par_factor = 0.0;
       // iterate over constraints
       CoinPackedMatrix const * mat = model->solver()->getMatrixByRow();
       double const * lb = model->solver()->getRowLower();

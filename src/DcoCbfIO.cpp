@@ -46,7 +46,6 @@ void DcoCbfIO::readCbf(char const * prob_file_path) {
   // open file
   std::ifstream prob_file;
   prob_file.open(prob_file_path);
-  int sense;
   std::string line;
   while (std::getline(prob_file, line)) {
     if (!line.compare("VER")) {
