@@ -144,7 +144,7 @@ AlpsKnowledge * DcoBranchObject::decode(AlpsEncoded & encoded) const {
   AlpsKnowledge * new_bo = new DcoBranchObject(-1, 0.0, 0.0);
   status = new_bo->decodeToSelf(encoded);
   assert(status=AlpsReturnStatusOk);
-  return new_bo;;
+  return new_bo;
 }
 
 /// Decode the given AlpsEncoded object into this.
