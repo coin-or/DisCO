@@ -10,9 +10,9 @@
  *          Ted Ralphs, Lehigh University                                    *
  *                                                                           *
  * Copyright (C) 2001-2018, Lehigh University, Aykut Bulut, Yan Xu, and      *
- * Ted Ralphs. All Rights Reserved.                                          *
+ *                          Ted Ralphs.                                      *
+ * All Rights Reserved.                                                      *
  *===========================================================================*/
-
 
 #include "DcoBranchObject.hpp"
 #include "DcoMessage.hpp"

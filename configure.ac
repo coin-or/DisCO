@@ -10,7 +10,8 @@
 #          Ted Ralphs, Lehigh University                                     #
 #                                                                            #
 # Copyright (C) 2001-2018, Lehigh University, Aykut Bulut, Yan Xu, and       #
-# Ted Ralphs. All Rights Reserved.                                           #
+#                          Ted Ralphs.                                       #
+# All Rights Reserved.                                                       #
 #============================================================================#
 
 
@@ -38,7 +39,8 @@ AC_COPYRIGHT([
 #          Ted Ralphs, Lehigh University                                     #
 #                                                                            #
 # Copyright (C) 2001-2018, Lehigh University, Aykut Bulut, Yan Xu, and       #
-# Ted Ralphs. All Rights Reserved.                                           #
+#                          Ted Ralphs.                                       #
+# All Rights Reserved.                                                       #
 #============================================================================#
 ])
 
