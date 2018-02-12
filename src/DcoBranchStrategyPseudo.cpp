@@ -140,7 +140,7 @@ void DcoBranchStrategyPseudo::update_statistics(DcoTreeNode * node) {
   // get quality_ of the parent node
   double parent_quality = node->getParent()->getQuality();
   // is this node a down or up branch
-  DcoNodeBranchDir dir = node->getDesc()->getBranchedDir();
+  int dir = node->getDesc()->getBranchedDir();
   // index of the branched variable for the current node
   int branched_index = rev_relaxed_[node->getDesc()->getBranchedInd()];
   double branched_value = node->getDesc()->getBranchedVal();

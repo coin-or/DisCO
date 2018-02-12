@@ -422,6 +422,7 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
   CoinMessages * messages = model->dcoMessages_;
 
   // debug stuff
+#ifdef DISCO_DEBUG
   std::stringstream debug_msg;
   debug_msg << "["
             << broker()->getProcRank()
@@ -435,6 +436,7 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
   message_handler->message(0, "Dco", debug_msg.str().c_str(),
                            'G', DISCO_DLOG_PROCESS)
     << CoinMessageEol;
+#endif
   // end of debug stuff
 
   // std::cout << "Broker reports quality " << broker()->getIncumbentValue()
@@ -453,6 +455,7 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
   // std::cout << "abs " << abs_gap << " limit " << abs_gap_limit << std::endl;
   // std::cout << "rel " << rel_gap << " limit " << rel_gap_limit << std::endl;
   if (rel_gap_limit>rel_gap or abs_gap_limit>abs_gap) {
+#ifdef DISCO_DEBUG
     // debug message
     message_handler->message(DISCO_NODE_FATHOM_PARENTQ, *model->dcoMessages_)
       << broker()->getProcRank()
@@ -473,6 +476,7 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
       << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
       << model->objSense()*getQuality()
       << CoinMessageEol;
+#endif
     // end of grumpy message
     setStatus(AlpsNodeStatusFathomed);
     return AlpsReturnStatusOk;
@@ -524,7 +528,7 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
         (model->solver()->getObjValue()-bcpStats_.lastObjVal_);
       bcpStats_.lastObjVal_ = model->solver()->getObjValue();
     }
-
+#ifdef DISCO_DEBUG
     // debug print solver status
     message_handler->message(DISCO_SOLVER_STATUS, *messages)
       << broker()->getProcRank()
@@ -534,7 +538,6 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
       << solEstimate_
       << CoinMessageEol;
     // end of debug stuff
-
     // grumpy message
     if ((subproblem_status==BcpsSubproblemStatusOptimal) &&
         (getStatus()==AlpsNodeStatusCandidate or
@@ -564,6 +567,7 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
         << CoinMessageEol;
     }
     // end of grumpy message
+#endif
 
     // check if this can be fathomed
     double cutoff = model->dcoPar()->entry(DcoParams::cutoff);
@@ -577,6 +581,7 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
     //std::cout << "abs " << abs_gap << " limit " << abs_gap_limit << std::endl;
     //std::cout << "rel " << rel_gap << " limit " << rel_gap_limit << std::endl;
     if (rel_gap_limit>rel_gap or abs_gap_limit>abs_gap) {
+#ifdef DISCO_DEBUG
       // debug message
       message_handler->message(DISCO_NODE_FATHOM, *messages)
         << broker()->getProcRank()
@@ -597,6 +602,7 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
         << model->objSense()*getQuality()
         << CoinMessageEol;
       // end of grumpy message
+#endif
       setStatus(AlpsNodeStatusFathomed);
       break;
     }
@@ -613,6 +619,7 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
     branchConstrainOrPrice(subproblem_status, keepBounding, do_branch,
                            genConstraints,
                            genVariables);
+#ifdef DISCO_DEBUG
     // debug message
     message_handler->message(DISCO_NODE_BCP_DECISION, *messages)
       << broker()->getProcRank()
@@ -621,7 +628,7 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
       << genConstraints
       << CoinMessageEol;
     // end of debug stuff
-
+#endif
     if (getStatus()==AlpsNodeStatusFathomed) {
       // node is fathomed, nothing to do.
       break;
@@ -1201,12 +1208,14 @@ DcoTreeNode::branch() {
   //std::cout << "abs " << abs_gap << " limit " << abs_gap_limit << std::endl;
   //std::cout << "rel " << rel_gap << " limit " << rel_gap_limit << std::endl;
   if (rel_gap_limit>rel_gap or abs_gap_limit>abs_gap) {
+#ifdef DISCO_DEBUG
     message_handler->message(DISCO_NODE_FATHOM, *messages)
       << broker()->getProcRank()
       << getIndex()
       << abs_gap
       << rel_gap
       << CoinMessageEol;
+#endif
     setStatus(AlpsNodeStatusFathomed);
     return res;
   }
@@ -1226,6 +1235,7 @@ DcoTreeNode::branch() {
   int branch_var = branch_object->index();
   double branch_value = branch_object->value();
 
+#ifdef DISCO_DEBUG
   message_handler->message(DISCO_NODE_BRANCH, *messages)
     << broker()->getProcRank()
     << index_
@@ -1233,6 +1243,7 @@ DcoTreeNode::branch() {
     << branch_value
     << branch_object->score()
     << CoinMessageEol;
+#endif
 
   // compute child nodes' warm start basis
   // ownership is transferred to node description object, no need to free.
@@ -1322,6 +1333,7 @@ DcoTreeNode::branch() {
   res.push_back(CoinMakeTriple(static_cast<AlpsNodeDesc*>(up_node),
                                AlpsNodeStatusCandidate,
                                quality_));
+#ifdef DISCO_DEBUG
   // grumpy message
   int num_inf = 0;
   double sum_inf = 0.0;
@@ -1359,6 +1371,7 @@ DcoTreeNode::branch() {
     << num_inf
     << CoinMessageEol;
   // end of grumpy message
+#endif
 
   setStatus(AlpsNodeStatusBranched);
 
@@ -1468,6 +1481,7 @@ void DcoTreeNode::processSetPregnant() {
   // set status pregnant
   setStatus(AlpsNodeStatusPregnant);
 
+#ifdef DISCO_DEBUG
   // grumpy message
   double sum_inf = 0.0;
   int num_inf = 0;
@@ -1505,6 +1519,7 @@ void DcoTreeNode::processSetPregnant() {
     << num_inf
     << CoinMessageEol;
   // end of grumpy message
+#endif
   if (ws) delete ws;
 }
 
@@ -1527,6 +1542,7 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
   // infeasible or optimal.
   if (subproblem_status==BcpsSubproblemStatusPrimalInfeasible) {
     // subproblem is infeasible, fathom
+#ifdef DISCO_DEBUG
     // debug message
     message_handler->message(DISCO_SOLVER_INFEASIBLE, *messages)
       << broker()->getProcRank()
@@ -1546,6 +1562,8 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
       << getParentIndex()
       << grumpyDirection[dynamic_cast<DcoNodeDesc*>(desc_)->getBranchedDir()]
       << CoinMessageEol;
+#endif
+
     // end of grumpy message
     setStatus(AlpsNodeStatusFathomed);
     return;
@@ -1714,6 +1732,8 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
     double incum_val = broker()->getIncumbentValue();
     model->solver()->setDblParam(OsiDualObjectiveLimit,
                                  model->objSense()*incum_val);
+
+#ifdef DISCO_DEBUG
     // set node status to fathomed.
     message_handler->message(0, "Dco", "Node is feasible, fathoming... ",
                              'G', DISCO_DLOG_BRANCH)
@@ -1730,6 +1750,7 @@ void DcoTreeNode::branchConstrainOrPrice(BcpsSubproblemStatus subproblem_status,
       << model->objSense()*getQuality()
       << CoinMessageEol;
     // end of grumpy message
+#endif
 
     // stop bounding, branching, cutting.
     keepBounding = false;
@@ -1880,10 +1901,14 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
     if (violation < cone_tol) {
       // cut is weak, skip it.
       cuts_to_del.push_back(i);
+
+#ifdef DISCO_DEBUG
       message_handler->message(DISCO_INEFFECTIVE_CUT, *messages)
         << broker()->getProcRank()
         << getIndex()
         << CoinMessageEol;
+#endif
+
       continue;
     }
 
@@ -2034,22 +2059,26 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
                          CoinWarmStartBasis::basic);
     }
     if (model->solver()->setWarmStart(ws) == false) {
+#ifdef DISCO_DEBUG
       message_handler->message(DISCO_FAILED_WARM_START, *messages)
         << broker()->getProcRank()
         << getIndex()
         << CoinMessageEol;
+#endif
     }
     for (int k=0; k<num_add; ++k) {
       delete cuts_to_add[k];
     }
   }
 
+#ifdef DISCO_DEBUG
   message_handler->message(DISCO_CUTS_ADDED, *messages)
     << broker()->getProcRank()
     << getIndex()
     << num_add
     << conPool->getNumConstraints()
     << CoinMessageEol;
+#endif
 
   delete[] cuts_to_add;
   if (ws) delete ws;
@@ -2070,10 +2099,12 @@ AlpsReturnStatus DcoTreeNode::encode(AlpsEncoded * encoded) const {
   status = BcpsTreeNode::encode(encoded);
   assert(status==AlpsReturnStatusOk);
 
+#ifdef DISCO_DEBUG
   message_handler->message(DISCO_NODE_ENCODED, *messages)
     << broker()->getProcRank()
     << getIndex()
     << CoinMessageEol;
+#endif
 
   return status;
 }
@@ -2109,10 +2140,12 @@ AlpsReturnStatus DcoTreeNode::decodeToSelf(AlpsEncoded & encoded) {
   status = BcpsTreeNode::decodeToSelf(encoded);
   assert(status==AlpsReturnStatusOk);
 
+#ifdef DISCO_DEBUG
   message_handler->message(DISCO_NODE_DECODED, *messages)
     << broker()->getProcRank()
     << getIndex()
     << CoinMessageEol;
+#endif
 
   if (isPregnant()) {
     // delete branch object stored, we will re-create it. Ideally it should not

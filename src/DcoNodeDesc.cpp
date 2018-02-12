@@ -159,7 +159,8 @@ AlpsReturnStatus DcoNodeDesc::decodeToSelf(AlpsEncoded & encoded) {
     assert(tempInt == nint*4);
     basis_ = new CoinWarmStartBasis();
     if (!basis_) {
-        throw CoinError("Out of memory", "BlisDecodeWarmStart", "HELP");
+      // todo(aykut) We should do this through messages as in the rest of the code.
+        throw CoinError("Out of memory", "DcoDecodeWarmStart", "HELP");
     }
     basis_->assignBasisStatus(numCols, numRows,
                               structuralStatus, artificialStatus);

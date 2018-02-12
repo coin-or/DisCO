@@ -71,6 +71,7 @@ BcpsObject * DcoVariable::clone() const {
   throw std::exception();
 }
 
+//todo(aykut) what if the variable is not integer/relaxed?
 double DcoVariable::infeasibility(BcpsModel * bcps_model,
                                   int & preferredDir) const {
   DcoModel * model = dynamic_cast<DcoModel*>(bcps_model);

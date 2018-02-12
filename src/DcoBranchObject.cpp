@@ -36,6 +36,7 @@ DcoBranchObject::DcoBranchObject(BcpsBranchObject const * other)
     BcpsBranchObject(*other) {
   DcoBranchObject const * dco_other = dynamic_cast<DcoBranchObject const *>(other);
   if (dco_other==NULL) {
+    //todo(aykut) Use messages_
     std::cerr << "Fatal error!" << std::endl;
     throw std::exception();
   }
