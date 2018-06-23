@@ -1,5 +1,5 @@
 ## Master Branch Build Status
-[![Build Status](https://travis-ci.org/aykutbulut/DisCO.svg?branch=master)](https://travis-ci.org/aykutbulut/DisCO)
+[![Build Status](https://travis-ci.org/coin-or/DisCO.svg?branch=master)](https://travis-ci.org/coin-or/DisCO)
 
 ## Master Branch Code Quality Report
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/a7c5abda08874549bee0324603ecaca1)](https://www.codacy.com/app/aykutbulut/DisCO?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=aykutbulut/DisCO&amp;utm_campaign=Badge_Grade)
