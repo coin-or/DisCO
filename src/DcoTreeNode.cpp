@@ -144,6 +144,7 @@ void DcoTreeNode::convertToExplicit() {
   int num_cols = model->solver()->getNumCols();
   // this will keep bound information, lower and upper
   Bound hard_bound;
+  // ownership is transferred to Bcps, no need to free.
   hard_bound.lower.ind = new int[num_cols];
   hard_bound.lower.val = new double[num_cols];
   hard_bound.upper.ind = new int[num_cols];
@@ -152,6 +153,7 @@ void DcoTreeNode::convertToExplicit() {
   std::fill_n(hard_bound.upper.val, num_cols, -ALPS_DBL_MAX);
 
   Bound soft_bound;
+  // ownership is transferred to Bcps, no need to free.
   soft_bound.lower.ind = new int[num_cols];
   soft_bound.lower.val = new double[num_cols];
   soft_bound.upper.ind = new int[num_cols];
@@ -680,7 +682,7 @@ void DcoTreeNode::checkCuts() {
   if (numCuts==0) {
     return;
   }
-  CoinWarmStartBasis const * ws =
+  CoinWarmStartBasis * ws =
     dynamic_cast<CoinWarmStartBasis*> (model->solver()->getWarmStart());
   if (ws==NULL) {
     // nothing to do if there is no warm start information
@@ -705,8 +707,6 @@ void DcoTreeNode::checkCuts() {
       //     norm += fabs(value[j]);
       //   }
       // }
-
-
 
 
     double slack = model->solver()->getRowUpper()[origNumRows+i] - model->solver()->getRowActivity()[origNumRows+i];
@@ -780,6 +780,7 @@ void DcoTreeNode::checkCuts() {
     delete[] delInd;
     model->decreaseInitOAcuts(num_del_init_oa);
   }
+  delete ws;
 }
 
 void DcoTreeNode::callHeuristics() {
@@ -1235,6 +1236,7 @@ DcoTreeNode::branch() {
     << CoinMessageEol;
 
   // compute child nodes' warm start basis
+  // ownership is transferred to node description object, no need to free.
   CoinWarmStartBasis * child_ws;
   child_ws = (getDesc()->getBasis()==0) ? 0 :
     new CoinWarmStartBasis(*getDesc()->getBasis());
@@ -1383,6 +1385,7 @@ void DcoTreeNode::copyFullNode(DcoNodeDesc * child_node) const {
 
   // this will keep bound information, lower and upper
   // it is used for both hard and soft bounds.
+  // ownership is transferred, no need to free
   Bound bound;
   bound.lower.ind = new int[num_cols];
   bound.lower.val = new double[num_cols];
@@ -1460,9 +1463,7 @@ void DcoTreeNode::processSetPregnant() {
   // based solver.
   DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
   CoinWarmStartBasis * ws = NULL;
-  if (model->solver()->getWarmStart()!=NULL) {
-    ws = dynamic_cast<CoinWarmStartBasis*>(model->solver()->getWarmStart());
-  }
+  ws = dynamic_cast<CoinWarmStartBasis*>(model->solver()->getWarmStart());
   // store basis in the node desciption.
   getDesc()->setBasis(ws);
   // set status pregnant
@@ -1505,6 +1506,7 @@ void DcoTreeNode::processSetPregnant() {
     << num_inf
     << CoinMessageEol;
   // end of grumpy message
+  if (ws) delete ws;
 }
 
 // generate constraints is a bitmask for the type of the constraint to
@@ -2051,7 +2053,7 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
     << CoinMessageEol;
 
   delete[] cuts_to_add;
-  delete ws;
+  if (ws) delete ws;
 }
 
 /// Pack this into an encoded object.

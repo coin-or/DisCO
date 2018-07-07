@@ -539,8 +539,9 @@ void DcoModel::preprocess() {
 
   // approximation of cones will update numLinearRows_, numRows_, rowLB_,
   // rowUB_, matrix_.
-  approximateCones();
-
+  if (numConicRows_ > 0) {
+    approximateCones();
+  }
 }
 
 void DcoModel::approximateCones() {
@@ -1747,6 +1748,7 @@ void DcoModel::reportFeasibility() {
       if (viol > max_violation) {
         max_violation = viol;
       }
+      delete[] values;
     }
     dcoMessageHandler_->message(DISCO_SOL_CONE_FEAS_REPORT,
                                 *dcoMessages_)
