@@ -18,6 +18,8 @@
 #ifndef DcoCbfIO_hpp_
 #define DcoCbfIO_hpp_
 
+#include <sstream>
+
 class CoinPackedMatrix;
 
 enum CONES {
@@ -67,8 +69,22 @@ class DcoCbfIO {
   double * fixed_term_;
 public:
   DcoCbfIO();
+  /// Construct CBF problem from inputs.
+  DcoCbfIO(int sense,
+           int num_cols, int num_col_domains,
+           CONES const * col_domains, int const * col_domain_size,
+           int num_int, int const * integers,
+           int num_rows, int num_row_domains,
+           CONES const * row_domains, int const * row_domain_size,
+           double const * obj_coef,
+           int num_nz, int const * row_coord,
+           int const * col_coord, double const * coef,
+           double const * fixed_term);
   ~DcoCbfIO();
+  /// Read from input file.
   void readCbf(char const * cbf_file);
+  /// Write problem into a given stream.
+  void writeCbf(std::stringstream & problem_stream) const;
   /// returns nonzero if rows are in quadratic or rotated quadratic domains
   int check_row_domains() const;
   /// get number of columns
@@ -98,6 +114,7 @@ public:
   /// get type of row domains
   CONES const * rowDomains() const { return row_domains_; }
   //@}
+  /// Get problem in standard form.
   void getProblem(double *& colLB, double *& colUB,
                   double *& rowLB, double *& rowUB,
                   CoinPackedMatrix *& matrix,

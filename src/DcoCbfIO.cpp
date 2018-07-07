@@ -21,7 +21,6 @@
 #include <CoinFinite.hpp>
 
 #include <iostream>
-#include <sstream>
 #include <fstream>
 #include <iomanip>
 #include <cstdlib>
@@ -29,6 +28,7 @@
 #include <ctime>
 #include <vector>
 #include <exception>
+
 
 DcoCbfIO::DcoCbfIO() {
   col_domains_ = NULL;
@@ -41,6 +41,50 @@ DcoCbfIO::DcoCbfIO() {
   col_coord_ = NULL;
   coef_ = NULL;
   fixed_term_ = NULL;
+}
+
+DcoCbfIO::DcoCbfIO(int sense,
+                   int num_cols, int num_col_domains,
+                   CONES const * col_domains, int const * col_domain_size,
+                   int num_int, int const * integers,
+                   int num_rows, int num_row_domains,
+                   CONES const * row_domains, int const * row_domain_size,
+                   double const * obj_coef,
+                   int num_nz, int const * row_coord,
+                   int const * col_coord, double const * coef,
+                   double const * fixed_term) {
+  version_ = 1;
+  if (sense!=-1 && sense!=1) {
+    std::cerr << "Sense should be either -1 (max) or 1 (min)." << std::endl;
+    throw std::exception();
+  }
+  sense_ = sense;
+  num_cols_ = num_cols;
+  num_col_domains_ = num_col_domains;
+  col_domains_ = new CONES[num_col_domains];
+  std::copy(col_domains, col_domains+num_col_domains, col_domains_);
+  col_domain_size_ = new int[num_col_domains];
+  std::copy(col_domain_size, col_domain_size+num_col_domains, col_domain_size_);
+  num_int_ = num_int;
+  integers_ = new int[num_int];
+  std::copy(integers, integers+num_int, integers_);
+  num_rows_ = num_rows;
+  num_row_domains_ = num_row_domains;
+  row_domains_ = new CONES[num_row_domains];
+  std::copy(row_domains, row_domains+num_row_domains, row_domains_);
+  row_domain_size_ = new int[num_row_domains];
+  std::copy(row_domain_size, row_domain_size+num_row_domains, row_domain_size_);
+  obj_coef_ = new double[num_cols];
+  std::copy(obj_coef, obj_coef+num_cols, obj_coef_);
+  num_nz_ = num_nz;
+  row_coord_ = new int[num_nz];
+  std::copy(row_coord, row_coord+num_nz, row_coord_);
+  col_coord_ = new int[num_nz];
+  std::copy(col_coord, col_coord+num_nz, col_coord_);
+  coef_ = new double[num_nz];
+  std::copy(coef, coef+num_nz, coef_);
+  fixed_term_ = new double[num_rows];
+  std::copy(fixed_term, fixed_term+num_rows, fixed_term_);
 }
 
 void DcoCbfIO::readCbf(char const * prob_file_path) {
@@ -171,6 +215,120 @@ void DcoCbfIO::readCbf(char const * prob_file_path) {
   prob_file.close();
 }
 
+void DcoCbfIO::writeCbf(std::stringstream & problem_stream) const {
+  problem_stream << "# Problem written by COIN-OR DisCO." << std::endl;
+  problem_stream << std::endl;
+  // version
+  problem_stream << "VER" << std::endl;
+  problem_stream << version_ << std::endl;
+  problem_stream << std::endl;
+  // objective sense
+  problem_stream << "OBJSENSE" << std::endl;
+  if (sense_==-1) {
+    problem_stream << "MAX" << std::endl;
+  }
+  else {
+    problem_stream << "MIN" << std::endl;
+  }
+  problem_stream << std::endl;
+  // var
+  problem_stream << "VAR" << std::endl;
+  problem_stream << num_cols_ << " " << num_col_domains_ << std::endl;
+  for (int i=0; i<num_col_domains_; ++i) {
+    std::string domain;
+    if (col_domains_[i]==FREE_RANGE) {
+      domain = "F";
+    }
+    else if (col_domains_[i]==POSITIVE_ORT) {
+      domain = "L+";
+    }
+    else if (col_domains_[i]==NEGATIVE_ORT) {
+      domain = "L-";
+    }
+    else if (col_domains_[i]==FIXPOINT_ZERO) {
+      domain = "L=";
+    }
+    else if (col_domains_[i]==QUAD_CONE) {
+      domain = "Q";
+    }
+    else if (col_domains_[i]==RQUAD_CONE) {
+      domain = "QR";
+    }
+    problem_stream << domain << " " << col_domain_size_[i];
+  }
+  problem_stream << std::endl;
+  // int
+  problem_stream << "INT" << std::endl;
+  problem_stream << num_int_ << std::endl;
+  for (int i=0; i<num_int_; ++i) {
+    problem_stream << integers_[i] << std::endl;
+  }
+  // con
+  problem_stream << num_rows_ << " " << num_row_domains_ << std::endl;
+  for (int i=0; i<num_row_domains_; ++i) {
+    std::string domain;
+    if (row_domains_[i]==FREE_RANGE) {
+      domain = "F";
+    }
+    else if (row_domains_[i]==POSITIVE_ORT) {
+      domain = "L+";
+    }
+    else if (row_domains_[i]==NEGATIVE_ORT) {
+      domain = "L-";
+    }
+    else if (row_domains_[i]==FIXPOINT_ZERO) {
+      domain = "L=";
+    }
+    else if (row_domains_[i]==QUAD_CONE) {
+      domain = "Q";
+    }
+    else if (row_domains_[i]==RQUAD_CONE) {
+      domain = "QR";
+    }
+    problem_stream << domain << " " << row_domain_size_[i] << std::endl;
+  }
+  problem_stream << std::endl;
+  // objacoord
+  int obj_num_nz = 0;
+  for (int i=0; i<num_cols_; ++i) {
+    if (obj_coef_[i]!=0.0) {
+      obj_num_nz++;
+    }
+  }
+  // find number of nonzero
+  problem_stream << "OBJACOORD" << std::endl;
+  problem_stream << obj_num_nz << std::endl;
+  for (int i=0; i<num_cols_; ++i) {
+    if (obj_coef_[i]!=0.0) {
+      problem_stream << i << " " << obj_coef_[i] << std::endl;
+    }
+  }
+  problem_stream << std::endl;
+  // acoord
+  problem_stream << "ACOORD" << std::endl;
+  problem_stream << num_nz_ << std::endl;
+  for (int i=0; i<num_nz_; ++i) {
+    problem_stream << row_coord_[i] << " "
+                   << col_coord_[i] << " "
+                   << coef_[i]
+                   << std::endl;
+  }
+  problem_stream << std::endl;
+  // bcoord
+  int ft_num_nz = 0;
+  for (int i=0; i<num_rows_; ++i) {
+    if (fixed_term_[i]!=0.0) {
+      ft_num_nz++;
+    }
+  }
+  problem_stream << "BCOORD" << std::endl;
+  problem_stream << ft_num_nz << std::endl;
+  for (int i=0; i<num_rows_; ++i) {
+    if (fixed_term_[i]!=0.0) {
+      problem_stream << i << " " << fixed_term_[i] << std::endl;
+    }
+  }
+}
 
 int DcoCbfIO::check_row_domains() const {
   for (int i=0; i<num_row_domains_; ++i) {
