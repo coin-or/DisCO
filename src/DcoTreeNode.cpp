@@ -501,7 +501,6 @@ int DcoTreeNode::process(bool isRoot, bool rampUp) {
 int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
   DcoModel * model = dynamic_cast<DcoModel*>(broker_->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
-  CoinMessages * messages = model->dcoMessages_;
   bool keepBounding = true;
   bool do_branch = false;
   int genConstraints = 0;
@@ -529,6 +528,7 @@ int DcoTreeNode::boundingLoop(bool isRoot, bool rampUp) {
       bcpStats_.lastObjVal_ = model->solver()->getObjValue();
     }
 #ifdef DISCO_DEBUG
+    CoinMessages * messages = model->dcoMessages_;
     // debug print solver status
     message_handler->message(DISCO_SOLVER_STATUS, *messages)
       << broker()->getProcRank()
@@ -1797,8 +1797,6 @@ void DcoTreeNode::checkRelaxedCols(int & numInf) {
 // by cgl in disco con generator.
 void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
   DcoModel * model = dynamic_cast<DcoModel*>(broker()->getModel());
-  CoinMessageHandler * message_handler = model->dcoMessageHandler_;
-  CoinMessages * messages = model->dcoMessages_;
   double scale_par = model->dcoPar()->entry(DcoParams::scaleConFactor);
   double density_par = model->dcoPar()->entry(DcoParams::denseConFactor);
   //double tailoff = model->dcoPar()->entry(DcoParams::tailOff);
@@ -1903,6 +1901,8 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
       cuts_to_del.push_back(i);
 
 #ifdef DISCO_DEBUG
+      CoinMessageHandler * message_handler = model->dcoMessageHandler_;
+      CoinMessages * messages = model->dcoMessages_;
       message_handler->message(DISCO_INEFFECTIVE_CUT, *messages)
         << broker()->getProcRank()
         << getIndex()
@@ -2060,6 +2060,8 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
     }
     if (model->solver()->setWarmStart(ws) == false) {
 #ifdef DISCO_DEBUG
+      CoinMessageHandler * message_handler = model->dcoMessageHandler_;
+      CoinMessages * messages = model->dcoMessages_;
       message_handler->message(DISCO_FAILED_WARM_START, *messages)
         << broker()->getProcRank()
         << getIndex()
@@ -2072,6 +2074,8 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
   }
 
 #ifdef DISCO_DEBUG
+  CoinMessageHandler * message_handler = model->dcoMessageHandler_;
+  CoinMessages * messages = model->dcoMessages_;
   message_handler->message(DISCO_CUTS_ADDED, *messages)
     << broker()->getProcRank()
     << getIndex()
@@ -2089,8 +2093,6 @@ AlpsReturnStatus DcoTreeNode::encode(AlpsEncoded * encoded) const {
   // get pointers for message logging
   assert(broker_);
   DcoModel * model = dynamic_cast<DcoModel*>(broker_->getModel());
-  CoinMessageHandler * message_handler = model->dcoMessageHandler_;
-  CoinMessages * messages = model->dcoMessages_;
 
   // return value
   AlpsReturnStatus status;
@@ -2100,6 +2102,8 @@ AlpsReturnStatus DcoTreeNode::encode(AlpsEncoded * encoded) const {
   assert(status==AlpsReturnStatusOk);
 
 #ifdef DISCO_DEBUG
+  CoinMessageHandler * message_handler = model->dcoMessageHandler_;
+  CoinMessages * messages = model->dcoMessages_;
   message_handler->message(DISCO_NODE_ENCODED, *messages)
     << broker()->getProcRank()
     << getIndex()
