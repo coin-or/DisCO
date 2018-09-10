@@ -69,7 +69,7 @@ DcoTreeNode::DcoTreeNode() {
   bcpStats_.generatorIndex_.clear();
 }
 
-DcoTreeNode::DcoTreeNode(AlpsNodeDesc *& desc) {
+DcoTreeNode::DcoTreeNode(AlpsNodeDesc *& desc) : BcpsTreeNode() {
   desc_ = desc;
   desc = NULL;
   bcpStats_.numBoundIter_ = 0;
@@ -87,8 +87,6 @@ DcoTreeNode::DcoTreeNode(AlpsNodeDesc *& desc) {
 }
 
 DcoTreeNode::~DcoTreeNode() {
-  bcpStats_.inactive_.clear();
-  bcpStats_.generatorIndex_.clear();
 }
 
 // create tree node from given description

@@ -686,7 +686,7 @@ void DcoModel::approximateCones() {
   {
     int numCuts = solver_->getNumRows() - numLinearRows_;
     // get warm start basis
-    CoinWarmStartBasis const * ws =
+    CoinWarmStartBasis * ws =
       dynamic_cast<CoinWarmStartBasis*> (solver_->getWarmStart());
     if (ws==NULL) {
       // nothing to do if there is no warm start information
@@ -726,6 +726,7 @@ void DcoModel::approximateCones() {
       }
       delete[] delInd;
     }
+    delete ws;
   }
   initOAcuts_ = solver_->getNumRows() - numLinearRows_;
 
