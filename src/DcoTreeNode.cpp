@@ -55,6 +55,7 @@ struct Bound {
 
 
 DcoTreeNode::DcoTreeNode() {
+  desc_ = NULL;
   bcpStats_.numBoundIter_ = 0;
   bcpStats_.numTotalCuts_ = 0;
   bcpStats_.numLastCuts_ = 0;
