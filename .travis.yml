@@ -3,7 +3,7 @@ language: cpp
 env:
   global:
     - secure: "1hnmHpE5atRiHUlENwRwZT/cyL4HvkS0MtJefHAH1dQXlvYf7oj0/Bou5zKkELZgKPLTWtuSIlXYqU/ViBw+7r2zGJPdYoEa04+cwCP1LXQC0uO9Lutd9RUGBRkQDUu6376Xa6Bh7ZXigpGeX9J/nNPgjIFFO4aPTci0/lrhNvQvHCkrdaZVdBCCfJUBOnR2Hc9lv1Qk3CBh3UPqDljeYV8X0LgDjzJjlsNI4OGcH7nOKV8zEFtUogSDQB3po3qBwOB+100o9Ogs5p+Hn4lGXyVW/S9TaHQWOhQ9c+kx0Har8aKT8tY+iCjVoPC10l4Ug00bdsbnXeMGchweJdAEJ1lVq+5sDX1vUBUhM7/y6JExOfkMWzC2WgYPHZU5MXl3Ga+L+oLQLAWGsIik/olK/6X7BUFNTqpF3cSGtAtFsAYU84qgBHcr+fBAUFJSQsd16Fs4GuzE80QIAOfp8dC56oC0isPhtNSDempSt8CeD+FMdGNQPwaBVMaPLgjMglWqAFlTqKFriRj9TLb0u/LDOmQ48YKPaOqQZVyajZXq7omYF32COuyDHFpkBwCxUVdNdRZfz/5/IDs9Yxs6CjsAkEoKk8QoALmvvSy3PR/tGJmRQ7D47IKMDIWNHTvhPA7ESbuJ5aOdnxLwkt5x/ANPGlRTKAnzUtn/aQv1yKwL1PM="
-  
+
 matrix:
   include:
     - os: linux
@@ -11,9 +11,7 @@ matrix:
         apt:
           packages:
             - gfortran
-            - libblas-dev
-            - liblapack-dev
-    - os: osx 
+    - os: osx
       osx_image: xcode8.2
       env: OSX=10.12
       compiler: clang
@@ -30,7 +28,7 @@ matrix:
 
 before_script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then  export PLATFORM=osx$OSX-x86_64-clang`clang -dumpversion`; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; brew tap homebrew/science; brew install bash gcc openblas; brew link --overwrite gcc; gfortran --version; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; brew tap homebrew/science; brew install bash gcc; brew link --overwrite gcc; gfortran --version; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PLATFORM=linux-x86_64-gcc`gcc -dumpversion`; fi
   - git clone https://github.com/coin-or-tools/BuildTools
   - bash BuildTools/get.dependencies.sh fetch > /dev/null
