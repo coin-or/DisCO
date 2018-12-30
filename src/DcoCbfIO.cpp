@@ -257,13 +257,16 @@ void DcoCbfIO::writeCbf(std::stringstream & problem_stream) const {
     problem_stream << domain << " " << col_domain_size_[i];
   }
   problem_stream << std::endl;
+  problem_stream << std::endl;
   // int
   problem_stream << "INT" << std::endl;
   problem_stream << num_int_ << std::endl;
   for (int i=0; i<num_int_; ++i) {
     problem_stream << integers_[i] << std::endl;
   }
+  problem_stream << std::endl;
   // con
+  problem_stream << "CON" << std::endl;
   problem_stream << num_rows_ << " " << num_row_domains_ << std::endl;
   for (int i=0; i<num_row_domains_; ++i) {
     std::string domain;
@@ -518,7 +521,7 @@ void DcoCbfIO::getProblem(double *& colLB, double *& colUB,
   }
 
   // compute cone info from cMembers and cType
-  numCones = cMembers.size();
+  numCones = static_cast<int>(cMembers.size());
   coneStart = new int[numCones+1];
   coneType = new int[numCones];
   std::copy(cType.begin(), cType.end(), coneType);
