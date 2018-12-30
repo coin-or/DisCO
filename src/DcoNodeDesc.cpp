@@ -82,12 +82,20 @@ CoinWarmStartBasis * DcoNodeDesc::getBasis() const {
 
 /// Encode this to an AlpsEncoded object.
 AlpsReturnStatus DcoNodeDesc::encode(AlpsEncoded * encoded) const {
+  DcoModel * dco_model = dynamic_cast<DcoModel*>(broker_->getModel());
+  CoinMessageHandler * message_handler = dco_model->dcoMessageHandler_;
+  CoinMessages * messages = dco_model->dcoMessages_;
   // return value
   AlpsReturnStatus status;
   status = AlpsNodeDesc::encode(encoded);
   // todo(aykut) rename this function in Bcps level?
   status = BcpsNodeDesc::encodeBcps(encoded);
   assert(status==AlpsReturnStatusOk);
+  if (status != AlpsReturnStatusOk) {
+    message_handler->message(DISCO_UNEXPECTED_ENCODE_STATUS,
+                             *messages)
+      << __FILE__ << __LINE__ << CoinMessageEol;
+  }
   encoded->writeRep(branchedDir_);
   encoded->writeRep(branchedInd_);
   encoded->writeRep(branchedVal_);
@@ -117,10 +125,17 @@ AlpsReturnStatus DcoNodeDesc::encode(AlpsEncoded * encoded) const {
 /// pointer to it.
 AlpsNodeDesc * DcoNodeDesc::decode(AlpsEncoded & encoded) const {
   // get pointers for message logging
+  DcoModel * dco_model = dynamic_cast<DcoModel*>(broker_->getModel());
+  CoinMessageHandler * message_handler = dco_model->dcoMessageHandler_;
+  CoinMessages * messages = dco_model->dcoMessages_;
   AlpsReturnStatus status;
   DcoNodeDesc * new_desc = new DcoNodeDesc();
   status = new_desc->decodeToSelf(encoded);
-  assert(status==AlpsReturnStatusOk);
+  if (status != AlpsReturnStatusOk) {
+    message_handler->message(DISCO_UNEXPECTED_DECODE_STATUS,
+                             *messages)
+      << __FILE__ << __LINE__ << CoinMessageEol;
+  }
   return new_desc;
 }
 

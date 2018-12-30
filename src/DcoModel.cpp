@@ -494,12 +494,14 @@ void DcoModel::setupAddConicConstraints() {
       dcoMessageHandler_->message(DISCO_READ_ROTATEDCONESIZE,
                                   *dcoMessages_) << CoinMessageEol;
     }
-    DcoLorentzConeType type;
-    if (coneType_[i]==1) {
-      type = DcoLorentzCone;
-    }
-    else if (coneType_[i]==2) {
+    DcoLorentzConeType type = DcoLorentzCone;
+    if (coneType_[i]==2) {
       type = DcoRotatedLorentzCone;
+    }
+    else if (coneType_[i]!=1) {
+      dcoMessageHandler_->message(DISCO_UNKNOWN_CONETYPE,
+                                  *dcoMessages_)
+        << __FILE__ << __LINE__ << CoinMessageEol;
     }
     DcoConicConstraint * cc =
       new DcoConicConstraint(type, num_members,
@@ -1672,8 +1674,8 @@ void DcoModel::reportFeasibility() {
     for (int j=0; j<size; ++j) {
       values[j] = sol[members[j]];
     }
-    double term1;
-    double term2;
+    double term1 = 0.0;
+    double term2 = 0.0;
     if (type==DcoLorentzCone) {
       term1 = values[0];
       term2 = std::inner_product(values+1, values+size, values+1, 0.0);
@@ -1729,8 +1731,8 @@ void DcoModel::reportFeasibility() {
       for (int j=0; j<size; ++j) {
         values[j] = sol[members[j]];
       }
-      double term1;
-      double term2;
+      double term1 = 0.0;
+      double term2 = 0.0;
       if (type==DcoLorentzCone) {
         term1 = values[0];
         term2 = std::inner_product(values+1, values+size, values+1, 0.0);
@@ -1768,9 +1770,9 @@ AlpsReturnStatus DcoModel::encode(AlpsEncoded * encoded) const {
       << __FILE__ << __LINE__ << CoinMessageEol;
   }
   // encode problem name
-  int probname_size = problemName_.size();
+  int probname_size = static_cast<int>(problemName_.size());
   encoded->writeRep(probname_size);
-  encoded->writeRep(problemName_.c_str(), problemName_.size());
+  encoded->writeRep(problemName_.c_str(), probname_size);
   // encode number of constraints
   encoded->writeRep(numCols_);
   encoded->writeRep(colLB_, numCols_);

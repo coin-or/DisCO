@@ -182,7 +182,7 @@ static Dco_message us_english[]=
      "\nThis program contains DisCO, a library for solving mixed integer second order\n"
      "cone optimization problems. Copyright 2014-2018 Lehigh University and others,\n"
      "all rights reserved. DisCO is distributed with Eclipse Public License 1.0.\n"
-     "For more information visit https://github.com/aykutbulut/DisCO.\n"
+     "For more information visit https://github.com/coin-or/DisCO.\n"
      "Version: %s\n"
      "Build Date: %s\n"},
     {DISCO_OUT_OF_MEMORY,9901,1, "[%d] Out of memory, file: %s, line: %d."},

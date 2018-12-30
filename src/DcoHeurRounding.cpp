@@ -352,8 +352,8 @@ DcoSolution * DcoHeurRounding::searchSolution() {
         for (int i=0; i<size; ++i) {
           values[i] = sol[members[i]];
         }
-        double term1;
-        double term2;
+        double term1 = 0.0;
+        double term2 = 0.0;
         if (type==DcoLorentzCone) {
           term1 = values[0];
           term2 = std::inner_product(values+1, values+size, values+1, 0.0);

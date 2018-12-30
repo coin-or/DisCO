@@ -851,7 +851,7 @@ void DcoTreeNode::callHeuristics() {
 
 /// Bounding procedure to estimate quality of this node.
 BcpsSubproblemStatus DcoTreeNode::bound() {
-  BcpsSubproblemStatus subproblem_status;
+  BcpsSubproblemStatus subproblem_status = BcpsSubproblemStatusUnknown;
   DcoModel * model = dynamic_cast<DcoModel*>(broker_->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
@@ -2092,7 +2092,6 @@ void DcoTreeNode::applyConstraints(BcpsConstraintPool const * conPool) {
 AlpsReturnStatus DcoTreeNode::encode(AlpsEncoded * encoded) const {
   // get pointers for message logging
   assert(broker_);
-  DcoModel * model = dynamic_cast<DcoModel*>(broker_->getModel());
 
   // return value
   AlpsReturnStatus status;
@@ -2102,6 +2101,7 @@ AlpsReturnStatus DcoTreeNode::encode(AlpsEncoded * encoded) const {
   assert(status==AlpsReturnStatusOk);
 
 #ifdef DISCO_DEBUG
+  DcoModel * model = dynamic_cast<DcoModel*>(broker_->getModel());
   CoinMessageHandler * message_handler = model->dcoMessageHandler_;
   CoinMessages * messages = model->dcoMessages_;
   message_handler->message(DISCO_NODE_ENCODED, *messages)
@@ -2115,6 +2115,9 @@ AlpsReturnStatus DcoTreeNode::encode(AlpsEncoded * encoded) const {
 
 /// Unpack into a new DcoTreeNode object and return a pointer to it.
 AlpsKnowledge * DcoTreeNode::decode(AlpsEncoded & encoded) const {
+  DcoModel * dco_model = dynamic_cast<DcoModel*>(broker_->getModel());
+  CoinMessageHandler * message_handler = dco_model->dcoMessageHandler_;
+  CoinMessages * messages = dco_model->dcoMessages_;
   // return value
   AlpsReturnStatus status;
   // todo(aykut) we are decoing, how do we know the model to assign the new
@@ -2125,7 +2128,11 @@ AlpsKnowledge * DcoTreeNode::decode(AlpsEncoded & encoded) const {
   new_node->setBroker(broker_);
   new_node_desc = NULL;
   status = new_node->decodeToSelf(encoded);
-  assert(status==AlpsReturnStatusOk);
+  if (status != AlpsReturnStatusOk) {
+    message_handler->message(DISCO_UNEXPECTED_DECODE_STATUS,
+                             *messages)
+      << __FILE__ << __LINE__ << CoinMessageEol;
+  }
   return new_node;
 }
 
@@ -2140,9 +2147,17 @@ AlpsReturnStatus DcoTreeNode::decodeToSelf(AlpsEncoded & encoded) {
   // return value
   AlpsReturnStatus status;
   status = AlpsTreeNode::decodeToSelf(encoded);
-  assert(status==AlpsReturnStatusOk);
+  if (status != AlpsReturnStatusOk) {
+    message_handler->message(DISCO_UNEXPECTED_DECODE_STATUS,
+                             *messages)
+      << __FILE__ << __LINE__ << CoinMessageEol;
+  }
   status = BcpsTreeNode::decodeToSelf(encoded);
-  assert(status==AlpsReturnStatusOk);
+  if (status != AlpsReturnStatusOk) {
+    message_handler->message(DISCO_UNEXPECTED_DECODE_STATUS,
+                             *messages)
+      << __FILE__ << __LINE__ << CoinMessageEol;
+  }
 
 #ifdef DISCO_DEBUG
   message_handler->message(DISCO_NODE_DECODED, *messages)
