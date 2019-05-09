@@ -347,7 +347,7 @@ in the root node.
 path_to_disco/disco input.mps Alps_instance input.mps Dco_branchStrategy 3 Dco_cutGomoryStrategy 1
 ```
 
-## 3. Current Testing Status ##
+## Current Testing Status ##
 
 Following is a list of DisCO options tested. Check [Aykut's dissertation][12]
 for more computational results of DisCO with various algorithms and solvers.
@@ -378,7 +378,7 @@ for more computational results of DisCO with various algorithms and solvers.
     - OpenMPI: Tested up to 128 processors and works fine. Great parallelization
       performance when the tree is well balanced.
 
-## 4. Documentation ##
+## Documentation
 
 You can refer to documentations of the dependent projects. DisCO uses doxygen
 for documentation purposes. Running ```make doxydoc``` in ```Disco``` directory
@@ -389,13 +389,13 @@ Check [Aykut's dissertation][12] for detailed explanations of the algorithms
 implemented.
 
 
-## 5. SUPPORT ##
+## SUPPORT
 
-### 5.1 Authors ###
+### Authors
 
 Aykut Bulut (aykutblt@gmail.com), Ted Ralphs (ted@lehigh.edu).
 
-### 5.2 Bug Reports ###
+### Bug Reports
 
 Bug reports should be reported at the DisCO repository at
 https://github.com/coin-or/DisCO/issues/new
