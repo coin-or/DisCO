@@ -1,1 +1,62 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# dependencies
+Alps/*
+Alps_repo/*
+Bcps/*
+Bcps_repo/*
+build/*
+BuildTools/*
+Cgl/*
+CglConic/*
+Clp/*
+CoinUtils/*
+Cola/*
+Ipopt/*
+opt_build/*
+Osi/*
+OSI-CONIC/*
+OsiConic/*
+OsiCplex/*
+OsiIpopt/*
+OSI-MOSEK/*
+OsiMosek/*
+ThirdParty/*
+Data/*
+
+# Installation files
+lib/*
+share/*
+include/*
+
+# autotools auxilary files
+
+# emacs backup files
 *~
