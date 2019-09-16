@@ -3,7 +3,6 @@ language: cpp
 env:
   global:
     - secure: "1hnmHpE5atRiHUlENwRwZT/cyL4HvkS0MtJefHAH1dQXlvYf7oj0/Bou5zKkELZgKPLTWtuSIlXYqU/ViBw+7r2zGJPdYoEa04+cwCP1LXQC0uO9Lutd9RUGBRkQDUu6376Xa6Bh7ZXigpGeX9J/nNPgjIFFO4aPTci0/lrhNvQvHCkrdaZVdBCCfJUBOnR2Hc9lv1Qk3CBh3UPqDljeYV8X0LgDjzJjlsNI4OGcH7nOKV8zEFtUogSDQB3po3qBwOB+100o9Ogs5p+Hn4lGXyVW/S9TaHQWOhQ9c+kx0Har8aKT8tY+iCjVoPC10l4Ug00bdsbnXeMGchweJdAEJ1lVq+5sDX1vUBUhM7/y6JExOfkMWzC2WgYPHZU5MXl3Ga+L+oLQLAWGsIik/olK/6X7BUFNTqpF3cSGtAtFsAYU84qgBHcr+fBAUFJSQsd16Fs4GuzE80QIAOfp8dC56oC0isPhtNSDempSt8CeD+FMdGNQPwaBVMaPLgjMglWqAFlTqKFriRj9TLb0u/LDOmQ48YKPaOqQZVyajZXq7omYF32COuyDHFpkBwCxUVdNdRZfz/5/IDs9Yxs6CjsAkEoKk8QoALmvvSy3PR/tGJmRQ7D47IKMDIWNHTvhPA7ESbuJ5aOdnxLwkt5x/ANPGlRTKAnzUtn/aQv1yKwL1PM="
-
 matrix:
   include:
     - os: linux
@@ -11,35 +10,47 @@ matrix:
         apt:
           packages:
             - gfortran
+            - liblapack-dev
+    - os: linux
+      dist: bionic
+      addons:
+        apt:
+          packages:
+            - gfortran
+            - liblapack-dev
     - os: osx
-      osx_image: xcode8.2
-      env: OSX=10.12
+      osx_image: xcode11
+      env: OSX=10.14 CC=gcc CXX=g++ 
       compiler: clang
     - os: osx
-      osx_image: xcode8
-      env: OSX=10.11
+      osx_image: xcode11
+      env: OSX=10.14 
       compiler: clang
     - os: osx
-      osx_image: xcode6.4
-      env: OSX=10.10
+      osx_image: xcode10
+      env: OSX=10.13 
       compiler: clang
-  allow_failures:
     - os: osx
+      osx_image: xcode9.2
+      env: OSX=10.12 
+      compiler: clang
 
 before_script:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then  export PLATFORM=osx$OSX-x86_64-clang`clang -dumpversion`; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; brew tap homebrew/science; brew install bash gcc; brew link --overwrite gcc; gfortran --version; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PLATFORM=linux-x86_64-gcc`gcc -dumpversion`; fi
-  - git clone https://github.com/coin-or-tools/BuildTools
-  - bash BuildTools/get.dependencies.sh fetch > /dev/null
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; brew install bash gcc; clang --version; gfortran --version; fi
+  - if [[ "$TRAVIS_OS_NAME $CC" == "osx gcc" ]]; then export CC=gcc-9 ; export CXX=g++-9 ; $CC --version; $CXX --version; fi
+  - cd ..
+  - wget https://raw.githubusercontent.com/coin-or/coinbrew/master/coinbrew
+  - export PROJECT_URL=https://github.com/$TRAVIS_REPO_SLUG
+  - export PROJECT=`echo $TRAVIS_REPO_SLUG | cut -d "/" -f 2`
+  - bash ./coinbrew fetch $PROJECT_URL:$TRAVIS_BRANCH --no-prompt --skip-update  > /dev/null 
 
 script:
-  - bash BuildTools/get.dependencies.sh build --verbosity=2
-
+  - bash ./coinbrew build $PROJECT --no-prompt --verbosity=2 --test
 after_script:
-  - if [ $TRAVIS_BRANCH = "master" ]; then export VERSION=trunk; else export VERSION=`echo $TRAVIS_BRANCH | cut -d "/" -f 2`; fi
-  - export PROJECT=`echo $TRAVIS_REPO_SLUG | cut -d "/" -f 2`
+  - if [ $TRAVIS_BRANCH = "master" ]; then export VERSION=master; else export VERSION=`echo $TRAVIS_BRANCH | cut -d "/" -f 2`; fi
   - export TGZ_FILE=$PROJECT-$VERSION-$PLATFORM.tgz
   - echo $TGZ_FILE
-  - tar -czvf $TGZ_FILE build/lib/* build/bin/* build/include/* build/share/* README.md LICENSE AUTHORS
+  - cp $PROJECT/README.md $PROJECT/LICENSE $PROJECT/$PROJECT/AUTHORS dist
+  - cd dist
+  - tar -czvf $TGZ_FILE lib/* bin/* include/* share/* README.md LICENSE AUTHORS
   - curl -T $TGZ_FILE -utkralphs:$BINTRAY_API -H "X-Bintray-Publish:1" -H "X-Bintray-Override:1" https://api.bintray.com/content/coin-or/download/$PROJECT/$VERSION/$TGZ_FILE
